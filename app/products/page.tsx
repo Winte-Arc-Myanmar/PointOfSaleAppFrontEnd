@@ -16,14 +16,9 @@ export default function ProductsPage() {
   return (
     <Shell>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Products
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Sample feature: products list and create form
-          </p>
-        </div>
+        <p className="text-matte-white/70">
+          Manage your product catalog. Add products and view the list below.
+        </p>
 
         <Card>
           <CardHeader>
@@ -34,10 +29,12 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
 
-        <div>
-          <h2 className="mb-4 text-lg font-semibold">Product List</h2>
+        <section>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-matte-white/60">
+            Product List
+          </h2>
           <ProductList />
-        </div>
+        </section>
       </div>
     </Shell>
   );

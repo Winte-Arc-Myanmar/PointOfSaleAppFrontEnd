@@ -18,16 +18,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         // Call your external auth API here
-        const res = await fetch(`${baseUrl}/auth/login`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials?.email,
-              password: credentials?.password,
-            }),
-          }
-        );
+        const res = await fetch(`${baseUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: credentials?.email,
+            password: credentials?.password,
+          }),
+        });
         if (!res.ok) return null;
         const data = await res.json();
         return {
@@ -47,7 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user && token.accessToken) {
-        (session as { accessToken?: string }).accessToken = token.accessToken as string;
+        (session as { accessToken?: string }).accessToken =
+          token.accessToken as string;
       }
       return session;
     },

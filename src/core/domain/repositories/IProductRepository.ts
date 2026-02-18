@@ -8,5 +8,7 @@ import type { ProductDto } from "@/core/application/dtos/ProductDto";
 
 export interface IProductRepository {
   getAll(): Promise<Product[]>;
-  create(data: Omit<ProductDto, "id" | "createdAt" | "updatedAt">): Promise<Product>;
+  create(
+    data: Omit<ProductDto, "id" | "createdAt" | "updatedAt">
+  ): Promise<Product>;
 }

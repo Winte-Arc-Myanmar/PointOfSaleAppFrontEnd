@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Winterarc POS",
+  title: "Vision AI POS",
   description: "Point of Sale system",
 };
 
