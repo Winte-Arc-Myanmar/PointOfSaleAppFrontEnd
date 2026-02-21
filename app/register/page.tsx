@@ -7,10 +7,7 @@ import { RegisterForm } from "@/features/auth/presentation/RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <AuthPageLayout
-      title="Vision AI POS"
-      subtitle="Create your account"
-    >
+    <AuthPageLayout title="Vision AI POS" subtitle="Create your account">
       <RegisterForm />
     </AuthPageLayout>
   );

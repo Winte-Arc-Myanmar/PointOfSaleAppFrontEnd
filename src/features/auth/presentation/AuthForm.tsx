@@ -52,7 +52,8 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
 
   const schema = schemas[mode];
   const isLogin = mode === "login";
-  const defaultCallbackUrl = callbackUrl ?? searchParams.get("callbackUrl") ?? "/products";
+  const defaultCallbackUrl =
+    callbackUrl ?? searchParams.get("callbackUrl") ?? "/products";
 
   const {
     register,
@@ -119,7 +120,9 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
             autoComplete="name"
           />
           {(errors as Record<string, { message?: string }>).name && (
-            <p className="text-sm text-red-400">{(errors as Record<string, { message?: string }>).name?.message}</p>
+            <p className="text-sm text-red-400">
+              {(errors as Record<string, { message?: string }>).name?.message}
+            </p>
           )}
         </div>
       )}
@@ -161,7 +164,10 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
           />
           {(errors as Record<string, { message?: string }>).confirmPassword && (
             <p className="text-sm text-red-400">
-              {(errors as Record<string, { message?: string }>).confirmPassword?.message}
+              {
+                (errors as Record<string, { message?: string }>).confirmPassword
+                  ?.message
+              }
             </p>
           )}
         </div>
