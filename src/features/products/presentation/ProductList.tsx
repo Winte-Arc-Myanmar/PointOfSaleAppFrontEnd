@@ -1,43 +1,87 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { Button } from "@/presentation/components/ui/button";
+import { DataTable } from "@/presentation/components/data-table";
+import { FormModal } from "@/presentation/components/modal/FormModal";
+import { getProductRowActions } from "./product-row-actions";
+import { getProductTableColumns } from "./product-table-columns";
+import { CreateProductForm } from "./CreateProductForm";
+import type { Product } from "@/core/domain/entities/Product";
+
+const CREATE_PRODUCT_FORM_ID = "create-product-form";
 
 export function ProductList() {
-  const { data: products, isLoading, error, refetch } = useProducts();
+  const router = useRouter();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createFormLoading, setCreateFormLoading] = useState(false);
+  const { data: products = [], isLoading, error, refetch } = useProducts();
 
-  if (isLoading) return <p className="text-matte-white/70">Loading products...</p>;
-  if (error)
-    return (
-      <div className="space-y-2">
-        <p className="text-red-400">
-          Failed to load products. Is the backend API running?
-        </p>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          Retry
-        </Button>
-      </div>
-    );
-  if (!products?.length)
-    return <p className="text-matte-white/70">No products yet. Create one above.</p>;
+  const actions = useMemo(
+    () =>
+      getProductRowActions({
+        onView: (p) => router.push(`/products/${p.id}`),
+        onEdit: (p) => router.push(`/products/${p.id}/edit`),
+        onDelete: (p) => {
+          if (typeof window !== "undefined" && window.confirm(`Delete "${p.name}"?`)) {
+            // TODO: call productService.delete(p.id)
+          }
+        },
+      }),
+    [router]
+  );
+
+  const columns = useMemo(() => getProductTableColumns(), []);
 
   return (
-    <ul className="space-y-2">
-      {products.map((p, i) => (
-        <motion.li
-          key={p.id}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, delay: i * 0.03 }}
-          className="flex items-center justify-between rounded-lg border border-mint/20 bg-gloss-black/60 px-4 py-3 transition-colors hover:border-mint/40"
-        >
-          <span className="font-medium text-matte-white">{p.name}</span>
-          <span className="text-sm text-matte-white/80">
-            {p.sku} · {p.price.currency} {p.price.amount}
-          </span>
-        </motion.li>
-      ))}
-    </ul>
+    <>
+      <div className="mb-4 flex justify-end">
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
+      </div>
+      <DataTable<Product>
+        data={products}
+        columns={columns}
+        actions={actions}
+        isLoading={isLoading}
+        loadingText="Loading products..."
+        emptyText="No products yet."
+        emptyAction={{
+          label: "Add Product",
+          onClick: () => setCreateModalOpen(true),
+        }}
+        error={
+          error
+            ? {
+                message: "Failed to load products. Is the backend API running?",
+                onRetry: () => refetch(),
+              }
+            : undefined
+        }
+        pageSize={10}
+      />
+      <FormModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        title="Create Product"
+        formId={CREATE_PRODUCT_FORM_ID}
+        formContent={
+          <CreateProductForm
+            formId={CREATE_PRODUCT_FORM_ID}
+            onSuccess={() => setCreateModalOpen(false)}
+            onLoadingChange={setCreateFormLoading}
+          />
+        }
+        submitText="Create Product"
+        loadingText="Creating..."
+        isLoading={createFormLoading}
+        maxWidth="lg"
+      />
+    </>
   );
 }

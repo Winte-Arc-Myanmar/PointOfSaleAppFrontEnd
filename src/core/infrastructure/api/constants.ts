@@ -12,4 +12,8 @@ export const API_ENDPOINTS = {
     LIST: "/products",
     CREATE: "/products",
   },
+  AUTH: {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+  },
 } as const;

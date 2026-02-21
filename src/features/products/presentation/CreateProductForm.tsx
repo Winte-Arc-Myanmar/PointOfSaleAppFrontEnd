@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +21,16 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export function CreateProductForm() {
+export interface CreateProductFormProps {
+  onSuccess?: () => void;
+  /** When set, render as <form id={formId}> and omit the submit button (e.g. when used inside FormModal). */
+  formId?: string;
+  /** Notify parent of submit loading so modal footer can show loading state. */
+  onLoadingChange?: (loading: boolean) => void;
+}
+
+export function CreateProductForm(props?: CreateProductFormProps) {
+  const { onSuccess, formId, onLoadingChange } = props ?? {};
   const queryClient = useQueryClient();
   const {
     register,
@@ -50,6 +60,7 @@ export function CreateProductForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       reset();
+      onSuccess?.();
     },
   });
 
@@ -110,9 +121,11 @@ export function CreateProductForm() {
           Failed to create product. Check backend connectivity.
         </p>
       )}
-      <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "Creating..." : "Create Product"}
-      </Button>
+      {!formId && (
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Creating..." : "Create Product"}
+        </Button>
+      )}
     </form>
   );
 }

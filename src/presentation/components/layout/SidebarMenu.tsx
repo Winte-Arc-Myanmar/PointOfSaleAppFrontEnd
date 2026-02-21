@@ -18,7 +18,12 @@ interface SidebarMenuProps {
   pathname: string;
 }
 
-export function SidebarMenu({ isOpen, isCollapsed, onClose, pathname }: SidebarMenuProps) {
+export function SidebarMenu({
+  isOpen,
+  isCollapsed,
+  onClose,
+  pathname,
+}: SidebarMenuProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   return (
@@ -115,7 +120,9 @@ export function SidebarMenu({ isOpen, isCollapsed, onClose, pathname }: SidebarM
                     title={isCollapsed ? label : undefined}
                     className={cn(
                       "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
-                      isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
+                      isCollapsed
+                        ? "justify-center px-0 py-2.5"
+                        : "gap-3 px-3 py-2.5",
                       isActive
                         ? "bg-mint/15 text-mint shadow-sm"
                         : "text-matte-white/70 hover:bg-mint/10 hover:text-matte-white"
@@ -152,7 +159,10 @@ export function SidebarMenu({ isOpen, isCollapsed, onClose, pathname }: SidebarM
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
-            <LogOut className="size-5 shrink-0 text-matte-white/50" strokeWidth={2} />
+            <LogOut
+              className="size-5 shrink-0 text-matte-white/50"
+              strokeWidth={2}
+            />
             {!isCollapsed && <span>Sign out</span>}
           </button>
         </div>

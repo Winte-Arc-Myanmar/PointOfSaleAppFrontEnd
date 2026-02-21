@@ -5,13 +5,17 @@
 
 import { auth } from "@/server/auth";
 
+const publicPaths = ["/login", "/register", "/products"];
+
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isLoginPage = req.nextUrl.pathname.startsWith("/login");
-  if (!isLoggedIn && !isLoginPage) {
+  const pathname = req.nextUrl.pathname;
+  const isPublic = publicPaths.some((p) => pathname.startsWith(p));
+
+  if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl));
   }
-  if (isLoggedIn && isLoginPage) {
+  if (isLoggedIn && isPublic) {
     return Response.redirect(new URL("/products", req.nextUrl));
   }
   return undefined;
