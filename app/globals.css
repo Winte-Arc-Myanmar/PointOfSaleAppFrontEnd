@@ -5,6 +5,11 @@
   --color-matte-white: #FDFBF9;
   --color-mint: #ADFFC3;
   --color-mint-hover: #8effa8;
+  /* Theme-aware semantic colors (overridden by .dark below) */
+  --color-background: #FDFBF9;
+  --color-foreground: #252324;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
 }
 
 @theme inline {
@@ -12,8 +17,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode: next-themes adds .dark to <html> */
+.dark {
+  --color-background: #252324;
+  --color-foreground: #FDFBF9;
+  --color-muted: #9ca3af;
+  --color-border: rgba(173, 255, 195, 0.2);
+}
+
 body {
-  background: var(--color-gloss-black);
-  color: var(--color-matte-white);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

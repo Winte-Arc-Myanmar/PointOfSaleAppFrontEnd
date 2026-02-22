@@ -157,10 +157,10 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div className="w-full space-y-4">
       {showLoading ? (
-        <div className="flex items-center justify-center h-64 rounded-lg border border-mint/20 bg-gloss-black/60">
+        <div className="flex items-center justify-center h-64 rounded-lg border border-border bg-background/80">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-mint/30 border-t-mint mx-auto mb-4" />
-            <p className="text-matte-white/70">{loadingText}</p>
+            <p className="text-muted">{loadingText}</p>
           </div>
         </div>
       ) : (
@@ -227,7 +227,7 @@ export function DataTable<T extends { id: string | number }>({
                 className="h-40 py-10 text-center"
               >
                 <div className="flex flex-col items-center justify-center gap-3">
-                  <p className="text-matte-white/60">{emptyText}</p>
+                  <p className="text-muted">{emptyText}</p>
                   {emptyAction && (
                     <Button
                       variant="default"
@@ -305,7 +305,7 @@ export function DataTable<T extends { id: string | number }>({
 
       {!error && pageCount > 1 && (hasServerPagination ? onPageChange : true) && (
         <div className="flex items-center justify-between px-2 py-4">
-          <p className="text-sm text-matte-white/60">
+          <p className="text-sm text-muted">
             Showing {total === 0 ? 0 : start} to {end} of {total} results
           </p>
           <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export function DataTable<T extends { id: string | number }>({
               <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-            <span className="text-sm text-matte-white/80">
+            <span className="text-sm text-muted">
               Page {pageIndex + 1} of {pageCount}
             </span>
             <Button

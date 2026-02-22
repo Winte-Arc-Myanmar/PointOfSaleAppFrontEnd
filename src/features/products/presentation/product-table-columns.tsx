@@ -13,7 +13,7 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
       render: (p) => (
-        <span className="font-medium text-matte-white truncate" title={p.name}>
+        <span className="font-medium text-foreground truncate" title={p.name}>
           {p.name}
         </span>
       ),
@@ -24,7 +24,7 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       sortable: true,
       className: "min-w-[80px] max-w-[140px]",
       render: (p) => (
-        <span className="text-matte-white/80 truncate" title={p.sku}>
+        <span className="text-muted truncate" title={p.sku}>
           {p.sku}
         </span>
       ),
@@ -34,7 +34,7 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       header: "Price",
       className: "min-w-[80px] max-w-[120px]",
       render: (p) => (
-        <span className="text-matte-white/80">
+        <span className="text-muted">
           {p.price.currency} {p.price.amount}
         </span>
       ),
@@ -45,7 +45,7 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       sortable: true,
       className: "min-w-[70px] max-w-[90px]",
       render: (p) => (
-        <span className="text-matte-white/80">{p.quantityInStock}</span>
+        <span className="text-muted">{p.quantityInStock}</span>
       ),
     },
   ];

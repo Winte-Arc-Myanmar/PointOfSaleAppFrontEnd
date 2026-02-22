@@ -56,7 +56,7 @@ export function SidebarMenu({
           mass: 0.8,
         }}
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden bg-gloss-black shadow-xl lg:static lg:z-auto"
+          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden bg-background shadow-xl lg:static lg:z-auto border-r border-border"
         )}
       >
         {/* Brand header */}
@@ -70,7 +70,7 @@ export function SidebarMenu({
             href="/products"
             onClick={onClose}
             className={cn(
-              "flex items-center font-semibold tracking-tight text-matte-white transition-colors hover:text-mint",
+              "flex items-center font-semibold tracking-tight text-foreground transition-colors hover:text-mint",
               isCollapsed ? "justify-center" : "gap-2"
             )}
           >
@@ -84,7 +84,7 @@ export function SidebarMenu({
             <button
               type="button"
               onClick={onClose}
-              className="flex size-9 items-center justify-center rounded-lg text-matte-white/70 transition-colors hover:bg-mint/10 hover:text-matte-white lg:hidden"
+              className="flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-mint/10 hover:text-foreground lg:hidden"
               aria-label="Close menu"
             >
               <X className="size-5" strokeWidth={2} />
@@ -100,7 +100,7 @@ export function SidebarMenu({
           )}
         >
           {!isCollapsed && (
-            <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-matte-white/40">
+            <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">
               Menu
             </p>
           )}
@@ -124,14 +124,14 @@ export function SidebarMenu({
                         ? "justify-center px-0 py-2.5"
                         : "gap-3 px-3 py-2.5",
                       isActive
-                        ? "bg-mint/15 text-mint shadow-sm"
-                        : "text-matte-white/70 hover:bg-mint/10 hover:text-matte-white"
+                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20"
+                        : "text-muted hover:bg-mint/10 hover:text-foreground"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5 shrink-0",
-                        isActive ? "text-mint" : "text-matte-white/50"
+                        isActive ? "text-mint" : "text-muted"
                       )}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
@@ -146,7 +146,7 @@ export function SidebarMenu({
         {/* Footer - Sign out */}
         <div
           className={cn(
-            "shrink-0 border-t border-mint/20 transition-all duration-300",
+            "shrink-0 border-t border-border transition-all duration-300",
             isCollapsed ? "p-2" : "p-4"
           )}
         >
@@ -155,12 +155,12 @@ export function SidebarMenu({
             onClick={() => signOut({ callbackUrl: "/login" })}
             title={isCollapsed ? "Sign out" : undefined}
             className={cn(
-              "flex w-full items-center rounded-lg text-sm font-medium text-matte-white/70 transition-colors hover:bg-mint/10 hover:text-matte-white",
+              "flex w-full items-center rounded-lg text-sm font-medium text-muted transition-colors hover:bg-mint/10 hover:text-foreground",
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
             <LogOut
-              className="size-5 shrink-0 text-matte-white/50"
+              className="size-5 shrink-0 text-muted"
               strokeWidth={2}
             />
             {!isCollapsed && <span>Sign out</span>}

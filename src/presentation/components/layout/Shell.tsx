@@ -22,7 +22,7 @@ export function Shell({ children }: ShellProps) {
   const title = routeTitles[pathname] ?? "";
 
   return (
-    <div className="flex min-h-screen bg-gloss-black">
+    <div className="flex min-h-screen bg-background">
       <SidebarMenu
         isOpen={menuOpen}
         isCollapsed={isCollapsed}

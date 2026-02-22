@@ -176,7 +176,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? loadingLabel : submitLabel}
       </Button>
-      <p className="text-center text-sm text-matte-white/70">
+      <p className="text-center text-sm text-muted">
         {isLogin ? (
           <>
             Don&apos;t have an account?{" "}
