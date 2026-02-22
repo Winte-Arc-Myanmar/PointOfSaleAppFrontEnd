@@ -2,11 +2,11 @@
 
 @theme {
   --color-gloss-black: #252324;
-  --color-matte-white: #FDFBF9;
-  --color-mint: #ADFFC3;
+  --color-matte-white: #fdfbf9;
+  --color-mint: #adffc3;
   --color-mint-hover: #8effa8;
   /* Theme-aware semantic colors (overridden by .dark below) */
-  --color-background: #FDFBF9;
+  --color-background: #fdfbf9;
   --color-foreground: #252324;
   --color-muted: #6b7280;
   --color-border: #e5e7eb;
@@ -20,7 +20,7 @@
 /* Dark mode: next-themes adds .dark to <html> */
 .dark {
   --color-background: #252324;
-  --color-foreground: #FDFBF9;
+  --color-foreground: #fdfbf9;
   --color-muted: #9ca3af;
   --color-border: rgba(173, 255, 195, 0.2);
 }

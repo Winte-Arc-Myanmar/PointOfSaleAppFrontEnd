@@ -117,14 +117,14 @@ export function DataTable<T extends { id: string | number }>({
     columns: columnDefs,
     state: {
       sorting: hasServerSort ? undefined : sorting,
-      pagination: hasServerPagination
-        ? undefined
-        : { pageIndex: 0, pageSize },
+      pagination: hasServerPagination ? undefined : { pageIndex: 0, pageSize },
     },
     onSortingChange: hasServerSort ? undefined : setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: hasServerSort ? undefined : getSortedRowModel(),
-    getPaginationRowModel: hasServerPagination ? undefined : getPaginationRowModel(),
+    getPaginationRowModel: hasServerPagination
+      ? undefined
+      : getPaginationRowModel(),
     manualPagination: !!hasServerPagination,
     manualSorting: !!hasServerSort,
     pageCount: hasServerPagination ? totalPages : undefined,
@@ -145,11 +145,18 @@ export function DataTable<T extends { id: string | number }>({
     }
   };
 
-  const pageIndex = hasServerPagination ? (currentPage ?? 1) - 1 : table.getState().pagination.pageIndex;
+  const pageIndex = hasServerPagination
+    ? (currentPage ?? 1) - 1
+    : table.getState().pagination.pageIndex;
   const pageCount = hasServerPagination ? totalPages : table.getPageCount();
   const total = hasServerPagination ? totalItems : data.length;
-  const start = hasServerPagination ? (pageIndex * (table.getState().pagination?.pageSize ?? pageSize)) + 1 : pageIndex * pageSize + 1;
-  const end = Math.min(start + (table.getState().pagination?.pageSize ?? pageSize) - 1, total);
+  const start = hasServerPagination
+    ? pageIndex * (table.getState().pagination?.pageSize ?? pageSize) + 1
+    : pageIndex * pageSize + 1;
+  const end = Math.min(
+    start + (table.getState().pagination?.pageSize ?? pageSize) - 1,
+    total
+  );
 
   const hasActions = actions.length > 0 || onView || onEdit || onDelete;
   const showLoading = isLoading && data.length === 0 && !error;
@@ -164,183 +171,217 @@ export function DataTable<T extends { id: string | number }>({
           </div>
         </div>
       ) : (
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className={(header.column.columnDef.meta as { className?: string })?.className}
-                >
-                  {header.column.getCanSort() ? (
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 hover:text-mint transition-colors"
-                      onClick={() => handleSort(header.column.id)}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                      {sortBy === header.column.id || sorting[0]?.id === header.column.id
-                        ? (sortOrder === "desc" || sorting[0]?.desc)
-                          ? " ↓"
-                          : " ↑"
-                        : null}
-                    </button>
-                  ) : (
-                    header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableHead>
-              ))}
-              {hasActions && <TableHead className="w-[100px]">Actions</TableHead>}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {error ? (
-            <TableRow>
-              <TableCell
-                colSpan={columnDefs.length + (hasActions ? 1 : 0)}
-                className="h-40 py-10 text-center"
-              >
-                <div className="flex flex-col items-center justify-center gap-3">
-                  <p className="text-red-400">{error.message}</p>
-                  {error.onRetry && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={error.onRetry}
-                    >
-                      Retry
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : table.getRowModel().rows?.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={columnDefs.length + (hasActions ? 1 : 0)}
-                className="h-40 py-10 text-center"
-              >
-                <div className="flex flex-col items-center justify-center gap-3">
-                  <p className="text-muted">{emptyText}</p>
-                  {emptyAction && (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={emptyAction.onClick}
-                    >
-                      {emptyAction.label}
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className={(cell.column.columnDef.meta as { className?: string })?.className}
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={
+                      (header.column.columnDef.meta as { className?: string })
+                        ?.className
+                    }
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+                    {header.column.getCanSort() ? (
+                      <button
+                        type="button"
+                        className="flex items-center gap-2 hover:text-mint transition-colors"
+                        onClick={() => handleSort(header.column.id)}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        {sortBy === header.column.id ||
+                        sorting[0]?.id === header.column.id
+                          ? sortOrder === "desc" || sorting[0]?.desc
+                            ? " ↓"
+                            : " ↑"
+                          : null}
+                      </button>
+                    ) : header.isPlaceholder ? null : (
+                      flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )
+                    )}
+                  </TableHead>
                 ))}
                 {hasActions && (
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {onView && (
-                          <DropdownMenuItem onClick={() => onView(row.original)}>
-                            View
-                          </DropdownMenuItem>
-                        )}
-                        {onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                            Edit
-                          </DropdownMenuItem>
-                        )}
-                        {onDelete && (
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => onDelete(row.original)}
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        )}
-                        {actions.map((action, idx) => {
-                          const disabled = action.disabled?.(row.original);
-                          return (
-                            <DropdownMenuItem
-                              key={idx}
-                              disabled={disabled}
-                              variant={action.variant === "destructive" ? "destructive" : "default"}
-                              onClick={() => !disabled && action.onClick(row.original)}
-                            >
-                              {action.icon && <action.icon className="mr-2 h-4 w-4" />}
-                              {action.label}
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 )}
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {error ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columnDefs.length + (hasActions ? 1 : 0)}
+                  className="h-40 py-10 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <p className="text-red-400">{error.message}</p>
+                    {error.onRetry && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={error.onRetry}
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columnDefs.length + (hasActions ? 1 : 0)}
+                  className="h-40 py-10 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <p className="text-muted">{emptyText}</p>
+                    {emptyAction && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={emptyAction.onClick}
+                      >
+                        {emptyAction.label}
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        (cell.column.columnDef.meta as { className?: string })
+                          ?.className
+                      }
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                  {hasActions && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {onView && (
+                            <DropdownMenuItem
+                              onClick={() => onView(row.original)}
+                            >
+                              View
+                            </DropdownMenuItem>
+                          )}
+                          {onEdit && (
+                            <DropdownMenuItem
+                              onClick={() => onEdit(row.original)}
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                          )}
+                          {onDelete && (
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => onDelete(row.original)}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                          {actions.map((action, idx) => {
+                            const disabled = action.disabled?.(row.original);
+                            return (
+                              <DropdownMenuItem
+                                key={idx}
+                                disabled={disabled}
+                                variant={
+                                  action.variant === "destructive"
+                                    ? "destructive"
+                                    : "default"
+                                }
+                                onClick={() =>
+                                  !disabled && action.onClick(row.original)
+                                }
+                              >
+                                {action.icon && (
+                                  <action.icon className="mr-2 h-4 w-4" />
+                                )}
+                                {action.label}
+                              </DropdownMenuItem>
+                            );
+                          })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       )}
 
-      {!error && pageCount > 1 && (hasServerPagination ? onPageChange : true) && (
-        <div className="flex items-center justify-between px-2 py-4">
-          <p className="text-sm text-muted">
-            Showing {total === 0 ? 0 : start} to {end} of {total} results
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pageIndex <= 0}
-              onClick={() =>
-                hasServerPagination
-                  ? onPageChange?.(pageIndex)
-                  : table.previousPage()
-              }
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <span className="text-sm text-muted">
-              Page {pageIndex + 1} of {pageCount}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pageIndex >= pageCount - 1}
-              onClick={() =>
-                hasServerPagination
-                  ? onPageChange?.(pageIndex + 2)
-                  : table.nextPage()
-              }
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      {!error &&
+        pageCount > 1 &&
+        (hasServerPagination ? onPageChange : true) && (
+          <div className="flex items-center justify-between px-2 py-4">
+            <p className="text-sm text-muted">
+              Showing {total === 0 ? 0 : start} to {end} of {total} results
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pageIndex <= 0}
+                onClick={() =>
+                  hasServerPagination
+                    ? onPageChange?.(pageIndex)
+                    : table.previousPage()
+                }
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <span className="text-sm text-muted">
+                Page {pageIndex + 1} of {pageCount}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pageIndex >= pageCount - 1}
+                onClick={() =>
+                  hasServerPagination
+                    ? onPageChange?.(pageIndex + 2)
+                    : table.nextPage()
+                }
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

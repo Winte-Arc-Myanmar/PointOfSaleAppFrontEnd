@@ -44,9 +44,7 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       header: "Stock",
       sortable: true,
       className: "min-w-[70px] max-w-[90px]",
-      render: (p) => (
-        <span className="text-muted">{p.quantityInStock}</span>
-      ),
+      render: (p) => <span className="text-muted">{p.quantityInStock}</span>,
     },
   ];
 }
