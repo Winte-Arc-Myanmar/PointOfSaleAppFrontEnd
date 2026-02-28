@@ -1,14 +1,19 @@
 /**
- * Register page - SSR shell, client form.
+ * Registration is only available to System Admins at /admin/register.
+ * This page redirects accordingly.
  */
 
-import { AuthPageLayout } from "@/presentation/components/layout/AuthPageLayout";
-import { RegisterForm } from "@/features/auth/presentation/RegisterForm";
+import { redirect } from "next/navigation";
+import { auth } from "@/server/auth";
 
-export default function RegisterPage() {
-  return (
-    <AuthPageLayout title="Vision AI POS" subtitle="Create your account">
-      <RegisterForm />
-    </AuthPageLayout>
-  );
+export default async function RegisterPage() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login");
+  }
+  const userType = (session.user as { type?: string }).type;
+  if (userType === "systemAdmin") {
+    redirect("/admin/register");
+  }
+  redirect("/products");
 }

@@ -1,27 +1,14 @@
 /**
  * Auth service interface.
- * Domain layer - contract for auth operations.
- * Implementations call external backend; swap when API is ready.
+ * Domain layer - auth operations (login + register). Used by auth.ts and UI.
  */
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import type { AuthUser } from "@/core/domain/entities/User";
+import type { LoginCredentials, RegisterData } from "@/core/domain/types/auth";
 
-export interface RegisterData {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthUser {
-  id?: string;
-  email: string;
-  name?: string | null;
-  image?: string | null;
-  accessToken?: string;
-}
+export type { UserType } from "@/core/domain/types/auth";
+export type { LoginCredentials, RegisterData } from "@/core/domain/types/auth";
+export type { AuthUser } from "@/core/domain/entities/User";
 
 export interface IAuthService {
   login(credentials: LoginCredentials): Promise<AuthUser | null>;

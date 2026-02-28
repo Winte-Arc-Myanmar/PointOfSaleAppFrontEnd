@@ -13,7 +13,10 @@ export const API_ENDPOINTS = {
     CREATE: "/products",
   },
   AUTH: {
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
+    /** POST - sign in;  */
+    SIGNIN: "/v1/auth/signin",
+    /** GET - current session (Bearer token) */
+    SESSION: "/v1/auth/session",
+    REGISTER: "/v1/auth/register",
   },
 } as const;

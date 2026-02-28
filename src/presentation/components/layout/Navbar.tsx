@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Menu, PanelLeftClose, PanelLeft } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
 
@@ -20,6 +21,10 @@ export function Navbar({
   title,
   className,
 }: NavbarProps) {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const displayName = user?.name ?? user?.email ?? null;
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -8 }}
@@ -62,7 +67,15 @@ export function Navbar({
           {title}
         </motion.h1>
       )}
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-3">
+        {displayName && (
+          <div className="hidden items-center gap-2 rounded-lg bg-mint/10 px-3 py-1.5 text-sm text-foreground sm:flex">
+            <User className="size-4 shrink-0 text-mint" />
+            <span className="max-w-40 truncate" title={displayName}>
+              {displayName}
+            </span>
+          </div>
+        )}
         <ThemeToggle />
       </div>
     </motion.header>

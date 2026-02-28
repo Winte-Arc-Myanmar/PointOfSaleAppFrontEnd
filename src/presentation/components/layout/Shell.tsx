@@ -9,6 +9,7 @@ import { Navbar } from "./Navbar";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
+  "/admin/register": "Register user",
 };
 
 interface ShellProps {

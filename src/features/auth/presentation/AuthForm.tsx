@@ -7,8 +7,8 @@ import { z } from "zod";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import container from "@/core/infrastructure/di/container";
-import type { IAuthService } from "@/core/domain/services/IAuthService";
+import type { UserType } from "@/core/domain/types/auth";
+import { useAuthService } from "@/presentation/hooks/useAuthService";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -16,6 +16,7 @@ import { Label } from "@/presentation/components/ui/label";
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
   password: z.string().min(1, "Password is required"),
+  branchId: z.string().optional(),
 });
 
 const registerSchema = z
@@ -32,12 +33,7 @@ const registerSchema = z
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
-/** Data passed to onSubmit for register (no confirmPassword) */
-export type RegisterSubmitData = Omit<RegisterFormData, "confirmPassword">;
-
 export type AuthMode = "login" | "register";
-
-const schemas = { login: loginSchema, register: registerSchema } as const;
 
 export interface AuthFormProps {
   mode: AuthMode;
@@ -48,95 +44,129 @@ export interface AuthFormProps {
 export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  /** Used only for register; login goes through NextAuth signIn() → auth.ts authorize() → authService.login(). */
+  const authService = useAuthService();
   const [error, setError] = useState<string | null>(null);
 
-  const schema = schemas[mode];
   const isLogin = mode === "login";
+
+  const tenantIdRaw = searchParams.get("tenantId") ?? "";
+  const tenantId = tenantIdRaw.replace(/^["']|["']$/g, "").trim();
+
   const defaultCallbackUrl =
     callbackUrl ?? searchParams.get("callbackUrl") ?? "/products";
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData | RegisterFormData>({
-    resolver: zodResolver(schema),
-    defaultValues: isLogin
-      ? { email: "", password: "" }
-      : { name: "", email: "", password: "", confirmPassword: "" },
+  /** Show Branch ID field when tenant link is used (tenant user flow). */
+  const isTenantUserFlow = isLogin && tenantId.length > 0;
+
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", branchId: "" },
   });
 
-  async function handleFormSubmit(data: LoginFormData | RegisterFormData) {
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+  });
+
+  async function handleLoginSubmit(data: LoginFormData) {
     setError(null);
-    if (isLogin) {
-      const result = await signIn("credentials", {
-        email: (data as LoginFormData).email,
-        password: (data as LoginFormData).password,
-        redirect: false,
-      });
-      if (result?.error) {
-        setError("Invalid email or password");
-        return;
-      }
-      router.push(defaultCallbackUrl);
-      router.refresh();
+    const branchIdValue = data.branchId?.trim() || undefined;
+    // type = "user" only when both tenantId and branchId are included; else "systemAdmin" (email + password only).
+    const type: UserType =
+      tenantId.length > 0 && branchIdValue
+        ? "user"
+        : "systemAdmin";
+
+    const credentialsPayload: Record<string, string> = {
+      email: data.email,
+      password: data.password,
+      type,
+    };
+    if (type === "user") {
+      credentialsPayload.tenantId = tenantId;
+      credentialsPayload.branchId = branchIdValue!;
+    }
+
+    const result = await signIn("credentials", {
+      ...credentialsPayload,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      // Backend rejected (e.g. 401) → authorize() returned null → NextAuth sets result.error.
+      setError(
+        result.status === 401
+          ? "Invalid credentials. Check email, password, and Branch ID (required for standard users)."
+          : "Sign-in failed. Please try again."
+      );
       return;
     }
-    const { name, email, password } = data as RegisterFormData;
-    const registerData = { name, email, password };
+    if (!result?.ok) {
+      setError("Sign-in failed. Please try again.");
+      return;
+    }
+    router.push(defaultCallbackUrl);
+    router.refresh();
+  }
+
+  async function handleRegisterSubmit(data: RegisterFormData) {
+    setError(null);
+    const { name, email, password } = data;
     try {
-      const authService = container.resolve<IAuthService>("authService");
-      await authService.register(registerData);
-      const result = await signIn("credentials", {
-        email: registerData.email,
-        password: registerData.password,
-        redirect: false,
-      });
-      if (result?.ok) {
-        router.push("/products");
-        router.refresh();
-      } else {
-        router.push("/login?registered=1");
-        router.refresh();
-      }
+      await authService.register({ name, email, password });
+      // Redirect to login; we don't have tenantId/type for the new user so we can't signIn here.
+      router.push("/login?registered=1");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     }
   }
 
-  const submitLabel = isLogin ? "Sign in" : "Create account";
-  const loadingLabel = isLogin ? "Signing in..." : "Creating account...";
-
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-      {!isLogin && (
+    <form
+      onSubmit={
+        isLogin
+          ? loginForm.handleSubmit(handleLoginSubmit)
+          : registerForm.handleSubmit(handleRegisterSubmit)
+      }
+      className="space-y-4"
+    >
+      {isLogin && !tenantId ? (
+        <p className="text-xs text-muted">
+          Sign in with email and password as System Admin. Use your company link for branch login.
+        </p>
+      ) : null}
+      {!isLogin ? (
         <div className="grid gap-2">
           <Label htmlFor="name">Name</Label>
           <Input
             id="name"
             type="text"
-            {...register("name")}
+            {...registerForm.register("name")}
             placeholder="Your name"
             autoComplete="name"
           />
-          {(errors as Record<string, { message?: string }>).name && (
+          {registerForm.formState.errors.name && (
             <p className="text-sm text-red-400">
-              {(errors as Record<string, { message?: string }>).name?.message}
+              {registerForm.formState.errors.name.message}
             </p>
           )}
         </div>
-      )}
+      ) : null}
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
-          {...register("email")}
+          {...(isLogin ? loginForm.register("email") : registerForm.register("email"))}
           placeholder="you@example.com"
           autoComplete="email"
         />
-        {errors.email && (
-          <p className="text-sm text-red-400">{errors.email.message}</p>
+        {(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email) && (
+          <p className="text-sm text-red-400">
+            {(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email)?.message}
+          </p>
         )}
       </div>
       <div className="grid gap-2">
@@ -144,56 +174,73 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
         <Input
           id="password"
           type="password"
-          {...register("password")}
+          {...(isLogin ? loginForm.register("password") : registerForm.register("password"))}
           placeholder="••••••••"
           autoComplete={isLogin ? "current-password" : "new-password"}
         />
-        {errors.password && (
-          <p className="text-sm text-red-400">{errors.password.message}</p>
+        {(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password) && (
+          <p className="text-sm text-red-400">
+            {(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password)?.message}
+          </p>
         )}
       </div>
-      {!isLogin && (
+      {isLogin && isTenantUserFlow ? (
+        <div className="grid gap-2">
+          <Label htmlFor="branchId">
+            Branch ID <span className="text-muted">(from your company)</span>
+          </Label>
+          <Input
+            id="branchId"
+            type="text"
+            {...loginForm.register("branchId")}
+            placeholder="Branch ID"
+            autoComplete="off"
+          />
+          {loginForm.formState.errors.branchId && (
+            <p className="text-sm text-red-400">
+              {loginForm.formState.errors.branchId.message}
+            </p>
+          )}
+        </div>
+      ) : null}
+      {!isLogin ? (
         <div className="grid gap-2">
           <Label htmlFor="confirmPassword">Confirm password</Label>
           <Input
             id="confirmPassword"
             type="password"
-            {...register("confirmPassword")}
+            {...registerForm.register("confirmPassword")}
             placeholder="••••••••"
             autoComplete="new-password"
           />
-          {(errors as Record<string, { message?: string }>).confirmPassword && (
+          {registerForm.formState.errors.confirmPassword && (
             <p className="text-sm text-red-400">
-              {
-                (errors as Record<string, { message?: string }>).confirmPassword
-                  ?.message
-              }
+              {registerForm.formState.errors.confirmPassword.message}
             </p>
           )}
         </div>
-      )}
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? loadingLabel : submitLabel}
+      ) : null}
+      {error ? <p className="text-sm text-red-400">{error}</p> : null}
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLogin ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting}
+      >
+        {isLogin
+          ? loginForm.formState.isSubmitting
+            ? "Signing in..."
+            : "Sign in"
+          : registerForm.formState.isSubmitting
+            ? "Creating account..."
+            : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted">
         {isLogin ? (
-          <>
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-mint hover:underline"
-            >
-              Sign up
-            </Link>
-          </>
+          "Contact your administrator for an account."
         ) : (
           <>
             Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-medium text-mint hover:underline"
-            >
+            <Link href="/login" className="font-medium text-mint hover:underline">
               Sign in
             </Link>
           </>

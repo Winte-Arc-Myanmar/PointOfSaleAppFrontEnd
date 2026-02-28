@@ -112,6 +112,8 @@ export function DataTable<T extends { id: string | number }>({
     return cols;
   }, [columns]);
 
+  // TanStack Table returns non-memoizable refs; React Compiler skips this by design.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns: columnDefs,

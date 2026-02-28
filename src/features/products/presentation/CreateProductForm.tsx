@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,7 +29,7 @@ export interface CreateProductFormProps {
 }
 
 export function CreateProductForm(props?: CreateProductFormProps) {
-  const { onSuccess, formId, onLoadingChange } = props ?? {};
+  const { onSuccess, formId } = props ?? {};
   const queryClient = useQueryClient();
   const {
     register,

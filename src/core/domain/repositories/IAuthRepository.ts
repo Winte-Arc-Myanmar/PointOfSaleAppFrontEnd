@@ -1,9 +1,10 @@
 /**
  * Auth repository interface.
- * Domain layer - contract for auth data access (login/register via external API).
+ * Domain layer - auth data access (login + register via backend).
  */
 
-import type { LoginCredentials, RegisterData, AuthUser } from "../services/IAuthService";
+import type { AuthUser } from "@/core/domain/entities/User";
+import type { LoginCredentials, RegisterData } from "@/core/domain/types/auth";
 
 export interface IAuthRepository {
   login(credentials: LoginCredentials): Promise<AuthUser | null>;

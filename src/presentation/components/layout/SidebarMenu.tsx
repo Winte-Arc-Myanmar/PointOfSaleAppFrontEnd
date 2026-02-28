@@ -1,15 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, LogOut } from "lucide-react";
+import { X, Package, LogOut, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 
-const menuItems = [
+const baseMenuItems: { href: string; label: string; icon: typeof Package }[] = [
   { href: "/products", label: "Products", icon: Package },
-] as const;
+];
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -25,6 +26,19 @@ export function SidebarMenu({
   pathname,
 }: SidebarMenuProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const { data: session } = useSession();
+  const userType = (session?.user as { type?: string })?.type;
+  const menuItems = useMemo(() => {
+    const items = [...baseMenuItems];
+    if (userType === "systemAdmin") {
+      items.push({
+        href: "/admin/register",
+        label: "Register user",
+        icon: UserPlus,
+      });
+    }
+    return items;
+  }, [userType]);
 
   return (
     <>

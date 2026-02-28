@@ -1,6 +1,6 @@
 /**
  * Auth service implementation.
- * Application layer - delegates to IAuthRepository
+ * Application layer - delegates to IAuthRepository. Used by auth.ts and UI.
  */
 
 import type { IAuthService } from "@/core/domain/services/IAuthService";
