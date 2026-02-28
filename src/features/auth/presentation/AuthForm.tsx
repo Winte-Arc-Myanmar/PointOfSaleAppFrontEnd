@@ -74,9 +74,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
     const branchIdValue = data.branchId?.trim() || undefined;
     // type = "user" only when both tenantId and branchId are included; else "systemAdmin" (email + password only).
     const type: UserType =
-      tenantId.length > 0 && branchIdValue
-        ? "user"
-        : "systemAdmin";
+      tenantId.length > 0 && branchIdValue ? "user" : "systemAdmin";
 
     const credentialsPayload: Record<string, string> = {
       email: data.email,
@@ -134,7 +132,8 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
     >
       {isLogin && !tenantId ? (
         <p className="text-xs text-muted">
-          Sign in with email and password as System Admin. Use your company link for branch login.
+          Sign in with email and password as System Admin. Use your company link
+          for branch login.
         </p>
       ) : null}
       {!isLogin ? (
@@ -159,13 +158,22 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
         <Input
           id="email"
           type="email"
-          {...(isLogin ? loginForm.register("email") : registerForm.register("email"))}
+          {...(isLogin
+            ? loginForm.register("email")
+            : registerForm.register("email"))}
           placeholder="you@example.com"
           autoComplete="email"
         />
-        {(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email) && (
+        {(isLogin
+          ? loginForm.formState.errors.email
+          : registerForm.formState.errors.email) && (
           <p className="text-sm text-red-400">
-            {(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email)?.message}
+            {
+              (isLogin
+                ? loginForm.formState.errors.email
+                : registerForm.formState.errors.email
+              )?.message
+            }
           </p>
         )}
       </div>
@@ -174,13 +182,22 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
         <Input
           id="password"
           type="password"
-          {...(isLogin ? loginForm.register("password") : registerForm.register("password"))}
+          {...(isLogin
+            ? loginForm.register("password")
+            : registerForm.register("password"))}
           placeholder="••••••••"
           autoComplete={isLogin ? "current-password" : "new-password"}
         />
-        {(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password) && (
+        {(isLogin
+          ? loginForm.formState.errors.password
+          : registerForm.formState.errors.password) && (
           <p className="text-sm text-red-400">
-            {(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password)?.message}
+            {
+              (isLogin
+                ? loginForm.formState.errors.password
+                : registerForm.formState.errors.password
+              )?.message
+            }
           </p>
         )}
       </div>
@@ -224,15 +241,19 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       <Button
         type="submit"
         className="w-full"
-        disabled={isLogin ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting}
+        disabled={
+          isLogin
+            ? loginForm.formState.isSubmitting
+            : registerForm.formState.isSubmitting
+        }
       >
         {isLogin
           ? loginForm.formState.isSubmitting
             ? "Signing in..."
             : "Sign in"
           : registerForm.formState.isSubmitting
-            ? "Creating account..."
-            : "Create account"}
+          ? "Creating account..."
+          : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted">
         {isLogin ? (
@@ -240,7 +261,10 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
         ) : (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-mint hover:underline">
+            <Link
+              href="/login"
+              className="font-medium text-mint hover:underline"
+            >
               Sign in
             </Link>
           </>
