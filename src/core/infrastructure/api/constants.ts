@@ -12,6 +12,13 @@ export const API_ENDPOINTS = {
     LIST: "/products",
     CREATE: "/products",
   },
+  TENANTS: {
+    LIST: "/v1/tenants",
+    BY_ID: (id: string) => `/v1/tenants/${id}`,
+    CREATE: "/v1/tenants",
+    UPDATE: (id: string) => `/v1/tenants/${id}`,
+    DELETE: (id: string) => `/v1/tenants/${id}`,
+  },
   AUTH: {
     /** POST - sign in;  */
     SIGNIN: "/v1/auth/signin",

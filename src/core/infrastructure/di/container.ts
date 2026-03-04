@@ -6,12 +6,16 @@
 import { HttpClient } from "../api/HttpClient";
 import { ApiProductRepository } from "../repositories/ApiProductRepository";
 import { ApiAuthRepository } from "../repositories/ApiAuthRepository";
+import { ApiTenantRepository } from "../repositories/ApiTenantRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { AuthService } from "@/core/application/services/AuthService";
+import { TenantService } from "@/core/application/services/TenantService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
+import type { ITenantRepository } from "@/core/domain/repositories/ITenantRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
+import type { ITenantService } from "@/core/domain/services/ITenantService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -22,12 +26,16 @@ class Container {
     const productService = new ProductService(productRepository);
     const authRepository = new ApiAuthRepository(httpClient);
     const authService = new AuthService(authRepository);
+    const tenantRepository = new ApiTenantRepository(httpClient);
+    const tenantService = new TenantService(tenantRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
     this.register<IProductService>("productService", productService);
     this.register<IAuthRepository>("authRepository", authRepository);
     this.register<IAuthService>("authService", authService);
+    this.register<ITenantRepository>("tenantRepository", tenantRepository);
+    this.register<ITenantService>("tenantService", tenantService);
   }
 
   register<T>(key: string, instance: T): void {

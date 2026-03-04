@@ -9,8 +9,16 @@ import { Navbar } from "./Navbar";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
+  "/admin/tenants": "Tenants",
   "/admin/register": "Register user",
 };
+
+function getTitle(pathname: string): string {
+  if (pathname.startsWith("/admin/tenants/") && pathname.endsWith("/edit"))
+    return "Edit tenant";
+  if (pathname.startsWith("/admin/tenants/")) return "Tenant";
+  return routeTitles[pathname] ?? "";
+}
 
 interface ShellProps {
   children: ReactNode;
@@ -20,7 +28,7 @@ export function Shell({ children }: ShellProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const title = routeTitles[pathname] ?? "";
+  const title = getTitle(pathname);
 
   return (
     <div className="flex min-h-screen bg-background">

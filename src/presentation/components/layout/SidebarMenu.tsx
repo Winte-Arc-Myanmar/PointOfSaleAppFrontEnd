@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, LogOut, UserPlus } from "lucide-react";
+import { X, Package, LogOut, UserPlus, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 
@@ -31,11 +31,10 @@ export function SidebarMenu({
   const menuItems = useMemo(() => {
     const items = [...baseMenuItems];
     if (userType === "systemAdmin") {
-      items.push({
-        href: "/admin/register",
-        label: "Register user",
-        icon: UserPlus,
-      });
+      items.push(
+        { href: "/admin/tenants", label: "Tenants", icon: Building2 },
+        { href: "/admin/register", label: "Register user", icon: UserPlus }
+      );
     }
     return items;
   }, [userType]);

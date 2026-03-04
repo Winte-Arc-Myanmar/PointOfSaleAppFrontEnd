@@ -1,7 +1,7 @@
 /**
  * Middleware - protects dashboard routes.
  * Redirects unauthenticated users to login.
- * Redirects logged-in users away from /login only (not from /products).
+ * /admin/tenants is only allowed for system_admin; others redirect to /products.
  */
 
 import { auth } from "@/server/auth";
@@ -18,6 +18,12 @@ export default auth((req) => {
   }
   if (isLoggedIn && pathname.startsWith("/login")) {
     return Response.redirect(new URL("/products", req.nextUrl));
+  }
+  if (isLoggedIn && pathname.startsWith("/admin/tenants")) {
+    const userType = (req.auth?.user as { type?: string } | undefined)?.type;
+    if (userType !== "systemAdmin") {
+      return Response.redirect(new URL("/products", req.nextUrl));
+    }
   }
   return undefined;
 });
