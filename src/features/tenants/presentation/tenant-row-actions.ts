@@ -16,7 +16,11 @@ export function getTenantRowActions({
   if (onView) actions.push({ label: "View", onClick: onView });
   if (onEdit) actions.push({ label: "Edit", onClick: onEdit });
   if (onDelete) {
-    actions.push({ label: "Delete", onClick: onDelete, variant: "destructive" });
+    actions.push({
+      label: "Delete",
+      onClick: onDelete,
+      variant: "destructive",
+    });
   }
   return actions;
 }

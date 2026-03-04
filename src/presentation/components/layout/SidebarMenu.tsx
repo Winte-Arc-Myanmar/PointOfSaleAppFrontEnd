@@ -172,10 +172,7 @@ export function SidebarMenu({
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
-            <LogOut
-              className="size-5 shrink-0 text-muted"
-              strokeWidth={2}
-            />
+            <LogOut className="size-5 shrink-0 text-muted" strokeWidth={2} />
             {!isCollapsed && <span>Sign out</span>}
           </button>
         </div>
