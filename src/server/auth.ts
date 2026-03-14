@@ -22,15 +22,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         branchId: { label: "Branch ID", type: "text" },
       },
       async authorize(credentials) {
+        console.log("[auth.authorize] received", {
+          email: credentials?.email,
+          type: credentials?.type,
+          tenantId: credentials?.tenantId,
+          branchId: credentials?.branchId,
+          hasPassword: !!credentials?.password,
+        });
         const normalized = normalizeLoginCredentials(credentials);
-        if (!normalized) return null;
-
-        const authService = container.resolve<IAuthService>("authService");
-        const user = await authService.login(normalized);
-
-        if (!user?.accessToken) {
+        if (!normalized) {
+          console.log("[auth.authorize] normalizeLoginCredentials returned null");
           return null;
         }
+        console.log("[auth.authorize] normalized", {
+          email: normalized.email,
+          type: normalized.type,
+          tenantId: normalized.tenantId,
+          branchId: normalized.branchId,
+        });
+        const authService = container.resolve<IAuthService>("authService");
+        const user = await authService.login(normalized);
+        if (!user?.accessToken) {
+          console.log("[auth.authorize] login returned no user or no accessToken", {
+            hasUser: !!user,
+            hasAccessToken: !!user?.accessToken,
+          });
+          return null;
+        }
+        console.log("[auth.authorize] success", { id: user.id, email: user.email, type: user.type });
         return {
           id: user.id,
           email: user.email,

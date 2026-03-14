@@ -19,7 +19,7 @@ export default auth((req) => {
   if (isLoggedIn && pathname.startsWith("/login")) {
     return Response.redirect(new URL("/products", req.nextUrl));
   }
-  if (isLoggedIn && pathname.startsWith("/admin/tenants")) {
+  if (isLoggedIn && (pathname.startsWith("/admin/tenants") || pathname.startsWith("/admin/users"))) {
     const userType = (req.auth?.user as { type?: string } | undefined)?.type;
     if (userType !== "systemAdmin") {
       return Response.redirect(new URL("/products", req.nextUrl));

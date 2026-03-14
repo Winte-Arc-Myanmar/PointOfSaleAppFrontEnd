@@ -26,4 +26,11 @@ export const API_ENDPOINTS = {
     SESSION: "/v1/auth/session",
     REGISTER: "/v1/auth/register",
   },
+  USERS: {
+    LIST: "/v1/users",
+    BY_ID: (id: string) => `/v1/users/${id}`,
+    CREATE: "/v1/users",
+    UPDATE: (id: string) => `/v1/users/${id}`,
+    DELETE: (id: string) => `/v1/users/${id}`,
+  },
 } as const;

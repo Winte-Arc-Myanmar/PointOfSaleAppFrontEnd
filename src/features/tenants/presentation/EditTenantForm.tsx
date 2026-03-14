@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,9 +30,13 @@ const schema = z.object({
 
 type TenantFormData = z.infer<typeof schema>;
 
+const REDIRECT_DELAY_MS = 1500;
+
 export function EditTenantForm({ tenantId }: { tenantId: string }) {
+  const router = useRouter();
   const { data: tenant, isLoading, error } = useTenant(tenantId);
   const updateTenant = useUpdateTenant();
+  const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<TenantFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -72,6 +77,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
   }, [tenant, form]);
 
   const onSubmit = (data: TenantFormData) => {
+    setShowSuccess(false);
     updateTenant.mutate(
       {
         id: tenantId,
@@ -91,7 +97,15 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           zipCode: data.zipCode || "",
         },
       },
-      { onSuccess: () => form.reset(form.getValues()) }
+      {
+        onSuccess: () => {
+          form.reset(form.getValues());
+          setShowSuccess(true);
+          setTimeout(() => {
+            router.push(`/admin/tenants/${tenantId}`);
+          }, REDIRECT_DELAY_MS);
+        },
+      }
     );
   };
 
@@ -192,6 +206,11 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             <p className="text-sm text-red-600">{form.formState.errors.country.message}</p>
           )}
         </div>
+        {showSuccess && (
+          <p className="text-sm text-green-600 font-medium">
+            Tenant updated successfully. Redirecting...
+          </p>
+        )}
         {updateTenant.isError && (
           <p className="text-sm text-red-600">Failed to update tenant.</p>
         )}

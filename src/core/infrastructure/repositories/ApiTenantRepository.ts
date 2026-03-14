@@ -14,10 +14,11 @@ export class ApiTenantRepository implements ITenantRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
   async getAll(): Promise<Tenant[]> {
-    const dtos = (await this.httpClient.get<TenantDto[]>(
+    const dtos = await this.httpClient.get<TenantDto[]>(
       API_ENDPOINTS.TENANTS.LIST
-    )) as TenantDto[];
-    return dtos
+    );
+    const list = Array.isArray(dtos) ? dtos : [];
+    return list
       .filter((dto): dto is TenantDto & { id: string } => !!dto.id)
       .map(toTenant);
   }
@@ -35,20 +36,20 @@ export class ApiTenantRepository implements ITenantRepository {
   }
 
   async create(data: Omit<TenantDto, "id">): Promise<Tenant> {
-    const dto = (await this.httpClient.post<TenantDto>(
+    const dto = await this.httpClient.post<TenantDto>(
       API_ENDPOINTS.TENANTS.LIST,
       data
-    )) as TenantDto;
-    if (!dto.id) throw new Error("Create tenant response missing id");
+    );
+    if (!dto?.id) throw new Error("Create tenant response missing id");
     return toTenant(dto as TenantDto & { id: string });
   }
 
   async update(id: string, data: Omit<TenantDto, "id">): Promise<Tenant> {
-    const dto = (await this.httpClient.patch<TenantDto>(
+    const dto = await this.httpClient.patch<TenantDto>(
       API_ENDPOINTS.TENANTS.BY_ID(id),
       data
-    )) as TenantDto;
-    return toTenant({ ...dto, id: dto.id ?? id });
+    );
+    return toTenant({ ...dto, id: dto?.id ?? id });
   }
 
   async delete(id: string): Promise<void> {

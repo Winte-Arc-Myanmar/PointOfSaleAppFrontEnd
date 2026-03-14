@@ -86,11 +86,22 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       credentialsPayload.branchId = branchIdValue!;
     }
 
+    console.log("[AuthForm.handleLoginSubmit] signIn credentials", {
+      email: credentialsPayload.email,
+      type: credentialsPayload.type,
+      tenantId: credentialsPayload.tenantId,
+      branchId: credentialsPayload.branchId,
+    });
     const result = await signIn("credentials", {
       ...credentialsPayload,
       redirect: false,
     });
 
+    console.log("[AuthForm.handleLoginSubmit] result", {
+      ok: result?.ok,
+      error: result?.error,
+      status: result?.status,
+    });
     if (result?.error) {
       // Backend rejected (e.g. 401) → authorize() returned null → NextAuth sets result.error.
       setError(

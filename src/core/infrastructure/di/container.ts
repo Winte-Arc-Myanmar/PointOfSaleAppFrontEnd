@@ -7,15 +7,19 @@ import { HttpClient } from "../api/HttpClient";
 import { ApiProductRepository } from "../repositories/ApiProductRepository";
 import { ApiAuthRepository } from "../repositories/ApiAuthRepository";
 import { ApiTenantRepository } from "../repositories/ApiTenantRepository";
+import { ApiUserRepository } from "../repositories/ApiUserRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { AuthService } from "@/core/application/services/AuthService";
 import { TenantService } from "@/core/application/services/TenantService";
+import { UserService } from "@/core/application/services/UserService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
 import type { ITenantRepository } from "@/core/domain/repositories/ITenantRepository";
+import type { IUserRepository } from "@/core/domain/repositories/IUserRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
+import type { IUserService } from "@/core/domain/services/IUserService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -28,6 +32,8 @@ class Container {
     const authService = new AuthService(authRepository);
     const tenantRepository = new ApiTenantRepository(httpClient);
     const tenantService = new TenantService(tenantRepository);
+    const userRepository = new ApiUserRepository(httpClient);
+    const userService = new UserService(userRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -36,6 +42,8 @@ class Container {
     this.register<IAuthService>("authService", authService);
     this.register<ITenantRepository>("tenantRepository", tenantRepository);
     this.register<ITenantService>("tenantService", tenantService);
+    this.register<IUserRepository>("userRepository", userRepository);
+    this.register<IUserService>("userService", userService);
   }
 
   register<T>(key: string, instance: T): void {

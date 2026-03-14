@@ -16,19 +16,18 @@ export class ApiAuthRepository implements IAuthRepository {
 
   async login(credentials: LoginCredentials): Promise<AuthUser | null> {
     const body = toSigninRequestDto(credentials);
-
     try {
       const data = await this.httpClient.post<SigninResponseDto>(
         API_ENDPOINTS.AUTH.SIGNIN,
         body
       );
-
       return toAuthUser(data, {
         email: credentials.email,
         tenantId: credentials.tenantId,
         branchId: credentials.branchId ?? null,
       });
-    } catch {
+    } catch (err) {
+      console.error("[ApiAuthRepository.login]", err);
       return null;
     }
   }

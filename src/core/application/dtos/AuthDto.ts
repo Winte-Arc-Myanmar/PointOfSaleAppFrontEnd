@@ -24,7 +24,7 @@ export interface SigninUserDto {
   branchId?: string | null;
 }
 
-/** Response from POST /auth/signin. */
+/** Response from POST /auth/signin 
 export interface SigninResponseDto {
   access_token?: string;
   token?: string;

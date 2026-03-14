@@ -48,8 +48,9 @@ export function useUpdateTenant() {
       const tenantService = container.resolve<ITenantService>("tenantService");
       return tenantService.update(id, data);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: TENANTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [...TENANTS_QUERY_KEY, variables.id] });
     },
   });
 }
