@@ -17,7 +17,9 @@ export interface RawLoginCredentials {
 
 function trimOptional(value: unknown): string | undefined {
   if (value == null) return undefined;
-  const s = String(value).replace(/^["']|["']$/g, "").trim();
+  const s = String(value)
+    .replace(/^["']|["']$/g, "")
+    .trim();
   if (s === "" || s === "undefined") return undefined;
   return s;
 }
@@ -36,13 +38,17 @@ export function normalizeLoginCredentials(
   const email = raw.email != null ? String(raw.email).trim() : "";
   const password = raw.password != null ? String(raw.password) : "";
   if (!email || !password) {
-    console.log("[normalizeLoginCredentials] missing email or password", { hasEmail: !!email, hasPassword: !!password });
+    console.log("[normalizeLoginCredentials] missing email or password", {
+      hasEmail: !!email,
+      hasPassword: !!password,
+    });
     return null;
   }
 
   const typeRaw = raw.type != null ? String(raw.type).trim() : "";
   let type: UserType;
-  if (typeRaw === "system_admin" || typeRaw === "systemAdmin") type = "systemAdmin";
+  if (typeRaw === "system_admin" || typeRaw === "systemAdmin")
+    type = "systemAdmin";
   else if (typeRaw === "user") type = "user";
   else {
     console.log("[normalizeLoginCredentials] invalid type", { typeRaw });
@@ -51,10 +57,14 @@ export function normalizeLoginCredentials(
 
   const tenantId = trimOptional(raw.tenantId);
   const branchIdRaw = trimOptional(raw.branchId);
-  const branchId =
-    type === "user" && branchIdRaw ? branchIdRaw : undefined;
+  const branchId = type === "user" && branchIdRaw ? branchIdRaw : undefined;
 
-  console.log("[normalizeLoginCredentials] ok", { email, type, tenantId, branchId });
+  console.log("[normalizeLoginCredentials] ok", {
+    email,
+    type,
+    tenantId,
+    branchId,
+  });
   return {
     email,
     password,

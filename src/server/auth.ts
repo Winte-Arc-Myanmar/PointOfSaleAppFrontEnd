@@ -31,7 +31,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
         const normalized = normalizeLoginCredentials(credentials);
         if (!normalized) {
-          console.log("[auth.authorize] normalizeLoginCredentials returned null");
+          console.log(
+            "[auth.authorize] normalizeLoginCredentials returned null"
+          );
           return null;
         }
         console.log("[auth.authorize] normalized", {
@@ -43,13 +45,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const authService = container.resolve<IAuthService>("authService");
         const user = await authService.login(normalized);
         if (!user?.accessToken) {
-          console.log("[auth.authorize] login returned no user or no accessToken", {
-            hasUser: !!user,
-            hasAccessToken: !!user?.accessToken,
-          });
+          console.log(
+            "[auth.authorize] login returned no user or no accessToken",
+            {
+              hasUser: !!user,
+              hasAccessToken: !!user?.accessToken,
+            }
+          );
           return null;
         }
-        console.log("[auth.authorize] success", { id: user.id, email: user.email, type: user.type });
+        console.log("[auth.authorize] success", {
+          id: user.id,
+          email: user.email,
+          type: user.type,
+        });
         return {
           id: user.id,
           email: user.email,
@@ -75,10 +84,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        (session as { accessToken?: string }).accessToken = token.accessToken as string;
+        (session as { accessToken?: string }).accessToken =
+          token.accessToken as string;
         (session.user as { type?: UserType }).type = token.type as UserType;
-        (session.user as { tenantId?: string }).tenantId = token.tenantId as string | undefined;
-        (session.user as { branchId?: string | null }).branchId = (token.branchId ?? null) as string | null | undefined;
+        (session.user as { tenantId?: string }).tenantId = token.tenantId as
+          | string
+          | undefined;
+        (session.user as { branchId?: string | null }).branchId =
+          (token.branchId ?? null) as string | null | undefined;
       }
       return session;
     },
