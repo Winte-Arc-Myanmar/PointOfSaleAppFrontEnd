@@ -10,6 +10,7 @@ import { Navbar } from "./Navbar";
 const routeTitles: Record<string, string> = {
   "/products": "Products",
   "/admin/tenants": "Tenants",
+  "/admin/users": "Users",
   "/admin/register": "Register user",
 };
 
@@ -17,6 +18,12 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/admin/tenants/") && pathname.endsWith("/edit"))
     return "Edit tenant";
   if (pathname.startsWith("/admin/tenants/")) return "Tenant";
+  if (pathname.startsWith("/admin/users/") && pathname.endsWith("/edit"))
+    return "Edit user";
+  if (pathname.startsWith("/admin/users/")) return "User";
+  if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
+    return "Edit product";
+  if (pathname.startsWith("/products/")) return "Product";
   return routeTitles[pathname] ?? "";
 }
 
@@ -48,9 +55,9 @@ export function Shell({ children }: ShellProps) {
         <main className="flex-1 p-6 lg:p-8">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="mx-auto max-w-6xl"
           >
             {children}

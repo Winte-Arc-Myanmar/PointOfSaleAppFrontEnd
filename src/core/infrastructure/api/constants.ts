@@ -9,8 +9,21 @@ export const API_CONFIG = {
 
 export const API_ENDPOINTS = {
   PRODUCTS: {
-    LIST: "/products",
-    CREATE: "/products",
+    LIST: "/v1/products",
+    BY_ID: (id: string) => `/v1/products/${id}`,
+    CREATE: "/v1/products",
+    UPDATE: (id: string) => `/v1/products/${id}`,
+    DELETE: (id: string) => `/v1/products/${id}`,
+    VARIANTS: (productId: string) => ({
+      LIST: `/v1/products/${productId}/variants`,
+      BY_ID: (variantId: string) =>
+        `/v1/products/${productId}/variants/${variantId}`,
+      CREATE: `/v1/products/${productId}/variants`,
+      UPDATE: (variantId: string) =>
+        `/v1/products/${productId}/variants/${variantId}`,
+      DELETE: (variantId: string) =>
+        `/v1/products/${productId}/variants/${variantId}`,
+    }),
   },
   TENANTS: {
     LIST: "/v1/tenants",

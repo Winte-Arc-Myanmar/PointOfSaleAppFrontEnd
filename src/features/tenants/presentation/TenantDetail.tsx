@@ -27,7 +27,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold text-foreground">{tenant.name}</h1>
+        <h1 className="panel-header text-xl tracking-tight text-foreground">{tenant.name}</h1>
         <Link href={`/admin/tenants/${tenant.id}/edit`}>
           <Button>Edit</Button>
         </Link>

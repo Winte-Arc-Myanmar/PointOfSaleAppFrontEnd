@@ -8,15 +8,19 @@ import { ApiProductRepository } from "../repositories/ApiProductRepository";
 import { ApiAuthRepository } from "../repositories/ApiAuthRepository";
 import { ApiTenantRepository } from "../repositories/ApiTenantRepository";
 import { ApiUserRepository } from "../repositories/ApiUserRepository";
+import { ApiProductVariantRepository } from "../repositories/ApiProductVariantRepository";
 import { ProductService } from "@/core/application/services/ProductService";
+import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
 import { TenantService } from "@/core/application/services/TenantService";
 import { UserService } from "@/core/application/services/UserService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
+import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
 import type { ITenantRepository } from "@/core/domain/repositories/ITenantRepository";
 import type { IUserRepository } from "@/core/domain/repositories/IUserRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
+import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import type { IUserService } from "@/core/domain/services/IUserService";
@@ -34,6 +38,10 @@ class Container {
     const tenantService = new TenantService(tenantRepository);
     const userRepository = new ApiUserRepository(httpClient);
     const userService = new UserService(userRepository);
+    const productVariantRepository = new ApiProductVariantRepository(httpClient);
+    const productVariantService = new ProductVariantService(
+      productVariantRepository
+    );
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -44,6 +52,14 @@ class Container {
     this.register<ITenantService>("tenantService", tenantService);
     this.register<IUserRepository>("userRepository", userRepository);
     this.register<IUserService>("userService", userService);
+    this.register<IProductVariantRepository>(
+      "productVariantRepository",
+      productVariantRepository
+    );
+    this.register<IProductVariantService>(
+      "productVariantService",
+      productVariantService
+    );
   }
 
   register<T>(key: string, instance: T): void {

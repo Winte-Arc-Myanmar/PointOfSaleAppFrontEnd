@@ -27,7 +27,7 @@ export function UserDetail({ userId }: { userId: string }) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold text-foreground">{user.fullName}</h1>
+        <h1 className="panel-header text-xl tracking-tight text-foreground">{user.fullName}</h1>
         <Link href={`/admin/users/${user.id}/edit`}>
           <Button>Edit</Button>
         </Link>

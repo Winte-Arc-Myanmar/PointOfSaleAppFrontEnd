@@ -62,7 +62,7 @@ export function Navbar({
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2, delay: 0.05 }}
-          className="truncate text-base font-semibold text-foreground lg:text-lg"
+          className="panel-header truncate text-base tracking-tight text-foreground lg:text-lg"
         >
           {title}
         </motion.h1>

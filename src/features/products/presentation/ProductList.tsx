@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useProducts } from "@/presentation/hooks/useProducts";
+import { useProducts, useDeleteProduct } from "@/presentation/hooks/useProducts";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -19,6 +19,7 @@ export function ProductList() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: products = [], isLoading, error, refetch } = useProducts();
+  const deleteProduct = useDeleteProduct();
 
   const actions = useMemo(
     () =>
@@ -26,12 +27,15 @@ export function ProductList() {
         onView: (p) => router.push(`/products/${p.id}`),
         onEdit: (p) => router.push(`/products/${p.id}/edit`),
         onDelete: (p) => {
-          if (typeof window !== "undefined" && window.confirm(`Delete "${p.name}"?`)) {
-            // TODO: call productService.delete(p.id)
+          if (
+            typeof window !== "undefined" &&
+            window.confirm(`Delete product "${p.name}"? This cannot be undone.`)
+          ) {
+            deleteProduct.mutate(p.id);
           }
         },
       }),
-    [router]
+    [router, deleteProduct]
   );
 
   const columns = useMemo(() => getProductTableColumns(), []);
@@ -80,7 +84,7 @@ export function ProductList() {
         submitText="Create Product"
         loadingText="Creating..."
         isLoading={createFormLoading}
-        maxWidth="lg"
+        maxWidth="2xl"
       />
     </>
   );

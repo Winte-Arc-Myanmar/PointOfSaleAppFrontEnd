@@ -10,6 +10,11 @@
   --color-foreground: #252324;
   --color-muted: #6b7280;
   --color-border: #e5e7eb;
+  /* Futuristic design tokens (no new colors) */
+  --radius-panel: 0.75rem;
+  --radius-input: 0.5rem;
+  --shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --tracking-panel: 0.2em;
 }
 
 @theme inline {
@@ -23,10 +28,44 @@
   --color-foreground: #fdfbf9;
   --color-muted: #9ca3af;
   --color-border: rgba(173, 255, 195, 0.2);
+  --shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ——— Futuristic system: consistent section & page styles (colors unchanged) ——— */
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-panel);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.page-description {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.panel {
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background);
+  box-shadow: var(--shadow-panel);
+}
+.panel-header {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-mint);
+  outline-offset: 2px;
 }

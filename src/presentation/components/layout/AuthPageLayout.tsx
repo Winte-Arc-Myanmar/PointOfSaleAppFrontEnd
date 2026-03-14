@@ -15,12 +15,14 @@ export function AuthPageLayout({ title, subtitle, children }: AuthPageLayoutProp
       suppressHydrationWarning
     >
       <div
-        className="w-full max-w-md space-y-8 rounded-xl border border-border bg-background p-8 shadow-lg"
+        className="panel w-full max-w-md space-y-8 p-8 border border-border"
         suppressHydrationWarning
       >
         <div className="text-center" suppressHydrationWarning>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-          <p className="mt-1 text-sm text-muted">{subtitle}</p>
+          <h1 className="panel-header text-2xl tracking-tight text-foreground">
+            {title}
+          </h1>
+          <p className="page-description mt-2">{subtitle}</p>
         </div>
         <Suspense
           fallback={

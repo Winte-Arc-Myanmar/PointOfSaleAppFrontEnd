@@ -104,7 +104,7 @@ export function EditUserForm({ userId }: { userId: string }) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold">Edit user</h1>
+        <h1 className="panel-header text-xl tracking-tight">Edit user</h1>
       </div>
       <form
         onSubmit={form.handleSubmit(onSubmit)}

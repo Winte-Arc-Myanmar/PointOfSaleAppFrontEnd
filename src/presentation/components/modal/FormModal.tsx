@@ -73,8 +73,8 @@ export function FormModal({
         isClosing={isClosing}
         onExitComplete={handleExitComplete}
       >
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/80 bg-mint/5">
-          <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-mint/5">
+          <DialogTitle className="panel-header text-xl tracking-tight text-foreground">
             {title}
           </DialogTitle>
         </DialogHeader>

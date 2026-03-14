@@ -114,7 +114,7 @@ export function SidebarMenu({
           )}
         >
           {!isCollapsed && (
-            <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">
+            <p className="section-label mb-3 px-3">
               Menu
             </p>
           )}
@@ -136,10 +136,10 @@ export function SidebarMenu({
                       "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
                       isCollapsed
                         ? "justify-center px-0 py-2.5"
-                        : "gap-3 px-3 py-2.5",
+                        : "gap-3 px-3 py-2.5 pl-3",
                       isActive
-                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20"
-                        : "text-muted hover:bg-mint/10 hover:text-foreground"
+                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20 border-l-2 border-l-mint"
+                        : "text-muted hover:bg-mint/10 hover:text-foreground border-l-2 border-l-transparent"
                     )}
                   >
                     <Icon

@@ -6,27 +6,30 @@
 import type { Product } from "@/core/domain/entities/Product";
 import type { ProductDto } from "../dtos/ProductDto";
 
-export function toProduct(dto: ProductDto): Product {
+export function toProduct(dto: ProductDto & { id: string }): Product {
   return {
     id: dto.id,
     name: dto.name,
-    sku: dto.sku,
-    price: { amount: dto.priceAmount, currency: dto.priceCurrency },
-    quantityInStock: dto.quantityInStock,
-    createdAt: new Date(dto.createdAt),
-    updatedAt: new Date(dto.updatedAt),
+    tenantId: dto.tenantId,
+    baseSku: dto.baseSku,
+    basePrice: dto.basePrice,
+    baseUomId: dto.baseUomId,
+    categoryId: dto.categoryId,
+    globalAttributes: dto.globalAttributes,
+    trackingType: dto.trackingType,
   };
 }
 
-export function toProductDto(product: Product): ProductDto {
+export function toProductDto(product: Partial<Product>): ProductDto {
   return {
-    id: product.id,
-    name: product.name,
-    sku: product.sku,
-    priceAmount: product.price.amount,
-    priceCurrency: product.price.currency,
-    quantityInStock: product.quantityInStock,
-    createdAt: product.createdAt.toISOString(),
-    updatedAt: product.updatedAt.toISOString(),
+    ...(product.id && { id: product.id }),
+    name: product.name ?? "",
+    tenantId: product.tenantId ?? "",
+    baseSku: product.baseSku ?? "",
+    basePrice: product.basePrice ?? 0,
+    baseUomId: product.baseUomId ?? "",
+    categoryId: product.categoryId ?? "",
+    globalAttributes: product.globalAttributes,
+    trackingType: product.trackingType ?? "STANDARD",
   };
 }

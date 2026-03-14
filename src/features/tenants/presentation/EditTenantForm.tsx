@@ -128,7 +128,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl font-semibold">Edit tenant</h1>
+        <h1 className="panel-header text-xl tracking-tight">Edit tenant</h1>
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
