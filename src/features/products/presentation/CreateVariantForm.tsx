@@ -57,7 +57,10 @@ export function CreateVariantForm({
     let matrixOptions: Record<string, string> = {};
     try {
       if (data.matrixOptionsJson?.trim()) {
-        matrixOptions = JSON.parse(data.matrixOptionsJson) as Record<string, string>;
+        matrixOptions = JSON.parse(data.matrixOptionsJson) as Record<
+          string,
+          string
+        >;
       }
     } catch {
       // leave {}
@@ -101,7 +104,11 @@ export function CreateVariantForm({
       </div>
       <div className="grid gap-2">
         <Label htmlFor="barcode">Barcode</Label>
-        <Input id="barcode" {...register("barcode")} placeholder="1234567890123" />
+        <Input
+          id="barcode"
+          {...register("barcode")}
+          placeholder="1234567890123"
+        />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="priceModifier">Price modifier</Label>

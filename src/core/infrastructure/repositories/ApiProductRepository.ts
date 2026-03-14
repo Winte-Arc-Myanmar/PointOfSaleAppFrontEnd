@@ -21,10 +21,9 @@ export class ApiProductRepository implements IProductRepository {
       page: params?.page ?? 1,
       limit: params?.limit ?? 10,
     };
-    const res = await this.httpClient.get<ProductDto[] | { data?: ProductDto[] }>(
-      API_ENDPOINTS.PRODUCTS.LIST,
-      { params: query }
-    );
+    const res = await this.httpClient.get<
+      ProductDto[] | { data?: ProductDto[] }
+    >(API_ENDPOINTS.PRODUCTS.LIST, { params: query });
     const list = Array.isArray(res) ? res : res?.data ?? [];
     const dtos = Array.isArray(list) ? list : [];
     return dtos
@@ -58,7 +57,9 @@ export class ApiProductRepository implements IProductRepository {
       API_ENDPOINTS.PRODUCTS.UPDATE(id),
       data
     );
-    return toProduct({ ...dto, id: dto?.id ?? id } as ProductDto & { id: string });
+    return toProduct({ ...dto, id: dto?.id ?? id } as ProductDto & {
+      id: string;
+    });
   }
 
   async delete(id: string): Promise<void> {

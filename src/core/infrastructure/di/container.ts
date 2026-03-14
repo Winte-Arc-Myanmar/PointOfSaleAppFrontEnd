@@ -38,7 +38,9 @@ class Container {
     const tenantService = new TenantService(tenantRepository);
     const userRepository = new ApiUserRepository(httpClient);
     const userService = new UserService(userRepository);
-    const productVariantRepository = new ApiProductVariantRepository(httpClient);
+    const productVariantRepository = new ApiProductVariantRepository(
+      httpClient
+    );
     const productVariantService = new ProductVariantService(
       productVariantRepository
     );

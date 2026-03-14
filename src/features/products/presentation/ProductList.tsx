@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useProducts, useDeleteProduct } from "@/presentation/hooks/useProducts";
+import {
+  useProducts,
+  useDeleteProduct,
+} from "@/presentation/hooks/useProducts";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
