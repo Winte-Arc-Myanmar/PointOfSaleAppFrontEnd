@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import { useAuthService } from "@/presentation/hooks/useAuthService";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { AppLoader } from "@/presentation/components/loader";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -41,12 +42,27 @@ export interface AuthFormProps {
   callbackUrl?: string;
 }
 
+const SPLASH_DURATION_MS = 6000;
+
 export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  /** Used only for register; login goes through NextAuth signIn() → auth.ts authorize() → authService.login(). */
   const authService = useAuthService();
   const [error, setError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashTarget, setSplashTarget] = useState<string | null>(null);
+
+  const navigateAfterSplash = useCallback(() => {
+    if (!splashTarget) return;
+    router.push(splashTarget);
+    router.refresh();
+  }, [splashTarget, router]);
+
+  useEffect(() => {
+    if (!showSplash) return;
+    const timer = setTimeout(navigateAfterSplash, SPLASH_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [showSplash, navigateAfterSplash]);
 
   const isLogin = mode === "login";
 
@@ -104,8 +120,8 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       setError("Sign-in failed. Please try again.");
       return;
     }
-    router.push(defaultCallbackUrl);
-    router.refresh();
+    setSplashTarget(defaultCallbackUrl);
+    setShowSplash(true);
   }
 
   async function handleRegisterSubmit(data: RegisterFormData) {
@@ -119,6 +135,10 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     }
+  }
+
+  if (showSplash) {
+    return <AppLoader fullScreen message="Preparing your workspace..." />;
   }
 
   return (

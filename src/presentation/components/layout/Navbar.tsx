@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
+import { AppLoader } from "../loader";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -57,6 +58,7 @@ export function Navbar({
           <PanelLeftClose className="size-5" strokeWidth={2} />
         )}
       </motion.button>
+  
       {title && (
         <motion.h1
           initial={{ opacity: 0, x: -8 }}

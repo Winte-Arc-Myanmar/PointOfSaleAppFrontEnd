@@ -11,6 +11,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
+import { AppLoader } from "@/presentation/components/loader";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -60,7 +61,7 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
     );
   };
 
-  if (isLoading) return <p className="text-muted">Loading...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
   if (error || !uomClass)
     return (
       <div className="space-y-4">

@@ -12,12 +12,13 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
+import { AppLoader } from "@/presentation/components/loader";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   classId: z.string().min(1, "Class is required"),
   abbreviation: z.string().min(1, "Abbreviation is required"),
-  conversionRateToBase: z.coerce.number().min(0, "Must be >= 0"),
+  conversionRateToBase: z.number().min(0, "Must be >= 0"),
 });
 
 type UomFormData = z.infer<typeof schema>;
@@ -76,7 +77,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
     );
   };
 
-  if (isLoading) return <p className="text-muted">Loading...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
   if (error || !uom)
     return (
       <div className="space-y-4">
@@ -136,7 +137,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
             id="conversionRateToBase"
             type="number"
             step="any"
-            {...form.register("conversionRateToBase")}
+            {...form.register("conversionRateToBase", { valueAsNumber: true })}
           />
           {form.formState.errors.conversionRateToBase && (
             <p className="text-sm text-red-600">

@@ -12,11 +12,12 @@ import {
   safeText,
   formatDate,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function TenantDetail({ tenantId }: { tenantId: string }) {
   const { data: tenant, isLoading, error } = useTenant(tenantId);
 
-  if (isLoading) return <p className="text-muted">Loading tenant...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading tenant..." />;
   if (error || !tenant)
     return (
       <div className="space-y-4">

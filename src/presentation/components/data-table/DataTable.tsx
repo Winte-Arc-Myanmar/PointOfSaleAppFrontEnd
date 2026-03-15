@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
+import { AppLoader } from "@/presentation/components/loader";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -166,11 +167,8 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div className="w-full space-y-4 overflow-x-hidden">
       {showLoading ? (
-        <div className="panel flex items-center justify-center h-64 rounded-xl bg-background/80">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-mint/30 border-t-mint mx-auto mb-4" />
-            <p className="page-description">{loadingText}</p>
-          </div>
+        <div className="panel flex items-center justify-center min-h-64 rounded-xl bg-background/80">
+          <AppLoader fullScreen={false} showName={false} size="sm" message={loadingText} />
         </div>
       ) : (
         <Table>

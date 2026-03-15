@@ -11,11 +11,12 @@ import {
   safeText,
   formatDate,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function BranchDetail({ branchId }: { branchId: string }) {
   const { data: branch, isLoading, error } = useBranch(branchId);
 
-  if (isLoading) return <p className="text-muted">Loading branch...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading branch..." />;
   if (error || !branch)
     return (
       <div className="space-y-4">

@@ -7,10 +7,7 @@ import { LoginForm } from "@/features/auth/presentation/LoginForm";
 
 export default function LoginPage() {
   return (
-    <AuthPageLayout
-      title="Vision AI POS"
-      subtitle="Sign in to continue"
-    >
+    <AuthPageLayout subtitle="Sign in to continue">
       <LoginForm />
     </AuthPageLayout>
   );

@@ -8,6 +8,7 @@ import { useProductVariant, useUpdateProductVariant } from "@/presentation/hooks
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { AppLoader } from "@/presentation/components/loader";
 
 const schema = z.object({
   variantSku: z.string().min(1, "Variant SKU is required"),
@@ -93,7 +94,7 @@ export function EditVariantForm({
 
   return (
     <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      {isLoading && <p className="text-muted">Loading variant...</p>}
+      {isLoading && <AppLoader fullScreen={false} size="xs" message="Loading variant..." />}
       {!isLoading && (error || !variant) && (
         <p className="text-red-500">Variant not found.</p>
       )}

@@ -10,6 +10,7 @@ import {
 } from "@/presentation/components/ui/dialog";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
+import { AppLoader } from "@/presentation/components/loader";
 
 export interface FormModalProps {
   isOpen: boolean;
@@ -81,8 +82,13 @@ export function FormModal({
 
         {useExternalForm ? (
           <>
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 relative">
               <div className="space-y-5">{formContent}</div>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-[2px] z-10">
+                  <AppLoader fullScreen={false} size="xs" message={loadingText} />
+                </div>
+              )}
             </div>
             <DialogFooter className="px-6 py-4 border-t border-border/80 bg-background/50 gap-3">
               <Button
@@ -106,8 +112,13 @@ export function FormModal({
           </>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5 relative">
               <div className="space-y-5">{formContent}</div>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-[2px] z-10">
+                  <AppLoader fullScreen={false} size="xs" message={loadingText} />
+                </div>
+              )}
             </div>
             <DialogFooter className="px-6 py-4 border-t border-border/80 bg-background/50 gap-3">
               <Button

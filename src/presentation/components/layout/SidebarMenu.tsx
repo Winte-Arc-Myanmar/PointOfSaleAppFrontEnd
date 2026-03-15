@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
+import { AppLogo } from "@/presentation/components/brand/AppLogo";
 
 const baseMenuItems: { href: string; label: string; icon: typeof Package }[] = [
   { href: "/products", label: "Products", icon: Package },
@@ -90,23 +91,19 @@ export function SidebarMenu({
         <div
           className={cn(
             "flex h-16 shrink-0 items-center border-b border-mint/20 transition-all duration-300",
-            isCollapsed ? "justify-center px-0" : "justify-between px-5"
+            isCollapsed ? "justify-center px-0" : "justify-between px-4"
           )}
         >
-          <Link
+          <AppLogo
             href="/products"
+            showName={!isCollapsed}
+            size={isCollapsed ? "sidebarCollapsed" : "sidebar"}
             onClick={onClose}
             className={cn(
-              "flex items-center font-semibold tracking-tight text-foreground transition-colors hover:text-mint",
-              isCollapsed ? "justify-center" : "gap-2"
+              "text-foreground [&:hover]:text-mint",
+              isCollapsed && "justify-center"
             )}
-          >
-            {isCollapsed ? (
-              <span className="text-lg font-bold text-mint">V</span>
-            ) : (
-              <span className="text-lg">Vision AI POS</span>
-            )}
-          </Link>
+          />
           {!isCollapsed && (
             <button
               type="button"

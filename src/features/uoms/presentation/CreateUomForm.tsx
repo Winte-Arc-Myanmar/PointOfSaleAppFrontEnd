@@ -14,7 +14,7 @@ const schema = z.object({
   name: z.string().min(1, "Name is required"),
   classId: z.string().min(1, "Class is required"),
   abbreviation: z.string().min(1, "Abbreviation is required"),
-  conversionRateToBase: z.coerce.number().min(0, "Must be >= 0"),
+  conversionRateToBase: z.number().min(0, "Must be >= 0"),
 });
 
 export type UomFormData = z.infer<typeof schema>;
@@ -119,7 +119,7 @@ export function CreateUomForm({
           id="conversionRateToBase"
           type="number"
           step="any"
-          {...register("conversionRateToBase")}
+          {...register("conversionRateToBase", { valueAsNumber: true })}
         />
         {errors.conversionRateToBase && (
           <p className="text-sm text-red-600">

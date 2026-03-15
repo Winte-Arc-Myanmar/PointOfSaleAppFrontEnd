@@ -12,11 +12,12 @@ import {
   safeText,
   formatDate,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
 
-  if (isLoading) return <p className="text-muted">Loading user...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading user..." />;
   if (error || !user)
     return (
       <div className="space-y-4">

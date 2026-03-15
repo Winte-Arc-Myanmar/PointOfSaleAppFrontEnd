@@ -18,8 +18,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vision AI POS",
-  description: "Point of Sale system",
+  title: "Vision AI Pos",
+  description: "Point of Sale system powered by Vision AI",
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

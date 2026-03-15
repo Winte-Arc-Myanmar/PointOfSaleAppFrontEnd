@@ -6,6 +6,7 @@ import { ChevronRight, FolderTree } from "lucide-react";
 import { useCategoryTree } from "@/presentation/hooks/useCategories";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/core/domain/entities/Category";
+import { AppLoader } from "@/presentation/components/loader";
 
 function CategoryTreeItem({
   category,
@@ -78,8 +79,8 @@ export function CategoryTree() {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="text-muted text-sm">Loading category tree...</p>
+      <div className="rounded-lg border border-border bg-background p-4 flex items-center justify-center min-h-48">
+        <AppLoader fullScreen={false} size="sm" message="Loading category tree..." />
       </div>
     );
   }

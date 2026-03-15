@@ -10,11 +10,12 @@ import {
   DetailPageHeader,
   safeText,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function UomClassDetail({ uomClassId }: { uomClassId: string }) {
   const { data: uomClass, isLoading, error } = useUomClass(uomClassId);
 
-  if (isLoading) return <p className="text-muted">Loading UOM class...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading UOM class..." />;
   if (error || !uomClass)
     return (
       <div className="space-y-4">

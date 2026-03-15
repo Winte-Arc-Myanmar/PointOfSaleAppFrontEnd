@@ -36,5 +36,6 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Don't run auth middleware for static assets (e.g. logo) so they load on login page
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|logo\\.svg).*)"],
 };

@@ -12,11 +12,12 @@ import {
   safeText,
   formatDate,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
 
-  if (isLoading) return <p className="text-muted">Loading product...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading product..." />;
   if (error || !product)
     return (
       <div className="space-y-4">

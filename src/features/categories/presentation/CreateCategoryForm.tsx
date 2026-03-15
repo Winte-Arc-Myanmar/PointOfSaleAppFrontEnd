@@ -15,7 +15,7 @@ const schema = z.object({
   tenantId: z.string().min(1, "Tenant ID is required"),
   parentId: z.string(),
   description: z.string(),
-  sortOrder: z.coerce.number().min(0),
+  sortOrder: z.number().min(0),
 });
 
 export type CategoryFormData = z.infer<typeof schema>;
@@ -122,7 +122,7 @@ export function CreateCategoryForm({
         <Input
           id="sortOrder"
           type="number"
-          {...register("sortOrder")}
+          {...register("sortOrder", { valueAsNumber: true })}
         />
         {errors.sortOrder && (
           <p className="text-sm text-red-600">{errors.sortOrder.message}</p>

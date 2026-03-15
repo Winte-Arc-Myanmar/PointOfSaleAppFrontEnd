@@ -11,11 +11,12 @@ import {
   safeText,
   formatDate,
 } from "@/presentation/components/detail";
+import { AppLoader } from "@/presentation/components/loader";
 
 export function CategoryDetail({ categoryId }: { categoryId: string }) {
   const { data: category, isLoading, error } = useCategory(categoryId);
 
-  if (isLoading) return <p className="text-muted">Loading category...</p>;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading category..." />;
   if (error || !category)
     return (
       <div className="space-y-4">
