@@ -10,7 +10,10 @@ interface SplitColorTextProps {
 export function SplitColorText({ text, className }: SplitColorTextProps) {
   return (
     <span
-      className={cn("split-color-text whitespace-nowrap select-none", className)}
+      className={cn(
+        "split-color-text whitespace-nowrap select-none",
+        className
+      )}
       aria-label={text}
     >
       {text}

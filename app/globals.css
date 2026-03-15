@@ -101,13 +101,18 @@ body {
 
 /* Split-color text: top half = foreground, bottom half = animated mint water wave */
 @keyframes mint-wave {
-  0%   { background-position: 0% 0, 0% 50%; }
-  50%  { background-position: 0% 0, 100% 50%; }
-  100% { background-position: 0% 0, 200% 50%; }
+  0% {
+    background-position: 0% 0, 0% 50%;
+  }
+  50% {
+    background-position: 0% 0, 100% 50%;
+  }
+  100% {
+    background-position: 0% 0, 200% 50%;
+  }
 }
 .split-color-text {
-  background:
-    linear-gradient(
+  background: linear-gradient(
       to bottom,
       var(--color-foreground) 0%,
       var(--color-foreground) 48%,
