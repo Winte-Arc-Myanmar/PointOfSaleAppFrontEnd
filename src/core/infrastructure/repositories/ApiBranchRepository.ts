@@ -1,5 +1,5 @@
 /**
- * Branch repository 
+ * Branch repository
  * Infrastructure layer.
  */
 
@@ -21,9 +21,10 @@ export class ApiBranchRepository implements IBranchRepository {
       page: params?.page ?? 1,
       limit: params?.limit ?? 10,
     };
-    const res = await this.httpClient.get<
-      BranchDto[] | { data?: BranchDto[] }
-    >(API_ENDPOINTS.BRANCHES.LIST, { params: query });
+    const res = await this.httpClient.get<BranchDto[] | { data?: BranchDto[] }>(
+      API_ENDPOINTS.BRANCHES.LIST,
+      { params: query }
+    );
     const list = Array.isArray(res) ? res : res?.data ?? [];
     const dtos = Array.isArray(list) ? list : [];
     return dtos
@@ -57,7 +58,9 @@ export class ApiBranchRepository implements IBranchRepository {
       API_ENDPOINTS.BRANCHES.UPDATE(id),
       data
     );
-    return toBranch({ ...dto, id: dto?.id ?? id } as BranchDto & { id: string });
+    return toBranch({ ...dto, id: dto?.id ?? id } as BranchDto & {
+      id: string;
+    });
   }
 
   async delete(id: string): Promise<void> {
