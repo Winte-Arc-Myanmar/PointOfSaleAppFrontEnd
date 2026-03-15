@@ -68,8 +68,8 @@ export function AppLogo({
         size === "auth"
           ? "(max-width: 640px) 80px, 96px"
           : size === "sidebar" || size === "sidebarCollapsed"
-            ? "40px"
-            : "32px"
+          ? "40px"
+          : "32px"
       }
     />
   );
@@ -78,7 +78,9 @@ export function AppLogo({
     <>
       {logoImage}
       {showLabel && (
-        <span className={cn("whitespace-nowrap text-foreground", config.textClass)}>
+        <span
+          className={cn("whitespace-nowrap text-foreground", config.textClass)}
+        >
           {APP_NAME}
         </span>
       )}

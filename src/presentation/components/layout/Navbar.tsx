@@ -58,7 +58,7 @@ export function Navbar({
           <PanelLeftClose className="size-5" strokeWidth={2} />
         )}
       </motion.button>
-  
+
       {title && (
         <motion.h1
           initial={{ opacity: 0, x: -8 }}
