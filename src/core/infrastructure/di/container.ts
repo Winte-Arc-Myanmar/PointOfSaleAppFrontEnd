@@ -80,11 +80,17 @@ class Container {
       "productVariantService",
       productVariantService
     );
-    this.register<IUomClassRepository>("uomClassRepository", uomClassRepository);
+    this.register<IUomClassRepository>(
+      "uomClassRepository",
+      uomClassRepository
+    );
     this.register<IUomClassService>("uomClassService", uomClassService);
     this.register<IUomRepository>("uomRepository", uomRepository);
     this.register<IUomService>("uomService", uomService);
-    this.register<ICategoryRepository>("categoryRepository", categoryRepository);
+    this.register<ICategoryRepository>(
+      "categoryRepository",
+      categoryRepository
+    );
     this.register<ICategoryService>("categoryService", categoryService);
   }
 

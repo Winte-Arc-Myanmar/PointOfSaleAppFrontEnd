@@ -4,7 +4,16 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, LogOut, UserPlus, Building2, Users, Ruler, FolderTree } from "lucide-react";
+import {
+  X,
+  Package,
+  LogOut,
+  UserPlus,
+  Building2,
+  Users,
+  Ruler,
+  FolderTree,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 
@@ -34,7 +43,7 @@ export function SidebarMenu({
       items.push(
         { href: "/admin/tenants", label: "Tenants", icon: Building2 },
         { href: "/admin/users", label: "Users", icon: Users },
-        { href: "/admin/categories", label: "Categories", icon: FolderTree   },
+        { href: "/admin/categories", label: "Categories", icon: FolderTree },
         { href: "/admin/uom", label: "UOM", icon: Ruler },
         { href: "/admin/register", label: "Register user", icon: UserPlus }
       );
@@ -115,11 +124,7 @@ export function SidebarMenu({
             isCollapsed ? "px-2" : "px-3"
           )}
         >
-          {!isCollapsed && (
-            <p className="section-label mb-3 px-3">
-              Menu
-            </p>
-          )}
+          {!isCollapsed && <p className="section-label mb-3 px-3">Menu</p>}
           <ul className="space-y-0.5">
             {menuItems.map(({ href, label, icon: Icon }, i) => {
               const isActive = pathname === href;

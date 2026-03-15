@@ -1,5 +1,5 @@
 /**
- * Category repository 
+ * Category repository
  * Infrastructure layer.
  */
 
@@ -32,9 +32,9 @@ export class ApiCategoryRepository implements ICategoryRepository {
   }
 
   async getTree(): Promise<Category[]> {
-    const res = await this.httpClient.get<CategoryDto[] | { data?: CategoryDto[] }>(
-      API_ENDPOINTS.CATEGORIES.TREE
-    );
+    const res = await this.httpClient.get<
+      CategoryDto[] | { data?: CategoryDto[] }
+    >(API_ENDPOINTS.CATEGORIES.TREE);
     const list = Array.isArray(res) ? res : res?.data ?? [];
     const dtos = (Array.isArray(list) ? list : []).filter(
       (d): d is CategoryDto & { id: string } => !!d?.id
