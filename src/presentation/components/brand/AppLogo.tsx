@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { SplitColorText } from "@/presentation/components/brand/SplitColorText";
 
 export const APP_NAME = "Vision AI Pos";
 
@@ -78,11 +79,7 @@ export function AppLogo({
     <>
       {logoImage}
       {showLabel && (
-        <span
-          className={cn("whitespace-nowrap text-foreground", config.textClass)}
-        >
-          {APP_NAME}
-        </span>
+        <SplitColorText text={APP_NAME} className={config.textClass} />
       )}
     </>
   );

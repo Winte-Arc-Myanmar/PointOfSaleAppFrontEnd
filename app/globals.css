@@ -98,3 +98,36 @@ body {
 .toast-root[data-state="closed"] {
   animation: toast-out 0.25s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
 }
+
+/* Split-color text: top half = foreground, bottom half = animated mint water wave */
+@keyframes mint-wave {
+  0%   { background-position: 0% 0, 0% 50%; }
+  50%  { background-position: 0% 0, 100% 50%; }
+  100% { background-position: 0% 0, 200% 50%; }
+}
+.split-color-text {
+  background:
+    linear-gradient(
+      to bottom,
+      var(--color-foreground) 0%,
+      var(--color-foreground) 48%,
+      transparent 48%
+    ),
+    linear-gradient(
+      90deg,
+      #adffc3 0%,
+      #4ae0a0 15%,
+      #5ee89c 30%,
+      #8bffc0 45%,
+      #4ae0a0 55%,
+      #adffc3 70%,
+      #5ee89c 85%,
+      #adffc3 100%
+    );
+  background-size: 100% 100%, 300% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mint-wave 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
+}

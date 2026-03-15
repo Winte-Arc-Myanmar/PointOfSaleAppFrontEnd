@@ -202,10 +202,10 @@ export function AppLoader({
         </motion.div>
       </div>
 
-      {/* App name with stagger reveal */}
+      {/* App name with stagger reveal — each letter: top half foreground, bottom half mint */}
       {showLabel && (
         <motion.div
-          className={`${s.mt} flex items-center gap-0.5 text-foreground ${s.textClass}`}
+          className={`${s.mt} flex items-center gap-0.5 ${s.textClass}`}
           initial="hidden"
           animate="visible"
           variants={{
@@ -216,7 +216,11 @@ export function AppLoader({
           {APP_NAME.split("").map((char, i) => (
             <motion.span
               key={i}
-              className={char === " " ? "inline-block w-1.5" : "inline-block"}
+              className={
+                char === " "
+                  ? "inline-block w-1.5"
+                  : "inline-block split-color-text"
+              }
               variants={{
                 hidden: { opacity: 0, y: 10, rotateX: -90 },
                 visible: {
