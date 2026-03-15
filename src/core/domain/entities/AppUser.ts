@@ -16,4 +16,11 @@ export interface AppUser {
   roleId?: string;
   branchId?: string;
   preferredLanguage?: string;
+  status?: string;
+  lastLoginAt?: string | null;
+  loginAttempts?: number;
+  lockoutUntil?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt?: string;
+  updatedAt?: string;
 }

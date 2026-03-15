@@ -7,6 +7,8 @@ import {
   useProducts,
   useDeleteProduct,
 } from "@/presentation/hooks/useProducts";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -23,22 +25,30 @@ export function ProductList() {
   const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: products = [], isLoading, error, refetch } = useProducts();
   const deleteProduct = useDeleteProduct();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const actions = useMemo(
     () =>
       getProductRowActions({
         onView: (p) => router.push(`/products/${p.id}`),
         onEdit: (p) => router.push(`/products/${p.id}/edit`),
-        onDelete: (p) => {
-          if (
-            typeof window !== "undefined" &&
-            window.confirm(`Delete product "${p.name}"? This cannot be undone.`)
-          ) {
-            deleteProduct.mutate(p.id);
+        onDelete: async (p) => {
+          const ok = await confirm({
+            title: "Delete product",
+            description: `Delete "${p.name}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            variant: "destructive",
+          });
+          if (ok) {
+            deleteProduct.mutate(p.id, {
+              onSuccess: () => toast.success("Product deleted."),
+              onError: () => toast.error("Failed to delete product."),
+            });
           }
         },
       }),
-    [router, deleteProduct]
+    [router, deleteProduct, toast, confirm]
   );
 
   const columns = useMemo(() => getProductTableColumns(), []);

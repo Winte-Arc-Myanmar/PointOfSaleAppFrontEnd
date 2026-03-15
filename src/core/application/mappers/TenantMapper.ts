@@ -6,23 +6,26 @@
 import type { Tenant } from "@/core/domain/entities/Tenant";
 import type { TenantDto } from "../dtos/TenantDto";
 
-export function toTenant(dto: TenantDto): Tenant {
+export function toTenant(dto: TenantDto & { id: string }): Tenant {
   if (!dto.id) throw new Error("Tenant DTO must have id");
   return {
     id: dto.id,
-    name: dto.name,
-    legalName: dto.legalName,
-    domain: dto.domain,
-    website: dto.website,
-    logoUrl: dto.logoUrl,
-    primaryContactName: dto.primaryContactName,
-    primaryContactEmail: dto.primaryContactEmail,
-    primaryContactPhone: dto.primaryContactPhone,
-    address: dto.address,
-    city: dto.city,
-    state: dto.state,
-    country: dto.country,
-    zipCode: dto.zipCode,
+    name: dto.name ?? "",
+    legalName: dto.legalName ?? "",
+    domain: dto.domain ?? "",
+    website: dto.website ?? "",
+    logoUrl: dto.logoUrl ?? "",
+    primaryContactName: dto.primaryContactName ?? "",
+    primaryContactEmail: dto.primaryContactEmail ?? "",
+    primaryContactPhone: dto.primaryContactPhone ?? "",
+    address: dto.address ?? "",
+    city: dto.city ?? "",
+    state: dto.state ?? "",
+    country: dto.country ?? "",
+    zipCode: dto.zipCode ?? "",
+    status: dto.status,
+    deletedAt: dto.deletedAt ?? undefined,
+    createdAt: dto.createdAt,
   };
 }
 
@@ -42,5 +45,8 @@ export function toTenantDto(tenant: Partial<Tenant>): TenantDto {
     state: tenant.state ?? "",
     country: tenant.country ?? "",
     zipCode: tenant.zipCode ?? "",
+    ...(tenant.status != null && { status: tenant.status }),
+    ...(tenant.deletedAt != null && { deletedAt: tenant.deletedAt }),
+    ...(tenant.createdAt != null && { createdAt: tenant.createdAt }),
   };
 }

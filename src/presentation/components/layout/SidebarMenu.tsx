@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, LogOut, UserPlus, Building2, Users } from "lucide-react";
+import { X, Package, LogOut, UserPlus, Building2, Users, Ruler } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 
@@ -34,6 +34,7 @@ export function SidebarMenu({
       items.push(
         { href: "/admin/tenants", label: "Tenants", icon: Building2 },
         { href: "/admin/users", label: "Users", icon: Users },
+        { href: "/admin/uom", label: "UOM", icon: Ruler },
         { href: "/admin/register", label: "Register user", icon: UserPlus }
       );
     }

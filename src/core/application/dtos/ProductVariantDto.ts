@@ -9,4 +9,7 @@ export interface ProductVariantDto {
   matrixOptions: Record<string, string>;
   barcode?: string;
   priceModifier: number;
+  deletedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }

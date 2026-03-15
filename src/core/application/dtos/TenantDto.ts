@@ -18,4 +18,7 @@ export interface TenantDto {
   state: string;
   country: string;
   zipCode: string;
+  status?: string;
+  deletedAt?: string | null;
+  createdAt?: string;
 }

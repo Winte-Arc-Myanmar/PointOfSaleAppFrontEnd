@@ -164,7 +164,7 @@ export function DataTable<T extends { id: string | number }>({
   const showLoading = isLoading && data.length === 0 && !error;
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 overflow-x-hidden">
       {showLoading ? (
         <div className="panel flex items-center justify-center h-64 rounded-xl bg-background/80">
           <div className="text-center">

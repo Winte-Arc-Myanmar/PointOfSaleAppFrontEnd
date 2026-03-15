@@ -9,21 +9,29 @@ import { ApiAuthRepository } from "../repositories/ApiAuthRepository";
 import { ApiTenantRepository } from "../repositories/ApiTenantRepository";
 import { ApiUserRepository } from "../repositories/ApiUserRepository";
 import { ApiProductVariantRepository } from "../repositories/ApiProductVariantRepository";
+import { ApiUomClassRepository } from "../repositories/ApiUomClassRepository";
+import { ApiUomRepository } from "../repositories/ApiUomRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
 import { TenantService } from "@/core/application/services/TenantService";
 import { UserService } from "@/core/application/services/UserService";
+import { UomClassService } from "@/core/application/services/UomClassService";
+import { UomService } from "@/core/application/services/UomService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
 import type { ITenantRepository } from "@/core/domain/repositories/ITenantRepository";
 import type { IUserRepository } from "@/core/domain/repositories/IUserRepository";
+import type { IUomClassRepository } from "@/core/domain/repositories/IUomClassRepository";
+import type { IUomRepository } from "@/core/domain/repositories/IUomRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import type { IUserService } from "@/core/domain/services/IUserService";
+import type { IUomClassService } from "@/core/domain/services/IUomClassService";
+import type { IUomService } from "@/core/domain/services/IUomService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -44,6 +52,10 @@ class Container {
     const productVariantService = new ProductVariantService(
       productVariantRepository
     );
+    const uomClassRepository = new ApiUomClassRepository(httpClient);
+    const uomClassService = new UomClassService(uomClassRepository);
+    const uomRepository = new ApiUomRepository(httpClient);
+    const uomService = new UomService(uomRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -62,6 +74,10 @@ class Container {
       "productVariantService",
       productVariantService
     );
+    this.register<IUomClassRepository>("uomClassRepository", uomClassRepository);
+    this.register<IUomClassService>("uomClassService", uomClassService);
+    this.register<IUomRepository>("uomRepository", uomRepository);
+    this.register<IUomService>("uomService", uomService);
   }
 
   register<T>(key: string, instance: T): void {

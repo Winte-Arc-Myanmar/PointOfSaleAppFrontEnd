@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useProductVariants, useDeleteProductVariant } from "@/presentation/hooks/useProductVariants";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -24,6 +26,8 @@ export function ProductVariantSection({ productId }: { productId: string }) {
 
   const { data: variants = [], isLoading, error, refetch } = useProductVariants(productId);
   const deleteVariant = useDeleteProductVariant(productId);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const actions = useMemo(
     () =>
@@ -32,18 +36,22 @@ export function ProductVariantSection({ productId }: { productId: string }) {
           setEditingVariantId(v.id);
           setEditModalOpen(true);
         },
-        onDelete: (v) => {
-          if (
-            typeof window !== "undefined" &&
-            window.confirm(
-              `Delete variant "${v.variantSku}"? This cannot be undone.`
-            )
-          ) {
-            deleteVariant.mutate(v.id);
+        onDelete: async (v) => {
+          const ok = await confirm({
+            title: "Delete variant",
+            description: `Delete "${v.variantSku}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            variant: "destructive",
+          });
+          if (ok) {
+            deleteVariant.mutate(v.id, {
+              onSuccess: () => toast.success("Variant deleted."),
+              onError: () => toast.error("Failed to delete variant."),
+            });
           }
         },
       }),
-    [deleteVariant]
+    [deleteVariant, toast, confirm]
   );
 
   const columns = useMemo(() => getVariantTableColumns(), []);

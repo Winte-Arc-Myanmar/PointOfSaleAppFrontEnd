@@ -20,4 +20,7 @@ export interface Tenant {
   state: string;
   country: string;
   zipCode: string;
+  status?: string;
+  deletedAt?: string | null;
+  createdAt?: string;
 }

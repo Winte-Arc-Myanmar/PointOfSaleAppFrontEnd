@@ -29,7 +29,29 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       key: "basePrice",
       header: "Base price",
       className: "min-w-[80px] max-w-[120px]",
-      render: (p) => <span className="text-muted">{p.basePrice}</span>,
+      render: (p) => (
+        <span className="text-muted">
+          {typeof p.basePrice === "number" ? p.basePrice : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "categoryName",
+      header: "Category",
+      className: "min-w-[100px] max-w-[160px]",
+      render: (p) => (
+        <span className="text-muted truncate" title={p.categoryName ?? ""}>
+          {p.categoryName ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "baseUomName",
+      header: "UOM",
+      className: "min-w-[70px] max-w-[100px]",
+      render: (p) => (
+        <span className="text-muted">{p.baseUomName ?? "—"}</span>
+      ),
     },
     {
       key: "trackingType",

@@ -9,7 +9,7 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 import { API_CONFIG } from "./constants";
 
 /** Backend returns { success, message, data?, meta? }. Return data when present. */
@@ -50,8 +50,8 @@ export class HttpClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
-          // NextAuth will handle redirect via middleware
+        if (error.response?.status === 401 && typeof window !== "undefined") {
+          signOut({ callbackUrl: "/login" });
         }
         return Promise.reject(error);
       }

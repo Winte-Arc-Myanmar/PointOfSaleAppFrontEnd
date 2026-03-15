@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useUsers, useDeleteUser } from "@/presentation/hooks/useUsers";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -20,24 +22,30 @@ export function UserList() {
   const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: users = [], isLoading, error, refetch } = useUsers();
   const deleteUser = useDeleteUser();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const actions = useMemo(
     () =>
       getUserRowActions({
         onView: (u) => router.push(`/admin/users/${u.id}`),
         onEdit: (u) => router.push(`/admin/users/${u.id}/edit`),
-        onDelete: (u) => {
-          if (
-            typeof window !== "undefined" &&
-            window.confirm(
-              `Delete user "${u.fullName}"? This cannot be undone.`
-            )
-          ) {
-            deleteUser.mutate(u.id);
+        onDelete: async (u) => {
+          const ok = await confirm({
+            title: "Delete user",
+            description: `Delete "${u.fullName}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            variant: "destructive",
+          });
+          if (ok) {
+            deleteUser.mutate(u.id, {
+              onSuccess: () => toast.success("User deleted."),
+              onError: () => toast.error("Failed to delete user."),
+            });
           }
         },
       }),
-    [router, deleteUser]
+    [router, deleteUser, toast, confirm]
   );
 
   const columns = useMemo(() => getUserTableColumns(), []);

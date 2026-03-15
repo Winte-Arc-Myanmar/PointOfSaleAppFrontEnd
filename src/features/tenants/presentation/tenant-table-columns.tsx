@@ -1,60 +1,86 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Tenant } from "@/core/domain/entities/Tenant";
 
+const MAX_CHARS = 10;
+const COL_WIDTH = "w-[5.5rem] max-w-[5.5rem] min-w-[5.5rem]";
+
+function truncate(str: string | null | undefined): string {
+  if (str == null || str === "") return "—";
+  return str.length > MAX_CHARS ? `${str.slice(0, MAX_CHARS)}…` : str;
+}
+
 export function getTenantTableColumns(): DataTableColumn<Tenant>[] {
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
-      className: "min-w-[120px] max-w-[200px]",
+      className: COL_WIDTH,
       render: (t) => (
         <span className="font-medium text-foreground truncate" title={t.name}>
-          {t.name}
+          {truncate(t.name)}
         </span>
       ),
     },
     {
       key: "legalName",
       header: "Legal name",
-      className: "min-w-[140px] max-w-[220px]",
+      className: COL_WIDTH,
       render: (t) => (
         <span className="text-muted truncate" title={t.legalName}>
-          {t.legalName}
+          {truncate(t.legalName)}
         </span>
       ),
     },
     {
       key: "domain",
       header: "Domain",
-      className: "min-w-[100px] max-w-[160px]",
+      className: COL_WIDTH,
       render: (t) => (
         <span className="text-muted truncate" title={t.domain}>
-          {t.domain}
+          {truncate(t.domain)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      className: COL_WIDTH,
+      render: (t) => (
+        <span className="text-muted" title={t.status ?? ""}>
+          {truncate(t.status ?? null)}
         </span>
       ),
     },
     {
       key: "primaryContactEmail",
-      header: "Contact email",
-      className: "min-w-[160px] max-w-[240px]",
+      header: "Email",
+      className: COL_WIDTH,
       render: (t) => (
-        <span className="text-muted truncate" title={t.primaryContactEmail}>
-          {t.primaryContactEmail}
+        <span className="text-muted truncate" title={t.primaryContactEmail ?? ""}>
+          {truncate(t.primaryContactEmail)}
         </span>
       ),
     },
     {
       key: "city",
       header: "City",
-      className: "min-w-[80px] max-w-[120px]",
-      render: (t) => <span className="text-muted">{t.city}</span>,
+      className: COL_WIDTH,
+      render: (t) => (
+        <span className="text-muted" title={t.city ?? ""}>
+          {truncate(t.city)}
+        </span>
+      ),
     },
     {
       key: "country",
       header: "Country",
-      className: "min-w-[80px] max-w-[120px]",
-      render: (t) => <span className="text-muted">{t.country}</span>,
+      className: COL_WIDTH,
+      render: (t) => (
+        <span className="text-muted" title={t.country ?? ""}>
+          {truncate(t.country)}
+        </span>
+      ),
     },
   ];
 }

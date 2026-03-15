@@ -18,6 +18,13 @@ export function toAppUser(dto: UserDto & { id: string }): AppUser {
     roleId: dto.roleId,
     branchId: dto.branchId,
     preferredLanguage: dto.preferredLanguage,
+    status: dto.status,
+    lastLoginAt: dto.lastLoginAt ?? undefined,
+    loginAttempts: dto.loginAttempts,
+    lockoutUntil: dto.lockoutUntil ?? undefined,
+    metadata: dto.metadata ?? undefined,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
   };
 }
 

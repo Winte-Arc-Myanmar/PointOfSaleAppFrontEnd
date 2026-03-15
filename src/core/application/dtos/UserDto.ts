@@ -15,6 +15,13 @@ export interface UserDto {
   roleId?: string;
   branchId?: string;
   preferredLanguage?: string;
+  status?: string;
+  lastLoginAt?: string | null;
+  loginAttempts?: number;
+  lockoutUntil?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /** PATCH body - email, password, username, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */

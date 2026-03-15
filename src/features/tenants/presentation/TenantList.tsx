@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useTenants, useDeleteTenant } from "@/presentation/hooks/useTenants";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
 import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -20,22 +22,30 @@ export function TenantList() {
   const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: tenants = [], isLoading, error, refetch } = useTenants();
   const deleteTenant = useDeleteTenant();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   const actions = useMemo(
     () =>
       getTenantRowActions({
         onView: (t) => router.push(`/admin/tenants/${t.id}`),
         onEdit: (t) => router.push(`/admin/tenants/${t.id}/edit`),
-        onDelete: (t) => {
-          if (
-            typeof window !== "undefined" &&
-            window.confirm(`Delete tenant "${t.name}"? This cannot be undone.`)
-          ) {
-            deleteTenant.mutate(t.id);
+        onDelete: async (t) => {
+          const ok = await confirm({
+            title: "Delete tenant",
+            description: `Delete "${t.name}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            variant: "destructive",
+          });
+          if (ok) {
+            deleteTenant.mutate(t.id, {
+              onSuccess: () => toast.success("Tenant deleted."),
+              onError: () => toast.error("Failed to delete tenant."),
+            });
           }
         },
       }),
-    [router, deleteTenant]
+    [router, deleteTenant, toast, confirm]
   );
 
   const columns = useMemo(() => getTenantTableColumns(), []);

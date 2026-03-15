@@ -39,7 +39,33 @@ export function getVariantTableColumns(): DataTableColumn<ProductVariant>[] {
       header: "Price modifier",
       className: "min-w-[80px] max-w-[120px]",
       render: (v) => (
-        <span className="text-muted">{v.priceModifier}</span>
+        <span className="text-muted">
+          {typeof v.priceModifier === "number" ? v.priceModifier : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Created at",
+      className: "min-w-[140px] max-w-[180px]",
+      render: (v) => (
+        <span className="text-muted text-xs">{v.createdAt ?? "—"}</span>
+      ),
+    },
+    {
+      key: "updatedAt",
+      header: "Updated at",
+      className: "min-w-[140px] max-w-[180px]",
+      render: (v) => (
+        <span className="text-muted text-xs">{v.updatedAt ?? "—"}</span>
+      ),
+    },
+    {
+      key: "deletedAt",
+      header: "Deleted at",
+      className: "min-w-[140px] max-w-[180px]",
+      render: (v) => (
+        <span className="text-muted text-xs">{v.deletedAt ?? "—"}</span>
       ),
     },
   ];

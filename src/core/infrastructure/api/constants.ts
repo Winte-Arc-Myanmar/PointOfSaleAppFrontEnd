@@ -46,4 +46,18 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/users/${id}`,
     DELETE: (id: string) => `/v1/users/${id}`,
   },
+  UOM_CLASSES: {
+    LIST: "/v1/uom-classes",
+    BY_ID: (id: string) => `/v1/uom-classes/${id}`,
+    CREATE: "/v1/uom-classes",
+    UPDATE: (id: string) => `/v1/uom-classes/${id}`,
+    DELETE: (id: string) => `/v1/uom-classes/${id}`,
+  },
+  UOMS: {
+    LIST: "/v1/uoms",
+    BY_ID: (id: string) => `/v1/uoms/${id}`,
+    CREATE: "/v1/uoms",
+    UPDATE: (id: string) => `/v1/uoms/${id}`,
+    DELETE: (id: string) => `/v1/uoms/${id}`,
+  },
 } as const;
