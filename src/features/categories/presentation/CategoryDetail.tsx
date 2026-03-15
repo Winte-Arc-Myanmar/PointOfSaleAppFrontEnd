@@ -3,17 +3,14 @@
 import Link from "next/link";
 import { useCategory } from "@/presentation/hooks/useCategories";
 import { Button } from "@/presentation/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return "—";
-  try {
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
-  } catch {
-    return value;
-  }
-}
+import { FolderTree, Info, List } from "lucide-react";
+import {
+  DetailSection,
+  DetailRow,
+  DetailPageHeader,
+  safeText,
+  formatDate,
+} from "@/presentation/components/detail";
 
 export function CategoryDetail({ categoryId }: { categoryId: string }) {
   const { data: category, isLoading, error } = useCategory(categoryId);
@@ -31,78 +28,54 @@ export function CategoryDetail({ categoryId }: { categoryId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/categories">
-          <Button variant="ghost" size="icon" aria-label="Back to Categories">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="panel-header text-xl tracking-tight text-foreground">
-          {category.name}
-        </h1>
-        <Link href={`/admin/categories/${category.id}/edit`}>
-          <Button>Edit</Button>
-        </Link>
+      <DetailPageHeader
+        backHref="/admin/categories"
+        backLabel="Categories"
+        title={safeText(category.name)}
+        editHref={`/admin/categories/${category.id}/edit`}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DetailSection title="Overview" icon={FolderTree}>
+          <div className="space-y-0">
+            <DetailRow label="Category ID" value={safeText(category.id)} mono />
+            <DetailRow label="Name" value={safeText(category.name)} />
+            <DetailRow label="Tenant ID" value={safeText(category.tenantId)} mono />
+            <DetailRow label="Parent ID" value={safeText(category.parentId)} mono />
+            <DetailRow label="Sort order" value={safeText(category.sortOrder)} />
+            {(category.description ?? "") !== "" && (
+              <DetailRow label="Description" value={safeText(category.description)} />
+            )}
+          </div>
+        </DetailSection>
+
+        <DetailSection title="Record info" icon={Info}>
+          <div className="space-y-0">
+            <DetailRow label="Created at" value={formatDate(category.createdAt)} />
+            <DetailRow label="Updated at" value={formatDate(category.updatedAt)} />
+            {(category.deletedAt ?? "") !== "" && (
+              <DetailRow label="Deleted at" value={formatDate(category.deletedAt)} />
+            )}
+          </div>
+        </DetailSection>
+
+        {Array.isArray(category.children) && category.children.length > 0 && (
+          <DetailSection title="Child categories" icon={List} className="lg:col-span-2">
+            <ul className="space-y-2">
+              {category.children.map((child) => (
+                <li key={child.id}>
+                  <Link
+                    href={`/admin/categories/${child.id}`}
+                    className="text-mint hover:underline font-medium text-sm"
+                  >
+                    {child.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </DetailSection>
+        )}
       </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div>
-          <dt className="text-muted">Category ID</dt>
-          <dd className="font-mono text-xs">{category.id}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Name</dt>
-          <dd className="font-medium">{category.name}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Tenant ID</dt>
-          <dd className="font-mono text-xs">{category.tenantId}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Parent ID</dt>
-          <dd className="font-mono text-xs">{category.parentId ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Sort order</dt>
-          <dd>{category.sortOrder}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Created at</dt>
-          <dd>{formatDate(category.createdAt)}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Updated at</dt>
-          <dd>{formatDate(category.updatedAt)}</dd>
-        </div>
-        {(category.deletedAt ?? "") !== "" && (
-          <div>
-            <dt className="text-muted">Deleted at</dt>
-            <dd>{formatDate(category.deletedAt)}</dd>
-          </div>
-        )}
-        {(category.description ?? "") !== "" && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Description</dt>
-            <dd>{category.description}</dd>
-          </div>
-        )}
-      </dl>
-      {Array.isArray(category.children) && category.children.length > 0 && (
-        <section className="border-t border-border pt-4">
-          <h2 className="text-sm font-medium text-muted mb-2">Child categories</h2>
-          <ul className="space-y-1">
-            {category.children.map((child) => (
-              <li key={child.id}>
-                <Link
-                  href={`/admin/categories/${child.id}`}
-                  className="text-mint hover:underline font-medium"
-                >
-                  {child.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

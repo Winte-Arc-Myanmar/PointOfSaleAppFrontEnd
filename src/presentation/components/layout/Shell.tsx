@@ -12,6 +12,7 @@ const routeTitles: Record<string, string> = {
   "/admin/tenants": "Tenants",
   "/admin/users": "Users",
   "/admin/categories": "Categories",
+  "/admin/branches": "Branches",
   "/admin/uom": "UOM",
   "/admin/register": "Register user",
 };
@@ -23,6 +24,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/admin/categories/") && pathname.endsWith("/edit"))
     return "Edit category";
   if (pathname.startsWith("/admin/categories/")) return "Category";
+  if (pathname.startsWith("/admin/branches/") && pathname.endsWith("/edit"))
+    return "Edit branch";
+  if (pathname.startsWith("/admin/branches/")) return "Branch";
   if (pathname.startsWith("/admin/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
   if (pathname.startsWith("/admin/uom-classes/")) return "UOM class";

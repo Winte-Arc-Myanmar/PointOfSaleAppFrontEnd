@@ -13,6 +13,7 @@ import {
   Users,
   Ruler,
   FolderTree,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -44,6 +45,7 @@ export function SidebarMenu({
         { href: "/admin/tenants", label: "Tenants", icon: Building2 },
         { href: "/admin/users", label: "Users", icon: Users },
         { href: "/admin/categories", label: "Categories", icon: FolderTree },
+        { href: "/admin/branches", label: "Branches", icon: MapPin },
         { href: "/admin/uom", label: "UOM", icon: Ruler },
         { href: "/admin/register", label: "Register user", icon: UserPlus }
       );

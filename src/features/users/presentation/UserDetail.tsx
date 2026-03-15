@@ -4,7 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/presentation/hooks/useUsers";
 import { Button } from "@/presentation/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { User, Shield, Info } from "lucide-react";
+import {
+  DetailSection,
+  DetailRow,
+  DetailPageHeader,
+  safeText,
+  formatDate,
+} from "@/presentation/components/detail";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
@@ -22,96 +29,76 @@ export function UserDetail({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/users">
-          <Button variant="ghost" size="icon" aria-label="Back to users">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="panel-header text-xl tracking-tight text-foreground">
-          {user.fullName}
-        </h1>
-        <Link href={`/admin/users/${user.id}/edit`}>
-          <Button>Edit</Button>
-        </Link>
-      </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div>
-          <dt className="text-muted">User ID</dt>
-          <dd className="font-mono text-xs">{user.id}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Username</dt>
-          <dd className="font-medium">{user.username}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Email</dt>
-          <dd>{user.email}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Full name</dt>
-          <dd>{user.fullName}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Phone number</dt>
-          <dd>{user.phoneNumber ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Job title</dt>
-          <dd>{user.jobTitle ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Status</dt>
-          <dd>{user.status ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Preferred language</dt>
-          <dd>{user.preferredLanguage ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Login attempts</dt>
-          <dd>{user.loginAttempts ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Last login at</dt>
-          <dd className="text-muted">{user.lastLoginAt ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Lockout until</dt>
-          <dd className="text-muted">{user.lockoutUntil ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Created at</dt>
-          <dd className="text-muted">{user.createdAt ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Updated at</dt>
-          <dd className="text-muted">{user.updatedAt ?? "—"}</dd>
-        </div>
-        {user.avatarUrl && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Avatar</dt>
-            <dd>
-              <Image
-                src={user.avatarUrl}
-                alt={`${user.fullName} avatar`}
-                width={80}
-                height={80}
-                className="rounded-full object-cover h-20 w-20"
-                unoptimized
-              />
-            </dd>
+      <DetailPageHeader
+        backHref="/admin/users"
+        backLabel="Users"
+        title={safeText(user.fullName)}
+        editHref={`/admin/users/${user.id}/edit`}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DetailSection title="Profile" icon={User}>
+          <div className="space-y-0">
+            <DetailRow label="User ID" value={safeText(user.id)} mono />
+            <DetailRow label="Username" value={safeText(user.username)} />
+            <DetailRow label="Full name" value={safeText(user.fullName)} />
+            <DetailRow
+              label="Email"
+              value={
+                user.email ? (
+                  <a href={`mailto:${user.email}`} className="text-mint hover:underline">
+                    {user.email}
+                  </a>
+                ) : (
+                  "—"
+                )
+              }
+            />
+            <DetailRow label="Phone number" value={safeText(user.phoneNumber)} />
+            <DetailRow label="Job title" value={safeText(user.jobTitle)} />
+            <DetailRow label="Preferred language" value={safeText(user.preferredLanguage)} />
+            {user.avatarUrl && (
+              <div className="pt-2">
+                <dt className="text-xs font-medium text-muted uppercase tracking-wider">Avatar</dt>
+                <dd className="mt-1">
+                  <Image
+                    src={user.avatarUrl}
+                    alt={`${user.fullName} avatar`}
+                    width={80}
+                    height={80}
+                    className="rounded-full object-cover h-20 w-20"
+                    unoptimized
+                  />
+                </dd>
+              </div>
+            )}
           </div>
-        )}
+        </DetailSection>
+
+        <DetailSection title="Status & security" icon={Shield}>
+          <div className="space-y-0">
+            <DetailRow label="Status" value={safeText(user.status)} />
+            <DetailRow label="Login attempts" value={safeText(user.loginAttempts)} />
+            <DetailRow label="Last login at" value={formatDate(user.lastLoginAt)} />
+            <DetailRow label="Lockout until" value={formatDate(user.lockoutUntil)} />
+          </div>
+        </DetailSection>
+
+        <DetailSection title="Record info" icon={Info}>
+          <div className="space-y-0">
+            <DetailRow label="Created at" value={formatDate(user.createdAt)} />
+            <DetailRow label="Updated at" value={formatDate(user.updatedAt)} />
+          </div>
+        </DetailSection>
+
         {user.metadata != null && Object.keys(user.metadata).length > 0 && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Metadata</dt>
-            <dd className="font-mono text-xs break-all">
-              {JSON.stringify(user.metadata)}
-            </dd>
-          </div>
+          <DetailSection title="Metadata" icon={Info} className="lg:col-span-2">
+            <pre className="text-xs font-mono text-foreground overflow-auto rounded bg-muted/50 p-3">
+              {JSON.stringify(user.metadata, null, 2)}
+            </pre>
+          </DetailSection>
         )}
-      </dl>
+      </div>
     </div>
   );
 }

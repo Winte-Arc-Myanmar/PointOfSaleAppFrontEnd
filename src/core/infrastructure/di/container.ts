@@ -12,6 +12,7 @@ import { ApiProductVariantRepository } from "../repositories/ApiProductVariantRe
 import { ApiUomClassRepository } from "../repositories/ApiUomClassRepository";
 import { ApiUomRepository } from "../repositories/ApiUomRepository";
 import { ApiCategoryRepository } from "../repositories/ApiCategoryRepository";
+import { ApiBranchRepository } from "../repositories/ApiBranchRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
@@ -20,6 +21,7 @@ import { UserService } from "@/core/application/services/UserService";
 import { UomClassService } from "@/core/application/services/UomClassService";
 import { UomService } from "@/core/application/services/UomService";
 import { CategoryService } from "@/core/application/services/CategoryService";
+import { BranchService } from "@/core/application/services/BranchService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -28,6 +30,7 @@ import type { IUserRepository } from "@/core/domain/repositories/IUserRepository
 import type { IUomClassRepository } from "@/core/domain/repositories/IUomClassRepository";
 import type { IUomRepository } from "@/core/domain/repositories/IUomRepository";
 import type { ICategoryRepository } from "@/core/domain/repositories/ICategoryRepository";
+import type { IBranchRepository } from "@/core/domain/repositories/IBranchRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
@@ -36,6 +39,7 @@ import type { IUserService } from "@/core/domain/services/IUserService";
 import type { IUomClassService } from "@/core/domain/services/IUomClassService";
 import type { IUomService } from "@/core/domain/services/IUomService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
+import type { IBranchService } from "@/core/domain/services/IBranchService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -62,6 +66,8 @@ class Container {
     const uomService = new UomService(uomRepository);
     const categoryRepository = new ApiCategoryRepository(httpClient);
     const categoryService = new CategoryService(categoryRepository);
+    const branchRepository = new ApiBranchRepository(httpClient);
+    const branchService = new BranchService(branchRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -92,6 +98,8 @@ class Container {
       categoryRepository
     );
     this.register<ICategoryService>("categoryService", categoryService);
+    this.register<IBranchRepository>("branchRepository", branchRepository);
+    this.register<IBranchService>("branchService", branchService);
   }
 
   register<T>(key: string, instance: T): void {

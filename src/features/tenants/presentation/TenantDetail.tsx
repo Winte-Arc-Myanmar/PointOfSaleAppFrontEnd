@@ -4,7 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTenant } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Building2, Globe, User, MapPin, Info } from "lucide-react";
+import {
+  DetailSection,
+  DetailRow,
+  DetailPageHeader,
+  safeText,
+  formatDate,
+} from "@/presentation/components/detail";
 
 export function TenantDetail({ tenantId }: { tenantId: string }) {
   const { data: tenant, isLoading, error } = useTenant(tenantId);
@@ -31,117 +38,93 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/tenants">
-          <Button variant="ghost" size="icon" aria-label="Back to tenants">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="panel-header text-xl tracking-tight text-foreground">
-          {tenant.name}
-        </h1>
-        <Link href={`/admin/tenants/${tenant.id}/edit`}>
-          <Button>Edit</Button>
-        </Link>
-      </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div>
-          <dt className="text-muted">Tenant ID</dt>
-          <dd className="font-mono text-xs">{tenant.id}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Name</dt>
-          <dd className="font-medium">{tenant.name}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Legal name</dt>
-          <dd>{tenant.legalName}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Domain</dt>
-          <dd>{tenant.domain}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Status</dt>
-          <dd>{tenant.status ?? "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Website</dt>
-          <dd>
-            {tenant.website ? (
-              <a
-                href={tenant.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-mint hover:underline break-all"
-              >
-                {tenant.website}
-              </a>
-            ) : (
-              "—"
+      <DetailPageHeader
+        backHref="/admin/tenants"
+        backLabel="Tenants"
+        title={safeText(tenant.name)}
+        editHref={`/admin/tenants/${tenant.id}/edit`}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DetailSection title="Overview" icon={Building2}>
+          <div className="space-y-0">
+            <DetailRow label="Tenant ID" value={safeText(tenant.id)} mono />
+            <DetailRow label="Name" value={safeText(tenant.name)} />
+            <DetailRow label="Legal name" value={safeText(tenant.legalName)} />
+            <DetailRow label="Domain" value={safeText(tenant.domain)} mono />
+            <DetailRow label="Status" value={safeText(tenant.status)} />
+            <DetailRow
+              label="Website"
+              value={
+                tenant.website ? (
+                  <a
+                    href={tenant.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-mint hover:underline break-all"
+                  >
+                    {tenant.website}
+                  </a>
+                ) : (
+                  "—"
+                )
+              }
+            />
+            {tenant.logoUrl && (
+              <div className="pt-2">
+                <dt className="text-xs font-medium text-muted uppercase tracking-wider">Logo</dt>
+                <dd className="mt-1">
+                  <Image
+                    src={tenant.logoUrl}
+                    alt={`${tenant.name} logo`}
+                    width={120}
+                    height={60}
+                    className="h-12 w-auto object-contain"
+                    unoptimized
+                  />
+                </dd>
+              </div>
             )}
-          </dd>
-        </div>
-        {tenant.logoUrl && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Logo</dt>
-            <dd>
-              <Image
-                src={tenant.logoUrl}
-                alt={`${tenant.name} logo`}
-                width={120}
-                height={60}
-                className="h-12 w-auto object-contain"
-                unoptimized
-              />
-            </dd>
           </div>
-        )}
-        <div>
-          <dt className="text-muted">Primary contact name</dt>
-          <dd>{tenant.primaryContactName || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Primary contact email</dt>
-          <dd>{tenant.primaryContactEmail || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Primary contact phone</dt>
-          <dd>{tenant.primaryContactPhone || "—"}</dd>
-        </div>
-        <div className="sm:col-span-2">
-          <dt className="text-muted">Address</dt>
-          <dd>{addressLine}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">City</dt>
-          <dd>{tenant.city || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">State</dt>
-          <dd>{tenant.state || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Country</dt>
-          <dd>{tenant.country || "—"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Zip code</dt>
-          <dd>{tenant.zipCode || "—"}</dd>
-        </div>
-        {tenant.deletedAt != null && tenant.deletedAt !== "" && (
-          <div>
-            <dt className="text-muted">Deleted at</dt>
-            <dd className="text-muted">{tenant.deletedAt}</dd>
+        </DetailSection>
+
+        <DetailSection title="Primary contact" icon={User}>
+          <div className="space-y-0">
+            <DetailRow label="Name" value={safeText(tenant.primaryContactName)} />
+            <DetailRow label="Email" value={safeText(tenant.primaryContactEmail)} />
+            <DetailRow label="Phone" value={safeText(tenant.primaryContactPhone)} />
           </div>
-        )}
-        {tenant.createdAt != null && tenant.createdAt !== "" && (
-          <div>
-            <dt className="text-muted">Created at</dt>
-            <dd className="text-muted">{tenant.createdAt}</dd>
+        </DetailSection>
+
+        <DetailSection title="Address" icon={MapPin} className="lg:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
+            <div className="space-y-0 sm:col-span-2">
+              <DetailRow label="Full address" value={addressLine} />
+            </div>
+            <div className="space-y-0">
+              <DetailRow label="City" value={safeText(tenant.city)} />
+            </div>
+            <div className="space-y-0">
+              <DetailRow label="State" value={safeText(tenant.state)} />
+            </div>
+            <div className="space-y-0">
+              <DetailRow label="Country" value={safeText(tenant.country)} />
+            </div>
+            <div className="space-y-0">
+              <DetailRow label="Zip code" value={safeText(tenant.zipCode)} />
+            </div>
           </div>
-        )}
-      </dl>
+        </DetailSection>
+
+        <DetailSection title="Record info" icon={Info}>
+          <div className="space-y-0">
+            <DetailRow label="Created at" value={formatDate(tenant.createdAt)} />
+            {tenant.deletedAt != null && tenant.deletedAt !== "" && (
+              <DetailRow label="Deleted at" value={formatDate(tenant.deletedAt)} />
+            )}
+          </div>
+        </DetailSection>
+      </div>
     </div>
   );
 }

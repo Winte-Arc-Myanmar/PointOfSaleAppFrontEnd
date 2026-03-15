@@ -3,8 +3,15 @@
 import Link from "next/link";
 import { useProduct } from "@/presentation/hooks/useProducts";
 import { Button } from "@/presentation/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Package, Tag, Layers, Info } from "lucide-react";
 import { ProductVariantSection } from "./ProductVariantSection";
+import {
+  DetailSection,
+  DetailRow,
+  DetailPageHeader,
+  safeText,
+  formatDate,
+} from "@/presentation/components/detail";
 
 export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
@@ -22,135 +29,72 @@ export function ProductDetail({ productId }: { productId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/products">
-          <Button variant="ghost" size="icon" aria-label="Back to products">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="panel-header text-xl tracking-tight text-foreground">{product.name}</h1>
-        <Link href={`/products/${product.id}/edit`}>
-          <Button>Edit</Button>
-        </Link>
-      </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div>
-          <dt className="text-muted">Product ID</dt>
-          <dd className="font-mono text-xs">{product.id}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Base SKU</dt>
-          <dd className="font-medium">{product.baseSku}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Base price</dt>
-          <dd>{product.basePrice}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Tracking type</dt>
-          <dd>{product.trackingType}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Category</dt>
-          <dd>{product.categoryName ?? product.categoryId}</dd>
-        </div>
-        {product.categoryDescription != null && product.categoryDescription !== "" && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Category description</dt>
-            <dd>{product.categoryDescription}</dd>
+      <DetailPageHeader
+        backHref="/products"
+        backLabel="Products"
+        title={safeText(product.name)}
+        editHref={`/products/${product.id}/edit`}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <DetailSection title="Overview" icon={Package}>
+          <div className="space-y-0">
+            <DetailRow label="Product ID" value={safeText(product.id)} mono />
+            <DetailRow label="Base SKU" value={safeText(product.baseSku)} mono />
+            <DetailRow label="Base price" value={safeText(product.basePrice)} />
+            <DetailRow label="Tracking type" value={safeText(product.trackingType)} />
+            <DetailRow label="Tenant ID" value={safeText(product.tenantId)} mono />
           </div>
-        )}
-        {(product.categoryParentId != null ||
-          product.categorySortOrder != null ||
-          product.categoryCreatedAt != null ||
-          product.categoryUpdatedAt != null) && (
-          <>
+        </DetailSection>
+
+        <DetailSection title="Category" icon={Layers}>
+          <div className="space-y-0">
+            <DetailRow label="Category" value={safeText(product.categoryName ?? product.categoryId)} />
+            <DetailRow label="Category ID" value={safeText(product.categoryId)} mono />
+            {product.categoryDescription != null && product.categoryDescription !== "" && (
+              <DetailRow label="Category description" value={safeText(product.categoryDescription)} />
+            )}
             {product.categoryParentId != null && (
-              <div>
-                <dt className="text-muted">Category parent ID</dt>
-                <dd className="font-mono text-xs">{product.categoryParentId}</dd>
-              </div>
+              <DetailRow label="Category parent ID" value={safeText(product.categoryParentId)} mono />
             )}
             {product.categorySortOrder != null && (
-              <div>
-                <dt className="text-muted">Category sort order</dt>
-                <dd>{product.categorySortOrder}</dd>
-              </div>
+              <DetailRow label="Category sort order" value={safeText(product.categorySortOrder)} />
             )}
-            {product.categoryCreatedAt != null && (
-              <div>
-                <dt className="text-muted">Category created at</dt>
-                <dd className="text-muted">{product.categoryCreatedAt}</dd>
-              </div>
-            )}
-            {product.categoryUpdatedAt != null && (
-              <div>
-                <dt className="text-muted">Category updated at</dt>
-                <dd className="text-muted">{product.categoryUpdatedAt}</dd>
-              </div>
-            )}
-          </>
-        )}
-        <div>
-          <dt className="text-muted">Base UOM</dt>
-          <dd>{product.baseUomName ?? product.baseUomId}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Tenant ID</dt>
-          <dd className="font-mono text-xs">{product.tenantId}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Category ID</dt>
-          <dd className="font-mono text-xs">{product.categoryId}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Base UOM ID</dt>
-          <dd className="font-mono text-xs">{product.baseUomId}</dd>
-        </div>
-        {(product.baseUomClassId != null ||
-          product.baseUomConversionRateToBase != null) && (
-          <>
+          </div>
+        </DetailSection>
+
+        <DetailSection title="Base UOM" icon={Tag}>
+          <div className="space-y-0">
+            <DetailRow label="Base UOM" value={safeText(product.baseUomName ?? product.baseUomId)} />
+            <DetailRow label="Base UOM ID" value={safeText(product.baseUomId)} mono />
             {product.baseUomClassId != null && (
-              <div>
-                <dt className="text-muted">Base UOM class ID</dt>
-                <dd className="font-mono text-xs">{product.baseUomClassId}</dd>
-              </div>
+              <DetailRow label="Base UOM class ID" value={safeText(product.baseUomClassId)} mono />
             )}
             {product.baseUomConversionRateToBase != null && (
-              <div>
-                <dt className="text-muted">Conversion rate to base</dt>
-                <dd>{product.baseUomConversionRateToBase}</dd>
-              </div>
+              <DetailRow label="Conversion rate to base" value={safeText(product.baseUomConversionRateToBase)} />
             )}
-          </>
-        )}
+          </div>
+        </DetailSection>
+
+        <DetailSection title="Record info" icon={Info}>
+          <div className="space-y-0">
+            <DetailRow label="Created at" value={formatDate(product.createdAt)} />
+            <DetailRow label="Updated at" value={formatDate(product.updatedAt)} />
+            {product.deletedAt != null && product.deletedAt !== "" && (
+              <DetailRow label="Deleted at" value={formatDate(product.deletedAt)} />
+            )}
+          </div>
+        </DetailSection>
+
         {product.globalAttributes != null && Object.keys(product.globalAttributes).length > 0 && (
-          <div className="sm:col-span-2">
-            <dt className="text-muted">Global attributes</dt>
-            <dd className="font-mono text-xs break-all">
-              {JSON.stringify(product.globalAttributes)}
-            </dd>
-          </div>
+          <DetailSection title="Global attributes" icon={Tag} className="lg:col-span-2">
+            <pre className="text-xs font-mono text-foreground overflow-auto rounded bg-muted/50 p-3">
+              {JSON.stringify(product.globalAttributes, null, 2)}
+            </pre>
+          </DetailSection>
         )}
-        {product.deletedAt != null && product.deletedAt !== "" && (
-          <div>
-            <dt className="text-muted">Deleted at</dt>
-            <dd className="text-muted">{product.deletedAt}</dd>
-          </div>
-        )}
-        {product.createdAt != null && product.createdAt !== "" && (
-          <div>
-            <dt className="text-muted">Created at</dt>
-            <dd className="text-muted">{product.createdAt}</dd>
-          </div>
-        )}
-        {product.updatedAt != null && product.updatedAt !== "" && (
-          <div>
-            <dt className="text-muted">Updated at</dt>
-            <dd className="text-muted">{product.updatedAt}</dd>
-          </div>
-        )}
-      </dl>
+      </div>
+
       <ProductVariantSection productId={productId} />
     </div>
   );
