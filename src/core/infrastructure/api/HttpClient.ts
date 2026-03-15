@@ -68,7 +68,11 @@ export class HttpClient {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const res: AxiosResponse<unknown> = await this.client.post(url, data, config);
+    const res: AxiosResponse<unknown> = await this.client.post(
+      url,
+      data,
+      config
+    );
     return unwrap<T>(res.data);
   }
 
@@ -77,7 +81,11 @@ export class HttpClient {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const res: AxiosResponse<unknown> = await this.client.put(url, data, config);
+    const res: AxiosResponse<unknown> = await this.client.put(
+      url,
+      data,
+      config
+    );
     return unwrap<T>(res.data);
   }
 
