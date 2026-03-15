@@ -23,6 +23,7 @@ export default auth((req) => {
     isLoggedIn &&
     (pathname.startsWith("/admin/tenants") ||
       pathname.startsWith("/admin/users") ||
+      pathname.startsWith("/admin/categories") ||
       pathname.startsWith("/admin/uom"))
   ) {
     const userType = (req.auth?.user as { type?: string } | undefined)?.type;

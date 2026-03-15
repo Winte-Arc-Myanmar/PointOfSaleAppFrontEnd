@@ -60,4 +60,12 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/uoms/${id}`,
     DELETE: (id: string) => `/v1/uoms/${id}`,
   },
+  CATEGORIES: {
+    LIST: "/v1/categories",
+    TREE: "/v1/categories/tree",
+    BY_ID: (id: string) => `/v1/categories/${id}`,
+    CREATE: "/v1/categories",
+    UPDATE: (id: string) => `/v1/categories/${id}`,
+    DELETE: (id: string) => `/v1/categories/${id}`,
+  },
 } as const;
