@@ -1,6 +1,6 @@
 /**
  * DTOs for auth API request/response.
- * Application layer - matches backend contract (snake_case, fullName, etc.).
+ * Application layer - matches backend contract.
  */
 
 /** Request body for POST /auth/signin. */
@@ -21,13 +21,21 @@ export interface SigninUserDto {
   image?: string | null;
   type?: string;
   tenantId?: string;
-  branchId?: string | null;
 }
 
-/** Response from POST /auth/signin. */
+/** Per-branch access entry in signin response. */
+export interface BranchAccessDto {
+  branchId: string;
+  roles: string[];
+  permissions: string[];
+}
+
+/** Response from POST /auth/signin (after HttpClient unwraps `data`). */
 export interface SigninResponseDto {
   access_token?: string;
   token?: string;
   accessToken?: string;
   user?: SigninUserDto;
+  activeBranch?: string;
+  access?: BranchAccessDto[];
 }

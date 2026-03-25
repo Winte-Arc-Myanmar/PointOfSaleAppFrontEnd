@@ -103,7 +103,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
-            router.push(`/admin/tenants/${tenantId}`);
+            router.push(`/tenants/${tenantId}`);
           }, REDIRECT_DELAY_MS);
         },
       }
@@ -115,7 +115,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Tenant not found.</p>
-        <Link href="/admin/tenants">
+        <Link href="/tenants">
           <Button variant="outline">Back to Tenants</Button>
         </Link>
       </div>
@@ -124,7 +124,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/admin/tenants/${tenantId}`}>
+        <Link href={`/tenants/${tenantId}`}>
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -219,7 +219,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           <Button type="submit" disabled={updateTenant.isPending}>
             {updateTenant.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href={`/admin/tenants/${tenantId}`}>
+          <Link href={`/tenants/${tenantId}`}>
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
-import { AppLoader } from "../loader";
 
 interface NavbarProps {
   onMenuToggle: () => void;

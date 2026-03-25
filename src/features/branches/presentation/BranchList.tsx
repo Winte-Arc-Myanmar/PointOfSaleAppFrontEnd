@@ -28,8 +28,8 @@ export function BranchList() {
   const actions = useMemo(
     () =>
       getBranchRowActions({
-        onView: (b) => router.push(`/admin/branches/${b.id}`),
-        onEdit: (b) => router.push(`/admin/branches/${b.id}/edit`),
+        onView: (b) => router.push(`/branches/${b.id}`),
+        onEdit: (b) => router.push(`/branches/${b.id}/edit`),
         onDelete: async (b) => {
           const ok = await confirm({
             title: "Delete branch",

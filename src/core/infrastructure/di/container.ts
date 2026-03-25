@@ -13,6 +13,7 @@ import { ApiUomClassRepository } from "../repositories/ApiUomClassRepository";
 import { ApiUomRepository } from "../repositories/ApiUomRepository";
 import { ApiCategoryRepository } from "../repositories/ApiCategoryRepository";
 import { ApiBranchRepository } from "../repositories/ApiBranchRepository";
+import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
@@ -22,6 +23,7 @@ import { UomClassService } from "@/core/application/services/UomClassService";
 import { UomService } from "@/core/application/services/UomService";
 import { CategoryService } from "@/core/application/services/CategoryService";
 import { BranchService } from "@/core/application/services/BranchService";
+import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -31,6 +33,7 @@ import type { IUomClassRepository } from "@/core/domain/repositories/IUomClassRe
 import type { IUomRepository } from "@/core/domain/repositories/IUomRepository";
 import type { ICategoryRepository } from "@/core/domain/repositories/ICategoryRepository";
 import type { IBranchRepository } from "@/core/domain/repositories/IBranchRepository";
+import type { ISystemAdminRepository } from "@/core/domain/repositories/ISystemAdminRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
@@ -40,6 +43,7 @@ import type { IUomClassService } from "@/core/domain/services/IUomClassService";
 import type { IUomService } from "@/core/domain/services/IUomService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
 import type { IBranchService } from "@/core/domain/services/IBranchService";
+import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -68,6 +72,8 @@ class Container {
     const categoryService = new CategoryService(categoryRepository);
     const branchRepository = new ApiBranchRepository(httpClient);
     const branchService = new BranchService(branchRepository);
+    const systemAdminRepository = new ApiSystemAdminRepository(httpClient);
+    const systemAdminService = new SystemAdminService(systemAdminRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -100,6 +106,8 @@ class Container {
     this.register<ICategoryService>("categoryService", categoryService);
     this.register<IBranchRepository>("branchRepository", branchRepository);
     this.register<IBranchService>("branchService", branchService);
+    this.register<ISystemAdminRepository>("systemAdminRepository", systemAdminRepository);
+    this.register<ISystemAdminService>("systemAdminService", systemAdminService);
   }
 
   register<T>(key: string, instance: T): void {

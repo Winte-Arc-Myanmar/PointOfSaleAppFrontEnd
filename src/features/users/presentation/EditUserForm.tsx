@@ -80,7 +80,7 @@ export function EditUserForm({ userId }: { userId: string }) {
         onSuccess: () => {
           form.reset(form.getValues());
           setShowSuccess(true);
-          setTimeout(() => router.push(`/admin/users/${userId}`), REDIRECT_DELAY_MS);
+          setTimeout(() => router.push(`/users/${userId}`), REDIRECT_DELAY_MS);
         },
       }
     );
@@ -91,7 +91,7 @@ export function EditUserForm({ userId }: { userId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">User not found.</p>
-        <Link href="/admin/users">
+        <Link href="/users">
           <Button variant="outline">Back to Users</Button>
         </Link>
       </div>
@@ -100,7 +100,7 @@ export function EditUserForm({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/admin/users/${userId}`}>
+        <Link href={`/users/${userId}`}>
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -186,7 +186,7 @@ export function EditUserForm({ userId }: { userId: string }) {
           <Button type="submit" disabled={updateUser.isPending}>
             {updateUser.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href={`/admin/users/${userId}`}>
+          <Link href={`/users/${userId}`}>
             <Button type="button" variant="outline">
               Cancel
             </Button>

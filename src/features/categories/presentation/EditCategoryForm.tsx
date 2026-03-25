@@ -73,7 +73,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
         onSuccess: () => {
           form.reset(form.getValues());
           setShowSuccess(true);
-          setTimeout(() => router.push("/admin/categories"), REDIRECT_DELAY_MS);
+          setTimeout(() => router.push("/categories"), REDIRECT_DELAY_MS);
         },
       }
     );
@@ -84,7 +84,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Category not found.</p>
-        <Link href="/admin/categories">
+        <Link href="/categories">
           <Button variant="outline">Back to Categories</Button>
         </Link>
       </div>
@@ -93,7 +93,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/categories">
+        <Link href="/categories">
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -153,7 +153,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
           <Button type="submit" disabled={updateCategory.isPending}>
             {updateCategory.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href="/admin/categories">
+          <Link href="/categories">
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

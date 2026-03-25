@@ -124,7 +124,7 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
         onSuccess: () => {
           form.reset(form.getValues());
           setShowSuccess(true);
-          setTimeout(() => router.push("/admin/branches"), REDIRECT_DELAY_MS);
+          setTimeout(() => router.push("/branches"), REDIRECT_DELAY_MS);
         },
       }
     );
@@ -135,7 +135,7 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Branch not found.</p>
-        <Link href="/admin/branches">
+        <Link href="/branches">
           <Button variant="outline">Back to Branches</Button>
         </Link>
       </div>
@@ -144,7 +144,7 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/branches">
+        <Link href="/branches">
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -256,7 +256,7 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
           <Button type="submit" disabled={updateBranch.isPending}>
             {updateBranch.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href="/admin/branches">
+          <Link href="/branches">
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

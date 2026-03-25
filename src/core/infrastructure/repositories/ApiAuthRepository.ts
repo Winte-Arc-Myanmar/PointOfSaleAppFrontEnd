@@ -1,6 +1,6 @@
 /**
  * Auth repository - login/register via external API using HttpClient.
- * Infrastructure layer. Used by AuthService (auth.ts and UI go through service → repo).
+ * Infrastructure layer.
  */
 
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -24,7 +24,6 @@ export class ApiAuthRepository implements IAuthRepository {
       return toAuthUser(data, {
         email: credentials.email,
         tenantId: credentials.tenantId,
-        branchId: credentials.branchId ?? null,
       });
     } catch (err) {
       console.error("[ApiAuthRepository.login]", err);

@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { useTenants, useDeleteTenant } from "@/presentation/hooks/useTenants";
+import { useTenants } from "@/presentation/hooks/useTenants";
+import { useSystemAdminDeleteTenant } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
@@ -21,15 +22,15 @@ export function TenantList() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: tenants = [], isLoading, error, refetch } = useTenants();
-  const deleteTenant = useDeleteTenant();
+  const deleteTenant = useSystemAdminDeleteTenant();
   const toast = useToast();
   const confirm = useConfirm();
 
   const actions = useMemo(
     () =>
       getTenantRowActions({
-        onView: (t) => router.push(`/admin/tenants/${t.id}`),
-        onEdit: (t) => router.push(`/admin/tenants/${t.id}/edit`),
+        onView: (t) => router.push(`/tenants/${t.id}`),
+        onEdit: (t) => router.push(`/tenants/${t.id}/edit`),
         onDelete: async (t) => {
           const ok = await confirm({
             title: "Delete tenant",

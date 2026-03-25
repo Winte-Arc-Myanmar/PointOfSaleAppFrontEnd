@@ -22,7 +22,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Tenant not found or failed to load.</p>
-        <Link href="/admin/tenants">
+        <Link href="/tenants">
           <Button variant="outline">Back to Tenants</Button>
         </Link>
       </div>
@@ -40,10 +40,10 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/admin/tenants"
+        backHref="/tenants"
         backLabel="Tenants"
         title={safeText(tenant.name)}
-        editHref={`/admin/tenants/${tenant.id}/edit`}
+        editHref={`/tenants/${tenant.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

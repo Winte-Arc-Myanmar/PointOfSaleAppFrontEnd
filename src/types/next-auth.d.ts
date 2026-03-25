@@ -1,15 +1,18 @@
 import "next-auth";
-import type { UserType } from "@/core/domain/types/auth";
+import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 
 declare module "next-auth" {
   interface Session {
     accessToken?: string;
+    activeBranch?: string;
+    access?: BranchAccess[];
   }
   interface User {
     accessToken?: string;
     type?: UserType;
     tenantId?: string;
-    branchId?: string | null;
+    activeBranch?: string;
+    access?: BranchAccess[];
   }
 }
 
@@ -18,6 +21,7 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     type?: UserType;
     tenantId?: string;
-    branchId?: string | null;
+    activeBranch?: string;
+    access?: BranchAccess[];
   }
 }

@@ -20,7 +20,7 @@ export function UomDetail({ uomId }: { uomId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">UOM not found or failed to load.</p>
-        <Link href="/admin/uom">
+        <Link href="/uom">
           <Button variant="outline">Back to UOM</Button>
         </Link>
       </div>
@@ -29,10 +29,10 @@ export function UomDetail({ uomId }: { uomId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/admin/uom"
+        backHref="/uom"
         backLabel="UOM"
         title={safeText(uom.name)}
-        editHref={`/admin/uoms/${uom.id}/edit`}
+        editHref={`/uoms/${uom.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

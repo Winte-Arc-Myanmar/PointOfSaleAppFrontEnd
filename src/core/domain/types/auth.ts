@@ -5,6 +5,12 @@
 
 export type UserType = "user" | "systemAdmin";
 
+export interface BranchAccess {
+  branchId: string;
+  roles: string[];
+  permissions: string[];
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;

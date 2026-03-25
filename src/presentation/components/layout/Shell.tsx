@@ -9,33 +9,36 @@ import { Navbar } from "./Navbar";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
-  "/admin/tenants": "Tenants",
-  "/admin/users": "Users",
-  "/admin/categories": "Categories",
-  "/admin/branches": "Branches",
-  "/admin/uom": "UOM",
-  "/admin/register": "Register user",
+  "/tenants": "Tenants",
+  "/users": "Users",
+  "/categories": "Categories",
+  "/branches": "Branches",
+  "/uom": "UOM",
+  "/admin/onboard": "Onboard tenant",
+  "/admin/create-user": "Create user",
+  "/admin/assign-permissions": "Assign permissions",
+  "/admin/assign-role": "Assign role",
 };
 
 function getTitle(pathname: string): string {
-  if (pathname.startsWith("/admin/tenants/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/tenants/") && pathname.endsWith("/edit"))
     return "Edit tenant";
-  if (pathname.startsWith("/admin/tenants/")) return "Tenant";
-  if (pathname.startsWith("/admin/categories/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/tenants/")) return "Tenant";
+  if (pathname.startsWith("/categories/") && pathname.endsWith("/edit"))
     return "Edit category";
-  if (pathname.startsWith("/admin/categories/")) return "Category";
-  if (pathname.startsWith("/admin/branches/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/categories/")) return "Category";
+  if (pathname.startsWith("/branches/") && pathname.endsWith("/edit"))
     return "Edit branch";
-  if (pathname.startsWith("/admin/branches/")) return "Branch";
-  if (pathname.startsWith("/admin/uom-classes/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/branches/")) return "Branch";
+  if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
-  if (pathname.startsWith("/admin/uom-classes/")) return "UOM class";
-  if (pathname.startsWith("/admin/uoms/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/uom-classes/")) return "UOM class";
+  if (pathname.startsWith("/uoms/") && pathname.endsWith("/edit"))
     return "Edit UOM";
-  if (pathname.startsWith("/admin/uoms/")) return "UOM";
-  if (pathname.startsWith("/admin/users/") && pathname.endsWith("/edit"))
+  if (pathname.startsWith("/uoms/")) return "UOM";
+  if (pathname.startsWith("/users/") && pathname.endsWith("/edit"))
     return "Edit user";
-  if (pathname.startsWith("/admin/users/")) return "User";
+  if (pathname.startsWith("/users/")) return "User";
   if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
     return "Edit product";
   if (pathname.startsWith("/products/")) return "Product";

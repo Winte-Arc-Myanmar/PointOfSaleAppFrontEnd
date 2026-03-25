@@ -1,6 +1,5 @@
 /**
- * Registration is only available to System Admins at /admin/register.
- * This page redirects accordingly.
+ * Registration is only available to System Admins at /admin/create-user.
  */
 
 import { redirect } from "next/navigation";
@@ -13,7 +12,7 @@ export default async function RegisterPage() {
   }
   const userType = (session.user as { type?: string }).type;
   if (userType === "systemAdmin") {
-    redirect("/admin/register");
+    redirect("/admin/create-user");
   }
   redirect("/products");
 }

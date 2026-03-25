@@ -28,8 +28,8 @@ export function UomClassList() {
   const actions = useMemo(
     () =>
       getUomClassRowActions({
-        onView: (c) => router.push(`/admin/uom-classes/${c.id}`),
-        onEdit: (c) => router.push(`/admin/uom-classes/${c.id}/edit`),
+        onView: (c) => router.push(`/uom-classes/${c.id}`),
+        onEdit: (c) => router.push(`/uom-classes/${c.id}/edit`),
         onDelete: async (c) => {
           const ok = await confirm({
             title: "Delete UOM class",

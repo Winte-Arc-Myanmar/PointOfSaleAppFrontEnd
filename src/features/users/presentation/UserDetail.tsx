@@ -22,7 +22,7 @@ export function UserDetail({ userId }: { userId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">User not found or failed to load.</p>
-        <Link href="/admin/users">
+        <Link href="/users">
           <Button variant="outline">Back to Users</Button>
         </Link>
       </div>
@@ -31,10 +31,10 @@ export function UserDetail({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/admin/users"
+        backHref="/users"
         backLabel="Users"
         title={safeText(user.fullName)}
-        editHref={`/admin/users/${user.id}/edit`}
+        editHref={`/users/${user.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

@@ -28,8 +28,8 @@ export function CategoryList() {
   const actions = useMemo(
     () =>
       getCategoryRowActions({
-        onView: (c) => router.push(`/admin/categories/${c.id}`),
-        onEdit: (c) => router.push(`/admin/categories/${c.id}/edit`),
+        onView: (c) => router.push(`/categories/${c.id}`),
+        onEdit: (c) => router.push(`/categories/${c.id}/edit`),
         onDelete: async (c) => {
           const ok = await confirm({
             title: "Delete category",

@@ -21,7 +21,7 @@ function CategoryTreeItem({
   const hasChildren = Array.isArray(category.children) && category.children.length > 0;
   const handleClick = () => {
     if (onNavigate) onNavigate(category.id);
-    else router.push(`/admin/categories/${category.id}`);
+    else router.push(`/categories/${category.id}`);
   };
 
   return (

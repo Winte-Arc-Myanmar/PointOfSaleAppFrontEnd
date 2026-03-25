@@ -70,7 +70,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
-            router.push("/admin/uom");
+            router.push("/uom");
           }, REDIRECT_DELAY_MS);
         },
       }
@@ -82,7 +82,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">UOM not found.</p>
-        <Link href="/admin/uom">
+        <Link href="/uom">
           <Button variant="outline">Back to UOM</Button>
         </Link>
       </div>
@@ -91,7 +91,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href={`/admin/uoms/${uomId}`}>
+        <Link href={`/uoms/${uomId}`}>
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -157,7 +157,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
           <Button type="submit" disabled={updateUom.isPending}>
             {updateUom.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href="/admin/uom">
+          <Link href="/uom">
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

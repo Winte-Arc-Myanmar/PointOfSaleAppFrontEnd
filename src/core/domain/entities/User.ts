@@ -3,7 +3,7 @@
  * Domain layer - no framework dependencies.
  */
 
-import type { UserType } from "@/core/domain/types/auth";
+import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 
 export interface AuthUser {
   id?: string;
@@ -13,5 +13,6 @@ export interface AuthUser {
   accessToken?: string;
   type?: UserType;
   tenantId?: string;
-  branchId?: string | null;
+  activeBranch?: string;
+  access?: BranchAccess[];
 }

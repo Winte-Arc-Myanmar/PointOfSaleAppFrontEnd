@@ -28,8 +28,8 @@ export function UomList() {
   const actions = useMemo(
     () =>
       getUomRowActions({
-        onView: (u) => router.push(`/admin/uoms/${u.id}`),
-        onEdit: (u) => router.push(`/admin/uoms/${u.id}/edit`),
+        onView: (u) => router.push(`/uoms/${u.id}`),
+        onEdit: (u) => router.push(`/uoms/${u.id}/edit`),
         onDelete: async (u) => {
           const ok = await confirm({
             title: "Delete UOM",

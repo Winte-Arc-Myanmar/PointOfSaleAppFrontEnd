@@ -21,7 +21,7 @@ export function BranchDetail({ branchId }: { branchId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Branch not found or failed to load.</p>
-        <Link href="/admin/branches">
+        <Link href="/branches">
           <Button variant="outline">Back to Branches</Button>
         </Link>
       </div>
@@ -39,10 +39,10 @@ export function BranchDetail({ branchId }: { branchId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/admin/branches"
+        backHref="/branches"
         backLabel="Branches"
         title={safeText(branch.name)}
-        editHref={`/admin/branches/${branch.id}/edit`}
+        editHref={`/branches/${branch.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

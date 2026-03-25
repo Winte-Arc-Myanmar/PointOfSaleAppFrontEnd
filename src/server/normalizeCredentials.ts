@@ -1,7 +1,6 @@
 /**
  * Adapts NextAuth credentials (framework shape) to domain LoginCredentials.
  * Server/infrastructure layer - part of the NextAuth adapter boundary.
- * Trims strings and treats empty / "undefined" as missing.
  */
 
 import type { UserType } from "@/core/domain/types/auth";
@@ -30,41 +29,23 @@ function trimOptional(value: unknown): string | undefined {
 export function normalizeLoginCredentials(
   raw: RawLoginCredentials | null | undefined
 ): LoginCredentials | null {
-  if (!raw) {
-    console.log("[normalizeLoginCredentials] raw is null/undefined");
-    return null;
-  }
+  if (!raw) return null;
 
   const email = raw.email != null ? String(raw.email).trim() : "";
   const password = raw.password != null ? String(raw.password) : "";
-  if (!email || !password) {
-    console.log("[normalizeLoginCredentials] missing email or password", {
-      hasEmail: !!email,
-      hasPassword: !!password,
-    });
-    return null;
-  }
+  if (!email || !password) return null;
 
   const typeRaw = raw.type != null ? String(raw.type).trim() : "";
   let type: UserType;
   if (typeRaw === "system_admin" || typeRaw === "systemAdmin")
     type = "systemAdmin";
   else if (typeRaw === "user") type = "user";
-  else {
-    console.log("[normalizeLoginCredentials] invalid type", { typeRaw });
-    return null;
-  }
+  else return null;
 
   const tenantId = trimOptional(raw.tenantId);
   const branchIdRaw = trimOptional(raw.branchId);
   const branchId = type === "user" && branchIdRaw ? branchIdRaw : undefined;
 
-  console.log("[normalizeLoginCredentials] ok", {
-    email,
-    type,
-    tenantId,
-    branchId,
-  });
   return {
     email,
     password,

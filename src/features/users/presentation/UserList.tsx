@@ -28,8 +28,8 @@ export function UserList() {
   const actions = useMemo(
     () =>
       getUserRowActions({
-        onView: (u) => router.push(`/admin/users/${u.id}`),
-        onEdit: (u) => router.push(`/admin/users/${u.id}/edit`),
+        onView: (u) => router.push(`/users/${u.id}`),
+        onEdit: (u) => router.push(`/users/${u.id}/edit`),
         onDelete: async (u) => {
           const ok = await confirm({
             title: "Delete user",

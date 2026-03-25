@@ -75,4 +75,11 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/branches/${id}`,
     DELETE: (id: string) => `/v1/branches/${id}`,
   },
+  SYSTEM_ADMIN: {
+    ONBOARD_TENANT: "/v1/system-admin/tenants/onboard",
+    DELETE_TENANT: (id: string) => `/v1/system-admin/tenants/${id}`,
+    CREATE_USER: "/v1/system-admin/users",
+    ASSIGN_PERMISSIONS: "/v1/system-admin/roles/assign-permissions",
+    ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
+  },
 } as const;

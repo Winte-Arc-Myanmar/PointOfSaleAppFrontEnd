@@ -21,7 +21,7 @@ export function CategoryDetail({ categoryId }: { categoryId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">Category not found or failed to load.</p>
-        <Link href="/admin/categories">
+        <Link href="/categories">
           <Button variant="outline">Back to Categories</Button>
         </Link>
       </div>
@@ -30,10 +30,10 @@ export function CategoryDetail({ categoryId }: { categoryId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/admin/categories"
+        backHref="/categories"
         backLabel="Categories"
         title={safeText(category.name)}
-        editHref={`/admin/categories/${category.id}/edit`}
+        editHref={`/categories/${category.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -66,7 +66,7 @@ export function CategoryDetail({ categoryId }: { categoryId: string }) {
               {category.children.map((child) => (
                 <li key={child.id}>
                   <Link
-                    href={`/admin/categories/${child.id}`}
+                    href={`/categories/${child.id}`}
                     className="text-mint hover:underline font-medium text-sm"
                   >
                     {child.name}
