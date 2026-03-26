@@ -6,7 +6,7 @@
 import type { AuthUser } from "@/core/domain/entities/User";
 import type { LoginCredentials, RegisterData } from "@/core/domain/types/auth";
 
-export type { UserType } from "@/core/domain/types/auth";
+export type { UserType, BranchAccess } from "@/core/domain/types/auth";
 export type { LoginCredentials, RegisterData } from "@/core/domain/types/auth";
 export type { AuthUser } from "@/core/domain/entities/User";
 

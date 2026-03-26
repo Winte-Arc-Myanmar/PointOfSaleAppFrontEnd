@@ -1,7 +1,6 @@
 /**
  * Adapts NextAuth credentials (framework shape) to domain LoginCredentials.
  * Server/infrastructure layer - part of the NextAuth adapter boundary.
- * Trims strings and treats empty / "undefined" as missing.
  */
 
 import type { UserType } from "@/core/domain/types/auth";
@@ -17,7 +16,9 @@ export interface RawLoginCredentials {
 
 function trimOptional(value: unknown): string | undefined {
   if (value == null) return undefined;
-  const s = String(value).replace(/^["']|["']$/g, "").trim();
+  const s = String(value)
+    .replace(/^["']|["']$/g, "")
+    .trim();
   if (s === "" || s === "undefined") return undefined;
   return s;
 }
@@ -36,14 +37,14 @@ export function normalizeLoginCredentials(
 
   const typeRaw = raw.type != null ? String(raw.type).trim() : "";
   let type: UserType;
-  if (typeRaw === "system_admin" || typeRaw === "systemAdmin") type = "systemAdmin";
+  if (typeRaw === "system_admin" || typeRaw === "systemAdmin")
+    type = "systemAdmin";
   else if (typeRaw === "user") type = "user";
   else return null;
 
   const tenantId = trimOptional(raw.tenantId);
   const branchIdRaw = trimOptional(raw.branchId);
-  const branchId =
-    type === "user" && branchIdRaw ? branchIdRaw : undefined;
+  const branchId = type === "user" && branchIdRaw ? branchIdRaw : undefined;
 
   return {
     email,

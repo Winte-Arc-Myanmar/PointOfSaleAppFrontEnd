@@ -4,15 +4,16 @@
  */
 
 import type { AuthUser } from "@/core/domain/entities/User";
-import type { UserType } from "@/core/domain/types/auth";
+import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 import type { LoginCredentials } from "@/core/domain/types/auth";
 import type {
   SigninRequestDto,
   SigninResponseDto,
   SigninUserDto,
+  BranchAccessDto,
 } from "../dtos/AuthDto";
 
-/** Maps domain LoginCredentials to API request body (type as system_admin/user). */
+/** Maps domain LoginCredentials to API request body. */
 export function toSigninRequestDto(credentials: LoginCredentials): SigninRequestDto {
   const type: "user" | "system_admin" =
     credentials.type === "systemAdmin" ? "system_admin" : "user";
@@ -29,13 +30,21 @@ export function toSigninRequestDto(credentials: LoginCredentials): SigninRequest
 }
 
 function normalizeUserType(raw: string | undefined): UserType {
-  return raw === "system_admin" ? "systemAdmin" : (raw as UserType) || "user";
+  if (raw === "system_admin" || raw === "systemAdmin") return "systemAdmin";
+  return "user";
+}
+
+function toBranchAccess(dto: BranchAccessDto): BranchAccess {
+  return {
+    branchId: dto.branchId,
+    roles: Array.isArray(dto.roles) ? dto.roles : [],
+    permissions: Array.isArray(dto.permissions) ? dto.permissions : [],
+  };
 }
 
 export interface ToAuthUserFallbacks {
   email?: string;
   tenantId?: string;
-  branchId?: string | null;
 }
 
 /**
@@ -50,8 +59,11 @@ export function toAuthUser(
   if (!token) return null;
 
   const user: SigninUserDto | undefined = dto.user;
-  const rawType = (user?.type ?? "") as string;
-  const type = normalizeUserType(rawType) as AuthUser["type"];
+  const type = normalizeUserType(user?.type);
+
+  const access: BranchAccess[] = Array.isArray(dto.access)
+    ? dto.access.map(toBranchAccess)
+    : [];
 
   return {
     id: user?.id,
@@ -61,6 +73,7 @@ export function toAuthUser(
     accessToken: token,
     type,
     tenantId: user?.tenantId ?? fallbacks?.tenantId,
-    branchId: user?.branchId ?? fallbacks?.branchId ?? null,
+    activeBranch: dto.activeBranch,
+    access,
   };
 }

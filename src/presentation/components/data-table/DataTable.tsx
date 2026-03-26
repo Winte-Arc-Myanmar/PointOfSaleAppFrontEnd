@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
+import { AppLoader } from "@/presentation/components/loader";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -164,13 +165,10 @@ export function DataTable<T extends { id: string | number }>({
   const showLoading = isLoading && data.length === 0 && !error;
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 overflow-x-hidden">
       {showLoading ? (
-        <div className="flex items-center justify-center h-64 rounded-lg border border-border bg-background/80">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-mint/30 border-t-mint mx-auto mb-4" />
-            <p className="text-muted">{loadingText}</p>
-          </div>
+        <div className="panel flex items-center justify-center min-h-64 rounded-xl bg-background/80">
+          <AppLoader fullScreen={false} showName={false} size="sm" message={loadingText} />
         </div>
       ) : (
         <Table>
@@ -213,7 +211,7 @@ export function DataTable<T extends { id: string | number }>({
                   </TableHead>
                 ))}
                 {hasActions && (
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[100px] section-label">Actions</TableHead>
                 )}
               </TableRow>
             ))}
@@ -348,7 +346,7 @@ export function DataTable<T extends { id: string | number }>({
         pageCount > 1 &&
         (hasServerPagination ? onPageChange : true) && (
           <div className="flex items-center justify-between px-2 py-4">
-            <p className="text-sm text-muted">
+            <p className="page-description text-sm">
               Showing {total === 0 ? 0 : start} to {end} of {total} results
             </p>
             <div className="flex items-center gap-2">
@@ -365,7 +363,7 @@ export function DataTable<T extends { id: string | number }>({
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
-              <span className="text-sm text-muted">
+              <span className="page-description text-sm">
                 Page {pageIndex + 1} of {pageCount}
               </span>
               <Button

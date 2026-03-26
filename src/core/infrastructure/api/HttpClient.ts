@@ -1,6 +1,7 @@
 /**
  * Axios HTTP client for external backend.
- * No Next.js API routes - all calls go to external API.
+ * All API responses are expected wrapped as { success, message, data?, meta? }.
+ * Unwrapping is done here so repositories receive data directly.
  */
 
 import axios, {
@@ -8,8 +9,21 @@ import axios, {
   type AxiosRequestConfig,
   type AxiosResponse,
 } from "axios";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 import { API_CONFIG } from "./constants";
+
+/** Backend returns { success, message, data?, meta? }. Return data when present. */
+function unwrap<T>(body: unknown): T {
+  if (
+    body != null &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as Record<string, unknown>).data !== undefined
+  ) {
+    return (body as { data: T }).data;
+  }
+  return body as T;
+}
 
 export class HttpClient {
   private client: AxiosInstance;
@@ -22,7 +36,6 @@ export class HttpClient {
 
     this.client.interceptors.request.use(
       async (config) => {
-        // getSession() is client-only thi condition is removeable in react
         if (typeof window !== "undefined") {
           const session = await getSession();
           if (session?.accessToken) {
@@ -37,8 +50,8 @@ export class HttpClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
-          // NextAuth will handle redirect via middleware
+        if (error.response?.status === 401 && typeof window !== "undefined") {
+          signOut({ callbackUrl: "/login" });
         }
         return Promise.reject(error);
       }
@@ -46,8 +59,8 @@ export class HttpClient {
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.get(url, config);
-    return response.data;
+    const res: AxiosResponse<unknown> = await this.client.get(url, config);
+    return unwrap<T>(res.data);
   }
 
   async post<T>(
@@ -55,12 +68,12 @@ export class HttpClient {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.post(
+    const res: AxiosResponse<unknown> = await this.client.post(
       url,
       data,
       config
     );
-    return response.data;
+    return unwrap<T>(res.data);
   }
 
   async put<T>(
@@ -68,8 +81,12 @@ export class HttpClient {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.put(url, data, config);
-    return response.data;
+    const res: AxiosResponse<unknown> = await this.client.put(
+      url,
+      data,
+      config
+    );
+    return unwrap<T>(res.data);
   }
 
   async patch<T>(
@@ -77,16 +94,16 @@ export class HttpClient {
     data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.patch(
+    const res: AxiosResponse<unknown> = await this.client.patch(
       url,
       data,
       config
     );
-    return response.data;
+    return unwrap<T>(res.data);
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.delete(url, config);
-    return response.data;
+    const res: AxiosResponse<unknown> = await this.client.delete(url, config);
+    return unwrap<T>(res.data);
   }
 }

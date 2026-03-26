@@ -9,8 +9,41 @@ import { Navbar } from "./Navbar";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
-  "/admin/register": "Register user",
+  "/tenants": "Tenants",
+  "/users": "Users",
+  "/categories": "Categories",
+  "/branches": "Branches",
+  "/uom": "UOM",
+  "/admin/onboard": "Onboard tenant",
+  "/admin/create-user": "Create user",
+  "/admin/assign-permissions": "Assign permissions",
+  "/admin/assign-role": "Assign role",
 };
+
+function getTitle(pathname: string): string {
+  if (pathname.startsWith("/tenants/") && pathname.endsWith("/edit"))
+    return "Edit tenant";
+  if (pathname.startsWith("/tenants/")) return "Tenant";
+  if (pathname.startsWith("/categories/") && pathname.endsWith("/edit"))
+    return "Edit category";
+  if (pathname.startsWith("/categories/")) return "Category";
+  if (pathname.startsWith("/branches/") && pathname.endsWith("/edit"))
+    return "Edit branch";
+  if (pathname.startsWith("/branches/")) return "Branch";
+  if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
+    return "Edit UOM class";
+  if (pathname.startsWith("/uom-classes/")) return "UOM class";
+  if (pathname.startsWith("/uoms/") && pathname.endsWith("/edit"))
+    return "Edit UOM";
+  if (pathname.startsWith("/uoms/")) return "UOM";
+  if (pathname.startsWith("/users/") && pathname.endsWith("/edit"))
+    return "Edit user";
+  if (pathname.startsWith("/users/")) return "User";
+  if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
+    return "Edit product";
+  if (pathname.startsWith("/products/")) return "Product";
+  return routeTitles[pathname] ?? "";
+}
 
 interface ShellProps {
   children: ReactNode;
@@ -20,7 +53,7 @@ export function Shell({ children }: ShellProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const title = routeTitles[pathname] ?? "";
+  const title = getTitle(pathname);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -40,9 +73,9 @@ export function Shell({ children }: ShellProps) {
         <main className="flex-1 p-6 lg:p-8">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="mx-auto max-w-6xl"
           >
             {children}

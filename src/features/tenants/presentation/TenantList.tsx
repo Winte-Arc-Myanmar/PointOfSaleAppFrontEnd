@@ -1,0 +1,102 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
+import { useTenants } from "@/presentation/hooks/useTenants";
+import { useSystemAdminDeleteTenant } from "@/presentation/hooks/useSystemAdmin";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Button } from "@/presentation/components/ui/button";
+import { DataTable } from "@/presentation/components/data-table";
+import { FormModal } from "@/presentation/components/modal/FormModal";
+import { getTenantRowActions } from "./tenant-row-actions";
+import { getTenantTableColumns } from "./tenant-table-columns";
+import { CreateTenantForm } from "./CreateTenantForm";
+import type { Tenant } from "@/core/domain/entities/Tenant";
+
+const CREATE_TENANT_FORM_ID = "create-tenant-form";
+
+export function TenantList() {
+  const router = useRouter();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createFormLoading, setCreateFormLoading] = useState(false);
+  const { data: tenants = [], isLoading, error, refetch } = useTenants();
+  const deleteTenant = useSystemAdminDeleteTenant();
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  const actions = useMemo(
+    () =>
+      getTenantRowActions({
+        onView: (t) => router.push(`/tenants/${t.id}`),
+        onEdit: (t) => router.push(`/tenants/${t.id}/edit`),
+        onDelete: async (t) => {
+          const ok = await confirm({
+            title: "Delete tenant",
+            description: `Delete "${t.name}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            variant: "destructive",
+          });
+          if (ok) {
+            deleteTenant.mutate(t.id, {
+              onSuccess: () => toast.success("Tenant deleted."),
+              onError: () => toast.error("Failed to delete tenant."),
+            });
+          }
+        },
+      }),
+    [router, deleteTenant, toast, confirm]
+  );
+
+  const columns = useMemo(() => getTenantTableColumns(), []);
+
+  return (
+    <>
+      <div className="mb-4 flex justify-end">
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Tenant
+        </Button>
+      </div>
+      <DataTable<Tenant>
+        data={tenants}
+        columns={columns}
+        actions={actions}
+        isLoading={isLoading}
+        loadingText="Loading tenants..."
+        emptyText="No tenants yet."
+        emptyAction={{
+          label: "Add Tenant",
+          onClick: () => setCreateModalOpen(true),
+        }}
+        error={
+          error
+            ? {
+                message: "Failed to load tenants. Is the backend API running?",
+                onRetry: () => refetch(),
+              }
+            : undefined
+        }
+        pageSize={10}
+      />
+      <FormModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        title="Create Tenant"
+        formId={CREATE_TENANT_FORM_ID}
+        formContent={
+          <CreateTenantForm
+            formId={CREATE_TENANT_FORM_ID}
+            onSuccess={() => setCreateModalOpen(false)}
+            onLoadingChange={setCreateFormLoading}
+          />
+        }
+        submitText="Create Tenant"
+        loadingText="Creating..."
+        isLoading={createFormLoading}
+        maxWidth="2xl"
+      />
+    </>
+  );
+}

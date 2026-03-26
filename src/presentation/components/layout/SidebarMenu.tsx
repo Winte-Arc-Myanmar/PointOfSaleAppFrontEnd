@@ -2,14 +2,50 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Package, LogOut, UserPlus } from "lucide-react";
+import {
+  X,
+  Package,
+  LogOut,
+  Building2,
+  Users,
+  Ruler,
+  FolderTree,
+  MapPin,
+  ShieldPlus,
+  UserRoundPlus,
+  KeyRound,
+  UserCog,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
+import { AppLogo } from "@/presentation/components/brand/AppLogo";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 
-const baseMenuItems: { href: string; label: string; icon: typeof Package }[] = [
-  { href: "/products", label: "Products", icon: Package },
+interface MenuItem {
+  href: string;
+  label: string;
+  icon: typeof Package;
+  permissions?: string[];
+  /** Only visible to systemAdmin (ignores permission check). */
+  adminOnly?: boolean;
+}
+
+const allMenuItems: MenuItem[] = [
+  { href: "/products", label: "Products", icon: Package, permissions: ["products:read"] },
+  { href: "/tenants", label: "Tenants", icon: Building2, permissions: ["tenants:read"] },
+  { href: "/users", label: "Users", icon: Users, permissions: ["users:read"] },
+  { href: "/categories", label: "Categories", icon: FolderTree, permissions: ["categories:read"] },
+  { href: "/branches", label: "Branches", icon: MapPin, permissions: ["branches:read"] },
+  { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
+];
+
+const adminMenuItems: MenuItem[] = [
+  { href: "/admin/onboard", label: "Onboard tenant", icon: ShieldPlus, adminOnly: true },
+  { href: "/admin/create-user", label: "Create user", icon: UserRoundPlus, adminOnly: true },
+  { href: "/admin/assign-permissions", label: "Assign permissions", icon: KeyRound, adminOnly: true },
+  { href: "/admin/assign-role", label: "Assign role", icon: UserCog, adminOnly: true },
 ];
 
 interface SidebarMenuProps {
@@ -26,23 +62,21 @@ export function SidebarMenu({
   pathname,
 }: SidebarMenuProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const { data: session } = useSession();
-  const userType = (session?.user as { type?: string })?.type;
+  const { canAny, isSystemAdmin } = usePermissions();
+
   const menuItems = useMemo(() => {
-    const items = [...baseMenuItems];
-    if (userType === "systemAdmin") {
-      items.push({
-        href: "/admin/register",
-        label: "Register user",
-        icon: UserPlus,
-      });
+    const items = allMenuItems.filter((item) => {
+      if (!item.permissions || item.permissions.length === 0) return true;
+      return canAny(...item.permissions);
+    });
+    if (isSystemAdmin) {
+      items.push(...adminMenuItems);
     }
     return items;
-  }, [userType]);
+  }, [canAny, isSystemAdmin]);
 
   return (
     <>
-      {/* Backdrop overlay - mobile only */}
       <AnimatePresence>
         {isOpen && !isDesktop && (
           <motion.div
@@ -56,7 +90,6 @@ export function SidebarMenu({
           />
         )}
       </AnimatePresence>
-      {/* Sidebar */}
       <motion.aside
         initial={false}
         animate={{
@@ -73,27 +106,22 @@ export function SidebarMenu({
           "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden bg-background shadow-xl lg:static lg:z-auto border-r border-border"
         )}
       >
-        {/* Brand header */}
         <div
           className={cn(
             "flex h-16 shrink-0 items-center border-b border-mint/20 transition-all duration-300",
-            isCollapsed ? "justify-center px-0" : "justify-between px-5"
+            isCollapsed ? "justify-center px-0" : "justify-between px-4"
           )}
         >
-          <Link
+          <AppLogo
             href="/products"
+            showName={!isCollapsed}
+            size={isCollapsed ? "sidebarCollapsed" : "sidebar"}
             onClick={onClose}
             className={cn(
-              "flex items-center font-semibold tracking-tight text-foreground transition-colors hover:text-mint",
-              isCollapsed ? "justify-center" : "gap-2"
+              "text-foreground [&:hover]:text-mint",
+              isCollapsed && "justify-center"
             )}
-          >
-            {isCollapsed ? (
-              <span className="text-lg font-bold text-mint">V</span>
-            ) : (
-              <span className="text-lg">Vision AI POS</span>
-            )}
-          </Link>
+          />
           {!isCollapsed && (
             <button
               type="button"
@@ -106,21 +134,17 @@ export function SidebarMenu({
           )}
         </div>
 
-        {/* Navigation */}
         <nav
           className={cn(
             "flex-1 overflow-y-auto py-6 transition-all duration-300",
             isCollapsed ? "px-2" : "px-3"
           )}
         >
-          {!isCollapsed && (
-            <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">
-              Menu
-            </p>
-          )}
+          {!isCollapsed && <p className="section-label mb-3 px-3">Menu</p>}
           <ul className="space-y-0.5">
-            {menuItems.map(({ href, label, icon: Icon }, i) => {
-              const isActive = pathname === href;
+            {menuItems.map(({ href, label, icon: Icon, adminOnly }, i) => {
+              const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+              const showDivider = adminOnly && i > 0 && !menuItems[i - 1]?.adminOnly;
               return (
                 <motion.li
                   key={href}
@@ -128,6 +152,9 @@ export function SidebarMenu({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: isCollapsed ? 0 : i * 0.03 }}
                 >
+                  {showDivider && !isCollapsed && (
+                    <p className="section-label mt-5 mb-3 px-3">System Admin</p>
+                  )}
                   <Link
                     href={href}
                     onClick={onClose}
@@ -136,10 +163,10 @@ export function SidebarMenu({
                       "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
                       isCollapsed
                         ? "justify-center px-0 py-2.5"
-                        : "gap-3 px-3 py-2.5",
+                        : "gap-3 px-3 py-2.5 pl-3",
                       isActive
-                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20"
-                        : "text-muted hover:bg-mint/10 hover:text-foreground"
+                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20 border-l-2 border-l-mint"
+                        : "text-muted hover:bg-mint/10 hover:text-foreground border-l-2 border-l-transparent"
                     )}
                   >
                     <Icon
@@ -157,7 +184,6 @@ export function SidebarMenu({
           </ul>
         </nav>
 
-        {/* Footer - Sign out */}
         <div
           className={cn(
             "shrink-0 border-t border-border transition-all duration-300",
@@ -173,10 +199,7 @@ export function SidebarMenu({
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
-            <LogOut
-              className="size-5 shrink-0 text-muted"
-              strokeWidth={2}
-            />
+            <LogOut className="size-5 shrink-0 text-muted" strokeWidth={2} />
             {!isCollapsed && <span>Sign out</span>}
           </button>
         </div>

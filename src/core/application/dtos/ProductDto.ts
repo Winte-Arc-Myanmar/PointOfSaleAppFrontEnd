@@ -1,15 +1,16 @@
 /**
- * DTOs for product request/response.
- * Application layer - depends on domain concepts only.
+ * DTOs for product API request/response.
+ * Application layer - matches backend contract.
  */
 
 export interface ProductDto {
-  id: string;
+  id?: string;
   name: string;
-  sku: string;
-  priceAmount: number;
-  priceCurrency: string;
-  quantityInStock: number;
-  createdAt: string;
-  updatedAt: string;
+  tenantId: string;
+  baseSku: string;
+  basePrice: number;
+  baseUomId: string;
+  categoryId: string;
+  globalAttributes?: Record<string, unknown>;
+  trackingType: string;
 }

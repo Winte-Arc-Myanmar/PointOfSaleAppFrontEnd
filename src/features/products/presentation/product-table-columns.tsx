@@ -1,10 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Product } from "@/core/domain/entities/Product";
 
-/**
- * Table column definitions for the products DataTable.
- * Keeps column config out of the list page; reuse or extend per page if needed.
- */
 export function getProductTableColumns(): DataTableColumn<Product>[] {
   return [
     {
@@ -19,32 +15,49 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       ),
     },
     {
-      key: "sku",
-      header: "SKU",
+      key: "baseSku",
+      header: "Base SKU",
       sortable: true,
-      className: "min-w-[80px] max-w-[140px]",
+      className: "min-w-[100px] max-w-[160px]",
       render: (p) => (
-        <span className="text-muted truncate" title={p.sku}>
-          {p.sku}
+        <span className="text-muted truncate" title={p.baseSku}>
+          {p.baseSku}
         </span>
       ),
     },
     {
-      key: "price",
-      header: "Price",
+      key: "basePrice",
+      header: "Base price",
       className: "min-w-[80px] max-w-[120px]",
       render: (p) => (
         <span className="text-muted">
-          {p.price.currency} {p.price.amount}
+          {typeof p.basePrice === "number" ? p.basePrice : "—"}
         </span>
       ),
     },
     {
-      key: "quantityInStock",
-      header: "Stock",
-      sortable: true,
-      className: "min-w-[70px] max-w-[90px]",
-      render: (p) => <span className="text-muted">{p.quantityInStock}</span>,
+      key: "categoryName",
+      header: "Category",
+      className: "min-w-[100px] max-w-[160px]",
+      render: (p) => (
+        <span className="text-muted truncate" title={p.categoryName ?? ""}>
+          {p.categoryName ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "baseUomName",
+      header: "UOM",
+      className: "min-w-[70px] max-w-[100px]",
+      render: (p) => (
+        <span className="text-muted">{p.baseUomName ?? "—"}</span>
+      ),
+    },
+    {
+      key: "trackingType",
+      header: "Tracking",
+      className: "min-w-[80px] max-w-[120px]",
+      render: (p) => <span className="text-muted">{p.trackingType}</span>,
     },
   ];
 }
