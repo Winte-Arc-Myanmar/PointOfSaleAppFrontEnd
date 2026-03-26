@@ -6,7 +6,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { MapPin, Phone, Building2, Clock, Info } from "lucide-react";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
   formatDate,
@@ -35,6 +35,56 @@ export function BranchDetail({ branchId }: { branchId: string }) {
     safeText(branch.country),
   ].filter((s) => s && s !== "—");
   const addressLine = addressParts.length > 0 ? addressParts.join(", ") : "—";
+  const overviewRows = branch
+    ? [
+        { label: "Branch ID", value: safeText(branch.id), mono: true },
+        { label: "Name", value: safeText(branch.name) },
+        { label: "Branch code", value: safeText(branch.branchCode), mono: true },
+        { label: "Type", value: safeText(branch.type) },
+        { label: "Status", value: safeText(branch.status) },
+        { label: "Tenant ID", value: safeText(branch.tenantId), mono: true },
+        ...(branch.managerId ? [{ label: "Manager ID", value: safeText(branch.managerId), mono: true }] : []),
+      ]
+    : [];
+  const contactRows = branch
+    ? [
+        {
+          label: "Phone",
+          value:
+            typeof branch.phone === "string" && branch.phone ? (
+              <a href={`tel:${branch.phone}`} className="text-mint hover:underline">
+                {branch.phone}
+              </a>
+            ) : (
+              "—"
+            ),
+        },
+        {
+          label: "Email",
+          value:
+            typeof branch.email === "string" && branch.email ? (
+              <a href={`mailto:${branch.email}`} className="text-mint hover:underline">
+                {branch.email}
+              </a>
+            ) : (
+              "—"
+            ),
+        },
+      ]
+    : [];
+  const locationRows = branch
+    ? [
+        ...(branch.latitude != null ? [{ label: "Latitude", value: branch.latitude }] : []),
+        ...(branch.longitude != null ? [{ label: "Longitude", value: branch.longitude }] : []),
+      ]
+    : [];
+  const recordRows = branch
+    ? [
+        { label: "Created at", value: formatDate(branch.createdAt) },
+        { label: "Updated at", value: formatDate(branch.updatedAt) },
+        ...(branch.deletedAt ? [{ label: "Deleted at", value: formatDate(branch.deletedAt) }] : []),
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -47,76 +97,36 @@ export function BranchDetail({ branchId }: { branchId: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Building2}>
-          <div className="space-y-0">
-            <DetailRow label="Branch ID" value={safeText(branch.id)} mono />
-            <DetailRow label="Name" value={safeText(branch.name)} />
-            <DetailRow label="Branch code" value={safeText(branch.branchCode)} mono />
-            <DetailRow label="Type" value={safeText(branch.type)} />
-            <DetailRow label="Status" value={safeText(branch.status)} />
-            <DetailRow label="Tenant ID" value={safeText(branch.tenantId)} mono />
-            {branch.managerId != null && branch.managerId !== "" && (
-              <DetailRow label="Manager ID" value={safeText(branch.managerId)} mono />
-            )}
-          </div>
+          <DetailRows rows={overviewRows} />
         </DetailSection>
 
         <DetailSection title="Contact" icon={Phone}>
-          <div className="space-y-0">
-            <DetailRow
-              label="Phone"
-              value={
-                typeof branch.phone === "string" && branch.phone ? (
-                  <a href={`tel:${branch.phone}`} className="text-mint hover:underline">
-                    {branch.phone}
-                  </a>
-                ) : (
-                  "—"
-                )
-              }
-            />
-            <DetailRow
-              label="Email"
-              value={
-                typeof branch.email === "string" && branch.email ? (
-                  <a href={`mailto:${branch.email}`} className="text-mint hover:underline">
-                    {branch.email}
-                  </a>
-                ) : (
-                  "—"
-                )
-              }
-            />
-          </div>
+          <DetailRows rows={contactRows} />
         </DetailSection>
 
         <DetailSection title="Address" icon={MapPin} className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
             <div className="space-y-0 sm:col-span-2">
-              <DetailRow label="Full address" value={addressLine} />
+              <DetailRows rows={[{ label: "Full address", value: addressLine }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="City" value={safeText(branch.city)} />
+              <DetailRows rows={[{ label: "City", value: safeText(branch.city) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="State" value={safeText(branch.state)} />
+              <DetailRows rows={[{ label: "State", value: safeText(branch.state) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="Country" value={safeText(branch.country)} />
+              <DetailRows rows={[{ label: "Country", value: safeText(branch.country) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="Zip code" value={safeText(branch.zipCode)} />
+              <DetailRows rows={[{ label: "Zip code", value: safeText(branch.zipCode) }]} />
             </div>
           </div>
         </DetailSection>
 
         <DetailSection title="Location & hours" icon={Clock}>
           <div className="space-y-0">
-            {branch.latitude != null && (
-              <DetailRow label="Latitude" value={branch.latitude} />
-            )}
-            {branch.longitude != null && (
-              <DetailRow label="Longitude" value={branch.longitude} />
-            )}
+            <DetailRows rows={locationRows} />
             {branch.latitude == null && branch.longitude == null && (
               <p className="text-sm text-muted py-2">No coordinates</p>
             )}
@@ -141,13 +151,7 @@ export function BranchDetail({ branchId }: { branchId: string }) {
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>
-          <div className="space-y-0">
-            <DetailRow label="Created at" value={formatDate(branch.createdAt)} />
-            <DetailRow label="Updated at" value={formatDate(branch.updatedAt)} />
-            {branch.deletedAt != null && branch.deletedAt !== "" && (
-              <DetailRow label="Deleted at" value={formatDate(branch.deletedAt)} />
-            )}
-          </div>
+          <DetailRows rows={recordRows} />
         </DetailSection>
       </div>
     </div>

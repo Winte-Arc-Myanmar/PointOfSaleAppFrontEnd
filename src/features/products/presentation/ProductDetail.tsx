@@ -7,7 +7,7 @@ import { Package, Tag, Layers, Info } from "lucide-react";
 import { ProductVariantSection } from "./ProductVariantSection";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
   formatDate,
@@ -16,6 +16,49 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
+  const overviewRows = product
+    ? [
+        { label: "Product ID", value: safeText(product.id), mono: true },
+        { label: "Base SKU", value: safeText(product.baseSku), mono: true },
+        { label: "Base price", value: safeText(product.basePrice) },
+        { label: "Tracking type", value: safeText(product.trackingType) },
+        { label: "Tenant ID", value: safeText(product.tenantId), mono: true },
+      ]
+    : [];
+  const categoryRows = product
+    ? [
+        { label: "Category", value: safeText(product.categoryName ?? product.categoryId) },
+        { label: "Category ID", value: safeText(product.categoryId), mono: true },
+        ...(product.categoryDescription
+          ? [{ label: "Category description", value: safeText(product.categoryDescription) }]
+          : []),
+        ...(product.categoryParentId != null
+          ? [{ label: "Category parent ID", value: safeText(product.categoryParentId), mono: true }]
+          : []),
+        ...(product.categorySortOrder != null
+          ? [{ label: "Category sort order", value: safeText(product.categorySortOrder) }]
+          : []),
+      ]
+    : [];
+  const uomRows = product
+    ? [
+        { label: "Base UOM", value: safeText(product.baseUomName ?? product.baseUomId) },
+        { label: "Base UOM ID", value: safeText(product.baseUomId), mono: true },
+        ...(product.baseUomClassId != null
+          ? [{ label: "Base UOM class ID", value: safeText(product.baseUomClassId), mono: true }]
+          : []),
+        ...(product.baseUomConversionRateToBase != null
+          ? [{ label: "Conversion rate to base", value: safeText(product.baseUomConversionRateToBase) }]
+          : []),
+      ]
+    : [];
+  const recordRows = product
+    ? [
+        { label: "Created at", value: formatDate(product.createdAt) },
+        { label: "Updated at", value: formatDate(product.updatedAt) },
+        ...(product.deletedAt ? [{ label: "Deleted at", value: formatDate(product.deletedAt) }] : []),
+      ]
+    : [];
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading product..." />;
   if (error || !product)
@@ -39,52 +82,19 @@ export function ProductDetail({ productId }: { productId: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Package}>
-          <div className="space-y-0">
-            <DetailRow label="Product ID" value={safeText(product.id)} mono />
-            <DetailRow label="Base SKU" value={safeText(product.baseSku)} mono />
-            <DetailRow label="Base price" value={safeText(product.basePrice)} />
-            <DetailRow label="Tracking type" value={safeText(product.trackingType)} />
-            <DetailRow label="Tenant ID" value={safeText(product.tenantId)} mono />
-          </div>
+          <DetailRows rows={overviewRows} />
         </DetailSection>
 
         <DetailSection title="Category" icon={Layers}>
-          <div className="space-y-0">
-            <DetailRow label="Category" value={safeText(product.categoryName ?? product.categoryId)} />
-            <DetailRow label="Category ID" value={safeText(product.categoryId)} mono />
-            {product.categoryDescription != null && product.categoryDescription !== "" && (
-              <DetailRow label="Category description" value={safeText(product.categoryDescription)} />
-            )}
-            {product.categoryParentId != null && (
-              <DetailRow label="Category parent ID" value={safeText(product.categoryParentId)} mono />
-            )}
-            {product.categorySortOrder != null && (
-              <DetailRow label="Category sort order" value={safeText(product.categorySortOrder)} />
-            )}
-          </div>
+          <DetailRows rows={categoryRows} />
         </DetailSection>
 
         <DetailSection title="Base UOM" icon={Tag}>
-          <div className="space-y-0">
-            <DetailRow label="Base UOM" value={safeText(product.baseUomName ?? product.baseUomId)} />
-            <DetailRow label="Base UOM ID" value={safeText(product.baseUomId)} mono />
-            {product.baseUomClassId != null && (
-              <DetailRow label="Base UOM class ID" value={safeText(product.baseUomClassId)} mono />
-            )}
-            {product.baseUomConversionRateToBase != null && (
-              <DetailRow label="Conversion rate to base" value={safeText(product.baseUomConversionRateToBase)} />
-            )}
-          </div>
+          <DetailRows rows={uomRows} />
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>
-          <div className="space-y-0">
-            <DetailRow label="Created at" value={formatDate(product.createdAt)} />
-            <DetailRow label="Updated at" value={formatDate(product.updatedAt)} />
-            {product.deletedAt != null && product.deletedAt !== "" && (
-              <DetailRow label="Deleted at" value={formatDate(product.deletedAt)} />
-            )}
-          </div>
+          <DetailRows rows={recordRows} />
         </DetailSection>
 
         {product.globalAttributes != null && Object.keys(product.globalAttributes).length > 0 && (

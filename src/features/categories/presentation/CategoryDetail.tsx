@@ -6,7 +6,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { FolderTree, Info, List } from "lucide-react";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
   formatDate,
@@ -15,6 +15,23 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function CategoryDetail({ categoryId }: { categoryId: string }) {
   const { data: category, isLoading, error } = useCategory(categoryId);
+  const overviewRows = category
+    ? [
+        { label: "Category ID", value: safeText(category.id), mono: true },
+        { label: "Name", value: safeText(category.name) },
+        { label: "Tenant ID", value: safeText(category.tenantId), mono: true },
+        { label: "Parent ID", value: safeText(category.parentId), mono: true },
+        { label: "Sort order", value: safeText(category.sortOrder) },
+        ...(category.description ? [{ label: "Description", value: safeText(category.description) }] : []),
+      ]
+    : [];
+  const recordRows = category
+    ? [
+        { label: "Created at", value: formatDate(category.createdAt) },
+        { label: "Updated at", value: formatDate(category.updatedAt) },
+        ...(category.deletedAt ? [{ label: "Deleted at", value: formatDate(category.deletedAt) }] : []),
+      ]
+    : [];
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading category..." />;
   if (error || !category)
@@ -38,26 +55,11 @@ export function CategoryDetail({ categoryId }: { categoryId: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={FolderTree}>
-          <div className="space-y-0">
-            <DetailRow label="Category ID" value={safeText(category.id)} mono />
-            <DetailRow label="Name" value={safeText(category.name)} />
-            <DetailRow label="Tenant ID" value={safeText(category.tenantId)} mono />
-            <DetailRow label="Parent ID" value={safeText(category.parentId)} mono />
-            <DetailRow label="Sort order" value={safeText(category.sortOrder)} />
-            {(category.description ?? "") !== "" && (
-              <DetailRow label="Description" value={safeText(category.description)} />
-            )}
-          </div>
+          <DetailRows rows={overviewRows} />
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>
-          <div className="space-y-0">
-            <DetailRow label="Created at" value={formatDate(category.createdAt)} />
-            <DetailRow label="Updated at" value={formatDate(category.updatedAt)} />
-            {(category.deletedAt ?? "") !== "" && (
-              <DetailRow label="Deleted at" value={formatDate(category.deletedAt)} />
-            )}
-          </div>
+          <DetailRows rows={recordRows} />
         </DetailSection>
 
         {Array.isArray(category.children) && category.children.length > 0 && (

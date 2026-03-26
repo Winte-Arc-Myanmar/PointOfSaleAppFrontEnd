@@ -7,7 +7,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { User, Shield, Info } from "lucide-react";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
   formatDate,
@@ -16,6 +16,40 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
+  const profileRows = user
+    ? [
+        { label: "User ID", value: safeText(user.id), mono: true },
+        { label: "Username", value: safeText(user.username) },
+        { label: "Full name", value: safeText(user.fullName) },
+        {
+          label: "Email",
+          value: user.email ? (
+            <a href={`mailto:${user.email}`} className="text-mint hover:underline">
+              {user.email}
+            </a>
+          ) : (
+            "—"
+          ),
+        },
+        { label: "Phone number", value: safeText(user.phoneNumber) },
+        { label: "Job title", value: safeText(user.jobTitle) },
+        { label: "Preferred language", value: safeText(user.preferredLanguage) },
+      ]
+    : [];
+  const statusRows = user
+    ? [
+        { label: "Status", value: safeText(user.status) },
+        { label: "Login attempts", value: safeText(user.loginAttempts) },
+        { label: "Last login at", value: formatDate(user.lastLoginAt) },
+        { label: "Lockout until", value: formatDate(user.lockoutUntil) },
+      ]
+    : [];
+  const recordRows = user
+    ? [
+        { label: "Created at", value: formatDate(user.createdAt) },
+        { label: "Updated at", value: formatDate(user.updatedAt) },
+      ]
+    : [];
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading user..." />;
   if (error || !user)
@@ -40,24 +74,7 @@ export function UserDetail({ userId }: { userId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Profile" icon={User}>
           <div className="space-y-0">
-            <DetailRow label="User ID" value={safeText(user.id)} mono />
-            <DetailRow label="Username" value={safeText(user.username)} />
-            <DetailRow label="Full name" value={safeText(user.fullName)} />
-            <DetailRow
-              label="Email"
-              value={
-                user.email ? (
-                  <a href={`mailto:${user.email}`} className="text-mint hover:underline">
-                    {user.email}
-                  </a>
-                ) : (
-                  "—"
-                )
-              }
-            />
-            <DetailRow label="Phone number" value={safeText(user.phoneNumber)} />
-            <DetailRow label="Job title" value={safeText(user.jobTitle)} />
-            <DetailRow label="Preferred language" value={safeText(user.preferredLanguage)} />
+            <DetailRows rows={profileRows} />
             {user.avatarUrl && (
               <div className="pt-2">
                 <dt className="text-xs font-medium text-muted uppercase tracking-wider">Avatar</dt>
@@ -77,19 +94,11 @@ export function UserDetail({ userId }: { userId: string }) {
         </DetailSection>
 
         <DetailSection title="Status & security" icon={Shield}>
-          <div className="space-y-0">
-            <DetailRow label="Status" value={safeText(user.status)} />
-            <DetailRow label="Login attempts" value={safeText(user.loginAttempts)} />
-            <DetailRow label="Last login at" value={formatDate(user.lastLoginAt)} />
-            <DetailRow label="Lockout until" value={formatDate(user.lockoutUntil)} />
-          </div>
+          <DetailRows rows={statusRows} />
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>
-          <div className="space-y-0">
-            <DetailRow label="Created at" value={formatDate(user.createdAt)} />
-            <DetailRow label="Updated at" value={formatDate(user.updatedAt)} />
-          </div>
+          <DetailRows rows={recordRows} />
         </DetailSection>
 
         {user.metadata != null && Object.keys(user.metadata).length > 0 && (
