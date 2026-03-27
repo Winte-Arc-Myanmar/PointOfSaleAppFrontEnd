@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUom } from "@/presentation/hooks/useUoms";
@@ -9,6 +9,13 @@ import { useUomClasses } from "@/presentation/hooks/useUomClasses";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -45,6 +52,7 @@ export function CreateUomForm({
   }, [createUom.isPending, onLoadingChange]);
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -86,18 +94,24 @@ export function CreateUomForm({
       </div>
       <div className="grid gap-2">
         <Label htmlFor="classId">UOM Class</Label>
-        <select
-          id="classId"
-          {...register("classId")}
-          className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-        >
-          <option value="">Select class</option>
-          {uomClasses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Controller
+          control={control}
+          name="classId"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="classId">
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                {uomClasses.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
         {errors.classId && (
           <p className="text-sm text-red-600">{errors.classId.message}</p>
         )}

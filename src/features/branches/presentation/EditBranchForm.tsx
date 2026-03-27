@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useBranch, useUpdateBranch } from "@/presentation/hooks/useBranches";
@@ -13,6 +13,13 @@ import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -161,18 +168,24 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="tenantId">Tenant</Label>
-          <select
-            id="tenantId"
-            {...form.register("tenantId")}
-            className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-          >
-            <option value="">Select tenant</option>
-            {tenants.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            control={form.control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="tenantId">
+                  <SelectValue placeholder="Select tenant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
@@ -181,16 +194,23 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              {...form.register("type")}
-              className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-            >
-              <option value="RESTAURANT">RESTAURANT</option>
-              <option value="RETAIL">RETAIL</option>
-              <option value="WAREHOUSE">WAREHOUSE</option>
-              <option value="OTHER">OTHER</option>
-            </select>
+            <Controller
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RESTAURANT">RESTAURANT</SelectItem>
+                    <SelectItem value="RETAIL">RETAIL</SelectItem>
+                    <SelectItem value="WAREHOUSE">WAREHOUSE</SelectItem>
+                    <SelectItem value="OTHER">OTHER</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
         </div>
         <div className="grid gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateCategory } from "@/presentation/hooks/useCategories";
@@ -9,6 +9,13 @@ import { useCategories } from "@/presentation/hooks/useCategories";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -47,6 +54,7 @@ export function CreateCategoryForm({
   }, [createCategory.isPending, onLoadingChange]);
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -61,7 +69,7 @@ export function CreateCategoryForm({
       {
         name: data.name,
         tenantId: data.tenantId,
-        parentId: data.parentId || undefined,
+        parentId: !data.parentId || data.parentId === "__none__" ? undefined : data.parentId,
         description: data.description || undefined,
         sortOrder: data.sortOrder,
       },
@@ -96,18 +104,25 @@ export function CreateCategoryForm({
       </div>
       <div className="grid gap-2">
         <Label htmlFor="parentId">Parent category</Label>
-        <select
-          id="parentId"
-          {...register("parentId")}
-          className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-        >
-          <option value="">None (root)</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Controller
+          control={control}
+          name="parentId"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="parentId">
+                <SelectValue placeholder="None (root)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None (root)</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="description">Description</Label>

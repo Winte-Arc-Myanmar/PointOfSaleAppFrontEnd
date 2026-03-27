@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCategory, useUpdateCategory } from "@/presentation/hooks/useCategories";
@@ -13,6 +13,13 @@ import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -64,7 +71,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
         data: {
           name: data.name,
           tenantId: data.tenantId,
-          parentId: data.parentId || undefined,
+          parentId: !data.parentId || data.parentId === "__none__" ? undefined : data.parentId,
           description: data.description || undefined,
           sortOrder: data.sortOrder,
         },
@@ -117,18 +124,27 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="parentId">Parent category</Label>
-          <select
-            id="parentId"
-            {...form.register("parentId")}
-            className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-          >
-            <option value="">None (root)</option>
-            {categories.filter((c) => c.id !== categoryId).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            control={form.control}
+            name="parentId"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="parentId">
+                  <SelectValue placeholder="None (root)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">None (root)</SelectItem>
+                  {categories
+                    .filter((c) => c.id !== categoryId)
+                    .map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="description">Description</Label>

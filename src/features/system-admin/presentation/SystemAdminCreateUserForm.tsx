@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
+import { useSystemAdminCreateUserOptions } from "@/presentation/hooks/useSystemAdminCreateUserOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -29,6 +37,7 @@ type FormData = z.infer<typeof schema>;
 export function SystemAdminCreateUserForm() {
   const router = useRouter();
   const createUser = useSystemAdminCreateUser();
+  const { data: options, isLoading: isOptionsLoading } = useSystemAdminCreateUserOptions();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -65,6 +74,25 @@ export function SystemAdminCreateUserForm() {
     );
   };
 
+  const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
+  const filteredRoles = (options?.roles ?? []).filter((r) =>
+    selectedTenantId ? r.tenantId === selectedTenantId : true
+  );
+  const filteredBranches = (options?.branches ?? []).filter((b) =>
+    selectedTenantId ? b.tenantId === selectedTenantId : true
+  );
+
+  useEffect(() => {
+    const currentRoleId = form.getValues("roleId");
+    const currentBranchId = form.getValues("branchId");
+    if (currentRoleId && !filteredRoles.some((r) => r.id === currentRoleId)) {
+      form.setValue("roleId", "");
+    }
+    if (currentBranchId && !filteredBranches.some((b) => b.id === currentBranchId)) {
+      form.setValue("branchId", "");
+    }
+  }, [filteredRoles, filteredBranches, form]);
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -93,18 +121,87 @@ export function SystemAdminCreateUserForm() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant ID *</Label>
-          <Input id="tenantId" {...form.register("tenantId")} placeholder="UUID" />
+          <Label htmlFor="tenantId">Tenant  *</Label>
+          <Controller
+            control={form.control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                disabled={isOptionsLoading}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={isOptionsLoading ? "Loading tenants..." : "Select tenant"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(options?.tenants ?? []).map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {form.formState.errors.tenantId && <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="branchId">Branch ID *</Label>
-          <Input id="branchId" {...form.register("branchId")} placeholder="UUID" />
+          <Label htmlFor="branchId">Branch *</Label>
+          <Controller
+            control={form.control}
+            name="branchId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                disabled={isOptionsLoading}
+              >
+                <SelectTrigger id="branchId">
+                  <SelectValue
+                    placeholder={isOptionsLoading ? "Loading branches..." : "Select branch"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredBranches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name} ({branch.branchCode})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {form.formState.errors.branchId && <p className="text-sm text-red-600">{form.formState.errors.branchId.message}</p>}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="roleId">Role ID *</Label>
-          <Input id="roleId" {...form.register("roleId")} placeholder="UUID" />
+          <Label htmlFor="roleId">Role *</Label>
+          <Controller
+            control={form.control}
+            name="roleId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                disabled={isOptionsLoading}
+              >
+                <SelectTrigger id="roleId">
+                  <SelectValue
+                    placeholder={isOptionsLoading ? "Loading roles..." : "Select role"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredRoles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {form.formState.errors.roleId && <p className="text-sm text-red-600">{form.formState.errors.roleId.message}</p>}
         </div>
       </div>
