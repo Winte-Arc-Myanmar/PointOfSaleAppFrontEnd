@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateCategory } from "@/presentation/hooks/useCategories";
-import { useCategories } from "@/presentation/hooks/useCategories";
+import { useCategoryFormOptions } from "@/presentation/hooks/useCategoryFormOptions";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -17,9 +18,11 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 
+const PARENT_NONE = "__none__";
+
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
+  tenantId: z.string().min(1, "Tenant is required"),
   parentId: z.string(),
   description: z.string(),
   sortOrder: z.number().min(0),
@@ -30,7 +33,7 @@ export type CategoryFormData = z.infer<typeof schema>;
 const defaultValues: CategoryFormData = {
   name: "",
   tenantId: "",
-  parentId: "",
+  parentId: PARENT_NONE,
   description: "",
   sortOrder: 0,
 };
@@ -46,8 +49,10 @@ export function CreateCategoryForm({
   formId,
   onLoadingChange,
 }: CreateCategoryFormProps) {
+  const { tenantId: lockedTenantId } = usePermissions();
   const createCategory = useCreateCategory();
-  const { data: categories = [] } = useCategories();
+  const { data: options, isLoading: isOptionsLoading } =
+    useCategoryFormOptions();
 
   useEffect(() => {
     onLoadingChange?.(createCategory.isPending ?? false);
@@ -59,23 +64,60 @@ export function CreateCategoryForm({
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    getValues,
   } = useForm<CategoryFormData>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      tenantId: lockedTenantId ?? "",
+    },
   });
+
+  const selectedTenantId = useWatch({ control, name: "tenantId" });
+
+  const parentOptions = useMemo(
+    () =>
+      (options?.categories ?? []).filter((c) =>
+        selectedTenantId ? c.tenantId === selectedTenantId : false
+      ),
+    [options?.categories, selectedTenantId]
+  );
+
+  useEffect(() => {
+    if (lockedTenantId) setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, setValue]);
+
+  useEffect(() => {
+    if (isOptionsLoading) return;
+    const parentId = getValues("parentId");
+    if (
+      parentId &&
+      parentId !== PARENT_NONE &&
+      !parentOptions.some((c) => c.id === parentId)
+    ) {
+      setValue("parentId", PARENT_NONE);
+    }
+  }, [parentOptions, getValues, setValue, isOptionsLoading]);
 
   const onSubmit = (data: CategoryFormData) => {
     createCategory.mutate(
       {
         name: data.name,
         tenantId: data.tenantId,
-        parentId: !data.parentId || data.parentId === "__none__" ? undefined : data.parentId,
+        parentId:
+          !data.parentId || data.parentId === PARENT_NONE
+            ? undefined
+            : data.parentId,
         description: data.description || undefined,
         sortOrder: data.sortOrder,
       },
       {
         onSuccess: () => {
-          reset(defaultValues);
+          reset({
+            ...defaultValues,
+            tenantId: lockedTenantId ?? getValues("tenantId"),
+          });
           onSuccess?.();
         },
       }
@@ -91,38 +133,75 @@ export function CreateCategoryForm({
           <p className="text-sm text-red-600">{errors.name.message}</p>
         )}
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="tenantId">Tenant ID</Label>
-        <Input
-          id="tenantId"
-          {...register("tenantId")}
-          placeholder="UUID of the tenant"
-        />
-        {errors.tenantId && (
-          <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-        )}
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="parentId">Parent category</Label>
-        <Controller
-          control={control}
-          name="parentId"
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id="parentId">
-                <SelectValue placeholder="None (root)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">None (root)</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(v) => field.onChange(v)}
+                disabled={isOptionsLoading || Boolean(lockedTenantId)}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={
+                      isOptionsLoading ? "Loading tenants..." : "Select tenant"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(options?.tenants ?? []).map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.tenantId && (
+            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
           )}
-        />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="parentId">Parent category</Label>
+          <Controller
+            control={control}
+            name="parentId"
+            render={({ field }) => (
+              <Select
+                value={
+                  field.value && field.value !== ""
+                    ? field.value
+                    : PARENT_NONE
+                }
+                onValueChange={field.onChange}
+                disabled={isOptionsLoading || !selectedTenantId}
+              >
+                <SelectTrigger id="parentId">
+                  <SelectValue
+                    placeholder={
+                      !selectedTenantId
+                        ? "Select a tenant first"
+                        : "None (root)"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={PARENT_NONE}>None (root)</SelectItem>
+                  {parentOptions.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
       </div>
       <div className="grid gap-2">
         <Label htmlFor="description">Description</Label>

@@ -45,7 +45,7 @@ export function CreateUomForm({
   onLoadingChange,
 }: CreateUomFormProps) {
   const createUom = useCreateUom();
-  const { data: uomClasses = [] } = useUomClasses();
+  const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
 
   useEffect(() => {
     onLoadingChange?.(createUom.isPending ?? false);
@@ -98,9 +98,17 @@ export function CreateUomForm({
           control={control}
           name="classId"
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={isClassesLoading}
+            >
               <SelectTrigger id="classId">
-                <SelectValue placeholder="Select class" />
+                <SelectValue
+                  placeholder={
+                    isClassesLoading ? "Loading classes..." : "Select class"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {uomClasses.map((c) => (

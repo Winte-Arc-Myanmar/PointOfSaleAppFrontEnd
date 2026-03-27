@@ -35,7 +35,7 @@ const REDIRECT_DELAY_MS = 1500;
 export function EditUomForm({ uomId }: { uomId: string }) {
   const router = useRouter();
   const { data: uom, isLoading, error } = useUom(uomId);
-  const { data: uomClasses = [] } = useUomClasses();
+  const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
   const updateUom = useUpdateUom();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -119,9 +119,19 @@ export function EditUomForm({ uomId }: { uomId: string }) {
             control={form.control}
             name="classId"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isClassesLoading}
+              >
                 <SelectTrigger id="classId">
-                  <SelectValue placeholder="Select class" />
+                  <SelectValue
+                    placeholder={
+                      isClassesLoading
+                        ? "Loading classes..."
+                        : "Select class"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {uomClasses.map((c) => (

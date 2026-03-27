@@ -1,17 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useCreateRole, useRoles } from "@/presentation/hooks/useRoles";
+import { useCreateRole } from "@/presentation/hooks/useRoles";
+import { useCreateRoleFormOptions } from "@/presentation/hooks/useCreateRoleFormOptions";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Label } from "@/presentation/components/ui/label";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
+
+const OPTIONAL_PARENT = "__none__";
 
 const schema = z.object({
   name: z.string().min(1, "Role name is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
+  tenantId: z.string().min(1, "Tenant is required"),
   parentId: z.string().optional(),
   isSystemDefault: z.boolean().optional(),
 });
@@ -27,23 +37,48 @@ export function CreateRoleForm({
   onSuccess: () => void;
   onLoadingChange: (loading: boolean) => void;
 }) {
-  const { tenantId } = usePermissions();
-  const { data: roles = [] } = useRoles();
+  const { tenantId: lockedTenantId } = usePermissions();
+  const { data: options, isLoading: isOptionsLoading } =
+    useCreateRoleFormOptions();
   const createRole = useCreateRole();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      tenantId: tenantId ?? "",
+      tenantId: lockedTenantId ?? "",
       parentId: "",
       isSystemDefault: false,
     },
   });
 
+  const selectedTenantId = useWatch({
+    control: form.control,
+    name: "tenantId",
+  });
+
+  const parentRoleOptions = useMemo(
+    () =>
+      (options?.roles ?? []).filter((r) =>
+        selectedTenantId ? r.tenantId === selectedTenantId : false
+      ),
+    [options?.roles, selectedTenantId]
+  );
+
   useEffect(() => {
-    if (tenantId) form.setValue("tenantId", tenantId);
-  }, [tenantId, form]);
+    if (lockedTenantId) form.setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, form]);
+
+  useEffect(() => {
+    if (isOptionsLoading) return;
+    const parentId = form.getValues("parentId");
+    if (
+      parentId &&
+      !parentRoleOptions.some((r) => r.id === parentId)
+    ) {
+      form.setValue("parentId", "");
+    }
+  }, [parentRoleOptions, form, isOptionsLoading]);
 
   useEffect(() => {
     onLoadingChange(createRole.isPending);
@@ -59,7 +94,12 @@ export function CreateRoleForm({
       },
       {
         onSuccess: () => {
-          form.reset({ ...form.getValues(), name: "" });
+          form.reset({
+            name: "",
+            tenantId: lockedTenantId ?? data.tenantId,
+            parentId: "",
+            isSystemDefault: false,
+          });
           onSuccess();
         },
       }
@@ -78,22 +118,74 @@ export function CreateRoleForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant ID</Label>
-          <Input
-            id="tenantId"
-            placeholder="UUID"
-            {...form.register("tenantId")}
-            disabled={Boolean(tenantId)}
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={form.control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                disabled={isOptionsLoading || Boolean(lockedTenantId)}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={
+                      isOptionsLoading ? "Loading tenants..." : "Select tenant"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(options?.tenants ?? []).map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           />
           {form.formState.errors.tenantId && (
             <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="parentId">Parent role ID (optional)</Label>
-          <Input id="parentId" placeholder="UUID" {...form.register("parentId")} />
+          <Label htmlFor="parentId">Parent role (optional)</Label>
+          <Controller
+            control={form.control}
+            name="parentId"
+            render={({ field }) => (
+              <Select
+                value={field.value ? field.value : OPTIONAL_PARENT}
+                onValueChange={(value) =>
+                  field.onChange(value === OPTIONAL_PARENT ? "" : value)
+                }
+                disabled={isOptionsLoading || !selectedTenantId}
+              >
+                <SelectTrigger id="parentId">
+                  <SelectValue
+                    placeholder={
+                      !selectedTenantId
+                        ? "Select a tenant first"
+                        : isOptionsLoading
+                          ? "Loading roles..."
+                          : "None (top-level)"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={OPTIONAL_PARENT}>None (top-level)</SelectItem>
+                  {parentRoleOptions.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           <p className="text-xs text-muted">
-            Use parent roles to build a hierarchy (optional).
+            Use a parent role to build a hierarchy (optional).
           </p>
         </div>
       </div>
@@ -108,9 +200,6 @@ export function CreateRoleForm({
         <Label htmlFor="isSystemDefault" className="cursor-pointer">
           System default
         </Label>
-        <span className="ml-auto text-xs text-muted">
-          {roles.length} roles loaded
-        </span>
       </div>
     </form>
   );

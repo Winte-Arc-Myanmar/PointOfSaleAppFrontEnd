@@ -1,25 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useProduct, useUpdateProduct } from "@/presentation/hooks/useProducts";
+import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
+  tenantId: z.string().min(1, "Tenant is required"),
   baseSku: z.string().min(1, "Base SKU is required"),
   basePrice: z.number().min(0),
-  baseUomId: z.string().min(1, "UOM ID is required"),
-  categoryId: z.string().min(1, "Category ID is required"),
+  baseUomId: z.string().min(1, "Base UOM is required"),
+  categoryId: z.string().min(1, "Category is required"),
   trackingType: z.string().min(1, "Tracking type is required"),
   globalAttributesJson: z.string(),
 });
@@ -31,6 +39,8 @@ const REDIRECT_DELAY_MS = 1500;
 export function EditProductForm({ productId }: { productId: string }) {
   const router = useRouter();
   const { data: product, isLoading, error } = useProduct(productId);
+  const { data: options, isLoading: isOptionsLoading } =
+    useCreateProductFormOptions();
   const updateProduct = useUpdateProduct();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<ProductFormData>({
@@ -64,6 +74,29 @@ export function EditProductForm({ productId }: { productId: string }) {
       });
     }
   }, [product, form]);
+
+  const selectedTenantId = useWatch({
+    control: form.control,
+    name: "tenantId",
+  });
+  const filteredCategories = useMemo(
+    () =>
+      (options?.categories ?? []).filter((c) =>
+        selectedTenantId ? c.tenantId === selectedTenantId : false
+      ),
+    [options?.categories, selectedTenantId]
+  );
+
+  useEffect(() => {
+    if (isOptionsLoading) return;
+    const categoryId = form.getValues("categoryId");
+    if (
+      categoryId &&
+      !filteredCategories.some((c) => c.id === categoryId)
+    ) {
+      form.setValue("categoryId", "");
+    }
+  }, [filteredCategories, form, isOptionsLoading]);
 
   const onSubmit = (data: ProductFormData) => {
     setShowSuccess(false);
@@ -167,17 +200,116 @@ export function EditProductForm({ productId }: { productId: string }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="tenantId">Tenant ID</Label>
-            <Input id="tenantId" {...form.register("tenantId")} />
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                  disabled={isOptionsLoading}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading
+                          ? "Loading tenants..."
+                          : "Select tenant"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.tenants ?? []).map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.tenantId && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.tenantId.message}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="baseUomId">Base UOM ID</Label>
-            <Input id="baseUomId" {...form.register("baseUomId")} />
+            <Label htmlFor="baseUomId">Base UOM</Label>
+            <Controller
+              control={form.control}
+              name="baseUomId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                  disabled={isOptionsLoading}
+                >
+                  <SelectTrigger id="baseUomId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading
+                          ? "Loading UOMs..."
+                          : "Select base UOM"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.uoms ?? []).map((uom) => (
+                      <SelectItem key={uom.id} value={uom.id}>
+                        {uom.name}
+                        {uom.abbreviation ? ` (${uom.abbreviation})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.baseUomId && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.baseUomId.message}
+              </p>
+            )}
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="categoryId">Category ID</Label>
-          <Input id="categoryId" {...form.register("categoryId")} />
+          <Label htmlFor="categoryId">Category</Label>
+          <Controller
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                disabled={isOptionsLoading || !selectedTenantId}
+              >
+                <SelectTrigger id="categoryId">
+                  <SelectValue
+                    placeholder={
+                      !selectedTenantId
+                        ? "Select a tenant first"
+                        : isOptionsLoading
+                          ? "Loading categories..."
+                          : "Select category"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.categoryId && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.categoryId.message}
+            </p>
+          )}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="globalAttributesJson">Global attributes (JSON)</Label>

@@ -82,11 +82,12 @@ export function EditUserForm({ userId }: { userId: string }) {
           setShowSuccess(true);
           setTimeout(() => router.push(`/users/${userId}`), REDIRECT_DELAY_MS);
         },
-      }
+      },
     );
   };
 
-  if (isLoading) return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
+  if (isLoading)
+    return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
   if (error || !user)
     return (
       <div className="space-y-4">
@@ -172,7 +173,10 @@ export function EditUserForm({ userId }: { userId: string }) {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="preferredLanguage">Preferred language</Label>
-          <Input id="preferredLanguage" {...form.register("preferredLanguage")} />
+          <Input
+            id="preferredLanguage"
+            {...form.register("preferredLanguage")}
+          />
         </div>
         {showSuccess && (
           <p className="text-sm text-green-600 font-medium">

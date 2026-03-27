@@ -1,13 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useSession } from "next-auth/react";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUser } from "@/presentation/hooks/useUsers";
+import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -43,25 +52,53 @@ export interface CreateUserFormProps {
   onLoadingChange?: (loading: boolean) => void;
 }
 
+const OPTIONAL_SELECT = "__none__";
+
 export function CreateUserForm({
   onSuccess,
   formId,
   onLoadingChange,
 }: CreateUserFormProps) {
+  const { data: session } = useSession();
+  const tenantId = session?.user?.tenantId;
   const createUser = useCreateUser();
+  const { data: options, isLoading: isOptionsLoading } =
+    useCreateUserFormOptions();
+
   useEffect(() => {
     onLoadingChange?.(createUser.isPending ?? false);
   }, [createUser.isPending, onLoadingChange]);
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    getValues,
   } = useForm<UserFormData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
+
+  const filteredRoles = (options?.roles ?? []).filter((r) =>
+    tenantId ? r.tenantId === tenantId : true
+  );
+  const filteredBranches = (options?.branches ?? []).filter((b) =>
+    tenantId ? b.tenantId === tenantId : true
+  );
+
+  useEffect(() => {
+    const roleId = getValues("roleId");
+    const branchId = getValues("branchId");
+    if (roleId && !filteredRoles.some((r) => r.id === roleId)) {
+      setValue("roleId", "");
+    }
+    if (branchId && !filteredBranches.some((b) => b.id === branchId)) {
+      setValue("branchId", "");
+    }
+  }, [filteredRoles, filteredBranches, getValues, setValue]);
 
   const onSubmit = (data: UserFormData) => {
     createUser.mutate(
@@ -162,12 +199,68 @@ export function CreateUserForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="roleId">Role ID</Label>
-          <Input id="roleId" {...register("roleId")} placeholder="uuid" />
+          <Label htmlFor="roleId">Role</Label>
+          <Controller
+            control={control}
+            name="roleId"
+            render={({ field }) => (
+              <Select
+                value={field.value ? field.value : OPTIONAL_SELECT}
+                onValueChange={(value) =>
+                  field.onChange(value === OPTIONAL_SELECT ? "" : value)
+                }
+                disabled={isOptionsLoading}
+              >
+                <SelectTrigger id="roleId">
+                  <SelectValue
+                    placeholder={
+                      isOptionsLoading ? "Loading roles..." : "Select role"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={OPTIONAL_SELECT}>None</SelectItem>
+                  {filteredRoles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="branchId">Branch ID</Label>
-          <Input id="branchId" {...register("branchId")} placeholder="uuid" />
+          <Label htmlFor="branchId">Branch</Label>
+          <Controller
+            control={control}
+            name="branchId"
+            render={({ field }) => (
+              <Select
+                value={field.value ? field.value : OPTIONAL_SELECT}
+                onValueChange={(value) =>
+                  field.onChange(value === OPTIONAL_SELECT ? "" : value)
+                }
+                disabled={isOptionsLoading}
+              >
+                <SelectTrigger id="branchId">
+                  <SelectValue
+                    placeholder={
+                      isOptionsLoading ? "Loading branches..." : "Select branch"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={OPTIONAL_SELECT}>None</SelectItem>
+                  {filteredBranches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name} ({branch.branchCode})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
       </div>
       <div className="grid gap-2">
