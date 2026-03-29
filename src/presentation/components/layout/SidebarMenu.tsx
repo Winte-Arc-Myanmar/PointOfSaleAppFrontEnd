@@ -14,6 +14,7 @@ import {
   Ruler,
   FolderTree,
   MapPin,
+  Warehouse,
   ShieldPlus,
   UserRoundPlus,
   KeyRound,
@@ -40,6 +41,7 @@ const allMenuItems: MenuItem[] = [
   { href: "/roles", label: "Roles", icon: Shield, permissions: ["roles:read"] },
   { href: "/categories", label: "Categories", icon: FolderTree, permissions: ["categories:read"] },
   { href: "/branches", label: "Branches", icon: MapPin, permissions: ["branches:read"] },
+  { href: "/locations", label: "Locations", icon: Warehouse, permissions: ["locations:read"] },
   { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
 ];
 

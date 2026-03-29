@@ -75,6 +75,14 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/branches/${id}`,
     DELETE: (id: string) => `/v1/branches/${id}`,
   },
+  LOCATIONS: {
+    LIST: "/v1/locations",
+    TREE: "/v1/locations/tree",
+    BY_ID: (id: string) => `/v1/locations/${id}`,
+    CREATE: "/v1/locations",
+    UPDATE: (id: string) => `/v1/locations/${id}`,
+    DELETE: (id: string) => `/v1/locations/${id}`,
+  },
   ROLES: {
     LIST: "/v1/roles",
     BY_ID: (id: string) => `/v1/roles/${id}`,

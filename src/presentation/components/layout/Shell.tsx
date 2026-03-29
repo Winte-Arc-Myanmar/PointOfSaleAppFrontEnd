@@ -13,6 +13,7 @@ const routeTitles: Record<string, string> = {
   "/users": "Users",
   "/categories": "Categories",
   "/branches": "Branches",
+  "/locations": "Locations",
   "/uom": "UOM",
   "/roles": "Roles",
   "/admin/onboard": "Onboard tenant",
@@ -31,6 +32,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/branches/") && pathname.endsWith("/edit"))
     return "Edit branch";
   if (pathname.startsWith("/branches/")) return "Branch";
+  if (pathname.startsWith("/locations/") && pathname.endsWith("/edit"))
+    return "Edit location";
+  if (pathname.startsWith("/locations/")) return "Location";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
   if (pathname.startsWith("/uom-classes/")) return "UOM class";
