@@ -7,6 +7,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useProduct, useUpdateProduct } from "@/presentation/hooks/useProducts";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -42,6 +43,7 @@ export function EditProductForm({ productId }: { productId: string }) {
   const { data: options, isLoading: isOptionsLoading } =
     useCreateProductFormOptions();
   const updateProduct = useUpdateProduct();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<ProductFormData>({
     resolver: zodResolver(schema),
@@ -127,6 +129,7 @@ export function EditProductForm({ productId }: { productId: string }) {
       },
       {
         onSuccess: () => {
+          toast.success("Product updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(
@@ -134,6 +137,7 @@ export function EditProductForm({ productId }: { productId: string }) {
             REDIRECT_DELAY_MS
           );
         },
+        onError: () => toast.error("Failed to update product."),
       }
     );
   };

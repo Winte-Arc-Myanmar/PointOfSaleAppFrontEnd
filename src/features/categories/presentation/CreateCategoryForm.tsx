@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateCategory } from "@/presentation/hooks/useCategories";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCategoryFormOptions } from "@/presentation/hooks/useCategoryFormOptions";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
@@ -51,6 +52,7 @@ export function CreateCategoryForm({
 }: CreateCategoryFormProps) {
   const { tenantId: lockedTenantId } = usePermissions();
   const createCategory = useCreateCategory();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } =
     useCategoryFormOptions();
 
@@ -114,12 +116,14 @@ export function CreateCategoryForm({
       },
       {
         onSuccess: () => {
+          toast.success("Category created.");
           reset({
             ...defaultValues,
             tenantId: lockedTenantId ?? getValues("tenantId"),
           });
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create category."),
       }
     );
   };

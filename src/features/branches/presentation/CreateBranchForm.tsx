@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateBranch } from "@/presentation/hooks/useBranches";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { BranchLocationCapture } from "./BranchLocationCapture";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -75,6 +77,7 @@ export function CreateBranchForm({
   onLoadingChange,
 }: CreateBranchFormProps) {
   const createBranch = useCreateBranch();
+  const toast = useToast();
   const { data: tenants = [] } = useTenants();
 
   useEffect(() => {
@@ -85,12 +88,17 @@ export function CreateBranchForm({
     control,
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
     reset,
   } = useForm<BranchFormData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
+
+  const latWatch = watch("latitude");
+  const lngWatch = watch("longitude");
 
   const onSubmit = (data: BranchFormData) => {
     const lat = data.latitude ? Number(data.latitude) : undefined;
@@ -114,9 +122,11 @@ export function CreateBranchForm({
       },
       {
         onSuccess: () => {
+          toast.success("Branch created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create branch."),
       }
     );
   };
@@ -218,16 +228,21 @@ export function CreateBranchForm({
           )}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="latitude">Latitude</Label>
-          <Input id="latitude" type="number" step="any" {...register("latitude")} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="longitude">Longitude</Label>
-          <Input id="longitude" type="number" step="any" {...register("longitude")} />
-        </div>
-      </div>
+      <input type="hidden" {...register("latitude")} />
+      <input type="hidden" {...register("longitude")} />
+      <BranchLocationCapture
+        latitude={latWatch ?? ""}
+        longitude={lngWatch ?? ""}
+        onCoordinatesChange={(lat, lng) => {
+          setValue("latitude", lat, { shouldDirty: true, shouldValidate: true });
+          setValue("longitude", lng, { shouldDirty: true, shouldValidate: true });
+        }}
+        onClear={() => {
+          setValue("latitude", "", { shouldDirty: true, shouldValidate: true });
+          setValue("longitude", "", { shouldDirty: true, shouldValidate: true });
+        }}
+        toast={toast}
+      />
       <div className="grid gap-2">
         <Label htmlFor="openingHoursJson">Opening hours (JSON, e.g. {`{"mon": "09:00-17:00"}`})</Label>
         <textarea

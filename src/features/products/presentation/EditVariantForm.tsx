@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useProductVariant, useUpdateProductVariant } from "@/presentation/hooks/useProductVariants";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -36,6 +37,7 @@ export function EditVariantForm({
 }: EditVariantFormProps) {
   const { data: variant, isLoading, error } = useProductVariant(productId, variantId);
   const updateVariant = useUpdateProductVariant(productId);
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<VariantFormData>({
     resolver: zodResolver(schema),
@@ -85,9 +87,11 @@ export function EditVariantForm({
       },
       {
         onSuccess: () => {
+          toast.success("Variant updated.");
           setShowSuccess(true);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to update variant."),
       }
     );
   };

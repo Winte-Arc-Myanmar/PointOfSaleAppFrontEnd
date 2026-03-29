@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateRole } from "@/presentation/hooks/useRoles";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCreateRoleFormOptions } from "@/presentation/hooks/useCreateRoleFormOptions";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Label } from "@/presentation/components/ui/label";
@@ -41,6 +42,7 @@ export function CreateRoleForm({
   const { data: options, isLoading: isOptionsLoading } =
     useCreateRoleFormOptions();
   const createRole = useCreateRole();
+  const toast = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -94,6 +96,7 @@ export function CreateRoleForm({
       },
       {
         onSuccess: () => {
+          toast.success("Role created.");
           form.reset({
             name: "",
             tenantId: lockedTenantId ?? data.tenantId,
@@ -102,6 +105,7 @@ export function CreateRoleForm({
           });
           onSuccess();
         },
+        onError: () => toast.error("Failed to create role."),
       }
     );
   };

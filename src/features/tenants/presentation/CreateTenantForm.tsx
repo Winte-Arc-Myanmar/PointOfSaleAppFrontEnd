@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateTenant } from "@/presentation/hooks/useTenants";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -51,6 +52,7 @@ export interface CreateTenantFormProps {
 
 export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateTenantFormProps) {
   const createTenant = useCreateTenant();
+  const toast = useToast();
   useEffect(() => {
     onLoadingChange?.(createTenant.isPending ?? false);
   }, [createTenant.isPending, onLoadingChange]);
@@ -83,9 +85,11 @@ export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateT
       },
       {
         onSuccess: () => {
+          toast.success("Tenant created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create tenant."),
       }
     );
   };

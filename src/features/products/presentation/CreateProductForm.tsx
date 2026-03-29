@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateProduct } from "@/presentation/hooks/useProducts";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -53,6 +54,7 @@ export function CreateProductForm({
   onLoadingChange,
 }: CreateProductFormProps) {
   const createProduct = useCreateProduct();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } =
     useCreateProductFormOptions();
 
@@ -118,9 +120,11 @@ export function CreateProductForm({
       },
       {
         onSuccess: () => {
+          toast.success("Product created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create product."),
       }
     );
   };

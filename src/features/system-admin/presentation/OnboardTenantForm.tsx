@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useOnboardTenant } from "@/presentation/hooks/useSystemAdmin";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -38,6 +39,7 @@ type FormData = z.infer<typeof schema>;
 export function OnboardTenantForm() {
   const router = useRouter();
   const onboard = useOnboardTenant();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -82,10 +84,12 @@ export function OnboardTenantForm() {
       },
       {
         onSuccess: () => {
+          toast.success("Tenant onboarded.");
           setShowSuccess(true);
           form.reset();
           setTimeout(() => router.push("/tenants"), 1500);
         },
+        onError: () => toast.error("Failed to onboard tenant."),
       }
     );
   };
