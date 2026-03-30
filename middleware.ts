@@ -17,6 +17,7 @@ interface RoutePermission {
 const permissionRoutes: RoutePermission[] = [
   { prefix: "/tenants", permissions: ["tenants:read"] },
   { prefix: "/users", permissions: ["users:read"] },
+  { prefix: "/roles", permissions: ["roles:read"] },
   { prefix: "/categories", permissions: ["categories:read"] },
   { prefix: "/branches", permissions: ["branches:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },

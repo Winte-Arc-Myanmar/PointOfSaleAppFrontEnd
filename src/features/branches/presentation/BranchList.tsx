@@ -1,14 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import { useBranches, useDeleteBranch } from "@/presentation/hooks/useBranches";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
-import { Button } from "@/presentation/components/ui/button";
-import { DataTable } from "@/presentation/components/data-table";
-import { FormModal } from "@/presentation/components/modal/FormModal";
+import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getBranchRowActions } from "./branch-row-actions";
 import { getBranchTableColumns } from "./branch-table-columns";
 import { CreateBranchForm } from "./CreateBranchForm";
@@ -18,8 +15,6 @@ const CREATE_BRANCH_FORM_ID = "create-branch-form";
 
 export function BranchList() {
   const router = useRouter();
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: branches = [], isLoading, error, refetch } = useBranches();
   const deleteBranch = useDeleteBranch();
   const toast = useToast();
@@ -51,51 +46,35 @@ export function BranchList() {
   const columns = useMemo(() => getBranchTableColumns(), []);
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Branch
-        </Button>
-      </div>
-      <DataTable<Branch>
-        data={branches}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        loadingText="Loading branches..."
-        emptyText="No branches yet."
-        emptyAction={{
-          label: "Add Branch",
-          onClick: () => setCreateModalOpen(true),
-        }}
-        error={
-          error
-            ? {
-                message: "Failed to load branches.",
-                onRetry: () => refetch(),
-              }
-            : undefined
-        }
-        pageSize={10}
-      />
-      <FormModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Create Branch"
-        formId={CREATE_BRANCH_FORM_ID}
-        formContent={
-          <CreateBranchForm
-            formId={CREATE_BRANCH_FORM_ID}
-            onSuccess={() => setCreateModalOpen(false)}
-            onLoadingChange={setCreateFormLoading}
-          />
-        }
-        submitText="Create Branch"
-        loadingText="Creating..."
-        isLoading={createFormLoading}
-        maxWidth="2xl"
-      />
-    </>
+    <EntityListWithCreateModal<Branch>
+      data={branches}
+      columns={columns}
+      actions={actions}
+      isLoading={isLoading}
+      loadingText="Loading branches..."
+      emptyText="No branches yet."
+      error={
+        error
+          ? {
+              message: "Failed to load branches.",
+              onRetry: () => refetch(),
+            }
+          : undefined
+      }
+      pageSize={10}
+      addLabel="Add Branch"
+      createTitle="Create Branch"
+      createSubmitText="Create Branch"
+      createLoadingText="Creating..."
+      createFormId={CREATE_BRANCH_FORM_ID}
+      createMaxWidth="2xl"
+      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
+        <CreateBranchForm
+          formId={formId}
+          onSuccess={onSuccess}
+          onLoadingChange={onLoadingChange}
+        />
+      )}
+    />
   );
 }

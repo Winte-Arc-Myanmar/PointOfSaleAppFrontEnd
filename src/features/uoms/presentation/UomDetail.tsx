@@ -6,7 +6,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { Ruler, Tag } from "lucide-react";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
 } from "@/presentation/components/detail";
@@ -14,6 +14,25 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function UomDetail({ uomId }: { uomId: string }) {
   const { data: uom, isLoading, error } = useUom(uomId);
+  const overviewRows = uom
+    ? [
+        { label: "UOM ID", value: safeText(uom.id), mono: true },
+        { label: "Name", value: safeText(uom.name) },
+        { label: "Abbreviation", value: safeText(uom.abbreviation) },
+      ]
+    : [];
+  const classRows = uom
+    ? [
+        { label: "Class ID", value: safeText(uom.classId), mono: true },
+        {
+          label: "Conversion rate to base",
+          value:
+            typeof uom.conversionRateToBase === "number"
+              ? String(uom.conversionRateToBase)
+              : "—",
+        },
+      ]
+    : [];
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading UOM..." />;
   if (error || !uom)
@@ -37,25 +56,11 @@ export function UomDetail({ uomId }: { uomId: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Ruler}>
-          <div className="space-y-0">
-            <DetailRow label="UOM ID" value={safeText(uom.id)} mono />
-            <DetailRow label="Name" value={safeText(uom.name)} />
-            <DetailRow label="Abbreviation" value={safeText(uom.abbreviation)} />
-          </div>
+          <DetailRows rows={overviewRows} />
         </DetailSection>
 
         <DetailSection title="Class & conversion" icon={Tag}>
-          <div className="space-y-0">
-            <DetailRow label="Class ID" value={safeText(uom.classId)} mono />
-            <DetailRow
-              label="Conversion rate to base"
-              value={
-                typeof uom.conversionRateToBase === "number"
-                  ? String(uom.conversionRateToBase)
-                  : "—"
-              }
-            />
-          </div>
+          <DetailRows rows={classRows} />
         </DetailSection>
       </div>
     </div>

@@ -4,10 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTenant } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
-import { Building2, Globe, User, MapPin, Info } from "lucide-react";
+import { Building2, User, MapPin, Info } from "lucide-react";
 import {
   DetailSection,
-  DetailRow,
+  DetailRows,
   DetailPageHeader,
   safeText,
   formatDate,
@@ -36,6 +36,43 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
     tenant.country,
   ].filter(Boolean);
   const addressLine = addressParts.length > 0 ? addressParts.join(", ") : "—";
+  const overviewRows = tenant
+    ? [
+        { label: "Tenant ID", value: safeText(tenant.id), mono: true },
+        { label: "Name", value: safeText(tenant.name) },
+        { label: "Legal name", value: safeText(tenant.legalName) },
+        { label: "Domain", value: safeText(tenant.domain), mono: true },
+        { label: "Status", value: safeText(tenant.status) },
+        {
+          label: "Website",
+          value: tenant.website ? (
+            <a
+              href={tenant.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-mint hover:underline break-all"
+            >
+              {tenant.website}
+            </a>
+          ) : (
+            "—"
+          ),
+        },
+      ]
+    : [];
+  const contactRows = tenant
+    ? [
+        { label: "Name", value: safeText(tenant.primaryContactName) },
+        { label: "Email", value: safeText(tenant.primaryContactEmail) },
+        { label: "Phone", value: safeText(tenant.primaryContactPhone) },
+      ]
+    : [];
+  const recordRows = tenant
+    ? [
+        { label: "Created at", value: formatDate(tenant.createdAt) },
+        ...(tenant.deletedAt ? [{ label: "Deleted at", value: formatDate(tenant.deletedAt) }] : []),
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -49,28 +86,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Building2}>
           <div className="space-y-0">
-            <DetailRow label="Tenant ID" value={safeText(tenant.id)} mono />
-            <DetailRow label="Name" value={safeText(tenant.name)} />
-            <DetailRow label="Legal name" value={safeText(tenant.legalName)} />
-            <DetailRow label="Domain" value={safeText(tenant.domain)} mono />
-            <DetailRow label="Status" value={safeText(tenant.status)} />
-            <DetailRow
-              label="Website"
-              value={
-                tenant.website ? (
-                  <a
-                    href={tenant.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-mint hover:underline break-all"
-                  >
-                    {tenant.website}
-                  </a>
-                ) : (
-                  "—"
-                )
-              }
-            />
+            <DetailRows rows={overviewRows} />
             {tenant.logoUrl && (
               <div className="pt-2">
                 <dt className="text-xs font-medium text-muted uppercase tracking-wider">Logo</dt>
@@ -90,40 +106,31 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         </DetailSection>
 
         <DetailSection title="Primary contact" icon={User}>
-          <div className="space-y-0">
-            <DetailRow label="Name" value={safeText(tenant.primaryContactName)} />
-            <DetailRow label="Email" value={safeText(tenant.primaryContactEmail)} />
-            <DetailRow label="Phone" value={safeText(tenant.primaryContactPhone)} />
-          </div>
+          <DetailRows rows={contactRows} />
         </DetailSection>
 
         <DetailSection title="Address" icon={MapPin} className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
             <div className="space-y-0 sm:col-span-2">
-              <DetailRow label="Full address" value={addressLine} />
+              <DetailRows rows={[{ label: "Full address", value: addressLine }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="City" value={safeText(tenant.city)} />
+              <DetailRows rows={[{ label: "City", value: safeText(tenant.city) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="State" value={safeText(tenant.state)} />
+              <DetailRows rows={[{ label: "State", value: safeText(tenant.state) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="Country" value={safeText(tenant.country)} />
+              <DetailRows rows={[{ label: "Country", value: safeText(tenant.country) }]} />
             </div>
             <div className="space-y-0">
-              <DetailRow label="Zip code" value={safeText(tenant.zipCode)} />
+              <DetailRows rows={[{ label: "Zip code", value: safeText(tenant.zipCode) }]} />
             </div>
           </div>
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>
-          <div className="space-y-0">
-            <DetailRow label="Created at" value={formatDate(tenant.createdAt)} />
-            {tenant.deletedAt != null && tenant.deletedAt !== "" && (
-              <DetailRow label="Deleted at" value={formatDate(tenant.deletedAt)} />
-            )}
-          </div>
+          <DetailRows rows={recordRows} />
         </DetailSection>
       </div>
     </div>

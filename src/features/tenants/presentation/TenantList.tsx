@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useSystemAdminDeleteTenant } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
-import { Button } from "@/presentation/components/ui/button";
-import { DataTable } from "@/presentation/components/data-table";
-import { FormModal } from "@/presentation/components/modal/FormModal";
+import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getTenantRowActions } from "./tenant-row-actions";
 import { getTenantTableColumns } from "./tenant-table-columns";
 import { CreateTenantForm } from "./CreateTenantForm";
@@ -19,8 +16,6 @@ const CREATE_TENANT_FORM_ID = "create-tenant-form";
 
 export function TenantList() {
   const router = useRouter();
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: tenants = [], isLoading, error, refetch } = useTenants();
   const deleteTenant = useSystemAdminDeleteTenant();
   const toast = useToast();
@@ -52,51 +47,35 @@ export function TenantList() {
   const columns = useMemo(() => getTenantTableColumns(), []);
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Tenant
-        </Button>
-      </div>
-      <DataTable<Tenant>
-        data={tenants}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        loadingText="Loading tenants..."
-        emptyText="No tenants yet."
-        emptyAction={{
-          label: "Add Tenant",
-          onClick: () => setCreateModalOpen(true),
-        }}
-        error={
-          error
-            ? {
-                message: "Failed to load tenants. Is the backend API running?",
-                onRetry: () => refetch(),
-              }
-            : undefined
-        }
-        pageSize={10}
-      />
-      <FormModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Create Tenant"
-        formId={CREATE_TENANT_FORM_ID}
-        formContent={
-          <CreateTenantForm
-            formId={CREATE_TENANT_FORM_ID}
-            onSuccess={() => setCreateModalOpen(false)}
-            onLoadingChange={setCreateFormLoading}
-          />
-        }
-        submitText="Create Tenant"
-        loadingText="Creating..."
-        isLoading={createFormLoading}
-        maxWidth="2xl"
-      />
-    </>
+    <EntityListWithCreateModal<Tenant>
+      data={tenants}
+      columns={columns}
+      actions={actions}
+      isLoading={isLoading}
+      loadingText="Loading tenants..."
+      emptyText="No tenants yet."
+      error={
+        error
+          ? {
+              message: "Failed to load tenants. Is the backend API running?",
+              onRetry: () => refetch(),
+            }
+          : undefined
+      }
+      pageSize={10}
+      addLabel="Add Tenant"
+      createTitle="Create Tenant"
+      createSubmitText="Create Tenant"
+      createLoadingText="Creating..."
+      createFormId={CREATE_TENANT_FORM_ID}
+      createMaxWidth="2xl"
+      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
+        <CreateTenantForm
+          formId={formId}
+          onSuccess={onSuccess}
+          onLoadingChange={onLoadingChange}
+        />
+      )}
+    />
   );
 }

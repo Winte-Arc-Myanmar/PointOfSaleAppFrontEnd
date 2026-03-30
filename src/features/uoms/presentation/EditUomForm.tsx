@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUom, useUpdateUom } from "@/presentation/hooks/useUoms";
@@ -13,6 +13,13 @@ import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -28,7 +35,7 @@ const REDIRECT_DELAY_MS = 1500;
 export function EditUomForm({ uomId }: { uomId: string }) {
   const router = useRouter();
   const { data: uom, isLoading, error } = useUom(uomId);
-  const { data: uomClasses = [] } = useUomClasses();
+  const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
   const updateUom = useUpdateUom();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -108,18 +115,34 @@ export function EditUomForm({ uomId }: { uomId: string }) {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="classId">UOM Class</Label>
-          <select
-            id="classId"
-            {...form.register("classId")}
-            className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-          >
-            <option value="">Select class</option>
-            {uomClasses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Controller
+            control={form.control}
+            name="classId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isClassesLoading}
+              >
+                <SelectTrigger id="classId">
+                  <SelectValue
+                    placeholder={
+                      isClassesLoading
+                        ? "Loading classes..."
+                        : "Select class"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {uomClasses.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {form.formState.errors.classId && (
             <p className="text-sm text-red-600">{form.formState.errors.classId.message}</p>
           )}

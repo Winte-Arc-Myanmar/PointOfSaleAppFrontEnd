@@ -1,17 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
 import {
   useProducts,
   useDeleteProduct,
 } from "@/presentation/hooks/useProducts";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
-import { Button } from "@/presentation/components/ui/button";
-import { DataTable } from "@/presentation/components/data-table";
-import { FormModal } from "@/presentation/components/modal/FormModal";
+import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getProductRowActions } from "./product-row-actions";
 import { getProductTableColumns } from "./product-table-columns";
 import { CreateProductForm } from "./CreateProductForm";
@@ -21,8 +18,6 @@ const CREATE_PRODUCT_FORM_ID = "create-product-form";
 
 export function ProductList() {
   const router = useRouter();
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createFormLoading, setCreateFormLoading] = useState(false);
   const { data: products = [], isLoading, error, refetch } = useProducts();
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
@@ -54,51 +49,35 @@ export function ProductList() {
   const columns = useMemo(() => getProductTableColumns(), []);
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
-      </div>
-      <DataTable<Product>
-        data={products}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        loadingText="Loading products..."
-        emptyText="No products yet."
-        emptyAction={{
-          label: "Add Product",
-          onClick: () => setCreateModalOpen(true),
-        }}
-        error={
-          error
-            ? {
-                message: "Failed to load products. Is the backend API running?",
-                onRetry: () => refetch(),
-              }
-            : undefined
-        }
-        pageSize={10}
-      />
-      <FormModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Create Product"
-        formId={CREATE_PRODUCT_FORM_ID}
-        formContent={
-          <CreateProductForm
-            formId={CREATE_PRODUCT_FORM_ID}
-            onSuccess={() => setCreateModalOpen(false)}
-            onLoadingChange={setCreateFormLoading}
-          />
-        }
-        submitText="Create Product"
-        loadingText="Creating..."
-        isLoading={createFormLoading}
-        maxWidth="2xl"
-      />
-    </>
+    <EntityListWithCreateModal<Product>
+      data={products}
+      columns={columns}
+      actions={actions}
+      isLoading={isLoading}
+      loadingText="Loading products..."
+      emptyText="No products yet."
+      error={
+        error
+          ? {
+              message: "Failed to load products. Is the backend API running?",
+              onRetry: () => refetch(),
+            }
+          : undefined
+      }
+      pageSize={10}
+      addLabel="Add Product"
+      createTitle="Create Product"
+      createSubmitText="Create Product"
+      createLoadingText="Creating..."
+      createFormId={CREATE_PRODUCT_FORM_ID}
+      createMaxWidth="2xl"
+      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
+        <CreateProductForm
+          formId={formId}
+          onSuccess={onSuccess}
+          onLoadingChange={onLoadingChange}
+        />
+      )}
+    />
   );
 }

@@ -3,19 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUomClass, useUpdateUomClass } from "@/presentation/hooks/useUomClasses";
+import { useTenants } from "@/presentation/hooks/useTenants";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
+  tenantId: z.string().min(1, "Tenant is required"),
 });
 
 type UomClassFormData = z.infer<typeof schema>;
@@ -24,7 +33,9 @@ const REDIRECT_DELAY_MS = 1500;
 
 export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
   const router = useRouter();
+  const { tenantId: lockedTenantId } = usePermissions();
   const { data: uomClass, isLoading, error } = useUomClass(uomClassId);
+  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
   const updateUomClass = useUpdateUomClass();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -41,6 +52,10 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
       });
     }
   }, [uomClass, form]);
+
+  useEffect(() => {
+    if (lockedTenantId) form.setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, form]);
 
   const onSubmit = (data: UomClassFormData) => {
     setShowSuccess(false);
@@ -91,10 +106,37 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant ID</Label>
-          <Input id="tenantId" {...form.register("tenantId")} />
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={form.control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isTenantsLoading || Boolean(lockedTenantId)}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={
+                      isTenantsLoading ? "Loading tenants..." : "Select tenant"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
           {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
+            <p className="text-sm text-red-600">
+              {form.formState.errors.tenantId.message}
+            </p>
           )}
         </div>
         {showSuccess && (

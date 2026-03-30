@@ -1,22 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCategory, useUpdateCategory } from "@/presentation/hooks/useCategories";
-import { useCategories } from "@/presentation/hooks/useCategories";
+import { useCategoryFormOptions } from "@/presentation/hooks/useCategoryFormOptions";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
+
+const PARENT_NONE = "__none__";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
+  tenantId: z.string().min(1, "Tenant is required"),
   parentId: z.string(),
   description: z.string(),
   sortOrder: z.number().min(0),
@@ -28,8 +38,10 @@ const REDIRECT_DELAY_MS = 1500;
 
 export function EditCategoryForm({ categoryId }: { categoryId: string }) {
   const router = useRouter();
+  const { tenantId: lockedTenantId } = usePermissions();
   const { data: category, isLoading, error } = useCategory(categoryId);
-  const { data: categories = [] } = useCategories();
+  const { data: options, isLoading: isOptionsLoading } =
+    useCategoryFormOptions();
   const updateCategory = useUpdateCategory();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -38,23 +50,54 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
     defaultValues: {
       name: "",
       tenantId: "",
-      parentId: "",
+      parentId: PARENT_NONE,
       description: "",
       sortOrder: 0,
     },
   });
+
+  const selectedTenantId = useWatch({
+    control: form.control,
+    name: "tenantId",
+  });
+
+  const parentOptions = useMemo(
+    () =>
+      (options?.categories ?? []).filter(
+        (c) =>
+          (selectedTenantId ? c.tenantId === selectedTenantId : false) &&
+          c.id !== categoryId
+      ),
+    [options?.categories, selectedTenantId, categoryId]
+  );
 
   useEffect(() => {
     if (category) {
       form.reset({
         name: category.name,
         tenantId: category.tenantId,
-        parentId: category.parentId ?? "",
+        parentId: category.parentId ?? PARENT_NONE,
         description: category.description ?? "",
         sortOrder: category.sortOrder,
       });
     }
   }, [category, form]);
+
+  useEffect(() => {
+    if (lockedTenantId) form.setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, form]);
+
+  useEffect(() => {
+    if (isOptionsLoading) return;
+    const parentId = form.getValues("parentId");
+    if (
+      parentId &&
+      parentId !== PARENT_NONE &&
+      !parentOptions.some((c) => c.id === parentId)
+    ) {
+      form.setValue("parentId", PARENT_NONE);
+    }
+  }, [parentOptions, form, isOptionsLoading]);
 
   const onSubmit = (data: CategoryFormData) => {
     setShowSuccess(false);
@@ -64,7 +107,10 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
         data: {
           name: data.name,
           tenantId: data.tenantId,
-          parentId: data.parentId || undefined,
+          parentId:
+            !data.parentId || data.parentId === PARENT_NONE
+              ? undefined
+              : data.parentId,
           description: data.description || undefined,
           sortOrder: data.sortOrder,
         },
@@ -108,27 +154,77 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
             <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
           )}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant ID</Label>
-          <Input id="tenantId" {...form.register("tenantId")} />
-          {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="parentId">Parent category</Label>
-          <select
-            id="parentId"
-            {...form.register("parentId")}
-            className="flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2"
-          >
-            <option value="">None (root)</option>
-            {categories.filter((c) => c.id !== categoryId).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isOptionsLoading || Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading ? "Loading tenants..." : "Select tenant"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.tenants ?? []).map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.tenantId && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.tenantId.message}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="parentId">Parent category</Label>
+            <Controller
+              control={form.control}
+              name="parentId"
+              render={({ field }) => (
+                <Select
+                  value={
+                    field.value && field.value !== ""
+                      ? field.value
+                      : PARENT_NONE
+                  }
+                  onValueChange={field.onChange}
+                  disabled={isOptionsLoading || !selectedTenantId}
+                >
+                  <SelectTrigger id="parentId">
+                    <SelectValue
+                      placeholder={
+                        !selectedTenantId
+                          ? "Select a tenant first"
+                          : "None (root)"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={PARENT_NONE}>None (root)</SelectItem>
+                    {parentOptions.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="description">Description</Label>
