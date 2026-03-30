@@ -8,10 +8,16 @@ interface DetailPageHeaderProps {
   backHref: string;
   backLabel: string;
   title: string;
-  editHref: string;
+  /** When omitted, no edit button is shown (e.g. read-only ledger lines). */
+  editHref?: string;
 }
 
-export function DetailPageHeader({ backHref, backLabel, title, editHref }: DetailPageHeaderProps) {
+export function DetailPageHeader({
+  backHref,
+  backLabel,
+  title,
+  editHref,
+}: DetailPageHeaderProps) {
   return (
     <div className="flex flex-wrap items-center gap-4">
       <Link href={backHref}>
@@ -20,9 +26,11 @@ export function DetailPageHeader({ backHref, backLabel, title, editHref }: Detai
         </Button>
       </Link>
       <h1 className="panel-header text-xl tracking-tight text-foreground flex-1 min-w-0">{title}</h1>
-      <Link href={editHref}>
-        <Button>Edit</Button>
-      </Link>
+      {editHref ? (
+        <Link href={editHref}>
+          <Button>Edit</Button>
+        </Link>
+      ) : null}
     </div>
   );
 }

@@ -97,9 +97,8 @@ export function LocationList() {
       <section>
         <h2 className="section-label mb-3">Hierarchy (from API tree)</h2>
         <p className="text-sm text-muted mb-4 max-w-2xl">
-          Nested structure from{" "}
-          <code className="rounded bg-muted px-1 text-xs">GET /v1/locations/tree</code>
-          . Use parent location when creating entries to build this tree.
+          This shows your location hierarchy. Use the Parent location field when
+          creating entries to build the tree.
         </p>
         <LocationTreePanel
           roots={treeRoots}

@@ -15,6 +15,7 @@ import {
   FolderTree,
   MapPin,
   Warehouse,
+  ScrollText,
   ShieldPlus,
   UserRoundPlus,
   KeyRound,
@@ -42,6 +43,12 @@ const allMenuItems: MenuItem[] = [
   { href: "/categories", label: "Categories", icon: FolderTree, permissions: ["categories:read"] },
   { href: "/branches", label: "Branches", icon: MapPin, permissions: ["branches:read"] },
   { href: "/locations", label: "Locations", icon: Warehouse, permissions: ["locations:read"] },
+  {
+    href: "/inventory-ledger",
+    label: "Inventory ledger",
+    icon: ScrollText,
+    permissions: ["inventory-ledger:read"],
+  },
   { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
 ];
 

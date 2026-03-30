@@ -14,6 +14,7 @@ import { ApiUomRepository } from "../repositories/ApiUomRepository";
 import { ApiCategoryRepository } from "../repositories/ApiCategoryRepository";
 import { ApiBranchRepository } from "../repositories/ApiBranchRepository";
 import { ApiLocationRepository } from "../repositories/ApiLocationRepository";
+import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
@@ -27,6 +28,7 @@ import { UomService } from "@/core/application/services/UomService";
 import { CategoryService } from "@/core/application/services/CategoryService";
 import { BranchService } from "@/core/application/services/BranchService";
 import { LocationService } from "@/core/application/services/LocationService";
+import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
 import { PermissionService } from "@/core/application/services/PermissionService";
@@ -40,6 +42,7 @@ import type { IUomRepository } from "@/core/domain/repositories/IUomRepository";
 import type { ICategoryRepository } from "@/core/domain/repositories/ICategoryRepository";
 import type { IBranchRepository } from "@/core/domain/repositories/IBranchRepository";
 import type { ILocationRepository } from "@/core/domain/repositories/ILocationRepository";
+import type { IInventoryLedgerRepository } from "@/core/domain/repositories/IInventoryLedgerRepository";
 import type { ISystemAdminRepository } from "@/core/domain/repositories/ISystemAdminRepository";
 import type { IRoleRepository } from "@/core/domain/repositories/IRoleRepository";
 import type { IPermissionRepository } from "@/core/domain/repositories/IPermissionRepository";
@@ -53,6 +56,7 @@ import type { IUomService } from "@/core/domain/services/IUomService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
 import type { IBranchService } from "@/core/domain/services/IBranchService";
 import type { ILocationService } from "@/core/domain/services/ILocationService";
+import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
 import type { IPermissionService } from "@/core/domain/services/IPermissionService";
@@ -86,6 +90,12 @@ class Container {
     const branchService = new BranchService(branchRepository);
     const locationRepository = new ApiLocationRepository(httpClient);
     const locationService = new LocationService(locationRepository);
+    const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
+      httpClient
+    );
+    const inventoryLedgerService = new InventoryLedgerService(
+      inventoryLedgerRepository
+    );
     const systemAdminRepository = new ApiSystemAdminRepository(httpClient);
     const systemAdminService = new SystemAdminService(systemAdminRepository);
     const roleRepository = new ApiRoleRepository(httpClient);
@@ -126,6 +136,14 @@ class Container {
     this.register<IBranchService>("branchService", branchService);
     this.register<ILocationRepository>("locationRepository", locationRepository);
     this.register<ILocationService>("locationService", locationService);
+    this.register<IInventoryLedgerRepository>(
+      "inventoryLedgerRepository",
+      inventoryLedgerRepository
+    );
+    this.register<IInventoryLedgerService>(
+      "inventoryLedgerService",
+      inventoryLedgerService
+    );
     this.register<ISystemAdminRepository>("systemAdminRepository", systemAdminRepository);
     this.register<ISystemAdminService>("systemAdminService", systemAdminService);
     this.register<IRoleRepository>("roleRepository", roleRepository);
