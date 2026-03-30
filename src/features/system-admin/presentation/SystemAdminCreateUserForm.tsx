@@ -6,6 +6,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useSystemAdminCreateUserOptions } from "@/presentation/hooks/useSystemAdminCreateUserOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -37,6 +38,7 @@ type FormData = z.infer<typeof schema>;
 export function SystemAdminCreateUserForm() {
   const router = useRouter();
   const createUser = useSystemAdminCreateUser();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useSystemAdminCreateUserOptions();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<FormData>({
@@ -66,10 +68,12 @@ export function SystemAdminCreateUserForm() {
       },
       {
         onSuccess: () => {
+          toast.success("User created.");
           setShowSuccess(true);
           form.reset();
           setTimeout(() => router.push("/users"), 1500);
         },
+        onError: () => toast.error("Failed to create user."),
       }
     );
   };

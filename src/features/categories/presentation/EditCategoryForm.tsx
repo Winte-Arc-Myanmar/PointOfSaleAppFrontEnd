@@ -7,6 +7,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCategory, useUpdateCategory } from "@/presentation/hooks/useCategories";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCategoryFormOptions } from "@/presentation/hooks/useCategoryFormOptions";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
@@ -43,6 +44,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
   const { data: options, isLoading: isOptionsLoading } =
     useCategoryFormOptions();
   const updateCategory = useUpdateCategory();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<CategoryFormData>({
@@ -117,10 +119,12 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
       },
       {
         onSuccess: () => {
+          toast.success("Category updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => router.push("/categories"), REDIRECT_DELAY_MS);
         },
+        onError: () => toast.error("Failed to update category."),
       }
     );
   };

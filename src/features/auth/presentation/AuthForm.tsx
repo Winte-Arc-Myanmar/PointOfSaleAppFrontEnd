@@ -13,6 +13,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { AppLoader } from "@/presentation/components/loader";
+import { useToast } from "@/presentation/providers/ToastProvider";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email"),
@@ -48,6 +49,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authService = useAuthService();
+  const toast = useToast();
   const [error, setError] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(false);
   const [splashTarget, setSplashTarget] = useState<string | null>(null);
@@ -129,11 +131,14 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
     const { name, email, password } = data;
     try {
       await authService.register({ name, email, password });
+      toast.success("Account created. You can sign in.");
       // Redirect to login; we don't have tenantId/type for the new user so we can't signIn here.
       router.push("/login?registered=1");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      const msg = err instanceof Error ? err.message : "Registration failed";
+      setError(msg);
+      toast.error(msg);
     }
   }
 

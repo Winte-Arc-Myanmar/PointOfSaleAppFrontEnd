@@ -53,13 +53,13 @@ export function EditRoleForm({ roleId }: { roleId: string }) {
     if (!role?.tenantId) return "";
     const t = options?.tenants?.find((x) => x.id === role.tenantId);
     return t?.name ?? role.tenantId;
-  }, [role?.tenantId, options?.tenants]);
+  }, [role, options?.tenants]);
 
   const parentLabel = useMemo(() => {
     if (!role?.parentId) return "";
     const r = options?.roles?.find((x) => x.id === role.parentId);
     return r?.name ?? role.parentId;
-  }, [role?.parentId, options?.roles]);
+  }, [role, options?.roles]);
 
   if (isLoading) return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
   if (error || !role)

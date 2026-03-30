@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUom, useUpdateUom } from "@/presentation/hooks/useUoms";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useUomClasses } from "@/presentation/hooks/useUomClasses";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -37,6 +38,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
   const { data: uom, isLoading, error } = useUom(uomId);
   const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
   const updateUom = useUpdateUom();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<UomFormData>({
@@ -74,12 +76,14 @@ export function EditUomForm({ uomId }: { uomId: string }) {
       },
       {
         onSuccess: () => {
+          toast.success("UOM updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
             router.push("/uom");
           }, REDIRECT_DELAY_MS);
         },
+        onError: () => toast.error("Failed to update UOM."),
       }
     );
   };

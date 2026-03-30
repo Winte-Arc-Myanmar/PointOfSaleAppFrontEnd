@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateProductVariant } from "@/presentation/hooks/useProductVariants";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -39,6 +40,7 @@ export function CreateVariantForm({
   onLoadingChange,
 }: CreateVariantFormProps) {
   const createVariant = useCreateProductVariant(productId);
+  const toast = useToast();
   useEffect(() => {
     onLoadingChange?.(createVariant.isPending ?? false);
   }, [createVariant.isPending, onLoadingChange]);
@@ -74,9 +76,11 @@ export function CreateVariantForm({
       },
       {
         onSuccess: () => {
+          toast.success("Variant created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create variant."),
       }
     );
   };

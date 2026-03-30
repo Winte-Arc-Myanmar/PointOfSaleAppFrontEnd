@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUom } from "@/presentation/hooks/useUoms";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useUomClasses } from "@/presentation/hooks/useUomClasses";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -45,6 +46,7 @@ export function CreateUomForm({
   onLoadingChange,
 }: CreateUomFormProps) {
   const createUom = useCreateUom();
+  const toast = useToast();
   const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
 
   useEffect(() => {
@@ -72,9 +74,11 @@ export function CreateUomForm({
       },
       {
         onSuccess: () => {
+          toast.success("UOM created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create UOM."),
       }
     );
   };

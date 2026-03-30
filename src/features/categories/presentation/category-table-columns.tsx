@@ -24,31 +24,5 @@ export function getCategoryTableColumns(): DataTableColumn<Category>[] {
         </span>
       ),
     },
-    {
-      key: "sortOrder",
-      header: "Sort order",
-      className: "min-w-[80px] max-w-[100px]",
-      render: (c) => <span className="text-muted">{c.sortOrder}</span>,
-    },
-    {
-      key: "parentId",
-      header: "Parent ID",
-      className: "min-w-[200px] max-w-[280px]",
-      render: (c) => (
-        <span className="font-mono text-xs text-muted truncate" title={c.parentId ?? ""}>
-          {c.parentId ?? "—"}
-        </span>
-      ),
-    },
-    {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[200px] max-w-[280px]",
-      render: (c) => (
-        <span className="font-mono text-xs text-muted truncate" title={c.tenantId}>
-          {c.tenantId}
-        </span>
-      ),
-    },
   ];
 }

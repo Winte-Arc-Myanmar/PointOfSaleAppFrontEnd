@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUser, useUpdateUser } from "@/presentation/hooks/useUsers";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -32,6 +33,7 @@ export function EditUserForm({ userId }: { userId: string }) {
   const router = useRouter();
   const { data: user, isLoading, error } = useUser(userId);
   const updateUser = useUpdateUser();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<UserFormData>({
     resolver: zodResolver(schema),
@@ -78,10 +80,12 @@ export function EditUserForm({ userId }: { userId: string }) {
       { id: userId, data: payload },
       {
         onSuccess: () => {
+          toast.success("User updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => router.push(`/users/${userId}`), REDIRECT_DELAY_MS);
         },
+        onError: () => toast.error("Failed to update user."),
       },
     );
   };

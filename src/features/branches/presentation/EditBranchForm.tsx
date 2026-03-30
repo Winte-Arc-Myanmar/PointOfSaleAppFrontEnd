@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useBranch, useUpdateBranch } from "@/presentation/hooks/useBranches";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { BranchLocationCapture } from "./BranchLocationCapture";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -57,6 +59,7 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
   const { data: branch, isLoading, error } = useBranch(branchId);
   const { data: tenants = [] } = useTenants();
   const updateBranch = useUpdateBranch();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<BranchFormData>({
@@ -78,6 +81,9 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
       openingHoursJson: "",
     },
   });
+
+  const latWatch = form.watch("latitude");
+  const lngWatch = form.watch("longitude");
 
   useEffect(() => {
     if (branch) {
@@ -129,10 +135,12 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
       },
       {
         onSuccess: () => {
+          toast.success("Branch updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => router.push("/branches"), REDIRECT_DELAY_MS);
         },
+        onError: () => toast.error("Failed to update branch."),
       }
     );
   };
@@ -245,16 +253,21 @@ export function EditBranchForm({ branchId }: { branchId: string }) {
             <Input id="email" {...form.register("email")} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="latitude">Latitude</Label>
-            <Input id="latitude" type="number" step="any" {...form.register("latitude")} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="longitude">Longitude</Label>
-            <Input id="longitude" type="number" step="any" {...form.register("longitude")} />
-          </div>
-        </div>
+        <input type="hidden" {...form.register("latitude")} />
+        <input type="hidden" {...form.register("longitude")} />
+        <BranchLocationCapture
+          latitude={latWatch ?? ""}
+          longitude={lngWatch ?? ""}
+          onCoordinatesChange={(lat, lng) => {
+            form.setValue("latitude", lat, { shouldDirty: true, shouldValidate: true });
+            form.setValue("longitude", lng, { shouldDirty: true, shouldValidate: true });
+          }}
+          onClear={() => {
+            form.setValue("latitude", "", { shouldDirty: true, shouldValidate: true });
+            form.setValue("longitude", "", { shouldDirty: true, shouldValidate: true });
+          }}
+          toast={toast}
+        />
         <div className="grid gap-2">
           <Label htmlFor="openingHoursJson">Opening hours (JSON)</Label>
           <textarea

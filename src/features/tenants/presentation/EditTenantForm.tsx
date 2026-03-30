@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTenant, useUpdateTenant } from "@/presentation/hooks/useTenants";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -37,6 +38,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
   const router = useRouter();
   const { data: tenant, isLoading, error } = useTenant(tenantId);
   const updateTenant = useUpdateTenant();
+  const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<TenantFormData>({
     resolver: zodResolver(schema),
@@ -100,12 +102,14 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
       },
       {
         onSuccess: () => {
+          toast.success("Tenant updated.");
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
             router.push(`/tenants/${tenantId}`);
           }, REDIRECT_DELAY_MS);
         },
+        onError: () => toast.error("Failed to update tenant."),
       }
     );
   };

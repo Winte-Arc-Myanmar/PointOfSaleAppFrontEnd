@@ -8,5 +8,6 @@ export interface UomDto {
   name: string;
   classId: string;
   abbreviation: string;
-  conversionRateToBase: number;
+  /** API reads/writes this as a decimal string (e.g. "1.000000"); normalized on HTTP write. */
+  conversionRateToBase: number | string;
 }

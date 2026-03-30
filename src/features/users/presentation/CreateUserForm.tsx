@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUser } from "@/presentation/hooks/useUsers";
 import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -62,6 +63,7 @@ export function CreateUserForm({
   const { data: session } = useSession();
   const tenantId = session?.user?.tenantId;
   const createUser = useCreateUser();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } =
     useCreateUserFormOptions();
 
@@ -116,9 +118,11 @@ export function CreateUserForm({
       },
       {
         onSuccess: () => {
+          toast.success("User created.");
           reset(defaultValues);
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create user."),
       }
     );
   };

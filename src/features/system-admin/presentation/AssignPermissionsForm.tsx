@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAssignPermissions } from "@/presentation/hooks/useSystemAdmin";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useAssignPermissionsOptions } from "@/presentation/hooks/useSystemAdminAssignOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Label } from "@/presentation/components/ui/label";
@@ -25,6 +26,7 @@ type FormData = z.infer<typeof schema>;
 
 export function AssignPermissionsForm() {
   const assignPermissions = useAssignPermissions();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useAssignPermissionsOptions();
   const [showSuccess, setShowSuccess] = useState(false);
   const [nextPermissionId, setNextPermissionId] = useState("");
@@ -41,10 +43,12 @@ export function AssignPermissionsForm() {
       { roleId: data.roleId, permissionIds: data.permissionIds },
       {
         onSuccess: () => {
+          toast.success("Permissions assigned.");
           setShowSuccess(true);
           form.reset();
           setNextPermissionId("");
         },
+        onError: () => toast.error("Failed to assign permissions."),
       }
     );
   };

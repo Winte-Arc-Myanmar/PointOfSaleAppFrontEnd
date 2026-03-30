@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUomClass } from "@/presentation/hooks/useUomClasses";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { Button } from "@/presentation/components/ui/button";
@@ -47,6 +48,7 @@ export function CreateUomClassForm({
 }: CreateUomClassFormProps) {
   const { tenantId: lockedTenantId } = usePermissions();
   const createUomClass = useCreateUomClass();
+  const toast = useToast();
   const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
 
   useEffect(() => {
@@ -74,9 +76,11 @@ export function CreateUomClassForm({
       { name: data.name, tenantId: data.tenantId },
       {
         onSuccess: () => {
+          toast.success("UOM class created.");
           reset(defaultTenantValues(lockedTenantId));
           onSuccess?.();
         },
+        onError: () => toast.error("Failed to create UOM class."),
       }
     );
   };

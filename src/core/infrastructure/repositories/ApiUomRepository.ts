@@ -13,6 +13,26 @@ import { toUom } from "@/core/application/mappers/UomMapper";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
 
+function toApiDecimalString(value: unknown): string {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  if (typeof value === "string") {
+    const t = value.trim();
+    if (!t) return "0";
+    const n = Number(t);
+    return Number.isFinite(n) ? String(n) : "0";
+  }
+  return "0";
+}
+
+/** API expects conversionRateToBase as a decimal string, not JSON number. */
+function normalizeUomWritePayload(data: Omit<UomDto, "id">): Record<string, unknown> {
+  const { conversionRateToBase, ...rest } = data;
+  return {
+    ...rest,
+    conversionRateToBase: toApiDecimalString(conversionRateToBase),
+  };
+}
+
 export class ApiUomRepository implements IUomRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
@@ -48,7 +68,7 @@ export class ApiUomRepository implements IUomRepository {
   async create(data: Omit<UomDto, "id">): Promise<Uom> {
     const dto = await this.httpClient.post<UomDto>(
       API_ENDPOINTS.UOMS.CREATE,
-      data
+      normalizeUomWritePayload(data)
     );
     if (!dto?.id) throw new Error("Create UOM response missing id");
     return toUom(dto as UomDto & { id: string });
@@ -57,7 +77,7 @@ export class ApiUomRepository implements IUomRepository {
   async update(id: string, data: Omit<UomDto, "id">): Promise<Uom> {
     const dto = await this.httpClient.patch<UomDto>(
       API_ENDPOINTS.UOMS.UPDATE(id),
-      data
+      normalizeUomWritePayload(data)
     );
     return toUom({
       ...dto,

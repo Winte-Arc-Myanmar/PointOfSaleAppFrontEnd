@@ -20,6 +20,8 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/roles", permissions: ["roles:read"] },
   { prefix: "/categories", permissions: ["categories:read"] },
   { prefix: "/branches", permissions: ["branches:read"] },
+  { prefix: "/locations", permissions: ["locations:read"] },
+  { prefix: "/inventory-ledger", permissions: ["inventory-ledger:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },
 ];

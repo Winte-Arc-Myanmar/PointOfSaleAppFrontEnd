@@ -5,6 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAssignRole } from "@/presentation/hooks/useSystemAdmin";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import { useAssignRoleOptions } from "@/presentation/hooks/useSystemAdminAssignOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Label } from "@/presentation/components/ui/label";
@@ -27,6 +28,7 @@ type FormData = z.infer<typeof schema>;
 
 export function AssignRoleForm() {
   const assignRole = useAssignRole();
+  const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useAssignRoleOptions();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<FormData>({
@@ -45,9 +47,11 @@ export function AssignRoleForm() {
     setShowSuccess(false);
     assignRole.mutate(data, {
       onSuccess: () => {
+        toast.success("Role assigned.");
         setShowSuccess(true);
         form.reset();
       },
+      onError: () => toast.error("Failed to assign role."),
     });
   };
 
