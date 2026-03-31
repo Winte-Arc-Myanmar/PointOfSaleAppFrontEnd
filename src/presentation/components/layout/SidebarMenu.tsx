@@ -16,6 +16,7 @@ import {
   MapPin,
   Warehouse,
   ScrollText,
+  Truck,
   ShieldPlus,
   UserRoundPlus,
   KeyRound,
@@ -36,6 +37,7 @@ interface MenuItem {
 }
 
 const allMenuItems: MenuItem[] = [
+  { href: "/vendors", label: "Vendors", icon: Truck, permissions: ["vendors:read"] },
   { href: "/products", label: "Products", icon: Package, permissions: ["products:read"] },
   { href: "/tenants", label: "Tenants", icon: Building2, permissions: ["tenants:read"] },
   { href: "/users", label: "Users", icon: Users, permissions: ["users:read"] },

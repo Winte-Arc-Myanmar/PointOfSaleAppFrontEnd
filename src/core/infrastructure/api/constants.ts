@@ -8,6 +8,13 @@ export const API_CONFIG = {
 } as const;
 
 export const API_ENDPOINTS = {
+  VENDORS: {
+    LIST: "/v1/vendors",
+    BY_ID: (id: string) => `/v1/vendors/${id}`,
+    CREATE: "/v1/vendors",
+    UPDATE: (id: string) => `/v1/vendors/${id}`,
+    DELETE: (id: string) => `/v1/vendors/${id}`,
+  },
   PRODUCTS: {
     LIST: "/v1/products",
     BY_ID: (id: string) => `/v1/products/${id}`,
