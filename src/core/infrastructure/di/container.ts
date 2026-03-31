@@ -19,6 +19,7 @@ import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminReposito
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
 import { ApiVendorRepository } from "../repositories/ApiVendorRepository";
+import { ApiCustomerRepository } from "../repositories/ApiCustomerRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
@@ -34,6 +35,7 @@ import { SystemAdminService } from "@/core/application/services/SystemAdminServi
 import { RoleService } from "@/core/application/services/RoleService";
 import { PermissionService } from "@/core/application/services/PermissionService";
 import { VendorService } from "@/core/application/services/VendorService";
+import { CustomerService } from "@/core/application/services/CustomerService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -49,6 +51,7 @@ import type { ISystemAdminRepository } from "@/core/domain/repositories/ISystemA
 import type { IRoleRepository } from "@/core/domain/repositories/IRoleRepository";
 import type { IPermissionRepository } from "@/core/domain/repositories/IPermissionRepository";
 import type { IVendorRepository } from "@/core/domain/repositories/IVendorRepository";
+import type { ICustomerRepository } from "@/core/domain/repositories/ICustomerRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
@@ -64,6 +67,7 @@ import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminSer
 import type { IRoleService } from "@/core/domain/services/IRoleService";
 import type { IPermissionService } from "@/core/domain/services/IPermissionService";
 import type { IVendorService } from "@/core/domain/services/IVendorService";
+import type { ICustomerService } from "@/core/domain/services/ICustomerService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -108,6 +112,8 @@ class Container {
     const permissionService = new PermissionService(permissionRepository);
     const vendorRepository = new ApiVendorRepository(httpClient);
     const vendorService = new VendorService(vendorRepository);
+    const customerRepository = new ApiCustomerRepository(httpClient);
+    const customerService = new CustomerService(customerRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -158,6 +164,8 @@ class Container {
     this.register<IPermissionService>("permissionService", permissionService);
     this.register<IVendorRepository>("vendorRepository", vendorRepository);
     this.register<IVendorService>("vendorService", vendorService);
+    this.register<ICustomerRepository>("customerRepository", customerRepository);
+    this.register<ICustomerService>("customerService", customerService);
   }
 
   register<T>(key: string, instance: T): void {

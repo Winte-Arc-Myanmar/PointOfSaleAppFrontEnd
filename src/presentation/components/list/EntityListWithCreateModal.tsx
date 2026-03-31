@@ -21,6 +21,8 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   emptyText: string;
   error?: { message: string; onRetry?: () => void };
   pageSize?: number;
+  topContent?: ReactNode;
+  showTopContent?: boolean;
   addLabel: string;
   createTitle: string;
   createSubmitText: string;
@@ -40,6 +42,8 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   emptyText,
   error,
   pageSize = 10,
+  topContent,
+  showTopContent = true,
   addLabel,
   createTitle,
   createSubmitText,
@@ -54,6 +58,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
 
   const content = (
     <>
+      {showTopContent && topContent}
       <div className="mb-4 flex justify-end">
         <Button onClick={() => setCreateModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />

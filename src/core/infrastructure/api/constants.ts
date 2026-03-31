@@ -15,6 +15,13 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/vendors/${id}`,
     DELETE: (id: string) => `/v1/vendors/${id}`,
   },
+  CUSTOMERS: {
+    LIST: "/v1/customers",
+    BY_ID: (id: string) => `/v1/customers/${id}`,
+    CREATE: "/v1/customers",
+    UPDATE: (id: string) => `/v1/customers/${id}`,
+    DELETE: (id: string) => `/v1/customers/${id}`,
+  },
   PRODUCTS: {
     LIST: "/v1/products",
     BY_ID: (id: string) => `/v1/products/${id}`,
