@@ -20,6 +20,7 @@ import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
 import { ApiVendorRepository } from "../repositories/ApiVendorRepository";
 import { ApiCustomerRepository } from "../repositories/ApiCustomerRepository";
+import { ApiLoyaltyLedgerRepository } from "../repositories/ApiLoyaltyLedgerRepository";
 import { ProductService } from "@/core/application/services/ProductService";
 import { ProductVariantService } from "@/core/application/services/ProductVariantService";
 import { AuthService } from "@/core/application/services/AuthService";
@@ -36,6 +37,7 @@ import { RoleService } from "@/core/application/services/RoleService";
 import { PermissionService } from "@/core/application/services/PermissionService";
 import { VendorService } from "@/core/application/services/VendorService";
 import { CustomerService } from "@/core/application/services/CustomerService";
+import { LoyaltyLedgerService } from "@/core/application/services/LoyaltyLedgerService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -52,6 +54,7 @@ import type { IRoleRepository } from "@/core/domain/repositories/IRoleRepository
 import type { IPermissionRepository } from "@/core/domain/repositories/IPermissionRepository";
 import type { IVendorRepository } from "@/core/domain/repositories/IVendorRepository";
 import type { ICustomerRepository } from "@/core/domain/repositories/ICustomerRepository";
+import type { ILoyaltyLedgerRepository } from "@/core/domain/repositories/ILoyaltyLedgerRepository";
 import type { IProductService } from "@/core/domain/services/IProductService";
 import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
@@ -68,6 +71,7 @@ import type { IRoleService } from "@/core/domain/services/IRoleService";
 import type { IPermissionService } from "@/core/domain/services/IPermissionService";
 import type { IVendorService } from "@/core/domain/services/IVendorService";
 import type { ICustomerService } from "@/core/domain/services/ICustomerService";
+import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedgerService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -114,6 +118,8 @@ class Container {
     const vendorService = new VendorService(vendorRepository);
     const customerRepository = new ApiCustomerRepository(httpClient);
     const customerService = new CustomerService(customerRepository);
+    const loyaltyLedgerRepository = new ApiLoyaltyLedgerRepository(httpClient);
+    const loyaltyLedgerService = new LoyaltyLedgerService(loyaltyLedgerRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -166,6 +172,14 @@ class Container {
     this.register<IVendorService>("vendorService", vendorService);
     this.register<ICustomerRepository>("customerRepository", customerRepository);
     this.register<ICustomerService>("customerService", customerService);
+    this.register<ILoyaltyLedgerRepository>(
+      "loyaltyLedgerRepository",
+      loyaltyLedgerRepository
+    );
+    this.register<ILoyaltyLedgerService>(
+      "loyaltyLedgerService",
+      loyaltyLedgerService
+    );
   }
 
   register<T>(key: string, instance: T): void {

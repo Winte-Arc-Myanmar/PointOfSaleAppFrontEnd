@@ -61,6 +61,14 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
           <DetailRows rows={overviewRows} />
         </DetailSection>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Link href={`/customers/${customer.id}/loyalty-ledger`}>
+          <Button variant="outline" size="sm">
+            Loyalty ledger
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
