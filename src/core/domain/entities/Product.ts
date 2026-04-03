@@ -29,6 +29,11 @@ export interface Product {
   baseUomConversionRateToBase?: number;
   globalAttributes?: Record<string, unknown>;
   trackingType: string;
+  imageUrl?: string | null;
+  isTaxable?: boolean;
+  taxRateId?: string | null;
+  /** Resolved when API embeds `taxRate` on product */
+  taxRateName?: string;
   deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;

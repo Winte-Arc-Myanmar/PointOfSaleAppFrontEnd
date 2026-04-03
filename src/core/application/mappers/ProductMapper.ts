@@ -30,6 +30,10 @@ function parseDecimalPrice(val: unknown): number {
 type ProductDtoRaw = Omit<ProductDto, "basePrice"> & {
   id: string;
   basePrice?: unknown;
+  taxRate?: {
+    id?: string;
+    name?: string;
+  };
   category?: {
     name?: string;
     description?: string;
@@ -73,6 +77,10 @@ export function toProduct(dto: ProductDtoRaw): Product {
         : undefined,
     globalAttributes: dto.globalAttributes,
     trackingType: dto.trackingType,
+    imageUrl: dto.imageUrl ?? undefined,
+    isTaxable: dto.isTaxable,
+    taxRateId: dto.taxRateId ?? dto.taxRate?.id ?? undefined,
+    taxRateName: dto.taxRate?.name,
     deletedAt: dto.deletedAt ?? undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
@@ -90,5 +98,8 @@ export function toProductDto(product: Partial<Product>): ProductDto {
     categoryId: product.categoryId ?? "",
     globalAttributes: product.globalAttributes,
     trackingType: product.trackingType ?? "STANDARD",
+    imageUrl: product.imageUrl,
+    isTaxable: product.isTaxable,
+    taxRateId: product.taxRateId,
   };
 }

@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useProduct } from "@/presentation/hooks/useProducts";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { Button } from "@/presentation/components/ui/button";
-import { Package, Tag, Layers, Info } from "lucide-react";
+import { Package, Tag, Layers, Info, Image as ImageIcon, Receipt } from "lucide-react";
 import { ProductVariantSection } from "./ProductVariantSection";
 import {
   DetailSection,
@@ -59,6 +61,23 @@ export function ProductDetail({ productId }: { productId: string }) {
         ...(product.deletedAt ? [{ label: "Deleted at", value: formatDate(product.deletedAt) }] : []),
       ]
     : [];
+  const taxRows = product
+    ? [
+        {
+          label: "Taxable",
+          value: product.isTaxable == null ? "—" : product.isTaxable ? "Yes" : "No",
+        },
+        {
+          label: "Tax rate name",
+          value: product.taxRateName ? safeText(product.taxRateName) : "—",
+        },
+        {
+          label: "Tax rate ID",
+          value: product.taxRateId ? safeText(product.taxRateId) : "—",
+          mono: true,
+        },
+      ]
+    : [];
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading product..." />;
   if (error || !product)
@@ -85,12 +104,37 @@ export function ProductDetail({ productId }: { productId: string }) {
           <DetailRows rows={overviewRows} />
         </DetailSection>
 
+        <DetailSection title="Product image" icon={ImageIcon}>
+          {product.imageUrl ? (
+            <div className="relative mx-auto aspect-square w-full max-w-xs rounded-md border border-border bg-muted/30 sm:max-w-sm">
+              <Image
+                src={
+                  product.imageUrl.startsWith("data:") || /^https?:\/\//i.test(product.imageUrl)
+                    ? product.imageUrl
+                    : resolveMediaUrl(product.imageUrl)
+                }
+                alt={`${product.name} product image`}
+                fill
+                className="object-contain p-2"
+                sizes="(max-width: 640px) 100vw, 384px"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted">No image for this product.</p>
+          )}
+        </DetailSection>
+
         <DetailSection title="Category" icon={Layers}>
           <DetailRows rows={categoryRows} />
         </DetailSection>
 
         <DetailSection title="Base UOM" icon={Tag}>
           <DetailRows rows={uomRows} />
+        </DetailSection>
+
+        <DetailSection title="Tax" icon={Receipt}>
+          <DetailRows rows={taxRows} />
         </DetailSection>
 
         <DetailSection title="Record info" icon={Info}>

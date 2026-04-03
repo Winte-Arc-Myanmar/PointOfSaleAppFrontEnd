@@ -59,5 +59,15 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       className: "min-w-[80px] max-w-[120px]",
       render: (p) => <span className="text-muted">{p.trackingType}</span>,
     },
+    {
+      key: "isTaxable",
+      header: "Taxable",
+      className: "min-w-[72px] max-w-[90px]",
+      render: (p) => (
+        <span className="text-muted">
+          {p.isTaxable == null ? "—" : p.isTaxable ? "Yes" : "No"}
+        </span>
+      ),
+    },
   ];
 }
