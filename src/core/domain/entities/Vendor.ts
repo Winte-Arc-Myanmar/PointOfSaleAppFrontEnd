@@ -1,5 +1,5 @@
 /**
- * Vendor entity (CRUD from /v1/vendors).
+ * Vendor entity 
  * Domain layer - no framework dependencies.
  */
 
