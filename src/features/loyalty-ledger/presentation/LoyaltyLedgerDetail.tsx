@@ -15,18 +15,21 @@ import {
 export interface LoyaltyLedgerDetailProps {
   customerId: string;
   entryId: string;
+  listHref?: string;
 }
 
 export function LoyaltyLedgerDetail({
   customerId,
   entryId,
+  listHref: listHrefProp,
 }: LoyaltyLedgerDetailProps) {
   const { data: entry, isLoading, error } = useLoyaltyLedgerEntry(
     customerId,
     entryId
   );
 
-  const listHref = `/customers/${customerId}/loyalty-ledger`;
+  const listHref =
+    listHrefProp ?? `/customers/${customerId}/loyalty-ledger`;
 
   const rows = entry
     ? [

@@ -1,15 +1,15 @@
 import { LoyaltyLedgerListShell } from "@/features/loyalty-ledger/presentation/LoyaltyLedgerListShell";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ customerId: string }>;
 }
 
-export default async function CustomerLoyaltyLedgerPage({ params }: PageProps) {
-  const { id: customerId } = await params;
+export default async function LoyaltyLedgerCustomerPage({ params }: PageProps) {
+  const { customerId } = await params;
   return (
     <LoyaltyLedgerListShell
       customerId={customerId}
-      placement="customer-profile"
+      placement="loyalty-menu"
     />
   );
 }

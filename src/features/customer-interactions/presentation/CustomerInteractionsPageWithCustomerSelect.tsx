@@ -11,11 +11,11 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
-import { LoyaltyLedgerList } from "./LoyaltyLedgerList";
+import { CustomerInteractionList } from "./CustomerInteractionList";
 
 const CUSTOMER_LIST_LIMIT = 500;
 
-export function LoyaltyLedgerPageWithCustomerSelect() {
+export function CustomerInteractionsPageWithCustomerSelect() {
   const { data: customers = [], isLoading } = useCustomers({
     page: 1,
     limit: CUSTOMER_LIST_LIMIT,
@@ -36,13 +36,13 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
   return (
     <div className="space-y-6">
       <div className="grid gap-2 max-w-md">
-        <Label htmlFor="customer-select">Customer</Label>
+        <Label htmlFor="customer-select-interactions">Customer</Label>
         <Select
           value={selectedId || undefined}
           onValueChange={setSelectedId}
           disabled={isLoading}
         >
-          <SelectTrigger id="customer-select">
+          <SelectTrigger id="customer-select-interactions">
             <SelectValue
               placeholder={
                 isLoading ? "Loading customers..." : "Select a customer"
@@ -58,7 +58,7 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
           </SelectContent>
         </Select>
         <p className="text-sm text-muted">
-          Or open loyalty ledger from a{" "}
+          Or open from a{" "}
           <Link
             href="/customers"
             className="text-mint underline-offset-2 hover:underline"
@@ -70,13 +70,13 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
       </div>
 
       {selectedId ? (
-        <LoyaltyLedgerList
+        <CustomerInteractionList
           customerId={selectedId}
-          routeBasePath={`/loyalty-ledger/${selectedId}`}
+          routeBasePath={`/customer-interactions/${selectedId}`}
         />
       ) : (
         <p className="text-sm text-muted">
-          Choose a customer to view and manage loyalty ledger entries.
+          Choose a customer to view and log interactions.
         </p>
       )}
     </div>

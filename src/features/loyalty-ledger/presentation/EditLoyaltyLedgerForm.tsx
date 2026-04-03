@@ -42,11 +42,13 @@ const REDIRECT_DELAY_MS = 1500;
 export interface EditLoyaltyLedgerFormProps {
   customerId: string;
   entryId: string;
+  listHref?: string;
 }
 
 export function EditLoyaltyLedgerForm({
   customerId,
   entryId,
+  listHref: listHrefProp,
 }: EditLoyaltyLedgerFormProps) {
   const router = useRouter();
   const { tenantId: lockedTenantId } = usePermissions();
@@ -59,7 +61,8 @@ export function EditLoyaltyLedgerForm({
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const listHref = `/customers/${customerId}/loyalty-ledger`;
+  const listHref =
+    listHrefProp ?? `/customers/${customerId}/loyalty-ledger`;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),

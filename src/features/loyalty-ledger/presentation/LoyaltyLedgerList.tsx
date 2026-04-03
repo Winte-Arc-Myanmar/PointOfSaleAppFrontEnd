@@ -18,9 +18,14 @@ const CREATE_LOYALTY_LEDGER_FORM_ID = "create-loyalty-ledger-form";
 
 export interface LoyaltyLedgerListProps {
   customerId: string;
+  /** Base URL for list/detail/edit (no trailing slash). Default: `/customers/:id/loyalty-ledger` */
+  routeBasePath?: string;
 }
 
-export function LoyaltyLedgerList({ customerId }: LoyaltyLedgerListProps) {
+export function LoyaltyLedgerList({
+  customerId,
+  routeBasePath,
+}: LoyaltyLedgerListProps) {
   const router = useRouter();
   const {
     data: entries = [],
@@ -32,7 +37,8 @@ export function LoyaltyLedgerList({ customerId }: LoyaltyLedgerListProps) {
   const toast = useToast();
   const confirm = useConfirm();
 
-  const basePath = `/customers/${customerId}/loyalty-ledger`;
+  const basePath =
+    routeBasePath ?? `/customers/${customerId}/loyalty-ledger`;
 
   const actions = useMemo(
     () =>

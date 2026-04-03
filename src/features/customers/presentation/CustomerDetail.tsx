@@ -63,6 +63,11 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <Link href={`/customers/${customer.id}/interactions`}>
+          <Button variant="outline" size="sm">
+            Interactions
+          </Button>
+        </Link>
         <Link href={`/customers/${customer.id}/loyalty-ledger`}>
           <Button variant="outline" size="sm">
             Loyalty ledger

@@ -9,7 +9,10 @@ export default function InventoryLedgerPage() {
           Stock movements, expiring lines, balance lookup, and write-offs — tied to variants and
           locations.
         </p>
-        <InventoryLedgerList />
+        <section>
+          <h2 className="section-label mb-4">Ledger entries</h2>
+          <InventoryLedgerList />
+        </section>
       </div>
     </Shell>
   );

@@ -23,6 +23,7 @@ import {
   KeyRound,
   UserCog,
   Gift,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -40,6 +41,12 @@ interface MenuItem {
 
 const allMenuItems: MenuItem[] = [
   { href: "/customers", label: "Customers", icon: UserRound, permissions: ["customers:read"] },
+  {
+    href: "/customer-interactions",
+    label: "Interactions",
+    icon: MessageSquareText,
+    permissions: ["customer-interactions:read"],
+  },
   {
     href: "/loyalty-ledger",
     label: "Loyalty ledger",

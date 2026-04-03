@@ -31,6 +31,16 @@ export const API_ENDPOINTS = {
       DELETE: (entryId: string) =>
         `/v1/customers/${customerId}/loyalty-ledger/${entryId}`,
     }),
+    INTERACTIONS: (customerId: string) => ({
+      LIST: `/v1/customers/${customerId}/interactions`,
+      BY_ID: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+      CREATE: `/v1/customers/${customerId}/interactions`,
+      UPDATE: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+      DELETE: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+    }),
   },
   PRODUCTS: {
     LIST: "/v1/products",
