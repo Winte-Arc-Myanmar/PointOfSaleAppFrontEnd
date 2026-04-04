@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { ProductImageField } from "./ProductImageField";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -27,6 +28,9 @@ const schema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   trackingType: z.string().min(1, "Tracking type is required"),
   globalAttributesJson: z.string(),
+  imageUrl: z.string(),
+  isTaxable: z.boolean(),
+  taxRateId: z.string(),
 });
 
 export type ProductFormData = z.infer<typeof schema>;
@@ -40,6 +44,9 @@ const defaultValues: ProductFormData = {
   categoryId: "",
   trackingType: "STANDARD",
   globalAttributesJson: "{}",
+  imageUrl: "",
+  isTaxable: true,
+  taxRateId: "",
 };
 
 export interface CreateProductFormProps {
@@ -107,6 +114,8 @@ export function CreateProductForm({
     } catch {
       // leave {}
     }
+    const imageUrl = data.imageUrl.trim();
+    const taxRateId = data.taxRateId.trim();
     createProduct.mutate(
       {
         name: data.name,
@@ -117,6 +126,9 @@ export function CreateProductForm({
         categoryId: data.categoryId,
         trackingType: data.trackingType,
         globalAttributes,
+        isTaxable: data.isTaxable,
+        imageUrl: imageUrl || null,
+        taxRateId: taxRateId || null,
       },
       {
         onSuccess: () => {
@@ -276,6 +288,43 @@ export function CreateProductForm({
         {errors.categoryId && (
           <p className="text-sm text-red-600">{errors.categoryId.message}</p>
         )}
+      </div>
+      <Controller
+        control={control}
+        name="imageUrl"
+        render={({ field }) => (
+          <ProductImageField value={field.value} onChange={field.onChange} id="create-product-image" />
+        )}
+      />
+      <div className="grid gap-2">
+        <Label htmlFor="taxRateId">Tax rate ID</Label>
+        <Input
+          id="taxRateId"
+          {...register("taxRateId")}
+          placeholder="UUID when taxable"
+          className="font-mono text-sm"
+        />
+        <p className="text-xs text-muted">
+          Paste the tax rate identifier from your billing setup. Leave empty if none.
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Controller
+          control={control}
+          name="isTaxable"
+          render={({ field }) => (
+            <input
+              id="isTaxable"
+              type="checkbox"
+              className="h-4 w-4 rounded border border-input"
+              checked={field.value}
+              onChange={(e) => field.onChange(e.target.checked)}
+            />
+          )}
+        />
+        <Label htmlFor="isTaxable" className="font-normal cursor-pointer">
+          Product is taxable
+        </Label>
       </div>
       <div className="grid gap-2">
         <Label htmlFor="globalAttributesJson">Global attributes (JSON)</Label>

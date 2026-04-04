@@ -8,6 +8,40 @@ export const API_CONFIG = {
 } as const;
 
 export const API_ENDPOINTS = {
+  VENDORS: {
+    LIST: "/v1/vendors",
+    BY_ID: (id: string) => `/v1/vendors/${id}`,
+    CREATE: "/v1/vendors",
+    UPDATE: (id: string) => `/v1/vendors/${id}`,
+    DELETE: (id: string) => `/v1/vendors/${id}`,
+  },
+  CUSTOMERS: {
+    LIST: "/v1/customers",
+    BY_ID: (id: string) => `/v1/customers/${id}`,
+    CREATE: "/v1/customers",
+    UPDATE: (id: string) => `/v1/customers/${id}`,
+    DELETE: (id: string) => `/v1/customers/${id}`,
+    LOYALTY_LEDGER: (customerId: string) => ({
+      LIST: `/v1/customers/${customerId}/loyalty-ledger`,
+      BY_ID: (entryId: string) =>
+        `/v1/customers/${customerId}/loyalty-ledger/${entryId}`,
+      CREATE: `/v1/customers/${customerId}/loyalty-ledger`,
+      UPDATE: (entryId: string) =>
+        `/v1/customers/${customerId}/loyalty-ledger/${entryId}`,
+      DELETE: (entryId: string) =>
+        `/v1/customers/${customerId}/loyalty-ledger/${entryId}`,
+    }),
+    INTERACTIONS: (customerId: string) => ({
+      LIST: `/v1/customers/${customerId}/interactions`,
+      BY_ID: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+      CREATE: `/v1/customers/${customerId}/interactions`,
+      UPDATE: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+      DELETE: (interactionId: string) =>
+        `/v1/customers/${customerId}/interactions/${interactionId}`,
+    }),
+  },
   PRODUCTS: {
     LIST: "/v1/products",
     BY_ID: (id: string) => `/v1/products/${id}`,

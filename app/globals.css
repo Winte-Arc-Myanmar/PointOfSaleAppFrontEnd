@@ -2,11 +2,12 @@
 
 @theme {
   --color-gloss-black: #252324;
-  --color-matte-white: #fdfbf9;
+  /* Muted off-white to lower glare in light mode */
+  --color-matte-white: #f1eadc;
   --color-mint: #adffc3;
   --color-mint-hover: #8effa8;
   /* Theme-aware semantic colors (overridden by .dark below) */
-  --color-background: #fdfbf9;
+  --color-background: #f1eadc;
   --color-foreground: #252324;
   --color-muted: #6b7280;
   --color-border: #e5e7eb;

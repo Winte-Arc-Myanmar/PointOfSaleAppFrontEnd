@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { ProductImageField } from "./ProductImageField";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 
@@ -31,6 +32,9 @@ const schema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   trackingType: z.string().min(1, "Tracking type is required"),
   globalAttributesJson: z.string(),
+  imageUrl: z.string(),
+  isTaxable: z.boolean(),
+  taxRateId: z.string(),
 });
 
 type ProductFormData = z.infer<typeof schema>;
@@ -56,6 +60,9 @@ export function EditProductForm({ productId }: { productId: string }) {
       categoryId: "",
       trackingType: "STANDARD",
       globalAttributesJson: "{}",
+      imageUrl: "",
+      isTaxable: true,
+      taxRateId: "",
     },
   });
 
@@ -73,6 +80,9 @@ export function EditProductForm({ productId }: { productId: string }) {
           typeof product.globalAttributes === "object" && product.globalAttributes
             ? JSON.stringify(product.globalAttributes, null, 2)
             : "{}",
+        imageUrl: product.imageUrl ?? "",
+        isTaxable: product.isTaxable ?? true,
+        taxRateId: product.taxRateId ?? "",
       });
     }
   }, [product, form]);
@@ -113,6 +123,8 @@ export function EditProductForm({ productId }: { productId: string }) {
     } catch {
       // leave {}
     }
+    const imageUrl = data.imageUrl.trim();
+    const taxRateId = data.taxRateId.trim();
     updateProduct.mutate(
       {
         id: productId,
@@ -125,6 +137,9 @@ export function EditProductForm({ productId }: { productId: string }) {
           categoryId: data.categoryId,
           trackingType: data.trackingType,
           globalAttributes,
+          isTaxable: data.isTaxable,
+          imageUrl: imageUrl || null,
+          taxRateId: taxRateId || null,
         },
       },
       {
@@ -314,6 +329,43 @@ export function EditProductForm({ productId }: { productId: string }) {
               {form.formState.errors.categoryId.message}
             </p>
           )}
+        </div>
+        <Controller
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <ProductImageField value={field.value} onChange={field.onChange} id="edit-product-image" />
+          )}
+        />
+        <div className="grid gap-2">
+          <Label htmlFor="taxRateId">Tax rate ID</Label>
+          <Input
+            id="taxRateId"
+            {...form.register("taxRateId")}
+            placeholder="UUID when taxable"
+            className="font-mono text-sm"
+          />
+          <p className="text-xs text-muted">
+            Paste the tax rate identifier from your billing setup. Leave empty if none.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Controller
+            control={form.control}
+            name="isTaxable"
+            render={({ field }) => (
+              <input
+                id="isTaxable"
+                type="checkbox"
+                className="h-4 w-4 rounded border border-input"
+                checked={field.value}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <Label htmlFor="isTaxable" className="font-normal cursor-pointer">
+            Product is taxable
+          </Label>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="globalAttributesJson">Global attributes (JSON)</Label>

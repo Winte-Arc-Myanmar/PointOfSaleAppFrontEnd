@@ -13,4 +13,7 @@ export interface ProductDto {
   categoryId: string;
   globalAttributes?: Record<string, unknown>;
   trackingType: string;
+  imageUrl?: string | null;
+  isTaxable?: boolean;
+  taxRateId?: string | null;
 }
