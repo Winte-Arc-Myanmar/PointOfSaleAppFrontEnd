@@ -24,6 +24,7 @@ import {
   UserCog,
   Gift,
   MessageSquareText,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -68,6 +69,7 @@ const allMenuItems: MenuItem[] = [
     permissions: ["inventory-ledger:read"],
   },
   { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
+  { href: "/uploads", label: "Uploads", icon: Upload, permissions: ["uploads:read"] },
 ];
 
 const adminMenuItems: MenuItem[] = [

@@ -144,4 +144,10 @@ export const API_ENDPOINTS = {
     ASSIGN_PERMISSIONS: "/v1/system-admin/roles/assign-permissions",
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
   },
+  UPLOADS: {
+    LIST: "/v1/uploads",
+    UPLOAD: "/v1/uploads",
+    UPLOAD_MULTIPLE: "/v1/uploads/multiple",
+    DELETE: "/v1/uploads",
+  },
 } as const;

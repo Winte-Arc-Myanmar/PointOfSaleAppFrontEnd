@@ -40,6 +40,8 @@ import { VendorService } from "@/core/application/services/VendorService";
 import { CustomerService } from "@/core/application/services/CustomerService";
 import { LoyaltyLedgerService } from "@/core/application/services/LoyaltyLedgerService";
 import { CustomerInteractionService } from "@/core/application/services/CustomerInteractionService";
+import { ApiUploadRepository } from "../repositories/ApiUploadRepository";
+import { UploadService } from "@/core/application/services/UploadService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -76,6 +78,8 @@ import type { IVendorService } from "@/core/domain/services/IVendorService";
 import type { ICustomerService } from "@/core/domain/services/ICustomerService";
 import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedgerService";
 import type { ICustomerInteractionService } from "@/core/domain/services/ICustomerInteractionService";
+import type { IUploadRepository } from "@/core/domain/repositories/IUploadRepository";
+import type { IUploadService } from "@/core/domain/services/IUploadService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -130,6 +134,8 @@ class Container {
     const customerInteractionService = new CustomerInteractionService(
       customerInteractionRepository
     );
+    const uploadRepository = new ApiUploadRepository(httpClient);
+    const uploadService = new UploadService(uploadRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -198,6 +204,8 @@ class Container {
       "customerInteractionService",
       customerInteractionService
     );
+    this.register<IUploadRepository>("uploadRepository", uploadRepository);
+    this.register<IUploadService>("uploadService", uploadService);
   }
 
   register<T>(key: string, instance: T): void {
