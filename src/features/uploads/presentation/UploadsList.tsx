@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Upload, Images } from "lucide-react";
 import { DataTable } from "@/presentation/components/data-table";
 import { Button } from "@/presentation/components/ui/button";
@@ -17,6 +18,7 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useBranches } from "@/presentation/hooks/useBranches";
+import { resolveMediaUrl } from "@/lib/media-url";
 import {
   useDeleteUpload,
   useUploadFile,
@@ -28,6 +30,21 @@ import { getUploadsRowActions } from "./uploads-row-actions";
 import { getUploadsTableColumns } from "./uploads-table-columns";
 
 const PAGE_SIZE = 20;
+
+function resolveUploadPreviewUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) return trimmed;
+  return resolveMediaUrl(trimmed);
+}
+
+function isImageUpload(file: UploadedFile): boolean {
+  if (file.mimeType && file.mimeType.toLowerCase().startsWith("image/")) {
+    return true;
+  }
+  const candidate = `${file.originalName} ${file.url}`.toLowerCase();
+  return /\.(png|jpe?g|webp|gif|bmp|svg|avif)(\?|#|$)/i.test(candidate);
+}
 
 export function UploadsList() {
   const toast = useToast();
@@ -228,6 +245,42 @@ export function UploadsList() {
             : undefined
         }
         pageSize={PAGE_SIZE}
+        enableGridView
+        defaultViewMode="grid"
+        renderGridItem={(item) => {
+          const fileName = item.originalName || item.url.split("/").pop() || "-";
+          const previewUrl = resolveUploadPreviewUrl(item.url);
+          const image = isImageUpload(item);
+          return (
+            <div className="space-y-3">
+              <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                {image && previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt={fileName}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1280px) 16rem, (min-width: 1024px) 20rem, (min-width: 640px) 50vw, 100vw"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-4 text-center text-xs text-muted">
+                    No image preview
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="truncate text-sm font-medium" title={fileName}>
+                  {fileName}
+                </p>
+                <p className="truncate font-mono text-xs text-muted" title={item.url}>
+                  {item.url}
+                </p>
+              </div>
+            </div>
+          );
+        }}
+        gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
       />
 
       {(hasPrev || hasNext) && (

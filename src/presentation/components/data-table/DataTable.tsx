@@ -10,7 +10,13 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List,
+  MoreHorizontal,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -27,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
 import { AppLoader } from "@/presentation/components/loader";
+import { cn } from "@/lib/utils";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -44,6 +51,8 @@ export interface DataTableAction<T> {
   disabled?: (item: T) => boolean;
   variant?: "default" | "destructive" | "secondary";
 }
+
+export type DataTableViewMode = "table" | "grid";
 
 export interface DataTableProps<T extends { id: string | number }> {
   data: T[];
@@ -70,6 +79,12 @@ export interface DataTableProps<T extends { id: string | number }> {
   onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  /** Enables table/grid toggle. Requires renderGridItem to render cards. */
+  enableGridView?: boolean;
+  defaultViewMode?: DataTableViewMode;
+  renderGridItem?: (item: T) => React.ReactNode;
+  gridClassName?: string;
+  gridCardClassName?: string;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -92,10 +107,18 @@ export function DataTable<T extends { id: string | number }>({
   onView,
   onEdit,
   onDelete,
+  enableGridView = false,
+  defaultViewMode = "table",
+  renderGridItem,
+  gridClassName,
+  gridCardClassName,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [viewMode, setViewMode] =
+    React.useState<DataTableViewMode>(defaultViewMode);
   const hasServerPagination = typeof currentPage === "number" && onPageChange;
   const hasServerSort = typeof sortBy === "string" && onSort;
+  const canUseGrid = enableGridView && typeof renderGridItem === "function";
 
   const columnDefs = React.useMemo<ColumnDef<T>[]>(() => {
     const cols: ColumnDef<T>[] = columns.map((col) => ({
@@ -162,13 +185,132 @@ export function DataTable<T extends { id: string | number }>({
   );
 
   const hasActions = actions.length > 0 || onView || onEdit || onDelete;
+  const rows = table.getRowModel().rows;
   const showLoading = isLoading && data.length === 0 && !error;
+
+  React.useEffect(() => {
+    if (!canUseGrid && viewMode !== "table") setViewMode("table");
+  }, [canUseGrid, viewMode]);
+
+  const renderActionsMenu = (item: T) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {onView && (
+          <DropdownMenuItem onClick={() => onView(item)}>
+            View
+          </DropdownMenuItem>
+        )}
+        {onEdit && (
+          <DropdownMenuItem onClick={() => onEdit(item)}>
+            Edit
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(item)}
+          >
+            Delete
+          </DropdownMenuItem>
+        )}
+        {actions.map((action, idx) => {
+          const disabled = action.disabled?.(item);
+          return (
+            <DropdownMenuItem
+              key={idx}
+              disabled={disabled}
+              variant={action.variant === "destructive" ? "destructive" : "default"}
+              onClick={() => !disabled && action.onClick(item)}
+            >
+              {action.icon && <action.icon className="mr-2 h-4 w-4" />}
+              {action.label}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className="w-full space-y-4 overflow-x-hidden">
+      {canUseGrid && (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === "table" ? "default" : "outline"}
+            onClick={() => setViewMode("table")}
+          >
+            <List className="h-4 w-4" />
+            Table
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={viewMode === "grid" ? "default" : "outline"}
+            onClick={() => setViewMode("grid")}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            Grid
+          </Button>
+        </div>
+      )}
       {showLoading ? (
         <div className="panel flex items-center justify-center min-h-64 rounded-xl bg-background/80">
           <AppLoader fullScreen={false} showName={false} size="sm" message={loadingText} />
+        </div>
+      ) : canUseGrid && viewMode === "grid" ? (
+        <div>
+          {error ? (
+            <div className="panel flex h-40 flex-col items-center justify-center gap-3 rounded-xl bg-background/80">
+              <p className="text-red-400">{error.message}</p>
+              {error.onRetry && (
+                <Button variant="outline" size="sm" onClick={error.onRetry}>
+                  Retry
+                </Button>
+              )}
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="panel flex h-40 flex-col items-center justify-center gap-3 rounded-xl bg-background/80">
+              <p className="text-muted">{emptyText}</p>
+              {emptyAction && (
+                <Button variant="default" size="sm" onClick={emptyAction.onClick}>
+                  {emptyAction.label}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div
+              className={cn(
+                "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+                gridClassName
+              )}
+            >
+              {rows.map((row) => (
+                <div
+                  key={row.id}
+                  className={cn(
+                    "relative overflow-hidden rounded-xl border border-border bg-background/80 p-3",
+                    gridCardClassName
+                  )}
+                >
+                  {hasActions && (
+                    <div className="absolute right-2 top-2 z-10">
+                      {renderActionsMenu(row.original)}
+                    </div>
+                  )}
+                  <div className={hasActions ? "pr-8" : undefined}>
+                    {renderGridItem?.(row.original)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <Table>
@@ -237,7 +379,7 @@ export function DataTable<T extends { id: string | number }>({
                   </div>
                 </TableCell>
               </TableRow>
-            ) : table.getRowModel().rows?.length === 0 ? (
+            ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={columnDefs.length + (hasActions ? 1 : 0)}
@@ -258,7 +400,7 @@ export function DataTable<T extends { id: string | number }>({
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row) => (
+              rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -276,63 +418,7 @@ export function DataTable<T extends { id: string | number }>({
                   ))}
                   {hasActions && (
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {onView && (
-                            <DropdownMenuItem
-                              onClick={() => onView(row.original)}
-                            >
-                              View
-                            </DropdownMenuItem>
-                          )}
-                          {onEdit && (
-                            <DropdownMenuItem
-                              onClick={() => onEdit(row.original)}
-                            >
-                              Edit
-                            </DropdownMenuItem>
-                          )}
-                          {onDelete && (
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() => onDelete(row.original)}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          )}
-                          {actions.map((action, idx) => {
-                            const disabled = action.disabled?.(row.original);
-                            return (
-                              <DropdownMenuItem
-                                key={idx}
-                                disabled={disabled}
-                                variant={
-                                  action.variant === "destructive"
-                                    ? "destructive"
-                                    : "default"
-                                }
-                                onClick={() =>
-                                  !disabled && action.onClick(row.original)
-                                }
-                              >
-                                {action.icon && (
-                                  <action.icon className="mr-2 h-4 w-4" />
-                                )}
-                                {action.label}
-                              </DropdownMenuItem>
-                            );
-                          })}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {renderActionsMenu(row.original)}
                     </TableCell>
                   )}
                 </TableRow>
