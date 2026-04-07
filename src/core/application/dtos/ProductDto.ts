@@ -8,6 +8,7 @@ export interface ProductDto {
   name: string;
   tenantId: string;
   baseSku: string;
+  /** App layer uses number; ApiProductRepository sends API decimal string on create/update. */
   basePrice: number;
   baseUomId: string;
   categoryId: string;

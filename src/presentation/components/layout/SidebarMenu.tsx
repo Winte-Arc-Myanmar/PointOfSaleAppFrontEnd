@@ -24,6 +24,9 @@ import {
   UserCog,
   Gift,
   MessageSquareText,
+  Upload,
+  Receipt,
+  Percent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -68,6 +71,14 @@ const allMenuItems: MenuItem[] = [
     permissions: ["inventory-ledger:read"],
   },
   { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
+  { href: "/uploads", label: "Uploads", icon: Upload, permissions: ["uploads:read"] },
+  { href: "/sales-orders", label: "Sales orders", icon: Receipt, permissions: ["sales-orders:read"] },
+  {
+    href: "/promotion-rules",
+    label: "Promotion rules",
+    icon: Percent,
+    permissions: ["promotion-rules:read"],
+  },
 ];
 
 const adminMenuItems: MenuItem[] = [

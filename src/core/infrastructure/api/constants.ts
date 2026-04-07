@@ -144,4 +144,38 @@ export const API_ENDPOINTS = {
     ASSIGN_PERMISSIONS: "/v1/system-admin/roles/assign-permissions",
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
   },
+  UPLOADS: {
+    LIST: "/v1/uploads",
+    UPLOAD: "/v1/uploads",
+    UPLOAD_MULTIPLE: "/v1/uploads/multiple",
+    DELETE: "/v1/uploads",
+  },
+  SALES_ORDERS: {
+    LIST: "/v1/sales-orders",
+    BY_ID: (id: string) => `/v1/sales-orders/${id}`,
+    CREATE: "/v1/sales-orders",
+    UPDATE: (id: string) => `/v1/sales-orders/${id}`,
+    DELETE: (id: string) => `/v1/sales-orders/${id}`,
+    LINES: (salesOrderId: string) => ({
+      LIST: `/v1/sales-orders/${salesOrderId}/lines`,
+      BY_ID: (id: string) => `/v1/sales-orders/${salesOrderId}/lines/${id}`,
+      CREATE: `/v1/sales-orders/${salesOrderId}/lines`,
+      UPDATE: (id: string) => `/v1/sales-orders/${salesOrderId}/lines/${id}`,
+      DELETE: (id: string) => `/v1/sales-orders/${salesOrderId}/lines/${id}`,
+    }),
+    PAYMENTS: (salesOrderId: string) => ({
+      LIST: `/v1/sales-orders/${salesOrderId}/payments`,
+      BY_ID: (id: string) => `/v1/sales-orders/${salesOrderId}/payments/${id}`,
+      CREATE: `/v1/sales-orders/${salesOrderId}/payments`,
+      UPDATE: (id: string) => `/v1/sales-orders/${salesOrderId}/payments/${id}`,
+      DELETE: (id: string) => `/v1/sales-orders/${salesOrderId}/payments/${id}`,
+    }),
+  },
+  PROMOTION_RULES: {
+    LIST: "/v1/promotion-rules",
+    BY_ID: (id: string) => `/v1/promotion-rules/${id}`,
+    CREATE: "/v1/promotion-rules",
+    UPDATE: (id: string) => `/v1/promotion-rules/${id}`,
+    DELETE: (id: string) => `/v1/promotion-rules/${id}`,
+  },
 } as const;

@@ -13,6 +13,35 @@ import { toProduct } from "@/core/application/mappers/ProductMapper";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
 
+/**
+ * Product API expects a strict decimal string (e.g. "999.0000").
+ * Same idea as inventory ledger `toApiDecimalString`, but fixed scale so JS float
+ * noise never fails backend decimal validation.
+ */
+function toProductBasePriceApiString(value: unknown): string {
+  let n: number;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    n = value;
+  } else if (typeof value === "string") {
+    const t = value.trim();
+    n = t ? Number(t) : 0;
+  } else {
+    n = NaN;
+  }
+  if (!Number.isFinite(n)) return "0.0000";
+  return n.toFixed(4);
+}
+
+function normalizeProductWritePayload(
+  data: Omit<ProductDto, "id">
+): Record<string, unknown> {
+  const { basePrice, ...rest } = data;
+  return {
+    ...rest,
+    basePrice: toProductBasePriceApiString(basePrice),
+  };
+}
+
 export class ApiProductRepository implements IProductRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
@@ -46,7 +75,7 @@ export class ApiProductRepository implements IProductRepository {
   async create(data: Omit<ProductDto, "id">): Promise<Product> {
     const dto = await this.httpClient.post<ProductDto>(
       API_ENDPOINTS.PRODUCTS.CREATE,
-      data
+      normalizeProductWritePayload(data)
     );
     if (!dto?.id) throw new Error("Create product response missing id");
     return toProduct(dto as ProductDto & { id: string });
@@ -55,7 +84,7 @@ export class ApiProductRepository implements IProductRepository {
   async update(id: string, data: Omit<ProductDto, "id">): Promise<Product> {
     const dto = await this.httpClient.patch<ProductDto>(
       API_ENDPOINTS.PRODUCTS.UPDATE(id),
-      data
+      normalizeProductWritePayload(data)
     );
     return toProduct({ ...dto, id: dto?.id ?? id } as ProductDto & {
       id: string;
