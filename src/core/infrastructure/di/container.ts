@@ -42,6 +42,14 @@ import { LoyaltyLedgerService } from "@/core/application/services/LoyaltyLedgerS
 import { CustomerInteractionService } from "@/core/application/services/CustomerInteractionService";
 import { ApiUploadRepository } from "../repositories/ApiUploadRepository";
 import { UploadService } from "@/core/application/services/UploadService";
+import { ApiSalesOrderRepository } from "../repositories/ApiSalesOrderRepository";
+import { ApiSalesOrderLineRepository } from "../repositories/ApiSalesOrderLineRepository";
+import { ApiSalesOrderPaymentRepository } from "../repositories/ApiSalesOrderPaymentRepository";
+import { SalesOrderService } from "@/core/application/services/SalesOrderService";
+import { SalesOrderLineService } from "@/core/application/services/SalesOrderLineService";
+import { SalesOrderPaymentService } from "@/core/application/services/SalesOrderPaymentService";
+import { ApiPromotionRuleRepository } from "../repositories/ApiPromotionRuleRepository";
+import { PromotionRuleService } from "@/core/application/services/PromotionRuleService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -80,6 +88,14 @@ import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedge
 import type { ICustomerInteractionService } from "@/core/domain/services/ICustomerInteractionService";
 import type { IUploadRepository } from "@/core/domain/repositories/IUploadRepository";
 import type { IUploadService } from "@/core/domain/services/IUploadService";
+import type { ISalesOrderRepository } from "@/core/domain/repositories/ISalesOrderRepository";
+import type { ISalesOrderLineRepository } from "@/core/domain/repositories/ISalesOrderLineRepository";
+import type { ISalesOrderPaymentRepository } from "@/core/domain/repositories/ISalesOrderPaymentRepository";
+import type { ISalesOrderService } from "@/core/domain/services/ISalesOrderService";
+import type { ISalesOrderLineService } from "@/core/domain/services/ISalesOrderLineService";
+import type { ISalesOrderPaymentService } from "@/core/domain/services/ISalesOrderPaymentService";
+import type { IPromotionRuleRepository } from "@/core/domain/repositories/IPromotionRuleRepository";
+import type { IPromotionRuleService } from "@/core/domain/services/IPromotionRuleService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -136,6 +152,16 @@ class Container {
     );
     const uploadRepository = new ApiUploadRepository(httpClient);
     const uploadService = new UploadService(uploadRepository);
+    const salesOrderRepository = new ApiSalesOrderRepository(httpClient);
+    const salesOrderService = new SalesOrderService(salesOrderRepository);
+    const salesOrderLineRepository = new ApiSalesOrderLineRepository(httpClient);
+    const salesOrderLineService = new SalesOrderLineService(salesOrderLineRepository);
+    const salesOrderPaymentRepository = new ApiSalesOrderPaymentRepository(httpClient);
+    const salesOrderPaymentService = new SalesOrderPaymentService(
+      salesOrderPaymentRepository
+    );
+    const promotionRuleRepository = new ApiPromotionRuleRepository(httpClient);
+    const promotionRuleService = new PromotionRuleService(promotionRuleRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -206,6 +232,32 @@ class Container {
     );
     this.register<IUploadRepository>("uploadRepository", uploadRepository);
     this.register<IUploadService>("uploadService", uploadService);
+    this.register<ISalesOrderRepository>("salesOrderRepository", salesOrderRepository);
+    this.register<ISalesOrderService>("salesOrderService", salesOrderService);
+    this.register<ISalesOrderLineRepository>(
+      "salesOrderLineRepository",
+      salesOrderLineRepository
+    );
+    this.register<ISalesOrderLineService>(
+      "salesOrderLineService",
+      salesOrderLineService
+    );
+    this.register<ISalesOrderPaymentRepository>(
+      "salesOrderPaymentRepository",
+      salesOrderPaymentRepository
+    );
+    this.register<ISalesOrderPaymentService>(
+      "salesOrderPaymentService",
+      salesOrderPaymentService
+    );
+    this.register<IPromotionRuleRepository>(
+      "promotionRuleRepository",
+      promotionRuleRepository
+    );
+    this.register<IPromotionRuleService>(
+      "promotionRuleService",
+      promotionRuleService
+    );
   }
 
   register<T>(key: string, instance: T): void {
