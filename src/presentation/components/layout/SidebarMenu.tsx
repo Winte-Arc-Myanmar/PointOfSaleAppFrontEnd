@@ -27,6 +27,8 @@ import {
   Upload,
   Receipt,
   Percent,
+  Monitor,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -78,6 +80,18 @@ const allMenuItems: MenuItem[] = [
     label: "Promotion rules",
     icon: Percent,
     permissions: ["promotion-rules:read"],
+  },
+  {
+    href: "/pos-registers",
+    label: "POS registers",
+    icon: Monitor,
+    permissions: ["pos-registers:read"],
+  },
+  {
+    href: "/pos-sessions",
+    label: "POS sessions",
+    icon: Clock,
+    permissions: ["pos-sessions:read"],
   },
 ];
 

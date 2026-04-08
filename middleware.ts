@@ -34,6 +34,8 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/uploads", permissions: ["uploads:read"] },
   { prefix: "/sales-orders", permissions: ["sales-orders:read"] },
   { prefix: "/promotion-rules", permissions: ["promotion-rules:read"] },
+  { prefix: "/pos-registers", permissions: ["pos-registers:read"] },
+  { prefix: "/pos-sessions", permissions: ["pos-sessions:read"] },
 ];
 
 function checkPermission(
