@@ -194,4 +194,11 @@ export const API_ENDPOINTS = {
     CLOSE: (id: string) => `/v1/pos-sessions/${id}/close`,
     SUMMARY: (id: string) => `/v1/pos-sessions/${id}/summary`,
   },
+  PAYMENT_METHODS: {
+    LIST: "/v1/payment-methods",
+    BY_ID: (id: string) => `/v1/payment-methods/${id}`,
+    CREATE: "/v1/payment-methods",
+    UPDATE: (id: string) => `/v1/payment-methods/${id}`,
+    DELETE: (id: string) => `/v1/payment-methods/${id}`,
+  },
 } as const;

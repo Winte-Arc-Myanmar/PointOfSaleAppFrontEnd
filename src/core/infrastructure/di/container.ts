@@ -54,6 +54,8 @@ import { ApiPosRegisterRepository } from "../repositories/ApiPosRegisterReposito
 import { ApiPosSessionRepository } from "../repositories/ApiPosSessionRepository";
 import { PosRegisterService } from "@/core/application/services/PosRegisterService";
 import { PosSessionService } from "@/core/application/services/PosSessionService";
+import { ApiPaymentMethodRepository } from "../repositories/ApiPaymentMethodRepository";
+import { PaymentMethodService } from "@/core/application/services/PaymentMethodService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -104,6 +106,8 @@ import type { IPosRegisterRepository } from "@/core/domain/repositories/IPosRegi
 import type { IPosRegisterService } from "@/core/domain/services/IPosRegisterService";
 import type { IPosSessionRepository } from "@/core/domain/repositories/IPosSessionRepository";
 import type { IPosSessionService } from "@/core/domain/services/IPosSessionService";
+import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPaymentMethodRepository";
+import type { IPaymentMethodService } from "@/core/domain/services/IPaymentMethodService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -174,6 +178,8 @@ class Container {
     const posRegisterService = new PosRegisterService(posRegisterRepository);
     const posSessionRepository = new ApiPosSessionRepository(httpClient);
     const posSessionService = new PosSessionService(posSessionRepository);
+    const paymentMethodRepository = new ApiPaymentMethodRepository(httpClient);
+    const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -274,6 +280,11 @@ class Container {
     this.register<IPosRegisterService>("posRegisterService", posRegisterService);
     this.register<IPosSessionRepository>("posSessionRepository", posSessionRepository);
     this.register<IPosSessionService>("posSessionService", posSessionService);
+    this.register<IPaymentMethodRepository>(
+      "paymentMethodRepository",
+      paymentMethodRepository
+    );
+    this.register<IPaymentMethodService>("paymentMethodService", paymentMethodService);
   }
 
   register<T>(key: string, instance: T): void {

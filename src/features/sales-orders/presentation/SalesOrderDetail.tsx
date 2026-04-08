@@ -19,11 +19,20 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useSalesOrder } from "@/presentation/hooks/useSalesOrders";
 import { useCreateSalesOrderLine, useDeleteSalesOrderLine, useSalesOrderLines } from "@/presentation/hooks/useSalesOrderLines";
 import { useCreateSalesOrderPayment, useDeleteSalesOrderPayment, useSalesOrderPayments } from "@/presentation/hooks/useSalesOrderPayments";
+import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
+import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import type { SalesOrderLine } from "@/core/domain/entities/SalesOrderLine";
 import type { SalesOrderPayment } from "@/core/domain/entities/SalesOrderPayment";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { Controller, useForm } from "react-hook-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 
 const CREATE_LINE_FORM_ID = "create-sales-order-line";
 const CREATE_PAYMENT_FORM_ID = "create-sales-order-payment";
@@ -366,6 +375,18 @@ function CreatePaymentInline({
   onLoadingChange: (loading: boolean) => void;
 }) {
   const toast = useToast();
+  const { data: paymentMethods = [] } = usePaymentMethods({
+    page: 1,
+    limit: 200,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+  const { data: posSessions = [] } = usePosSessions({
+    page: 1,
+    limit: 200,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
   const form = useForm({
     defaultValues: {
       tenantId: "",
@@ -396,11 +417,45 @@ function CreatePaymentInline({
       </div>
       <div className="grid gap-2">
         <Label>Payment method ID</Label>
-        <Input className="font-mono text-sm" {...form.register("paymentMethodId")} placeholder="uuid" />
+        <Controller
+          control={form.control}
+          name="paymentMethodId"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map((m) => (
+                  <SelectItem key={String(m.id)} value={String(m.id)}>
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       <div className="grid gap-2">
         <Label>POS session ID</Label>
-        <Input className="font-mono text-sm" {...form.register("posSessionId")} placeholder="uuid" />
+        <Controller
+          control={form.control}
+          name="posSessionId"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select POS session" />
+              </SelectTrigger>
+              <SelectContent>
+                {posSessions.map((s) => (
+                  <SelectItem key={String(s.id)} value={String(s.id)}>
+                    {String(s.status ?? "—")} · {String(s.id)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
       <div className="grid gap-2">
         <Label>Amount</Label>

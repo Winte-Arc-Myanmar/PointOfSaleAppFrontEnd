@@ -29,6 +29,7 @@ import {
   Percent,
   Monitor,
   Clock,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -92,6 +93,12 @@ const allMenuItems: MenuItem[] = [
     label: "POS sessions",
     icon: Clock,
     permissions: ["pos-sessions:read"],
+  },
+  {
+    href: "/payment-methods",
+    label: "Payment methods",
+    icon: CreditCard,
+    permissions: ["payment-methods:read"],
   },
 ];
 
