@@ -178,4 +178,27 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/promotion-rules/${id}`,
     DELETE: (id: string) => `/v1/promotion-rules/${id}`,
   },
+  POS_REGISTERS: {
+    LIST: "/v1/pos-registers",
+    BY_ID: (id: string) => `/v1/pos-registers/${id}`,
+    CREATE: "/v1/pos-registers",
+    UPDATE: (id: string) => `/v1/pos-registers/${id}`,
+    DELETE: (id: string) => `/v1/pos-registers/${id}`,
+  },
+  POS_SESSIONS: {
+    LIST: "/v1/pos-sessions",
+    BY_ID: (id: string) => `/v1/pos-sessions/${id}`,
+    CREATE: "/v1/pos-sessions",
+    UPDATE: (id: string) => `/v1/pos-sessions/${id}`,
+    DELETE: (id: string) => `/v1/pos-sessions/${id}`,
+    CLOSE: (id: string) => `/v1/pos-sessions/${id}/close`,
+    SUMMARY: (id: string) => `/v1/pos-sessions/${id}/summary`,
+  },
+  PAYMENT_METHODS: {
+    LIST: "/v1/payment-methods",
+    BY_ID: (id: string) => `/v1/payment-methods/${id}`,
+    CREATE: "/v1/payment-methods",
+    UPDATE: (id: string) => `/v1/payment-methods/${id}`,
+    DELETE: (id: string) => `/v1/payment-methods/${id}`,
+  },
 } as const;
