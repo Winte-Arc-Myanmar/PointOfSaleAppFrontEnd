@@ -30,6 +30,8 @@ import {
   Monitor,
   Clock,
   CreditCard,
+  ShoppingCart,
+  RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -99,6 +101,18 @@ const allMenuItems: MenuItem[] = [
     label: "Payment methods",
     icon: CreditCard,
     permissions: ["payment-methods:read"],
+  },
+  {
+    href: "/checkout",
+    label: "Checkout",
+    icon: ShoppingCart,
+    permissions: ["sales:checkout:write"],
+  },
+  {
+    href: "/refunds",
+    label: "Refunds",
+    icon: RotateCcw,
+    permissions: ["sales:refund:write", "sales:refund:read"],
   },
 ];
 

@@ -201,4 +201,16 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/payment-methods/${id}`,
     DELETE: (id: string) => `/v1/payment-methods/${id}`,
   },
+  CHECKOUT: {
+    PROCESS: "/v1/checkout",
+    VOID: (id: string) => `/v1/checkout/${id}/void`,
+  },
+  RECEIPTS: {
+    BY_SALES_ORDER_ID: (salesOrderId: string) => `/v1/receipts/${salesOrderId}`,
+  },
+  REFUNDS: {
+    CREATE: "/v1/refunds",
+    BY_ID: (id: string) => `/v1/refunds/${id}`,
+    BY_ORDER_ID: (salesOrderId: string) => `/v1/refunds/order/${salesOrderId}`,
+  },
 } as const;
