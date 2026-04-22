@@ -37,6 +37,9 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/pos-registers", permissions: ["pos-registers:read"] },
   { prefix: "/pos-sessions", permissions: ["pos-sessions:read"] },
   { prefix: "/payment-methods", permissions: ["payment-methods:read"] },
+  { prefix: "/checkout", permissions: ["sales:checkout:write"] },
+  { prefix: "/refunds", permissions: ["sales:refund:write", "sales:refund:read"] },
+  { prefix: "/receipts", permissions: ["sales:receipt:read"] },
 ];
 
 function checkPermission(
