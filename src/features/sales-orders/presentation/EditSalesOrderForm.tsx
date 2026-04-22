@@ -7,7 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
-import { useSalesOrder, useUpdateSalesOrder } from "@/presentation/hooks/useSalesOrders";
+import {
+  useSalesOrder,
+  useUpdateSalesOrder,
+} from "@/presentation/hooks/useSalesOrders";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
@@ -91,11 +94,11 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
 
   const filteredCustomers = useMemo(
     () => customers.filter((c) => (tenantId ? c.tenantId === tenantId : true)),
-    [customers, tenantId]
+    [customers, tenantId],
   );
   const filteredLocations = useMemo(
     () => locations.filter((l) => (tenantId ? l.tenantId === tenantId : true)),
-    [locations, tenantId]
+    [locations, tenantId],
   );
 
   const onSubmit = (data: FormData) => {
@@ -124,15 +127,16 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
           setShowSuccess(true);
           setTimeout(
             () => router.push(`/sales-orders/${salesOrderId}`),
-            REDIRECT_DELAY_MS
+            REDIRECT_DELAY_MS,
           );
         },
         onError: () => toast.error("Failed to update sales order."),
-      }
+      },
     );
   };
 
-  if (isLoading) return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
+  if (isLoading)
+    return <AppLoader fullScreen={false} size="sm" message="Loading..." />;
   if (error || !order) {
     return (
       <div className="space-y-4">
@@ -152,10 +156,15 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="panel-header text-xl tracking-tight">Edit sales order</h1>
+        <h1 className="panel-header text-xl tracking-tight">
+          Edit sales order
+        </h1>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4 max-w-2xl"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Tenant</Label>
@@ -191,9 +200,17 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
               control={form.control}
               name="customerId"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={!tenantId}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!tenantId}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={!tenantId ? "Select tenant first" : "Select customer"} />
+                    <SelectValue
+                      placeholder={
+                        !tenantId ? "Select tenant first" : "Select customer"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredCustomers.map((c) => (
@@ -212,9 +229,17 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
               control={form.control}
               name="locationId"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={!tenantId}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!tenantId}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={!tenantId ? "Select tenant first" : "Select location"} />
+                    <SelectValue
+                      placeholder={
+                        !tenantId ? "Select tenant first" : "Select location"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredLocations.map((l) => (
@@ -248,19 +273,35 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label>Subtotal</Label>
-            <Input type="number" step="0.01" {...form.register("subtotal", { valueAsNumber: true })} />
+            <Input
+              type="number"
+              step="0.01"
+              {...form.register("subtotal", { valueAsNumber: true })}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Total discount</Label>
-            <Input type="number" step="0.01" {...form.register("totalDiscount", { valueAsNumber: true })} />
+            <Input
+              type="number"
+              step="0.01"
+              {...form.register("totalDiscount", { valueAsNumber: true })}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Total tax</Label>
-            <Input type="number" step="0.01" {...form.register("totalTax", { valueAsNumber: true })} />
+            <Input
+              type="number"
+              step="0.01"
+              {...form.register("totalTax", { valueAsNumber: true })}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Grand total</Label>
-            <Input type="number" step="0.01" {...form.register("grandTotal", { valueAsNumber: true })} />
+            <Input
+              type="number"
+              step="0.01"
+              {...form.register("grandTotal", { valueAsNumber: true })}
+            />
           </div>
         </div>
 
@@ -269,7 +310,9 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
             Sales order updated successfully. Redirecting...
           </p>
         )}
-        {update.isError && <p className="text-sm text-red-600">Failed to update sales order.</p>}
+        {update.isError && (
+          <p className="text-sm text-red-600">Failed to update sales order.</p>
+        )}
 
         <div className="flex gap-2">
           <Button type="submit" disabled={update.isPending}>
@@ -285,4 +328,3 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
     </div>
   );
 }
-

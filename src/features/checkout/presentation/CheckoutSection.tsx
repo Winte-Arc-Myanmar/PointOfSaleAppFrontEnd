@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
   ShoppingCart,
@@ -33,6 +34,7 @@ import {
 } from "@/presentation/components/ui/dialog";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
@@ -50,6 +52,58 @@ import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
+}
+
+function money4(n: number): string {
+  return Number.isFinite(n) ? n.toFixed(4) : "—";
+}
+
+function resolveProductImageSrc(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed)) return trimmed;
+  return resolveMediaUrl(trimmed);
+}
+
+function safeRate(val: unknown): number {
+  const n = typeof val === "number" ? val : Number(val);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function calcTax(amount: number, rate: number, isPriceInclusive: boolean): number {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  const r = safeRate(rate);
+  if (r <= 0) return 0;
+  if (isPriceInclusive) {
+    // gross already includes tax: tax = gross - gross/(1+r)
+    return amount - amount / (1 + r);
+  }
+  // net excludes tax: tax = net*r
+  return amount * r;
+}
+
+function calcLineTotals(args: {
+  unitPrice: number;
+  quantity: number;
+  lineDiscount: number;
+  isTaxable: boolean;
+  taxRate: number;
+  isPriceInclusive: boolean;
+}) {
+  const qty = Number(args.quantity) || 0;
+  const unit = Number(args.unitPrice) || 0;
+  const discount = Number(args.lineDiscount) || 0;
+  const base = unit * qty - discount;
+  const netOrGross = base > 0 ? base : 0;
+
+  const taxable = Boolean(args.isTaxable);
+  const rate = safeRate(args.taxRate);
+  const inclusive = Boolean(args.isPriceInclusive);
+
+  const taxAmount = taxable && rate > 0 ? calcTax(netOrGross, rate, inclusive) : 0;
+  const lineTotal = inclusive ? netOrGross : netOrGross + taxAmount;
+
+  return { netOrGross, taxAmount, lineTotal };
 }
 
 function newIdempotencyKey(): string {
@@ -84,6 +138,9 @@ interface LineMeta {
   productImage?: string | null;
   variantSku: string;
   unitPrice: number;
+  isTaxable: boolean;
+  taxRate: number;
+  isPriceInclusive: boolean;
 }
 
 export function CheckoutSection() {
@@ -127,59 +184,75 @@ export function CheckoutSection() {
   });
 
   useEffect(() => {
-    if (!form.getValues("tenantId") && tenantId) form.setValue("tenantId", tenantId);
+    if (!form.getValues("tenantId") && tenantId)
+      form.setValue("tenantId", tenantId);
   }, [tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const items = useFieldArray({ control: form.control, name: "items" });
   const payments = useFieldArray({ control: form.control, name: "payments" });
 
-  const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
-  const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
-  const selectedSessionId = useWatch({ control: form.control, name: "posSessionId" });
-  const selectedCustomerId = useWatch({ control: form.control, name: "customerId" });
+  const selectedTenantId = useWatch({
+    control: form.control,
+    name: "tenantId",
+  });
+  const selectedLocationId = useWatch({
+    control: form.control,
+    name: "locationId",
+  });
+  const selectedSessionId = useWatch({
+    control: form.control,
+    name: "posSessionId",
+  });
+  const selectedCustomerId = useWatch({
+    control: form.control,
+    name: "customerId",
+  });
   const watchedItemsRaw = useWatch({ control: form.control, name: "items" });
-  const watchedPaymentsRaw = useWatch({ control: form.control, name: "payments" });
+  const watchedPaymentsRaw = useWatch({
+    control: form.control,
+    name: "payments",
+  });
   const watchedItems = useMemo(() => watchedItemsRaw ?? [], [watchedItemsRaw]);
   const watchedPayments = useMemo(
     () => watchedPaymentsRaw ?? [],
-    [watchedPaymentsRaw]
+    [watchedPaymentsRaw],
   );
 
   const locations = useMemo(
     () =>
       selectedTenantId
         ? allLocations.filter(
-            (l) => String(l.tenantId) === String(selectedTenantId)
+            (l) => String(l.tenantId) === String(selectedTenantId),
           )
         : allLocations,
-    [allLocations, selectedTenantId]
+    [allLocations, selectedTenantId],
   );
   const sessions = useMemo(
     () =>
       selectedTenantId
         ? allSessions.filter(
-            (s) => String(s.tenantId) === String(selectedTenantId)
+            (s) => String(s.tenantId) === String(selectedTenantId),
           )
         : allSessions,
-    [allSessions, selectedTenantId]
+    [allSessions, selectedTenantId],
   );
   const customers = useMemo(
     () =>
       selectedTenantId
         ? allCustomers.filter(
-            (c) => String(c.tenantId) === String(selectedTenantId)
+            (c) => String(c.tenantId) === String(selectedTenantId),
           )
         : allCustomers,
-    [allCustomers, selectedTenantId]
+    [allCustomers, selectedTenantId],
   );
   const paymentMethods = useMemo(
     () =>
       selectedTenantId
         ? allPaymentMethods.filter(
-            (m) => String(m.tenantId) === String(selectedTenantId)
+            (m) => String(m.tenantId) === String(selectedTenantId),
           )
         : allPaymentMethods,
-    [allPaymentMethods, selectedTenantId]
+    [allPaymentMethods, selectedTenantId],
   );
 
   useEffect(() => {
@@ -204,9 +277,7 @@ export function CheckoutSection() {
     watchedPayments.forEach((p, i) => {
       if (
         p?.paymentMethodId &&
-        !paymentMethods.some(
-          (m) => String(m.id) === String(p.paymentMethodId)
-        )
+        !paymentMethods.some((m) => String(m.id) === String(p.paymentMethodId))
       ) {
         form.setValue(`payments.${i}.paymentMethodId`, "");
       }
@@ -219,17 +290,20 @@ export function CheckoutSection() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
 
-  const [variantPickerProductId, setVariantPickerProductId] = useState<string | null>(null);
+  const [variantPickerProductId, setVariantPickerProductId] = useState<
+    string | null
+  >(null);
 
   const selectedProduct = useMemo(() => {
     if (!variantPickerProductId) return null;
-    return products.find((p) => String(p.id) === String(variantPickerProductId)) ?? null;
+    return (
+      products.find((p) => String(p.id) === String(variantPickerProductId)) ??
+      null
+    );
   }, [variantPickerProductId, products]);
 
-  const { data: variants = [], isLoading: variantsLoading } = useProductVariants(
-    variantPickerProductId,
-    { page: 1, limit: 200 }
-  );
+  const { data: variants = [], isLoading: variantsLoading } =
+    useProductVariants(variantPickerProductId, { page: 1, limit: 200 });
 
   const filteredProducts = useMemo(() => {
     const s = productSearch.trim().toLowerCase();
@@ -247,15 +321,40 @@ export function CheckoutSection() {
   const subtotal = useMemo(() => {
     return watchedItems.reduce((sum, it, i) => {
       const meta = lineMeta[String(it?.variantId ?? "") + ":" + i];
-      const price = meta?.unitPrice ?? 0;
-      const qty = Number(it?.quantity) || 0;
-      const disc = Number(it?.lineDiscount) || 0;
-      return sum + price * qty - disc;
+      const { lineTotal } = calcLineTotals({
+        unitPrice: meta?.unitPrice ?? 0,
+        quantity: Number(it?.quantity) || 0,
+        lineDiscount: Number(it?.lineDiscount) || 0,
+        isTaxable: Boolean(meta?.isTaxable),
+        taxRate: meta?.taxRate ?? 0,
+        isPriceInclusive: Boolean(meta?.isPriceInclusive),
+      });
+      return sum + lineTotal;
     }, 0);
   }, [watchedItems, lineMeta]);
 
+  const taxTotal = useMemo(() => {
+    return watchedItems.reduce((sum, it, i) => {
+      const meta = lineMeta[String(it?.variantId ?? "") + ":" + i];
+      const { taxAmount } = calcLineTotals({
+        unitPrice: meta?.unitPrice ?? 0,
+        quantity: Number(it?.quantity) || 0,
+        lineDiscount: Number(it?.lineDiscount) || 0,
+        isTaxable: Boolean(meta?.isTaxable),
+        taxRate: meta?.taxRate ?? 0,
+        isPriceInclusive: Boolean(meta?.isPriceInclusive),
+      });
+      return sum + taxAmount;
+    }, 0);
+  }, [watchedItems, lineMeta]);
+
+  const netSubtotal = useMemo(() => subtotal - taxTotal, [subtotal, taxTotal]);
+
   const totalPaid = useMemo(() => {
-    return watchedPayments.reduce((sum, p) => sum + (Number(p?.amount) || 0), 0);
+    return watchedPayments.reduce(
+      (sum, p) => sum + (Number(p?.amount) || 0),
+      0,
+    );
   }, [watchedPayments]);
 
   const changeDue = useMemo(() => {
@@ -265,7 +364,9 @@ export function CheckoutSection() {
 
   function addVariantToCart(product: Product, variant: ProductVariant) {
     const variantId = String(variant.id);
-    const existingIdx = watchedItems.findIndex((it) => String(it?.variantId) === variantId);
+    const existingIdx = watchedItems.findIndex(
+      (it) => String(it?.variantId) === variantId,
+    );
     if (existingIdx >= 0) {
       const currentQty = Number(watchedItems[existingIdx]?.quantity) || 0;
       form.setValue(`items.${existingIdx}.quantity`, currentQty + 1);
@@ -273,7 +374,11 @@ export function CheckoutSection() {
     } else {
       items.append({ variantId, quantity: 1, lineDiscount: 0 });
       const newIdx = watchedItems.length;
-      const unitPrice = (Number(product.basePrice) || 0) + (Number(variant.priceModifier) || 0);
+      const unitPrice =
+        (Number(product.basePrice) || 0) + (Number(variant.priceModifier) || 0);
+      const isTaxable = Boolean(product.isTaxable);
+      const taxRate = product.taxRateRatePercentage ?? 0;
+      const isPriceInclusive = Boolean(product.taxRateIsPriceInclusive);
       setLineMeta((prev) => ({
         ...prev,
         [variantId + ":" + newIdx]: {
@@ -281,6 +386,9 @@ export function CheckoutSection() {
           productImage: product.imageUrl ?? null,
           variantSku: variant.variantSku,
           unitPrice,
+          isTaxable,
+          taxRate,
+          isPriceInclusive,
         },
       }));
       setActiveLineIndex(newIdx);
@@ -302,7 +410,9 @@ export function CheckoutSection() {
       toast.error("Select a cart line first.");
       return;
     }
-    const current = String(form.getValues(`items.${activeLineIndex}.quantity`) ?? "");
+    const current = String(
+      form.getValues(`items.${activeLineIndex}.quantity`) ?? "",
+    );
     if (key === "C") {
       setQty(activeLineIndex, 0);
       return;
@@ -315,7 +425,10 @@ export function CheckoutSection() {
     }
     if (key === ".") {
       if (current.includes(".")) return;
-      form.setValue(`items.${activeLineIndex}.quantity`, Number(current + ".") || 0);
+      form.setValue(
+        `items.${activeLineIndex}.quantity`,
+        Number(current + ".") || 0,
+      );
       return;
     }
     const next = current === "0" ? key : current + key;
@@ -341,11 +454,24 @@ export function CheckoutSection() {
     if (!v.tenantId?.trim()) return toast.error("Tenant is required.");
     if (!v.locationId?.trim()) return toast.error("Location is required.");
     if (!v.posSessionId?.trim()) return toast.error("POS session is required.");
-    if (!v.idempotencyKey?.trim()) return toast.error("Idempotency key is required.");
+    if (!v.idempotencyKey?.trim())
+      return toast.error("Idempotency key is required.");
     if (!Array.isArray(v.items) || v.items.length === 0)
       return toast.error("Add at least one item.");
     if (!Array.isArray(v.payments) || v.payments.length === 0)
       return toast.error("Add at least one payment.");
+    if (
+      v.payments.some(
+        (p) => !p?.paymentMethodId?.trim() || !(Number(p.amount) > 0),
+      )
+    ) {
+      return toast.error("Each payment must have a method and amount > 0.");
+    }
+    if (!(totalPaid + 1e-9 >= subtotal)) {
+      return toast.error(
+        `Insufficient payment: required ${money4(subtotal)}, received ${money4(totalPaid)}.`,
+      );
+    }
 
     checkout.mutate(v, {
       onSuccess: (res) => {
@@ -418,17 +544,18 @@ export function CheckoutSection() {
                           "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors",
                           isActive
                             ? "bg-mint/10 border-l-2 border-l-mint"
-                            : "hover:bg-mint/5 border-l-2 border-l-transparent"
+                            : "hover:bg-mint/5 border-l-2 border-l-transparent",
                         )}
                       >
-                        <div className="h-12 w-12 shrink-0 rounded-md overflow-hidden bg-muted/30 border border-border">
+                        <div className="relative h-12 w-12 shrink-0 rounded-md overflow-hidden bg-muted/30 border border-border">
                           {meta?.productImage ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={meta.productImage}
+                            <Image
+                              src={resolveProductImageSrc(meta.productImage)}
                               alt={meta?.productName ?? ""}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                              unoptimized
                             />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-[10px] text-muted">
@@ -449,7 +576,7 @@ export function CheckoutSection() {
                             "shrink-0 w-16 text-center rounded-md border px-2 py-1 font-mono text-sm",
                             isActive
                               ? "border-mint bg-mint/20 text-foreground"
-                              : "border-border bg-muted/20 text-muted"
+                              : "border-border bg-muted/20 text-muted",
                           )}
                         >
                           × {qty}
@@ -464,7 +591,8 @@ export function CheckoutSection() {
                           onClick={(e) => {
                             e.stopPropagation();
                             items.remove(idx);
-                            if (activeLineIndex === idx) setActiveLineIndex(null);
+                            if (activeLineIndex === idx)
+                              setActiveLineIndex(null);
                           }}
                         >
                           <Trash2 className="h-3.5 w-3.5 text-muted" />
@@ -486,7 +614,20 @@ export function CheckoutSection() {
                   : `Editing line #${activeLineIndex + 1} quantity.`}
               </p>
               <div className="grid grid-cols-3 gap-2">
-                {["7", "8", "9", "4", "5", "6", "1", "2", "3", ".", "0", "<"].map((k) => (
+                {[
+                  "7",
+                  "8",
+                  "9",
+                  "4",
+                  "5",
+                  "6",
+                  "1",
+                  "2",
+                  "3",
+                  ".",
+                  "0",
+                  "<",
+                ].map((k) => (
                   <Button
                     key={k}
                     type="button"
@@ -515,20 +656,24 @@ export function CheckoutSection() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Subtotal</span>
-                  <span className="font-medium">{money(subtotal)}</span>
+                  <span className="font-medium">{money4(netSubtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted">Tax</span>
+                  <span className="font-medium">{money4(taxTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Total paid</span>
-                  <span className="font-medium">{money(totalPaid)}</span>
+                  <span className="font-medium">{money4(totalPaid)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Change due</span>
-                  <span className="font-medium">{money(changeDue)}</span>
+                  <span className="font-medium">{money4(changeDue)}</span>
                 </div>
                 <div className="pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Grand total</span>
                   <span className="text-lg font-semibold text-mint">
-                    {money(subtotal)}
+                    {money4(subtotal)}
                   </span>
                 </div>
               </div>
@@ -538,10 +683,15 @@ export function CheckoutSection() {
                 className="w-full"
                 onClick={() => {
                   if (watchedPayments.length === 1) {
-                    form.setValue("payments.0.amount", Number(subtotal.toFixed(2)));
+                    form.setValue(
+                      "payments.0.amount",
+                      Number(subtotal.toFixed(4)),
+                    );
                     toast.success("Exact amount set.");
                   } else {
-                    toast.error("Exact amount only works with a single payment line.");
+                    toast.error(
+                      "Exact amount only works with a single payment line.",
+                    );
                   }
                 }}
                 disabled={subtotal <= 0}
@@ -575,19 +725,28 @@ export function CheckoutSection() {
             </div>
             <div className="space-y-3">
               {payments.fields.map((f, idx) => (
-                <div key={f.id} className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                <div
+                  key={f.id}
+                  className="grid grid-cols-1 sm:grid-cols-12 gap-2"
+                >
                   <div className="sm:col-span-5">
                     <Controller
                       control={form.control}
                       name={`payments.${idx}.paymentMethodId` as const}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Method" />
                           </SelectTrigger>
                           <SelectContent>
                             {paymentMethods.map((m) => (
-                              <SelectItem key={String(m.id)} value={String(m.id)}>
+                              <SelectItem
+                                key={String(m.id)}
+                                value={String(m.id)}
+                              >
                                 {m.name}
                               </SelectItem>
                             ))}
@@ -609,7 +768,9 @@ export function CheckoutSection() {
                   <div className="sm:col-span-3">
                     <Input
                       placeholder="Reference (optional)"
-                      {...form.register(`payments.${idx}.transactionReference` as const)}
+                      {...form.register(
+                        `payments.${idx}.transactionReference` as const,
+                      )}
                     />
                   </div>
                   <div className="sm:col-span-1">
@@ -634,7 +795,7 @@ export function CheckoutSection() {
             disabled={checkout.isPending || items.fields.length === 0}
             className="w-full h-14 text-base font-semibold bg-mint text-gloss-black hover:bg-mint-hover"
           >
-            {checkout.isPending ? "Processing..." : `Charge ${money(subtotal)}`}
+            {checkout.isPending ? "Processing..." : `Charge ${money4(subtotal)}`}
           </Button>
         </div>
 
@@ -653,7 +814,11 @@ export function CheckoutSection() {
             </div>
 
             {productsLoading ? (
-              <AppLoader fullScreen={false} size="sm" message="Loading products..." />
+              <AppLoader
+                fullScreen={false}
+                size="sm"
+                message="Loading products..."
+              />
             ) : filteredProducts.length === 0 ? (
               <p className="text-sm text-muted text-center py-8">
                 {selectedTenantId
@@ -669,14 +834,15 @@ export function CheckoutSection() {
                     onClick={() => onProductClick(p)}
                     className="rounded-xl border border-border hover:border-mint/40 hover:bg-mint/5 transition-colors overflow-hidden text-left flex flex-col"
                   >
-                    <div className="aspect-4/3 bg-muted/30 overflow-hidden">
+                    <div className="relative aspect-4/3 bg-muted/30 overflow-hidden">
                       {p.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.imageUrl}
+                        <Image
+                          src={resolveProductImageSrc(p.imageUrl)}
                           alt={p.name}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
+                          fill
+                          className="object-cover"
+                          sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, 50vw"
+                          unoptimized
                         />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center text-xs text-muted">
@@ -689,9 +855,21 @@ export function CheckoutSection() {
                         {p.name}
                       </div>
                       <div className="mt-auto flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-muted truncate">{p.baseSku}</span>
+                        <span className="text-[11px] text-muted truncate">
+                          {p.baseSku}
+                        </span>
                         <span className="text-sm font-semibold text-mint">
-                          {money(p.basePrice)}
+                          {money(
+                            (() => {
+                              const unit = Number(p.basePrice) || 0;
+                              const taxable = Boolean(p.isTaxable);
+                              const rate = p.taxRateRatePercentage ?? 0;
+                              const inclusive = Boolean(p.taxRateIsPriceInclusive);
+                              if (!taxable) return unit;
+                              if (inclusive) return unit;
+                              return unit + calcTax(unit, rate, false);
+                            })(),
+                          )}
                         </span>
                       </div>
                     </div>
@@ -735,21 +913,31 @@ function SettingsStrip({
   setSettingsOpen: (v: boolean) => void;
 }) {
   const selectedTenant = useWatch({ control: form.control, name: "tenantId" });
-  const selectedLocation = useWatch({ control: form.control, name: "locationId" });
-  const selectedSession = useWatch({ control: form.control, name: "posSessionId" });
-  const selectedCustomer = useWatch({ control: form.control, name: "customerId" });
+  const selectedLocation = useWatch({
+    control: form.control,
+    name: "locationId",
+  });
+  const selectedSession = useWatch({
+    control: form.control,
+    name: "posSessionId",
+  });
+  const selectedCustomer = useWatch({
+    control: form.control,
+    name: "customerId",
+  });
 
   const tenantName =
     tenants.find((t) => String(t.id) === String(selectedTenant))?.name ?? "—";
   const locationName =
-    locations.find((l) => String(l.id) === String(selectedLocation))?.name ?? "—";
+    locations.find((l) => String(l.id) === String(selectedLocation))?.name ??
+    "—";
   const sessionLabel = selectedSession
     ? `${sessions.find((s) => String(s.id) === String(selectedSession))?.status ?? ""} · ${String(selectedSession).slice(0, 8)}…`
     : "—";
   const customerName = selectedCustomer
-    ? customers.find((c) => String(c.id) === String(selectedCustomer))?.name ??
+    ? (customers.find((c) => String(c.id) === String(selectedCustomer))?.name ??
       customers.find((c) => String(c.id) === String(selectedCustomer))?.email ??
-      "—"
+      "—")
     : "Walk-in";
 
   return (
@@ -858,7 +1046,10 @@ function SettingsStrip({
               control={form.control}
               name="salesChannel"
               render={({ field }) => (
-                <Select value={String(field.value)} onValueChange={field.onChange}>
+                <Select
+                  value={String(field.value)}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select channel" />
                   </SelectTrigger>
@@ -915,7 +1106,9 @@ function SettingsStrip({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => form.setValue("idempotencyKey", newIdempotencyKey())}
+                onClick={() =>
+                  form.setValue("idempotencyKey", newIdempotencyKey())
+                }
                 title="Generate a new key"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -954,14 +1147,28 @@ function VariantPickerModal({
 
         <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
           {!product ? null : variantsLoading ? (
-            <AppLoader fullScreen={false} size="sm" message="Loading variants..." />
+            <AppLoader
+              fullScreen={false}
+              size="sm"
+              message="Loading variants..."
+            />
           ) : variants.length === 0 ? (
-            <p className="text-sm text-muted">No variants found for this product.</p>
+            <p className="text-sm text-muted">
+              No variants found for this product.
+            </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {variants.map((v) => {
-                const price =
+                const baseUnit =
                   (Number(product.basePrice) || 0) + (Number(v.priceModifier) || 0);
+                const price = (() => {
+                  const taxable = Boolean(product.isTaxable);
+                  const rate = product.taxRateRatePercentage ?? 0;
+                  const inclusive = Boolean(product.taxRateIsPriceInclusive);
+                  if (!taxable) return baseUnit;
+                  if (inclusive) return baseUnit;
+                  return baseUnit + calcTax(baseUnit, rate, false);
+                })();
                 const opts = v.matrixOptions
                   ? Object.entries(v.matrixOptions)
                       .map(([k, val]) => `${k}: ${val}`)
@@ -976,7 +1183,9 @@ function VariantPickerModal({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="font-medium truncate">{v.variantSku}</div>
+                        <div className="font-medium truncate">
+                          {v.variantSku}
+                        </div>
                         <div className="mt-1 text-xs text-muted line-clamp-2">
                           {opts || "—"}
                         </div>

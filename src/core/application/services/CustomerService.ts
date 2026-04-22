@@ -34,4 +34,3 @@ export class CustomerService implements ICustomerService {
     return this.customerRepository.delete(id);
   }
 }
-

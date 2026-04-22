@@ -79,19 +79,19 @@ export function CreateSalesOrderForm({
   const filteredCustomers = useMemo(
     () =>
       customers.filter((c) =>
-        form.watch("tenantId") ? c.tenantId === form.watch("tenantId") : true
+        form.watch("tenantId") ? c.tenantId === form.watch("tenantId") : true,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [customers, form.watch("tenantId")]
+    [customers, form.watch("tenantId")],
   );
 
   const filteredLocations = useMemo(
     () =>
       locations.filter((l) =>
-        form.watch("tenantId") ? l.tenantId === form.watch("tenantId") : true
+        form.watch("tenantId") ? l.tenantId === form.watch("tenantId") : true,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [locations, form.watch("tenantId")]
+    [locations, form.watch("tenantId")],
   );
 
   const onSubmit = (data: FormData) => {
@@ -117,12 +117,16 @@ export function CreateSalesOrderForm({
           onSuccess?.();
         },
         onError: () => toast.error("Failed to create sales order."),
-      }
+      },
     );
   };
 
   return (
-    <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      id={formId}
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-4"
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>Tenant</Label>
@@ -145,7 +149,9 @@ export function CreateSalesOrderForm({
             )}
           />
           {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
+            <p className="text-sm text-red-600">
+              {form.formState.errors.tenantId.message}
+            </p>
           )}
         </div>
         <div className="grid gap-2">
@@ -161,9 +167,19 @@ export function CreateSalesOrderForm({
             control={form.control}
             name="customerId"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={!form.watch("tenantId")}>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={!form.watch("tenantId")}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder={!form.watch("tenantId") ? "Select tenant first" : "Select customer"} />
+                  <SelectValue
+                    placeholder={
+                      !form.watch("tenantId")
+                        ? "Select tenant first"
+                        : "Select customer"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredCustomers.map((c) => (
@@ -182,9 +198,19 @@ export function CreateSalesOrderForm({
             control={form.control}
             name="locationId"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={!form.watch("tenantId")}>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={!form.watch("tenantId")}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder={!form.watch("tenantId") ? "Select tenant first" : "Select location"} />
+                  <SelectValue
+                    placeholder={
+                      !form.watch("tenantId")
+                        ? "Select tenant first"
+                        : "Select location"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredLocations.map((l) => (
@@ -213,26 +239,45 @@ export function CreateSalesOrderForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>Idempotency key</Label>
-          <Input {...form.register("idempotencyKey")} placeholder="idem-key-001" />
+          <Input
+            {...form.register("idempotencyKey")}
+            placeholder="idem-key-001"
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>Subtotal</Label>
-          <Input type="number" step="0.01" {...form.register("subtotal", { valueAsNumber: true })} />
+          <Input
+            type="number"
+            step="0.01"
+            {...form.register("subtotal", { valueAsNumber: true })}
+          />
         </div>
         <div className="grid gap-2">
           <Label>Total discount</Label>
-          <Input type="number" step="0.01" {...form.register("totalDiscount", { valueAsNumber: true })} />
+          <Input
+            type="number"
+            step="0.01"
+            {...form.register("totalDiscount", { valueAsNumber: true })}
+          />
         </div>
         <div className="grid gap-2">
           <Label>Total tax</Label>
-          <Input type="number" step="0.01" {...form.register("totalTax", { valueAsNumber: true })} />
+          <Input
+            type="number"
+            step="0.01"
+            {...form.register("totalTax", { valueAsNumber: true })}
+          />
         </div>
         <div className="grid gap-2">
           <Label>Grand total</Label>
-          <Input type="number" step="0.01" {...form.register("grandTotal", { valueAsNumber: true })} />
+          <Input
+            type="number"
+            step="0.01"
+            {...form.register("grandTotal", { valueAsNumber: true })}
+          />
         </div>
       </div>
 
@@ -244,4 +289,3 @@ export function CreateSalesOrderForm({
     </form>
   );
 }
-

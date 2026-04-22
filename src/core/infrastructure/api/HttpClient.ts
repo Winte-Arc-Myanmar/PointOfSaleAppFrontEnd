@@ -44,7 +44,7 @@ export class HttpClient {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     this.client.interceptors.response.use(
@@ -54,7 +54,7 @@ export class HttpClient {
           signOut({ callbackUrl: "/login" });
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -66,12 +66,12 @@ export class HttpClient {
   async post<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const res: AxiosResponse<unknown> = await this.client.post(
       url,
       data,
-      config
+      config,
     );
     return unwrap<T>(res.data);
   }
@@ -79,12 +79,12 @@ export class HttpClient {
   async put<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const res: AxiosResponse<unknown> = await this.client.put(
       url,
       data,
-      config
+      config,
     );
     return unwrap<T>(res.data);
   }
@@ -92,12 +92,12 @@ export class HttpClient {
   async patch<T>(
     url: string,
     data?: unknown,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const res: AxiosResponse<unknown> = await this.client.patch(
       url,
       data,
-      config
+      config,
     );
     return unwrap<T>(res.data);
   }

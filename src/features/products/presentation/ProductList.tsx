@@ -43,7 +43,7 @@ export function ProductList() {
           }
         },
       }),
-    [router, deleteProduct, toast, confirm]
+    [router, deleteProduct, toast, confirm],
   );
 
   const columns = useMemo(() => getProductTableColumns(), []);

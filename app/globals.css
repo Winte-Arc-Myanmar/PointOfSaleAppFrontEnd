@@ -137,3 +137,28 @@ body {
   animation: mint-wave 4s ease-in-out infinite;
   filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
 }
+
+/* Print only the receipt container. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  [data-print-receipt],
+  [data-print-receipt] * {
+    visibility: visible !important;
+  }
+
+  [data-print-receipt] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}

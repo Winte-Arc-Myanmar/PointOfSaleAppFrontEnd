@@ -6,7 +6,10 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
-import { useCustomers, useDeleteCustomer } from "@/presentation/hooks/useCustomers";
+import {
+  useCustomers,
+  useDeleteCustomer,
+} from "@/presentation/hooks/useCustomers";
 import type { Customer } from "@/core/domain/entities/Customer";
 import { CreateCustomerForm } from "./CreateCustomerForm";
 import { getCustomerRowActions } from "./customer-row-actions";
@@ -30,11 +33,19 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    const id = setTimeout(
+      () => setSearch(searchInput.trim()),
+      SEARCH_DEBOUNCE_MS,
+    );
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const { data: customers = [], isLoading, error, refetch } = useCustomers({
+  const {
+    data: customers = [],
+    isLoading,
+    error,
+    refetch,
+  } = useCustomers({
     search: search || undefined,
   });
 
@@ -58,7 +69,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
           }
         },
       }),
-    [router, deleteCustomer, toast, confirm]
+    [router, deleteCustomer, toast, confirm],
   );
 
   const columns = useMemo(() => getCustomerTableColumns(), []);
@@ -71,7 +82,9 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
         actions={actions}
         isLoading={isLoading}
         loadingText="Loading customers..."
-        emptyText={search ? "No customers match your search." : "No customers yet."}
+        emptyText={
+          search ? "No customers match your search." : "No customers yet."
+        }
         topContent={
           showSearch ? (
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
@@ -84,7 +97,9 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
               {search && (
                 <p className="text-sm text-muted">
                   Showing results for{" "}
-                  <span className="font-medium text-foreground">"{search}"</span>
+                  <span className="font-medium text-foreground">
+                    "{search}"
+                  </span>
                 </p>
               )}
             </div>
@@ -116,4 +131,3 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     </div>
   );
 }
-

@@ -33,7 +33,7 @@ function toProductBasePriceApiString(value: unknown): string {
 }
 
 function normalizeProductWritePayload(
-  data: Omit<ProductDto, "id">
+  data: Omit<ProductDto, "id">,
 ): Record<string, unknown> {
   const { basePrice, ...rest } = data;
   return {
@@ -53,7 +53,7 @@ export class ApiProductRepository implements IProductRepository {
     const res = await this.httpClient.get<
       ProductDto[] | { data?: ProductDto[] }
     >(API_ENDPOINTS.PRODUCTS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
+    const list = Array.isArray(res) ? res : (res?.data ?? []);
     const dtos = Array.isArray(list) ? list : [];
     return dtos
       .filter((dto): dto is ProductDto & { id: string } => !!dto?.id)
@@ -63,7 +63,7 @@ export class ApiProductRepository implements IProductRepository {
   async getById(id: string): Promise<Product | null> {
     try {
       const dto = await this.httpClient.get<ProductDto>(
-        API_ENDPOINTS.PRODUCTS.BY_ID(id)
+        API_ENDPOINTS.PRODUCTS.BY_ID(id),
       );
       if (!dto?.id) return null;
       return toProduct(dto as ProductDto & { id: string });
@@ -75,7 +75,7 @@ export class ApiProductRepository implements IProductRepository {
   async create(data: Omit<ProductDto, "id">): Promise<Product> {
     const dto = await this.httpClient.post<ProductDto>(
       API_ENDPOINTS.PRODUCTS.CREATE,
-      normalizeProductWritePayload(data)
+      normalizeProductWritePayload(data),
     );
     if (!dto?.id) throw new Error("Create product response missing id");
     return toProduct(dto as ProductDto & { id: string });
@@ -84,7 +84,7 @@ export class ApiProductRepository implements IProductRepository {
   async update(id: string, data: Omit<ProductDto, "id">): Promise<Product> {
     const dto = await this.httpClient.patch<ProductDto>(
       API_ENDPOINTS.PRODUCTS.UPDATE(id),
-      normalizeProductWritePayload(data)
+      normalizeProductWritePayload(data),
     );
     return toProduct({ ...dto, id: dto?.id ?? id } as ProductDto & {
       id: string;

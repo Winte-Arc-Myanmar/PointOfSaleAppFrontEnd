@@ -25,7 +25,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
     const res = await this.httpClient.get<
       CustomerDto[] | { data?: CustomerDto[] }
     >(API_ENDPOINTS.CUSTOMERS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
+    const list = Array.isArray(res) ? res : (res?.data ?? []);
     const dtos = Array.isArray(list) ? list : [];
     return dtos
       .filter((dto): dto is CustomerDto & { id: string } => !!dto?.id)
@@ -35,7 +35,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async getById(id: string): Promise<Customer | null> {
     try {
       const dto = await this.httpClient.get<CustomerDto>(
-        API_ENDPOINTS.CUSTOMERS.BY_ID(id)
+        API_ENDPOINTS.CUSTOMERS.BY_ID(id),
       );
       if (!dto?.id) return null;
       return toCustomer(dto as CustomerDto & { id: string });
@@ -47,7 +47,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async create(data: Omit<CustomerDto, "id">): Promise<Customer> {
     const dto = await this.httpClient.post<CustomerDto>(
       API_ENDPOINTS.CUSTOMERS.CREATE,
-      data
+      data,
     );
     if (!dto?.id) throw new Error("Create customer response missing id");
     return toCustomer(dto as CustomerDto & { id: string });
@@ -56,7 +56,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async update(id: string, data: Omit<CustomerDto, "id">): Promise<Customer> {
     const dto = await this.httpClient.patch<CustomerDto>(
       API_ENDPOINTS.CUSTOMERS.UPDATE(id),
-      data
+      data,
     );
     return toCustomer({ ...dto, id: dto?.id ?? id } as CustomerDto & {
       id: string;
@@ -67,4 +67,3 @@ export class ApiCustomerRepository implements ICustomerRepository {
     await this.httpClient.delete(API_ENDPOINTS.CUSTOMERS.DELETE(id));
   }
 }
-
