@@ -32,6 +32,7 @@ import {
   CreditCard,
   ShoppingCart,
   RotateCcw,
+  BookText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -101,6 +102,12 @@ const allMenuItems: MenuItem[] = [
     label: "Payment methods",
     icon: CreditCard,
     permissions: ["payment-methods:read"],
+  },
+  {
+    href: "/chart-of-accounts",
+    label: "Chart of Accounts",
+    icon: BookText,
+    permissions: ["chart-of-accounts:read"],
   },
   {
     href: "/checkout",

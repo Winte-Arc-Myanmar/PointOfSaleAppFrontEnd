@@ -201,6 +201,13 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/payment-methods/${id}`,
     DELETE: (id: string) => `/v1/payment-methods/${id}`,
   },
+  CHART_OF_ACCOUNTS: {
+    LIST: "/v1/chart-of-accounts",
+    BY_ID: (id: string) => `/v1/chart-of-accounts/${id}`,
+    CREATE: "/v1/chart-of-accounts",
+    UPDATE: (id: string) => `/v1/chart-of-accounts/${id}`,
+    DELETE: (id: string) => `/v1/chart-of-accounts/${id}`,
+  },
   CHECKOUT: {
     PROCESS: "/v1/checkout",
     VOID: (id: string) => `/v1/checkout/${id}/void`,

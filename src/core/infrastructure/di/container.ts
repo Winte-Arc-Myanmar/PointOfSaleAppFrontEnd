@@ -56,6 +56,8 @@ import { PosRegisterService } from "@/core/application/services/PosRegisterServi
 import { PosSessionService } from "@/core/application/services/PosSessionService";
 import { ApiPaymentMethodRepository } from "../repositories/ApiPaymentMethodRepository";
 import { PaymentMethodService } from "@/core/application/services/PaymentMethodService";
+import { ApiChartOfAccountRepository } from "../repositories/ApiChartOfAccountRepository";
+import { ChartOfAccountService } from "@/core/application/services/ChartOfAccountService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -114,6 +116,8 @@ import type { IPosSessionRepository } from "@/core/domain/repositories/IPosSessi
 import type { IPosSessionService } from "@/core/domain/services/IPosSessionService";
 import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPaymentMethodRepository";
 import type { IPaymentMethodService } from "@/core/domain/services/IPaymentMethodService";
+import type { IChartOfAccountRepository } from "@/core/domain/repositories/IChartOfAccountRepository";
+import type { IChartOfAccountService } from "@/core/domain/services/IChartOfAccountService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -192,6 +196,8 @@ class Container {
     const posSessionService = new PosSessionService(posSessionRepository);
     const paymentMethodRepository = new ApiPaymentMethodRepository(httpClient);
     const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
+    const chartOfAccountRepository = new ApiChartOfAccountRepository(httpClient);
+    const chartOfAccountService = new ChartOfAccountService(chartOfAccountRepository);
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -303,6 +309,14 @@ class Container {
       paymentMethodRepository
     );
     this.register<IPaymentMethodService>("paymentMethodService", paymentMethodService);
+    this.register<IChartOfAccountRepository>(
+      "chartOfAccountRepository",
+      chartOfAccountRepository
+    );
+    this.register<IChartOfAccountService>(
+      "chartOfAccountService",
+      chartOfAccountService
+    );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
     this.register<IReceiptRepository>("receiptRepository", receiptRepository);
