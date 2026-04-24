@@ -6,6 +6,7 @@ import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import {
   useDeletePaymentMethod,
   usePaymentMethods,
@@ -17,6 +18,7 @@ import { getPaymentMethodTableColumns } from "./payment-method-table-columns";
 
 const CREATE_FORM_ID = "create-payment-method-form";
 const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 10;
 
 export function PaymentMethodList() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export function PaymentMethodList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -34,11 +37,19 @@ export function PaymentMethodList() {
 
   const { data: methods = [], isLoading, error, refetch } = usePaymentMethods({
     search: search || undefined,
-    page: 1,
-    limit: 50,
+    page: pagination.page,
+    limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  useEffect(() => {
+    pagination.observePageResult(methods.length);
+  }, [methods.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -91,6 +102,10 @@ export function PaymentMethodList() {
         </div>
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="New Method"
       createTitle="Create Payment Method"
       createSubmitText="Create Method"

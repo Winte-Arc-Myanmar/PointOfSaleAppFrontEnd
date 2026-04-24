@@ -91,3 +91,5 @@ export class ApiLoyaltyLedgerRepository implements ILoyaltyLedgerRepository {
     await this.httpClient.delete(endpoints.DELETE(id));
   }
 }
+
+

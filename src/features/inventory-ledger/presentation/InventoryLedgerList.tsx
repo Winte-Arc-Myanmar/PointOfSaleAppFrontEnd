@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScrollText } from "lucide-react";
 import {
@@ -8,6 +8,7 @@ import {
   useInventoryLedgerExpiring,
   useDeleteInventoryLedgerEntry,
 } from "@/presentation/hooks/useInventoryLedger";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 
 const CREATE_FORM_ID = "create-inventory-ledger-form";
 const WRITE_OFF_FORM_ID = "write-off-inventory-form";
+const PAGE_SIZE = 10;
 
 type View = "all" | "expiring" | "balance";
 
@@ -40,13 +42,18 @@ export function InventoryLedgerList() {
   const [expiringDays, setExpiringDays] = useState(30);
   const [writeOffOpen, setWriteOffOpen] = useState(false);
   const [writeOffLoading, setWriteOffLoading] = useState(false);
+  const paginationAll = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const paginationExpiring = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   const {
     data: allRows = [],
     isLoading: allLoading,
     error: allError,
     refetch: refetchAll,
-  } = useInventoryLedger({ page: 1, limit: 50 }, { enabled: view === "all" });
+  } = useInventoryLedger(
+    { page: paginationAll.page, limit: PAGE_SIZE },
+    { enabled: view === "all" }
+  );
 
   const {
     data: expiringRows = [],
@@ -54,7 +61,7 @@ export function InventoryLedgerList() {
     error: expiringError,
     refetch: refetchExpiring,
   } = useInventoryLedgerExpiring(
-    { page: 1, limit: 50, days: expiringDays },
+    { page: paginationExpiring.page, limit: PAGE_SIZE, days: expiringDays },
     { enabled: view === "expiring" }
   );
 
@@ -68,6 +75,20 @@ export function InventoryLedgerList() {
     view === "expiring" ? expiringLoading : view === "all" ? allLoading : false;
   const error = view === "expiring" ? expiringError : view === "all" ? allError : null;
   const refetch = view === "expiring" ? refetchExpiring : refetchAll;
+  const pagination = view === "expiring" ? paginationExpiring : paginationAll;
+
+  useEffect(() => {
+    if (view === "all") paginationAll.observePageResult(allRows.length);
+  }, [allRows.length, paginationAll, view]);
+
+  useEffect(() => {
+    if (view === "expiring")
+      paginationExpiring.observePageResult(expiringRows.length);
+  }, [expiringRows.length, paginationExpiring, view]);
+
+  useEffect(() => {
+    if (view === "expiring") paginationExpiring.reset(1);
+  }, [expiringDays, paginationExpiring, view]);
 
   const actions = useMemo(
     () =>
@@ -164,6 +185,10 @@ export function InventoryLedgerList() {
               : undefined
           }
           pageSize={10}
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          onPageChange={(p) => pagination.setPage(p)}
           showTopContent={view === "expiring"}
           topContent={expiringFilter}
           addLabel="New entry"

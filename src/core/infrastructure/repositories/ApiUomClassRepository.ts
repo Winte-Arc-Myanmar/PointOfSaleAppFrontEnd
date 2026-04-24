@@ -66,3 +66,5 @@ export class ApiUomClassRepository implements IUomClassRepository {
     await this.httpClient.delete(API_ENDPOINTS.UOM_CLASSES.DELETE(id));
   }
 }
+
+

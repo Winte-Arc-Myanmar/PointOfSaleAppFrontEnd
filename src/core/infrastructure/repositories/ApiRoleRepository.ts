@@ -39,9 +39,27 @@ function normalizeRoleList(payload: unknown): RoleDto[] {
 export class ApiRoleRepository implements IRoleRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(): Promise<Role[]> {
-    const data = await this.httpClient.get<unknown>(API_ENDPOINTS.ROLES.LIST);
-    return normalizeRoleList(data).map(toRole);
+  async getAll(params?: { page?: number; limit?: number }): Promise<Role[]> {
+    const query = {
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10,
+    };
+    const data = await this.httpClient.get<unknown>(API_ENDPOINTS.ROLES.LIST, {
+      params: query,
+    });
+    const all = normalizeRoleList(data);
+
+    // Some backends ignore page/limit and always return the full list.
+    // If that happens, slice locally so UI pagination doesn't become "infinite".
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const start = Math.max(0, (page - 1) * limit);
+    const pageItems =
+      params && Array.isArray(all) && all.length > limit
+        ? all.slice(start, start + limit)
+        : all;
+
+    return pageItems.map(toRole);
   }
 
   async getById(id: string): Promise<Role> {
@@ -63,4 +81,5 @@ export class ApiRoleRepository implements IRoleRepository {
     await this.httpClient.post(API_ENDPOINTS.ROLES.ASSIGN_PERMISSIONS(roleId), body);
   }
 }
+
 

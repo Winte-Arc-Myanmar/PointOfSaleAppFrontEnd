@@ -10,6 +10,7 @@ import {
   useCustomers,
   useDeleteCustomer,
 } from "@/presentation/hooks/useCustomers";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { Customer } from "@/core/domain/entities/Customer";
 import { CreateCustomerForm } from "./CreateCustomerForm";
 import { getCustomerRowActions } from "./customer-row-actions";
@@ -18,6 +19,7 @@ import { getCustomerTableColumns } from "./customer-table-columns";
 const CREATE_CUSTOMER_FORM_ID = "create-customer-form";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 10;
 
 export interface CustomerListProps {
   showSearch?: boolean;
@@ -31,6 +33,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(
@@ -46,8 +49,19 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     error,
     refetch,
   } = useCustomers({
+    page: pagination.page,
+    limit: PAGE_SIZE,
     search: search || undefined,
   });
+
+  useEffect(() => {
+    pagination.observePageResult(customers.length);
+  }, [customers.length, pagination]);
+
+  useEffect(() => {
+    // New search => go back to page 1 and drop any inferred max page.
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -114,6 +128,10 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
             : undefined
         }
         pageSize={10}
+        currentPage={pagination.page}
+        totalPages={pagination.totalPages}
+        totalItems={pagination.totalItems}
+        onPageChange={(p) => pagination.setPage(p)}
         addLabel="Add Customer"
         createTitle="Create Customer"
         createSubmitText="Create Customer"

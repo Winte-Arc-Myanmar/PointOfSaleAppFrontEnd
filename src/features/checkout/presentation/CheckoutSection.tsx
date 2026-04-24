@@ -61,7 +61,8 @@ function money4(n: number): string {
 function resolveProductImageSrc(url: string): string {
   const trimmed = url.trim();
   if (!trimmed) return "";
-  if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed))
+    return trimmed;
   return resolveMediaUrl(trimmed);
 }
 
@@ -70,7 +71,11 @@ function safeRate(val: unknown): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-function calcTax(amount: number, rate: number, isPriceInclusive: boolean): number {
+function calcTax(
+  amount: number,
+  rate: number,
+  isPriceInclusive: boolean,
+): number {
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   const r = safeRate(rate);
   if (r <= 0) return 0;
@@ -100,7 +105,8 @@ function calcLineTotals(args: {
   const rate = safeRate(args.taxRate);
   const inclusive = Boolean(args.isPriceInclusive);
 
-  const taxAmount = taxable && rate > 0 ? calcTax(netOrGross, rate, inclusive) : 0;
+  const taxAmount =
+    taxable && rate > 0 ? calcTax(netOrGross, rate, inclusive) : 0;
   const lineTotal = inclusive ? netOrGross : netOrGross + taxAmount;
 
   return { netOrGross, taxAmount, lineTotal };
@@ -795,7 +801,9 @@ export function CheckoutSection() {
             disabled={checkout.isPending || items.fields.length === 0}
             className="w-full h-14 text-base font-semibold bg-mint text-gloss-black hover:bg-mint-hover"
           >
-            {checkout.isPending ? "Processing..." : `Charge ${money4(subtotal)}`}
+            {checkout.isPending
+              ? "Processing..."
+              : `Charge ${money4(subtotal)}`}
           </Button>
         </div>
 
@@ -864,7 +872,9 @@ export function CheckoutSection() {
                               const unit = Number(p.basePrice) || 0;
                               const taxable = Boolean(p.isTaxable);
                               const rate = p.taxRateRatePercentage ?? 0;
-                              const inclusive = Boolean(p.taxRateIsPriceInclusive);
+                              const inclusive = Boolean(
+                                p.taxRateIsPriceInclusive,
+                              );
                               if (!taxable) return unit;
                               if (inclusive) return unit;
                               return unit + calcTax(unit, rate, false);
@@ -1160,7 +1170,8 @@ function VariantPickerModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {variants.map((v) => {
                 const baseUnit =
-                  (Number(product.basePrice) || 0) + (Number(v.priceModifier) || 0);
+                  (Number(product.basePrice) || 0) +
+                  (Number(v.priceModifier) || 0);
                 const price = (() => {
                   const taxable = Boolean(product.isTaxable);
                   const rate = product.taxRateRatePercentage ?? 0;

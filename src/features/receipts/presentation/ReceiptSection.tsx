@@ -4,7 +4,12 @@ import Link from "next/link";
 import { ReceiptText, Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
-import { DetailPageHeader, DetailSection, DetailRows, formatDate } from "@/presentation/components/detail";
+import {
+  DetailPageHeader,
+  DetailSection,
+  DetailRows,
+  formatDate,
+} from "@/presentation/components/detail";
 import { useReceipt } from "@/presentation/hooks/useReceipts";
 
 function money(n: number): string {
@@ -14,7 +19,10 @@ function money(n: number): string {
 export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
   const { data: receipt, isLoading, error, refetch } = useReceipt(salesOrderId);
 
-  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading receipt..." />;
+  if (isLoading)
+    return (
+      <AppLoader fullScreen={false} size="md" message="Loading receipt..." />
+    );
   if (error || !receipt) {
     return (
       <div className="space-y-4">
@@ -51,15 +59,16 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
                 { label: "Website", value: receipt.header.website ?? "—" },
                 {
                   label: "Address",
-                  value: [
-                    receipt.header.address,
-                    receipt.header.city,
-                    receipt.header.state,
-                    receipt.header.zipCode,
-                    receipt.header.country,
-                  ]
-                    .filter(Boolean)
-                    .join(", ") || "—",
+                  value:
+                    [
+                      receipt.header.address,
+                      receipt.header.city,
+                      receipt.header.state,
+                      receipt.header.zipCode,
+                      receipt.header.country,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "—",
                 },
               ]}
             />
@@ -76,8 +85,14 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
                     ? formatDate(receipt.orderInfo.dateTime)
                     : "—",
                 },
-                { label: "Channel", value: receipt.orderInfo.salesChannel ?? "—" },
-                { label: "Location", value: receipt.orderInfo.locationName ?? "—" },
+                {
+                  label: "Channel",
+                  value: receipt.orderInfo.salesChannel ?? "—",
+                },
+                {
+                  label: "Location",
+                  value: receipt.orderInfo.locationName ?? "—",
+                },
               ]}
             />
           </DetailSection>
@@ -86,9 +101,15 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
             <DetailRows
               rows={[
                 { label: "Subtotal", value: money(receipt.totals.subtotal) },
-                { label: "Discount", value: money(receipt.totals.totalDiscount) },
+                {
+                  label: "Discount",
+                  value: money(receipt.totals.totalDiscount),
+                },
                 { label: "Tax", value: money(receipt.totals.totalTax) },
-                { label: "Grand total", value: money(receipt.totals.grandTotal) },
+                {
+                  label: "Grand total",
+                  value: money(receipt.totals.grandTotal),
+                },
               ]}
             />
           </DetailSection>
@@ -96,8 +117,14 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
           <DetailSection title="Payments" icon={ReceiptText}>
             <DetailRows
               rows={[
-                { label: "Total paid", value: money(receipt.paymentSummary.totalPaid) },
-                { label: "Change due", value: money(receipt.paymentSummary.changeDue) },
+                {
+                  label: "Total paid",
+                  value: money(receipt.paymentSummary.totalPaid),
+                },
+                {
+                  label: "Change due",
+                  value: money(receipt.paymentSummary.changeDue),
+                },
                 {
                   label: "Breakdown",
                   value:
@@ -136,7 +163,9 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
                       <td className="p-3 text-muted">{li.variantSku ?? "—"}</td>
                       <td className="p-3 text-muted">{li.quantity}</td>
                       <td className="p-3 text-muted">{money(li.unitPrice)}</td>
-                      <td className="p-3 text-muted">{money(li.lineDiscount)}</td>
+                      <td className="p-3 text-muted">
+                        {money(li.lineDiscount)}
+                      </td>
                       <td className="p-3 text-muted">{money(li.taxAmount)}</td>
                       <td className="p-3 font-medium">{money(li.lineTotal)}</td>
                     </tr>
@@ -158,7 +187,9 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
           <Printer className="mr-2 h-4 w-4" />
           Print
         </Button>
-        <Link href={`/refunds?salesOrderId=${encodeURIComponent(salesOrderId)}`}>
+        <Link
+          href={`/refunds?salesOrderId=${encodeURIComponent(salesOrderId)}`}
+        >
           <Button type="button" variant="outline" className="print:hidden">
             Start refund
           </Button>
@@ -167,4 +198,3 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
     </div>
   );
 }
-

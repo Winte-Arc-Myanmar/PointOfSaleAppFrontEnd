@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUsers, useDeleteUser } from "@/presentation/hooks/useUsers";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -12,13 +13,22 @@ import { CreateUserForm } from "./CreateUserForm";
 import type { AppUser } from "@/core/domain/entities/AppUser";
 
 const CREATE_USER_FORM_ID = "create-user-form";
+const PAGE_SIZE = 10;
 
 export function UserList() {
   const router = useRouter();
-  const { data: users = [], isLoading, error, refetch } = useUsers();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: users = [], isLoading, error, refetch } = useUsers({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteUser = useDeleteUser();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(users.length);
+  }, [users.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +72,10 @@ export function UserList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add User"
       createTitle="Create User"
       createSubmitText="Create User"

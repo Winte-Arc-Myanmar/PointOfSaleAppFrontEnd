@@ -1,24 +1,36 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteVendor, useVendors } from "@/presentation/hooks/useVendors";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { Vendor } from "@/core/domain/entities/Vendor";
 import { CreateVendorForm } from "./CreateVendorForm";
 import { getVendorRowActions } from "./vendor-row-actions";
 import { getVendorTableColumns } from "./vendor-table-columns";
 
 const CREATE_VENDOR_FORM_ID = "create-vendor-form";
+const PAGE_SIZE = 10;
 
 export function VendorList() {
   const router = useRouter();
-  const { data: vendors = [], isLoading, error, refetch } = useVendors();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const {
+    data: vendors = [],
+    isLoading,
+    error,
+    refetch,
+  } = useVendors({ page: pagination.page, limit: PAGE_SIZE });
   const deleteVendor = useDeleteVendor();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(vendors.length);
+  }, [vendors.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +74,10 @@ export function VendorList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Vendor"
       createTitle="Create Vendor"
       createSubmitText="Create Vendor"

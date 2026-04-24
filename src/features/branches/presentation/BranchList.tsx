@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useBranches, useDeleteBranch } from "@/presentation/hooks/useBranches";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -12,13 +13,22 @@ import { CreateBranchForm } from "./CreateBranchForm";
 import type { Branch } from "@/core/domain/entities/Branch";
 
 const CREATE_BRANCH_FORM_ID = "create-branch-form";
+const PAGE_SIZE = 10;
 
 export function BranchList() {
   const router = useRouter();
-  const { data: branches = [], isLoading, error, refetch } = useBranches();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: branches = [], isLoading, error, refetch } = useBranches({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteBranch = useDeleteBranch();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(branches.length);
+  }, [branches.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +72,10 @@ export function BranchList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Branch"
       createTitle="Create Branch"
       createSubmitText="Create Branch"

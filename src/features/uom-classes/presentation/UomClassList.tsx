@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUomClasses, useDeleteUomClass } from "@/presentation/hooks/useUomClasses";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -12,13 +13,22 @@ import { CreateUomClassForm } from "./CreateUomClassForm";
 import type { UomClass } from "@/core/domain/entities/UomClass";
 
 const CREATE_UOM_CLASS_FORM_ID = "create-uom-class-form";
+const PAGE_SIZE = 10;
 
 export function UomClassList() {
   const router = useRouter();
-  const { data: uomClasses = [], isLoading, error, refetch } = useUomClasses();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: uomClasses = [], isLoading, error, refetch } = useUomClasses({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteUomClass = useDeleteUomClass();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(uomClasses.length);
+  }, [uomClasses.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +72,10 @@ export function UomClassList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add UOM Class"
       createTitle="Create UOM Class"
       createSubmitText="Create UOM Class"
