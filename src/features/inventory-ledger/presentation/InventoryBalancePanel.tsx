@@ -39,11 +39,12 @@ function formatBalancePayload(data: unknown): string {
 }
 
 function pickBalanceSummary(
-  payload: unknown
+  payload: unknown,
 ): { variantId?: string; locationId?: string; balance?: number } | null {
   if (payload == null || typeof payload !== "object") return null;
   const rec = payload as Record<string, unknown>;
-  const variantId = typeof rec.variantId === "string" ? rec.variantId : undefined;
+  const variantId =
+    typeof rec.variantId === "string" ? rec.variantId : undefined;
   const locationId =
     typeof rec.locationId === "string" ? rec.locationId : undefined;
   const balance =
@@ -72,13 +73,11 @@ export function InventoryBalancePanel() {
   });
 
   const productWatch = useWatch({ control: form.control, name: "productId" });
-  const { data: variants = [], isLoading: variantsLoading } = useProductVariants(
-    productWatch || null,
-    { page: 1, limit: 100 }
-  );
+  const { data: variants = [], isLoading: variantsLoading } =
+    useProductVariants(productWatch || null, { page: 1, limit: 100 });
 
   const filteredLocations = locations.filter((l) =>
-    lockedTenantId ? l.tenantId === lockedTenantId : true
+    lockedTenantId ? l.tenantId === lockedTenantId : true,
   );
 
   const onSubmit = (data: FormValues) => {
@@ -94,7 +93,7 @@ export function InventoryBalancePanel() {
           toast.error("Could not load balance.");
           setResult(null);
         },
-      }
+      },
     );
   };
 
@@ -103,7 +102,10 @@ export function InventoryBalancePanel() {
       <p className="text-sm text-muted">
         Select a variant and location to view the current balance.
       </p>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-xl">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4 max-w-xl"
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2 sm:col-span-2">
             <Label>Product</Label>
@@ -144,7 +146,9 @@ export function InventoryBalancePanel() {
                   disabled={!productWatch || variantsLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={variantsLoading ? "…" : "Variant"} />
+                    <SelectValue
+                      placeholder={variantsLoading ? "…" : "Variant"}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {variants.map((v) => (
@@ -191,7 +195,8 @@ export function InventoryBalancePanel() {
                 Balance summary
               </p>
               <p className="text-sm text-muted">
-                Current on-hand balance for the selected variant at this location.
+                Current on-hand balance for the selected variant at this
+                location.
               </p>
             </div>
             {(() => {

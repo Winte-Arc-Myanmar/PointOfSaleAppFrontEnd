@@ -4,15 +4,18 @@
  */
 
 import type { ITenantService } from "@/core/domain/services/ITenantService";
-import type { ITenantRepository } from "@/core/domain/repositories/ITenantRepository";
+import type {
+  GetTenantsParams,
+  ITenantRepository,
+} from "@/core/domain/repositories/ITenantRepository";
 import type { Tenant } from "@/core/domain/entities/Tenant";
 import type { TenantDto } from "../dtos/TenantDto";
 
 export class TenantService implements ITenantService {
   constructor(private readonly tenantRepository: ITenantRepository) {}
 
-  async getAll(): Promise<Tenant[]> {
-    return this.tenantRepository.getAll();
+  async getAll(params?: GetTenantsParams): Promise<Tenant[]> {
+    return this.tenantRepository.getAll(params);
   }
 
   async getById(id: string): Promise<Tenant | null> {

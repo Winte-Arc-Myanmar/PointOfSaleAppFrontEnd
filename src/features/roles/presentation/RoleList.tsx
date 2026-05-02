@@ -1,24 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
-import { useRoles, useDeleteRole } from "@/presentation/hooks/useRoles";
+import { useDeleteRole, useRolesPaged } from "@/presentation/hooks/useRoles";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { getRoleRowActions } from "./role-row-actions";
 import { getRoleTableColumns } from "./role-table-columns";
 import { CreateRoleForm } from "./CreateRoleForm";
 import type { Role } from "@/core/domain/entities/Role";
 
 const CREATE_ROLE_FORM_ID = "create-role-form";
+const PAGE_SIZE = 10;
 
 export function RoleList() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
-  const { data: roles = [], isLoading, error, refetch } = useRoles();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: roles = [], isLoading, error, refetch } = useRolesPaged({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteRole = useDeleteRole();
+
+  useEffect(() => {
+    pagination.observePageResult(roles.length);
+  }, [roles.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +72,10 @@ export function RoleList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Role"
       createTitle="Create Role"
       createSubmitText="Create Role"

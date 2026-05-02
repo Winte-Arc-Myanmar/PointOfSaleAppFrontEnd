@@ -34,6 +34,10 @@ export interface Product {
   taxRateId?: string | null;
   /** Resolved when API embeds `taxRate` on product */
   taxRateName?: string;
+  /** Resolved when API embeds `taxRate` on product */
+  taxRateRatePercentage?: number;
+  /** Resolved when API embeds `taxRate` on product */
+  taxRateIsPriceInclusive?: boolean;
   deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;

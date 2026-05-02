@@ -4,15 +4,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import type { TenantDto } from "@/core/application/dtos/TenantDto";
+import type { GetTenantsParams } from "@/core/domain/repositories/ITenantRepository";
 
 const TENANTS_QUERY_KEY = ["tenants"];
 
-export function useTenants() {
+export function useTenants(params?: GetTenantsParams) {
   return useQuery({
-    queryKey: TENANTS_QUERY_KEY,
+    queryKey: [...TENANTS_QUERY_KEY, params?.page, params?.limit],
     queryFn: () => {
       const tenantService = container.resolve<ITenantService>("tenantService");
-      return tenantService.getAll();
+      return tenantService.getAll(params);
     },
   });
 }

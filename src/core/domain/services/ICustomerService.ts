@@ -14,4 +14,3 @@ export interface ICustomerService {
   update(id: string, data: Omit<CustomerDto, "id">): Promise<Customer>;
   delete(id: string): Promise<void>;
 }
-

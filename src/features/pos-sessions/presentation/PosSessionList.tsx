@@ -1,30 +1,37 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useDeletePosSession, usePosSessions } from "@/presentation/hooks/usePosSessions";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { PosSession } from "@/core/domain/entities/PosSession";
 import { CreatePosSessionForm } from "./CreatePosSessionForm";
 import { getPosSessionRowActions } from "./pos-session-row-actions";
 import { getPosSessionTableColumns } from "./pos-session-table-columns";
 
 const CREATE_FORM_ID = "create-pos-session-form";
+const PAGE_SIZE = 10;
 
 export function PosSessionList() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
   const del = useDeletePosSession();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   const { data: sessions = [], isLoading, error, refetch } = usePosSessions({
-    page: 1,
-    limit: 50,
+    page: pagination.page,
+    limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  useEffect(() => {
+    pagination.observePageResult(sessions.length);
+  }, [sessions.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -68,6 +75,10 @@ export function PosSessionList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="New Session"
       createTitle="Create POS Session"
       createSubmitText="Create session"

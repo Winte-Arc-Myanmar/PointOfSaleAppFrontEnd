@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   useLocations,
   useLocationTree,
   useDeleteLocation,
 } from "@/presentation/hooks/useLocations";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -17,15 +18,17 @@ import { LocationTreePanel } from "./LocationTreePanel";
 import type { Location } from "@/core/domain/entities/Location";
 
 const CREATE_LOCATION_FORM_ID = "create-location-form";
+const PAGE_SIZE = 10;
 
 export function LocationList() {
   const router = useRouter();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: locations = [],
     isLoading,
     error,
     refetch,
-  } = useLocations({ page: 1, limit: 50 });
+  } = useLocations({ page: pagination.page, limit: PAGE_SIZE });
   const {
     data: treeRoots = [],
     isLoading: treeLoading,
@@ -35,6 +38,10 @@ export function LocationList() {
   const deleteLocation = useDeleteLocation();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(locations.length);
+  }, [locations.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -79,6 +86,10 @@ export function LocationList() {
             : undefined
         }
         pageSize={10}
+        currentPage={pagination.page}
+        totalPages={pagination.totalPages}
+        totalItems={pagination.totalItems}
+        onPageChange={(p) => pagination.setPage(p)}
         addLabel="Add location"
         createTitle="Create location"
         createSubmitText="Create"

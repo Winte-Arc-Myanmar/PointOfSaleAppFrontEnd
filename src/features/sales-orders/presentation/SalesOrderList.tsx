@@ -7,6 +7,7 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteSalesOrder, useSalesOrders } from "@/presentation/hooks/useSalesOrders";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
 import { CreateSalesOrderForm } from "./CreateSalesOrderForm";
 import { getSalesOrderRowActions } from "./sales-order-row-actions";
@@ -14,6 +15,7 @@ import { getSalesOrderTableColumns } from "./sales-order-table-columns";
 
 const CREATE_FORM_ID = "create-sales-order-form";
 const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 10;
 
 export function SalesOrderList() {
   const router = useRouter();
@@ -23,6 +25,7 @@ export function SalesOrderList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -31,11 +34,19 @@ export function SalesOrderList() {
 
   const { data: orders = [], isLoading, error, refetch } = useSalesOrders({
     search: search || undefined,
-    page: 1,
-    limit: 50,
+    page: pagination.page,
+    limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  useEffect(() => {
+    pagination.observePageResult(orders.length);
+  }, [orders.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -88,6 +99,10 @@ export function SalesOrderList() {
         </div>
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="New Sales Order"
       createTitle="Create Sales Order"
       createSubmitText="Create Sales Order"

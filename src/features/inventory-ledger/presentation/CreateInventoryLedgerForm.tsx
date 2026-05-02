@@ -97,13 +97,11 @@ export function CreateInventoryLedgerForm({
 
   const tenantWatch = useWatch({ control, name: "tenantId" });
   const productWatch = useWatch({ control, name: "productId" });
-  const { data: variants = [], isLoading: variantsLoading } = useProductVariants(
-    productWatch || null,
-    { page: 1, limit: 100 }
-  );
+  const { data: variants = [], isLoading: variantsLoading } =
+    useProductVariants(productWatch || null, { page: 1, limit: 100 });
 
   const filteredLocations = locations.filter((l) =>
-    tenantWatch ? l.tenantId === tenantWatch : false
+    tenantWatch ? l.tenantId === tenantWatch : false,
   );
 
   useEffect(() => {
@@ -148,7 +146,7 @@ export function CreateInventoryLedgerForm({
           onSuccess?.();
         },
         onError: () => toast.error("Failed to create ledger entry."),
-      }
+      },
     );
   };
 
@@ -308,7 +306,11 @@ export function CreateInventoryLedgerForm({
         </div>
         <div className="grid gap-2">
           <Label htmlFor="ledger-ref">Reference ID (optional)</Label>
-          <Input id="ledger-ref" {...register("referenceId")} placeholder="UUID" />
+          <Input
+            id="ledger-ref"
+            {...register("referenceId")}
+            placeholder="UUID"
+          />
         </div>
       </div>
 
@@ -355,7 +357,11 @@ export function CreateInventoryLedgerForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="ledger-mfg">Manufacturing date</Label>
-          <Input id="ledger-mfg" type="date" {...register("manufacturingDate")} />
+          <Input
+            id="ledger-mfg"
+            type="date"
+            {...register("manufacturingDate")}
+          />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="ledger-exp">Expiry date</Label>
@@ -365,12 +371,15 @@ export function CreateInventoryLedgerForm({
 
       {!session?.user && (
         <p className="text-xs text-muted">
-          Sign in so we can send <code className="text-xs">createdBy</code> when your API requires it.
+          Sign in so we can send <code className="text-xs">createdBy</code> when
+          your API requires it.
         </p>
       )}
 
       {createEntry.isError && (
-        <p className="text-sm text-red-600">Request failed. Check values and try again.</p>
+        <p className="text-sm text-red-600">
+          Request failed. Check values and try again.
+        </p>
       )}
       {!formId && (
         <Button type="submit" disabled={createEntry.isPending}>

@@ -13,11 +13,16 @@ import { API_ENDPOINTS } from "../api/constants";
 export class ApiTenantRepository implements ITenantRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(): Promise<Tenant[]> {
-    const dtos = await this.httpClient.get<TenantDto[]>(
-      API_ENDPOINTS.TENANTS.LIST
+  async getAll(params?: { page?: number; limit?: number }): Promise<Tenant[]> {
+    const query = {
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10,
+    };
+    const res = await this.httpClient.get<TenantDto[] | { data?: TenantDto[] }>(
+      API_ENDPOINTS.TENANTS.LIST,
+      { params: query }
     );
-    const list = Array.isArray(dtos) ? dtos : [];
+    const list = Array.isArray(res) ? res : res?.data ?? [];
     return list
       .filter((dto): dto is TenantDto & { id: string } => !!dto.id)
       .map(toTenant);
@@ -56,3 +61,4 @@ export class ApiTenantRepository implements ITenantRepository {
     await this.httpClient.delete(API_ENDPOINTS.TENANTS.BY_ID(id));
   }
 }
+

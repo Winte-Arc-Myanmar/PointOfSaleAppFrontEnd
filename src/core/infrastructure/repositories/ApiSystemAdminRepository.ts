@@ -36,3 +36,4 @@ export class ApiSystemAdminRepository implements ISystemAdminRepository {
     await this.httpClient.post(API_ENDPOINTS.SYSTEM_ADMIN.ASSIGN_ROLE, data);
   }
 }
+

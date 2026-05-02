@@ -33,6 +33,8 @@ type ProductDtoRaw = Omit<ProductDto, "basePrice"> & {
   taxRate?: {
     id?: string;
     name?: string;
+    ratePercentage?: unknown;
+    isPriceInclusive?: boolean;
   };
   category?: {
     name?: string;
@@ -81,6 +83,14 @@ export function toProduct(dto: ProductDtoRaw): Product {
     isTaxable: dto.isTaxable,
     taxRateId: dto.taxRateId ?? dto.taxRate?.id ?? undefined,
     taxRateName: dto.taxRate?.name,
+    taxRateRatePercentage:
+      dto.taxRate?.ratePercentage != null
+        ? parseDecimalPrice(dto.taxRate.ratePercentage)
+        : undefined,
+    taxRateIsPriceInclusive:
+      dto.taxRate?.isPriceInclusive != null
+        ? Boolean(dto.taxRate.isPriceInclusive)
+        : undefined,
     deletedAt: dto.deletedAt ?? undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,

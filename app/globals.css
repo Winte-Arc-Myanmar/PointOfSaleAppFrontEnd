@@ -14,8 +14,8 @@
   /* Futuristic design tokens (no new colors) */
   --radius-panel: 0.75rem;
   --radius-input: 0.5rem;
-  --shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.06),
-    0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-panel:
+    0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
   --tracking-panel: 0.2em;
 }
 
@@ -103,17 +103,24 @@ body {
 /* Split-color text: top half = foreground, bottom half = animated mint water wave */
 @keyframes mint-wave {
   0% {
-    background-position: 0% 0, 0% 50%;
+    background-position:
+      0% 0,
+      0% 50%;
   }
   50% {
-    background-position: 0% 0, 100% 50%;
+    background-position:
+      0% 0,
+      100% 50%;
   }
   100% {
-    background-position: 0% 0, 200% 50%;
+    background-position:
+      0% 0,
+      200% 50%;
   }
 }
 .split-color-text {
-  background: linear-gradient(
+  background:
+    linear-gradient(
       to bottom,
       var(--color-foreground) 0%,
       var(--color-foreground) 48%,
@@ -130,10 +137,37 @@ body {
       #5ee89c 85%,
       #adffc3 100%
     );
-  background-size: 100% 100%, 300% 200%;
+  background-size:
+    100% 100%,
+    300% 200%;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: mint-wave 4s ease-in-out infinite;
   filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
+}
+
+/* Print only the receipt container. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  [data-print-receipt],
+  [data-print-receipt] * {
+    visibility: visible !important;
+  }
+
+  [data-print-receipt] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  @page {
+    margin: 12mm;
+  }
 }

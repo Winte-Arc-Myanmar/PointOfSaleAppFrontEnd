@@ -35,3 +35,4 @@ export class ApiAuthRepository implements IAuthRepository {
     await this.httpClient.post(API_ENDPOINTS.AUTH.REGISTER, data);
   }
 }
+

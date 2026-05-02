@@ -4,15 +4,18 @@
  */
 
 import type { IRoleService } from "@/core/domain/services/IRoleService";
-import type { IRoleRepository } from "@/core/domain/repositories/IRoleRepository";
+import type {
+  GetRolesParams,
+  IRoleRepository,
+} from "@/core/domain/repositories/IRoleRepository";
 import type { Role } from "@/core/domain/entities/Role";
 import type { CreateRoleDto } from "@/core/application/dtos/RoleDto";
 
 export class RoleService implements IRoleService {
   constructor(private readonly repo: IRoleRepository) {}
 
-  getAll(): Promise<Role[]> {
-    return this.repo.getAll();
+  getAll(params?: GetRolesParams): Promise<Role[]> {
+    return this.repo.getAll(params);
   }
 
   getById(id: string): Promise<Role> {

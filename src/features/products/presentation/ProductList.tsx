@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   useProducts,
   useDeleteProduct,
 } from "@/presentation/hooks/useProducts";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -15,13 +16,24 @@ import { CreateProductForm } from "./CreateProductForm";
 import type { Product } from "@/core/domain/entities/Product";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
+const PAGE_SIZE = 10;
 
 export function ProductList() {
   const router = useRouter();
-  const { data: products = [], isLoading, error, refetch } = useProducts();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const {
+    data: products = [],
+    isLoading,
+    error,
+    refetch,
+  } = useProducts({ page: pagination.page, limit: PAGE_SIZE });
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(products.length);
+  }, [products.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -43,7 +55,7 @@ export function ProductList() {
           }
         },
       }),
-    [router, deleteProduct, toast, confirm]
+    [router, deleteProduct, toast, confirm],
   );
 
   const columns = useMemo(() => getProductTableColumns(), []);
@@ -65,6 +77,10 @@ export function ProductList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Product"
       createTitle="Create Product"
       createSubmitText="Create Product"

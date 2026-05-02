@@ -56,6 +56,14 @@ import { PosRegisterService } from "@/core/application/services/PosRegisterServi
 import { PosSessionService } from "@/core/application/services/PosSessionService";
 import { ApiPaymentMethodRepository } from "../repositories/ApiPaymentMethodRepository";
 import { PaymentMethodService } from "@/core/application/services/PaymentMethodService";
+import { ApiChartOfAccountRepository } from "../repositories/ApiChartOfAccountRepository";
+import { ChartOfAccountService } from "@/core/application/services/ChartOfAccountService";
+import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
+import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
+import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
+import { CheckoutService } from "@/core/application/services/CheckoutService";
+import { ReceiptService } from "@/core/application/services/ReceiptService";
+import { RefundService } from "@/core/application/services/RefundService";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -108,6 +116,14 @@ import type { IPosSessionRepository } from "@/core/domain/repositories/IPosSessi
 import type { IPosSessionService } from "@/core/domain/services/IPosSessionService";
 import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPaymentMethodRepository";
 import type { IPaymentMethodService } from "@/core/domain/services/IPaymentMethodService";
+import type { IChartOfAccountRepository } from "@/core/domain/repositories/IChartOfAccountRepository";
+import type { IChartOfAccountService } from "@/core/domain/services/IChartOfAccountService";
+import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
+import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
+import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
+import type { ICheckoutService } from "@/core/domain/services/ICheckoutService";
+import type { IReceiptService } from "@/core/domain/services/IReceiptService";
+import type { IRefundService } from "@/core/domain/services/IRefundService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -180,6 +196,14 @@ class Container {
     const posSessionService = new PosSessionService(posSessionRepository);
     const paymentMethodRepository = new ApiPaymentMethodRepository(httpClient);
     const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
+    const chartOfAccountRepository = new ApiChartOfAccountRepository(httpClient);
+    const chartOfAccountService = new ChartOfAccountService(chartOfAccountRepository);
+    const checkoutRepository = new ApiCheckoutRepository(httpClient);
+    const checkoutService = new CheckoutService(checkoutRepository);
+    const receiptRepository = new ApiReceiptRepository(httpClient);
+    const receiptService = new ReceiptService(receiptRepository);
+    const refundRepository = new ApiRefundRepository(httpClient);
+    const refundService = new RefundService(refundRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -285,6 +309,20 @@ class Container {
       paymentMethodRepository
     );
     this.register<IPaymentMethodService>("paymentMethodService", paymentMethodService);
+    this.register<IChartOfAccountRepository>(
+      "chartOfAccountRepository",
+      chartOfAccountRepository
+    );
+    this.register<IChartOfAccountService>(
+      "chartOfAccountService",
+      chartOfAccountService
+    );
+    this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
+    this.register<ICheckoutService>("checkoutService", checkoutService);
+    this.register<IReceiptRepository>("receiptRepository", receiptRepository);
+    this.register<IReceiptService>("receiptService", receiptService);
+    this.register<IRefundRepository>("refundRepository", refundRepository);
+    this.register<IRefundService>("refundService", refundService);
   }
 
   register<T>(key: string, instance: T): void {

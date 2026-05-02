@@ -21,6 +21,11 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   emptyText: string;
   error?: { message: string; onRetry?: () => void };
   pageSize?: number;
+  /** Server-side pagination (optional). When provided, pagination controls will request pages from the parent. */
+  currentPage?: number;
+  totalPages?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
   topContent?: ReactNode;
   showTopContent?: boolean;
   addLabel: string;
@@ -42,6 +47,10 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   emptyText,
   error,
   pageSize = 10,
+  currentPage,
+  totalPages,
+  totalItems,
+  onPageChange,
   topContent,
   showTopContent = true,
   addLabel,
@@ -78,6 +87,10 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
         }}
         error={error}
         pageSize={pageSize}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={onPageChange}
       />
       <FormModal
         isOpen={createModalOpen}

@@ -19,4 +19,3 @@ export interface ICustomerRepository {
   update(id: string, data: Omit<CustomerDto, "id">): Promise<Customer>;
   delete(id: string): Promise<void>;
 }
-

@@ -24,7 +24,7 @@ export function CustomerInteractionsPageWithCustomerSelect() {
 
   const sorted = useMemo(
     () => [...customers].sort((a, b) => a.name.localeCompare(b.name)),
-    [customers]
+    [customers],
   );
 
   useEffect(() => {

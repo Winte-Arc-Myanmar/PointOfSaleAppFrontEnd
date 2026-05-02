@@ -21,6 +21,7 @@ const routeTitles: Record<string, string> = {
   "/admin/create-user": "Create user",
   "/admin/assign-permissions": "Assign permissions",
   "/admin/assign-role": "Assign role",
+  "/chart-of-accounts": "Chart of Accounts",
 };
 
 function getTitle(pathname: string): string {
@@ -52,6 +53,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
     return "Edit product";
   if (pathname.startsWith("/products/")) return "Product";
+  if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
+    return "Edit chart account";
+  if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
   return routeTitles[pathname] ?? "";
 }
 

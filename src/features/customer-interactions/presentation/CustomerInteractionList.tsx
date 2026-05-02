@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -9,12 +9,14 @@ import {
   useCustomerInteractions,
   useDeleteCustomerInteraction,
 } from "@/presentation/hooks/useCustomerInteractions";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { CustomerInteraction } from "@/core/domain/entities/CustomerInteraction";
 import { CreateCustomerInteractionForm } from "./CreateCustomerInteractionForm";
 import { getCustomerInteractionRowActions } from "./customer-interaction-row-actions";
 import { getCustomerInteractionTableColumns } from "./customer-interaction-table-columns";
 
 const CREATE_FORM_ID = "create-customer-interaction-form";
+const PAGE_SIZE = 10;
 
 export interface CustomerInteractionListProps {
   customerId: string;
@@ -30,11 +32,16 @@ export function CustomerInteractionList({
   routeBasePath,
 }: CustomerInteractionListProps) {
   const router = useRouter();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const { data: rows = [], isLoading, error, refetch } =
-    useCustomerInteractions(customerId);
+    useCustomerInteractions(customerId, { page: pagination.page, limit: PAGE_SIZE });
   const deleteInteraction = useDeleteCustomerInteraction();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(rows.length);
+  }, [rows.length, pagination]);
 
   const basePath =
     routeBasePath ?? `/customers/${customerId}/interactions`;
@@ -84,6 +91,10 @@ export function CustomerInteractionList({
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add interaction"
       createTitle="Log customer interaction"
       createSubmitText="Create interaction"

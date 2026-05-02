@@ -83,13 +83,11 @@ export function WriteOffInventoryForm({
 
   const tenantWatch = useWatch({ control, name: "tenantId" });
   const productWatch = useWatch({ control, name: "productId" });
-  const { data: variants = [], isLoading: variantsLoading } = useProductVariants(
-    productWatch || null,
-    { page: 1, limit: 100 }
-  );
+  const { data: variants = [], isLoading: variantsLoading } =
+    useProductVariants(productWatch || null, { page: 1, limit: 100 });
 
   const filteredLocations = locations.filter((l) =>
-    tenantWatch ? l.tenantId === tenantWatch : false
+    tenantWatch ? l.tenantId === tenantWatch : false,
   );
 
   useEffect(() => {
@@ -122,7 +120,7 @@ export function WriteOffInventoryForm({
           onSuccess?.();
         },
         onError: () => toast.error("Write-off failed."),
-      }
+      },
     );
   };
 
@@ -201,7 +199,9 @@ export function WriteOffInventoryForm({
                 disabled={!productWatch || variantsLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={variantsLoading ? "…" : "Variant"} />
+                  <SelectValue
+                    placeholder={variantsLoading ? "…" : "Variant"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {variants.map((v) => (
@@ -222,7 +222,11 @@ export function WriteOffInventoryForm({
           control={control}
           name="locationId"
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange} disabled={!tenantWatch}>
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={!tenantWatch}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Location" />
               </SelectTrigger>

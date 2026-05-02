@@ -6,6 +6,7 @@ import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import {
   useDeletePromotionRule,
   usePromotionRules,
@@ -17,6 +18,7 @@ import { getPromotionRuleTableColumns } from "./promotion-rule-table-columns";
 
 const CREATE_FORM_ID = "create-promotion-rule-form";
 const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 10;
 
 export function PromotionRuleList() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export function PromotionRuleList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -34,11 +37,19 @@ export function PromotionRuleList() {
 
   const { data: rules = [], isLoading, error, refetch } = usePromotionRules({
     search: search || undefined,
-    page: 1,
-    limit: 50,
+    page: pagination.page,
+    limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  useEffect(() => {
+    pagination.observePageResult(rules.length);
+  }, [rules.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -91,6 +102,10 @@ export function PromotionRuleList() {
         </div>
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="New Rule"
       createTitle="Create Promotion Rule"
       createSubmitText="Create Rule"

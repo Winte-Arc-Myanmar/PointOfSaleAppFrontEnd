@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -9,12 +9,14 @@ import {
   useDeleteLoyaltyLedgerEntry,
   useLoyaltyLedgerEntries,
 } from "@/presentation/hooks/useLoyaltyLedger";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
 import { CreateLoyaltyLedgerForm } from "./CreateLoyaltyLedgerForm";
 import { getLoyaltyLedgerRowActions } from "./loyalty-ledger-row-actions";
 import { getLoyaltyLedgerTableColumns } from "./loyalty-ledger-table-columns";
 
 const CREATE_LOYALTY_LEDGER_FORM_ID = "create-loyalty-ledger-form";
+const PAGE_SIZE = 10;
 
 export interface LoyaltyLedgerListProps {
   customerId: string;
@@ -27,15 +29,20 @@ export function LoyaltyLedgerList({
   routeBasePath,
 }: LoyaltyLedgerListProps) {
   const router = useRouter();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: entries = [],
     isLoading,
     error,
     refetch,
-  } = useLoyaltyLedgerEntries(customerId);
+  } = useLoyaltyLedgerEntries(customerId, { page: pagination.page, limit: PAGE_SIZE });
   const deleteEntry = useDeleteLoyaltyLedgerEntry();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(entries.length);
+  }, [entries.length, pagination]);
 
   const basePath =
     routeBasePath ?? `/customers/${customerId}/loyalty-ledger`;
@@ -85,6 +92,10 @@ export function LoyaltyLedgerList({
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add entry"
       createTitle="Create loyalty ledger entry"
       createSubmitText="Create entry"

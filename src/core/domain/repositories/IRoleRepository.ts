@@ -6,8 +6,13 @@
 import type { Role } from "@/core/domain/entities/Role";
 import type { CreateRoleDto } from "@/core/application/dtos/RoleDto";
 
+export interface GetRolesParams {
+  page?: number;
+  limit?: number;
+}
+
 export interface IRoleRepository {
-  getAll(): Promise<Role[]>;
+  getAll(params?: GetRolesParams): Promise<Role[]>;
   getById(id: string): Promise<Role>;
   create(data: CreateRoleDto): Promise<Role>;
   delete(id: string): Promise<void>;

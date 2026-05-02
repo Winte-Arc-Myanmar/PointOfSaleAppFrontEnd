@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -12,13 +13,22 @@ import { CreateCategoryForm } from "./CreateCategoryForm";
 import type { Category } from "@/core/domain/entities/Category";
 
 const CREATE_CATEGORY_FORM_ID = "create-category-form";
+const PAGE_SIZE = 10;
 
 export function CategoryList() {
   const router = useRouter();
-  const { data: categories = [], isLoading, error, refetch } = useCategories();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: categories = [], isLoading, error, refetch } = useCategories({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteCategory = useDeleteCategory();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(categories.length);
+  }, [categories.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -62,6 +72,10 @@ export function CategoryList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Category"
       createTitle="Create Category"
       createSubmitText="Create Category"

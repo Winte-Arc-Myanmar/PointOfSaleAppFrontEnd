@@ -174,7 +174,14 @@ export function DataTable<T extends { id: string | number }>({
   const pageIndex = hasServerPagination
     ? (currentPage ?? 1) - 1
     : table.getState().pagination.pageIndex;
-  const pageCount = hasServerPagination ? totalPages : table.getPageCount();
+  const pageCount = hasServerPagination
+    ? // Some APIs don't return total pages. When server pagination is enabled,
+      // infer at least one more page if the current page is "full".
+      Math.max(
+        totalPages,
+        data.length >= pageSize ? pageIndex + 2 : pageIndex + 1
+      )
+    : table.getPageCount();
   const total = hasServerPagination ? totalItems : data.length;
   const start = hasServerPagination
     ? pageIndex * (table.getState().pagination?.pageSize ?? pageSize) + 1
@@ -353,7 +360,7 @@ export function DataTable<T extends { id: string | number }>({
                   </TableHead>
                 ))}
                 {hasActions && (
-                  <TableHead className="w-[100px] section-label">Actions</TableHead>
+                  <TableHead className="w-25 section-label">Actions</TableHead>
                 )}
               </TableRow>
             ))}
@@ -429,8 +436,9 @@ export function DataTable<T extends { id: string | number }>({
       )}
 
       {!error &&
-        pageCount > 1 &&
-        (hasServerPagination ? onPageChange : true) && (
+        // Server-side lists should always show the pager (even when there's only 1 page),
+        // so users can see current page and navigate back from page > 1.
+        (hasServerPagination ? !!onPageChange : pageCount > 1) && (
           <div className="flex items-center justify-between px-2 py-4">
             <p className="page-description text-sm">
               Showing {total === 0 ? 0 : start} to {end} of {total} results
@@ -455,7 +463,12 @@ export function DataTable<T extends { id: string | number }>({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={pageIndex >= pageCount - 1}
+                disabled={
+                  hasServerPagination
+                    ? // If we don't know real totals, allow "Next" only when we got a full page.
+                      !(data.length >= pageSize)
+                    : pageIndex >= pageCount - 1
+                }
                 onClick={() =>
                   hasServerPagination
                     ? onPageChange?.(pageIndex + 2)

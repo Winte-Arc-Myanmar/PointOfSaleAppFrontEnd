@@ -1,25 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useSystemAdminDeleteTenant } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { getTenantRowActions } from "./tenant-row-actions";
 import { getTenantTableColumns } from "./tenant-table-columns";
 import { CreateTenantForm } from "./CreateTenantForm";
 import type { Tenant } from "@/core/domain/entities/Tenant";
 
 const CREATE_TENANT_FORM_ID = "create-tenant-form";
+const PAGE_SIZE = 10;
 
 export function TenantList() {
   const router = useRouter();
-  const { data: tenants = [], isLoading, error, refetch } = useTenants();
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: tenants = [], isLoading, error, refetch } = useTenants({
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
   const deleteTenant = useSystemAdminDeleteTenant();
   const toast = useToast();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    pagination.observePageResult(tenants.length);
+  }, [tenants.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -63,6 +73,10 @@ export function TenantList() {
           : undefined
       }
       pageSize={10}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={(p) => pagination.setPage(p)}
       addLabel="Add Tenant"
       createTitle="Create Tenant"
       createSubmitText="Create Tenant"

@@ -5,6 +5,7 @@ import container from "@/core/infrastructure/di/container";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
 import type { Role } from "@/core/domain/entities/Role";
 import type { CreateRoleDto } from "@/core/application/dtos/RoleDto";
+import type { GetRolesParams } from "@/core/domain/repositories/IRoleRepository";
 
 const ROLES_QUERY_KEY = ["roles"];
 
@@ -14,8 +15,15 @@ function getService() {
 
 export function useRoles() {
   return useQuery({
-    queryKey: ROLES_QUERY_KEY,
+    queryKey: [...ROLES_QUERY_KEY],
     queryFn: () => getService().getAll(),
+  });
+}
+
+export function useRolesPaged(params?: GetRolesParams) {
+  return useQuery({
+    queryKey: [...ROLES_QUERY_KEY, params?.page, params?.limit],
+    queryFn: () => getService().getAll(params),
   });
 }
 
