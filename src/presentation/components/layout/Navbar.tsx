@@ -31,14 +31,14 @@ export function Navbar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur-sm lg:px-6",
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-gray-300 bg-white/95 px-4 backdrop-blur-sm dark:border-border dark:bg-background/95 lg:px-6",
         className
       )}
     >
       <motion.button
         type="button"
         onClick={onMenuToggle}
-        className="flex size-10 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-mint/10 active:bg-mint/20 lg:hidden"
+        className="flex size-10 items-center justify-center rounded-lg text-gray-900 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-foreground dark:hover:bg-mint/10 dark:active:bg-mint/20 lg:hidden"
         aria-label="Open menu"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -48,7 +48,7 @@ export function Navbar({
       <motion.button
         type="button"
         onClick={onCollapseToggle}
-        className="hidden size-10 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-mint/10 active:bg-mint/20 lg:flex"
+        className="hidden size-10 items-center justify-center rounded-lg text-gray-900 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-foreground dark:hover:bg-mint/10 dark:active:bg-mint/20 lg:flex"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (
@@ -70,8 +70,8 @@ export function Navbar({
       )}
       <div className="ml-auto flex items-center gap-3">
         {displayName && (
-          <div className="hidden items-center gap-2 rounded-lg bg-mint/10 px-3 py-1.5 text-sm text-foreground sm:flex">
-            <User className="size-4 shrink-0 text-mint" />
+          <div className="hidden items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-900 dark:border-transparent dark:bg-mint/10 dark:text-foreground sm:flex">
+            <User className="size-4 shrink-0 text-[#2bc787] dark:text-mint" />
             <span className="max-w-40 truncate" title={displayName}>
               {displayName}
             </span>

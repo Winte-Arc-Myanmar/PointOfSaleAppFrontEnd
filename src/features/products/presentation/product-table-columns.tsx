@@ -20,7 +20,7 @@ export function getProductTableColumns(
         onView ? (
           <button
             type="button"
-            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            className="inline-flex max-w-full cursor-pointer items-center rounded-sm font-medium text-foreground truncate text-left transition-colors hover:text-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40"
             title={p.name}
             onClick={() => onView(p)}
           >

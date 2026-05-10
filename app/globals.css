@@ -4,20 +4,19 @@
 
 @theme {
   --color-gloss-black: #252324;
-  /* Muted off-white to lower glare in light mode */
-  --color-matte-white: #f6f1e8;
-  --color-mint: #adffc3;
-  --color-mint-hover: #8effa8;
+  --color-matte-white: #ffffff;
+  --color-mint: #16a34a;
+  --color-mint-hover: #15803d;
   /* Theme-aware semantic colors (overridden by .dark below) */
-  --color-background: #f6f1e8;
-  --color-foreground: #252324;
-  --color-muted: #6b7280;
-  --color-border: #e5e7eb;
+  --color-background: #ffffff;
+  --color-foreground: #111827;
+  --color-muted: #374151;
+  --color-border: #d1d5db;
   /* Futuristic design tokens (no new colors) */
   --radius-panel: 0.75rem;
   --radius-input: 0.5rem;
   --shadow-panel:
-    0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    0 1px 2px 0 rgb(17 24 39 / 0.06), 0 1px 3px 0 rgb(17 24 39 / 0.1);
   --tracking-panel: 0.2em;
 }
 
@@ -28,6 +27,9 @@
 
 /* Dark mode: next-themes adds .dark to <html> */
 .dark {
+  --color-matte-white: #252324;
+  --color-mint: #adffc3;
+  --color-mint-hover: #8effa8;
   --color-background: #252324;
   --color-foreground: #fdfbf9;
   --color-muted: #9ca3af;
@@ -40,6 +42,14 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   letter-spacing: 0.01em;
+}
+
+a[href],
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+label[for]:not(.cursor-default),
+summary {
+  cursor: pointer;
 }
 
 /* Hide scrollbar UI but keep scrolling enabled */
