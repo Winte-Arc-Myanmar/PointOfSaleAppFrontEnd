@@ -1,7 +1,15 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { AppUser } from "@/core/domain/entities/AppUser";
 
-export function getUserTableColumns(): DataTableColumn<AppUser>[] {
+type UserTableColumnOptions = {
+  onView?: (user: AppUser) => void;
+};
+
+export function getUserTableColumns(
+  options: UserTableColumnOptions = {},
+): DataTableColumn<AppUser>[] {
+  const { onView } = options;
+
   return [
     {
       key: "fullName",
@@ -9,9 +17,20 @@ export function getUserTableColumns(): DataTableColumn<AppUser>[] {
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
       render: (u) => (
-        <span className="font-medium text-foreground truncate" title={u.fullName}>
-          {u.fullName}
-        </span>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={u.fullName}
+            onClick={() => onView(u)}
+          >
+            {u.fullName}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={u.fullName}>
+            {u.fullName}
+          </span>
+        )
       ),
     },
     {

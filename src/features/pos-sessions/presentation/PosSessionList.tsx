@@ -56,7 +56,13 @@ export function PosSessionList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getPosSessionTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getPosSessionTableColumns({
+        onView: (s) => router.push(`/pos-sessions/${s.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<PosSession>

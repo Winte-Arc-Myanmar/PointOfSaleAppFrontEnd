@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useSystemAdminDeleteTenant } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { getTenantRowActions } from "./tenant-row-actions";
@@ -15,9 +16,12 @@ import type { Tenant } from "@/core/domain/entities/Tenant";
 
 const CREATE_TENANT_FORM_ID = "create-tenant-form";
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function TenantList() {
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const { data: tenants = [], isLoading, error, refetch } = useTenants({
     page: pagination.page,
@@ -26,10 +30,38 @@ export function TenantList() {
   const deleteTenant = useSystemAdminDeleteTenant();
   const toast = useToast();
   const confirm = useConfirm();
+  const filteredTenants = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return tenants;
+    return tenants.filter((t) =>
+      [
+        t.name,
+        t.legalName,
+        t.domain,
+        t.primaryContactEmail,
+        t.primaryContactPhone,
+        t.city,
+        t.country,
+        String(t.id),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [tenants, search]);
 
   useEffect(() => {
-    pagination.observePageResult(tenants.length);
-  }, [tenants.length, pagination]);
+    const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  useEffect(() => {
+    pagination.observePageResult(filteredTenants.length);
+  }, [filteredTenants.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -54,16 +86,32 @@ export function TenantList() {
     [router, deleteTenant, toast, confirm]
   );
 
-  const columns = useMemo(() => getTenantTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getTenantTableColumns({
+        onView: (t) => router.push(`/tenants/${t.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<Tenant>
-      data={tenants}
+      data={filteredTenants}
       columns={columns}
       actions={actions}
       isLoading={isLoading}
       loadingText="Loading tenants..."
-      emptyText="No tenants yet."
+      emptyText={search.trim() ? "No tenants match your search." : "No tenants yet."}
+      topContent={
+        <div className="mb-4">
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search tenants..."
+            className="sm:w-[360px]"
+          />
+        </div>
+      }
       error={
         error
           ? {

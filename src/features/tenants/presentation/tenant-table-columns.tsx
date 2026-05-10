@@ -5,22 +5,40 @@ const MAX_CHARS = 10;
 const COL_WIDTH = "w-[5.5rem] max-w-[5.5rem] min-w-[5.5rem]";
 
 function truncate(str: string | null | undefined): string {
-  if (str == null || str === "") return "—";
-  return str.length > MAX_CHARS ? `${str.slice(0, MAX_CHARS)}…` : str;
+  if (str == null || str === "") return "-";
+  return str.length > MAX_CHARS ? `${str.slice(0, MAX_CHARS)}...` : str;
 }
 
-export function getTenantTableColumns(): DataTableColumn<Tenant>[] {
+type TenantTableColumnOptions = {
+  onView?: (tenant: Tenant) => void;
+};
+
+export function getTenantTableColumns(
+  options: TenantTableColumnOptions = {},
+): DataTableColumn<Tenant>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: COL_WIDTH,
-      render: (t) => (
-        <span className="font-medium text-foreground truncate" title={t.name}>
-          {truncate(t.name)}
-        </span>
-      ),
+      render: (t) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={t.name}
+            onClick={() => onView(t)}
+          >
+            {truncate(t.name)}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={t.name}>
+            {truncate(t.name)}
+          </span>
+        ),
     },
     {
       key: "legalName",

@@ -1,94 +1,106 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChevronRight, FolderTree } from "lucide-react";
+import { Fragment, useState } from "react";
+import { ChevronDown, ChevronRight, FolderTree } from "lucide-react";
 import { useCategoryTree } from "@/presentation/hooks/useCategories";
-import { cn } from "@/lib/utils";
 import type { Category } from "@/core/domain/entities/Category";
 import { AppLoader } from "@/presentation/components/loader";
+import { cn } from "@/lib/utils";
 
-function CategoryTreeItem({
+interface CategoryTreeProps {
+  selectedCategoryId?: string | null;
+  onSelectCategory?: (categoryId: string | null) => void;
+}
+
+function TreeNode({
   category,
-  depth = 0,
-  onNavigate,
+  depth,
+  selectedCategoryId,
+  onSelectCategory,
 }: {
   category: Category;
-  depth?: number;
-  onNavigate?: (id: string) => void;
+  depth: number;
+  selectedCategoryId?: string | null;
+  onSelectCategory?: (id: string | null) => void;
 }) {
-  const router = useRouter();
-  const hasChildren = Array.isArray(category.children) && category.children.length > 0;
-  const handleClick = () => {
-    if (onNavigate) onNavigate(category.id);
-    else router.push(`/categories/${category.id}`);
-  };
+  const childCount = 0;
+  const isSelected = selectedCategoryId === String(category.id);
 
   return (
-    <div className="select-none" style={{ marginLeft: depth * 16 }}>
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={handleClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleClick();
-          }
-        }}
-        className={cn(
-          "flex items-center gap-2 py-1.5 px-2 rounded-md text-sm",
-          "hover:bg-mint/10 focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-1"
-        )}
-      >
-        <span
+    <Fragment>
+      <li>
+        <button
+          type="button"
+          onClick={() => onSelectCategory?.(isSelected ? null : String(category.id))}
           className={cn(
-            "flex items-center justify-center w-5 h-5 rounded",
-            hasChildren && "text-muted"
+            "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition",
+            "focus:outline-none focus:ring-2 focus:ring-mint/50 focus:ring-offset-0",
+            isSelected
+              ? "bg-mint/15 text-foreground"
+              : "text-muted hover:bg-mint/5 hover:text-foreground",
           )}
+          style={{ paddingLeft: `${12 + depth * 24}px` }}
+          title={category.name}
         >
-          {hasChildren ? (
-            <ChevronRight className="h-4 w-4" aria-hidden />
-          ) : (
-            <span className="w-2 h-2 rounded-full bg-mint/50" aria-hidden />
-          )}
-        </span>
-        <span className="font-medium truncate">{category.name}</span>
-        {category.sortOrder !== undefined && (
-          <span className="text-muted text-xs">({category.sortOrder})</span>
-        )}
-      </div>
-      {hasChildren && (
-        <div className="border-l border-border ml-2.5 pl-0">
-          {category.children!.map((child) => (
-            <CategoryTreeItem
-              key={child.id}
-              category={child}
-              depth={depth + 1}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "mt-0.5 size-2 shrink-0 rounded-full transition-colors",
+              isSelected
+                ? "bg-mint"
+                : "bg-muted/60 group-hover:bg-mint",
+            )}
+          />
+          <span className="min-w-0 truncate text-sm font-semibold">
+            {category.name}
+          </span>
+          <span
+            className={cn(
+              "shrink-0 text-sm",
+              isSelected ? "text-mint" : "text-muted",
+            )}
+          >
+            ({childCount})
+          </span>
+        </button>
+      </li>
+
+      {category.children?.map((child) => (
+        <TreeNode
+          key={String(child.id)}
+          category={child}
+          depth={depth + 1}
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={onSelectCategory}
+        />
+      ))}
+    </Fragment>
   );
 }
 
-export function CategoryTree() {
+export function CategoryTree({
+  selectedCategoryId,
+  onSelectCategory,
+}: CategoryTreeProps) {
   const { data: roots = [], isLoading, error, refetch } = useCategoryTree();
+  const [isOpen, setIsOpen] = useState(true);
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-border bg-background p-4 flex items-center justify-center min-h-48">
-        <AppLoader fullScreen={false} size="sm" message="Loading category tree..." />
+      <div className="flex min-h-24 items-center justify-center rounded-2xl border border-border bg-background/80 p-6 shadow-sm">
+        <AppLoader
+          fullScreen={false}
+          size="sm"
+          message="Loading category tree..."
+        />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="text-red-600 text-sm">Failed to load category tree.</p>
+      <div className="rounded-2xl border border-border bg-background/80 p-6 shadow-sm">
+        <p className="text-sm text-red-600">Failed to load category tree.</p>
         <button
           type="button"
           onClick={() => refetch()}
@@ -102,23 +114,58 @@ export function CategoryTree() {
 
   if (roots.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-background p-4">
-        <p className="text-muted text-sm">No categories in tree.</p>
+      <div className="rounded-2xl border border-border bg-background/80 p-6 shadow-sm">
+        <p className="text-sm text-muted">
+          No categories in tree.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-border bg-background p-4">
-      <h3 className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
-        <FolderTree className="h-4 w-4 text-mint" />
-        Category tree
-      </h3>
-      <div className="space-y-0">
-        {roots.map((root) => (
-          <CategoryTreeItem key={root.id} category={root} />
-        ))}
+    <div className="rounded-2xl border border-border bg-background/80 p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-mint/10 text-mint">
+            <FolderTree className="size-4" strokeWidth={2.2} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-foreground">
+              Category Tree
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Browse or focus one category at a time.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsOpen((open) => !open)}
+          className="inline-flex h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium text-foreground transition hover:bg-mint/10"
+        >
+          {isOpen ? (
+            <ChevronDown className="size-4" />
+          ) : (
+            <ChevronRight className="size-4" />
+          )}
+          {isOpen ? "Hide" : "Show"}
+        </button>
       </div>
+
+      {isOpen ? (
+        <ul className="space-y-1">
+          {roots.map((category) => (
+            <TreeNode
+              key={String(category.id)}
+              category={category}
+              depth={0}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={onSelectCategory}
+            />
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

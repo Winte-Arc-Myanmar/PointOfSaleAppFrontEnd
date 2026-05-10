@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBranches, useDeleteBranch } from "@/presentation/hooks/useBranches";
 import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getBranchRowActions } from "./branch-row-actions";
 import { getBranchTableColumns } from "./branch-table-columns";
@@ -14,9 +15,12 @@ import type { Branch } from "@/core/domain/entities/Branch";
 
 const CREATE_BRANCH_FORM_ID = "create-branch-form";
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function BranchList() {
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const { data: branches = [], isLoading, error, refetch } = useBranches({
     page: pagination.page,
@@ -25,10 +29,40 @@ export function BranchList() {
   const deleteBranch = useDeleteBranch();
   const toast = useToast();
   const confirm = useConfirm();
+  const filteredBranches = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return branches;
+    return branches.filter((b) =>
+      [
+        b.name,
+        b.branchCode,
+        b.type,
+        b.email,
+        b.phone,
+        b.city,
+        b.state,
+        b.country,
+        b.address,
+        String(b.id),
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [branches, search]);
 
   useEffect(() => {
-    pagination.observePageResult(branches.length);
-  }, [branches.length, pagination]);
+    const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  useEffect(() => {
+    pagination.observePageResult(filteredBranches.length);
+  }, [filteredBranches.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -53,16 +87,32 @@ export function BranchList() {
     [router, deleteBranch, toast, confirm]
   );
 
-  const columns = useMemo(() => getBranchTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getBranchTableColumns({
+        onView: (b) => router.push(`/branches/${b.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<Branch>
-      data={branches}
+      data={filteredBranches}
       columns={columns}
       actions={actions}
       isLoading={isLoading}
       loadingText="Loading branches..."
-      emptyText="No branches yet."
+      emptyText={search.trim() ? "No branches match your search." : "No branches yet."}
+      topContent={
+        <div className="mb-4">
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search branches..."
+            className="sm:w-[360px]"
+          />
+        </div>
+      }
       error={
         error
           ? {

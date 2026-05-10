@@ -53,7 +53,13 @@ export function UomClassList() {
     [router, deleteUomClass, toast, confirm]
   );
 
-  const columns = useMemo(() => getUomClassTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getUomClassTableColumns({
+        onView: (c) => router.push(`/uom-classes/${c.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<UomClass>

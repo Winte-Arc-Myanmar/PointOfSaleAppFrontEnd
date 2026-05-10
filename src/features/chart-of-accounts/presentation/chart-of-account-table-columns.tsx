@@ -1,16 +1,34 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { ChartOfAccount } from "@/core/domain/entities/ChartOfAccount";
 
-export function getChartOfAccountTableColumns(): DataTableColumn<ChartOfAccount>[] {
+type ChartOfAccountTableColumnOptions = {
+  onView?: (account: ChartOfAccount) => void;
+};
+
+export function getChartOfAccountTableColumns(
+  options: ChartOfAccountTableColumnOptions = {},
+): DataTableColumn<ChartOfAccount>[] {
+  const { onView } = options;
+
   return [
     {
       key: "accountCode",
       header: "Code",
       sortable: true,
       className: "min-w-[120px]",
-      render: (a) => (
-        <span className="font-mono text-sm text-foreground">{a.accountCode}</span>
-      ),
+      render: (a) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-mono text-sm text-foreground truncate text-left hover:text-mint transition-colors"
+            title={a.accountCode}
+            onClick={() => onView(a)}
+          >
+            {a.accountCode}
+          </button>
+        ) : (
+          <span className="font-mono text-sm text-foreground">{a.accountCode}</span>
+        ),
     },
     {
       key: "accountName",

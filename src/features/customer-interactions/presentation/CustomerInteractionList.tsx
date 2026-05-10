@@ -72,7 +72,13 @@ export function CustomerInteractionList({
     [router, customerId, deleteInteraction, toast, confirm, basePath]
   );
 
-  const columns = useMemo(() => getCustomerInteractionTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getCustomerInteractionTableColumns({
+        onView: (row) => router.push(`${basePath}/${row.id}`),
+      }),
+    [router, basePath],
+  );
 
   return (
     <EntityListWithCreateModal<CustomerInteraction>

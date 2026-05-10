@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Customer } from "@/core/domain/entities/Customer";
 
-export function getCustomerTableColumns(): DataTableColumn<Customer>[] {
+type CustomerTableColumnOptions = {
+  onView?: (customer: Customer) => void;
+};
+
+export function getCustomerTableColumns(
+  options: CustomerTableColumnOptions = {},
+): DataTableColumn<Customer>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[160px] max-w-[260px]",
-      render: (c) => (
-        <span className="font-medium text-foreground truncate" title={c.name}>
-          {c.name}
-        </span>
-      ),
+      render: (c) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={c.name}
+            onClick={() => onView(c)}
+          >
+            {c.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={c.name}>
+            {c.name}
+          </span>
+        ),
     },
     {
       key: "phone",

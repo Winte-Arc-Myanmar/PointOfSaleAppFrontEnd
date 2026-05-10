@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-gloss-black: #252324;
   /* Muted off-white to lower glare in light mode */
@@ -38,6 +40,16 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   letter-spacing: 0.01em;
+}
+
+/* Hide scrollbar UI but keep scrolling enabled */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* ——— Futuristic system: consistent section & page styles (colors unchanged) ——— */

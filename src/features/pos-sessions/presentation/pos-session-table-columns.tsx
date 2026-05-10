@@ -6,14 +6,34 @@ function money(n: number | null | undefined): string {
   return n.toFixed(2);
 }
 
-export function getPosSessionTableColumns(): DataTableColumn<PosSession>[] {
+type PosSessionTableColumnOptions = {
+  onView?: (session: PosSession) => void;
+};
+
+export function getPosSessionTableColumns(
+  options: PosSessionTableColumnOptions = {},
+): DataTableColumn<PosSession>[] {
+  const { onView } = options;
+
   return [
     {
       key: "status",
       header: "Status",
       sortable: true,
       className: "min-w-[80px] max-w-[110px]",
-      render: (s) => <span className="text-muted">{s.status}</span>,
+      render: (s) =>
+        onView ? (
+          <button
+            type="button"
+            className="text-muted truncate text-left hover:text-mint transition-colors"
+            title={s.status}
+            onClick={() => onView(s)}
+          >
+            {s.status}
+          </button>
+        ) : (
+          <span className="text-muted">{s.status}</span>
+        ),
     },
     {
       key: "registerId",

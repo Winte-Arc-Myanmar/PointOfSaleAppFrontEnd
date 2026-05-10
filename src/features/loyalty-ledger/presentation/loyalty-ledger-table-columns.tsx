@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
 
-export function getLoyaltyLedgerTableColumns(): DataTableColumn<LoyaltyLedgerEntry>[] {
+type LoyaltyLedgerTableColumnOptions = {
+  onView?: (entry: LoyaltyLedgerEntry) => void;
+};
+
+export function getLoyaltyLedgerTableColumns(
+  options: LoyaltyLedgerTableColumnOptions = {},
+): DataTableColumn<LoyaltyLedgerEntry>[] {
+  const { onView } = options;
+
   return [
     {
       key: "transactionType",
       header: "Type",
       sortable: true,
       className: "min-w-[100px] max-w-[120px]",
-      render: (row) => (
-        <span className="font-medium text-foreground truncate" title={row.transactionType}>
-          {row.transactionType}
-        </span>
-      ),
+      render: (row) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={row.transactionType}
+            onClick={() => onView(row)}
+          >
+            {row.transactionType}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={row.transactionType}>
+            {row.transactionType}
+          </span>
+        ),
     },
     {
       key: "points",

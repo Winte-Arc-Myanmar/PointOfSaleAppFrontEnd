@@ -218,7 +218,7 @@ export function SidebarMenu({
 
         <nav
           className={cn(
-            "flex-1 overflow-y-auto py-6 transition-all duration-300",
+            "hide-scrollbar flex-1 overflow-y-auto py-6 transition-all duration-300",
             isCollapsed ? "px-2" : "px-3"
           )}
         >
