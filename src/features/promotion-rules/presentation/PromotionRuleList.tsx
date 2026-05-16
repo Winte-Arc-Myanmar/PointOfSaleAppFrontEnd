@@ -74,7 +74,13 @@ export function PromotionRuleList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getPromotionRuleTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getPromotionRuleTableColumns({
+        onView: (r) => router.push(`/promotion-rules/${r.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<PromotionRule>

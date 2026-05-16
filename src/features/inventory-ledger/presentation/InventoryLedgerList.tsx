@@ -113,7 +113,13 @@ export function InventoryLedgerList() {
     [router, deleteEntry, toast, confirm]
   );
 
-  const columns = useMemo(() => getInventoryLedgerTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getInventoryLedgerTableColumns({
+        onView: (r) => router.push(`/inventory-ledger/${r.id}`),
+      }),
+    [router],
+  );
 
   const expiringFilter =
     view === "expiring" ? (

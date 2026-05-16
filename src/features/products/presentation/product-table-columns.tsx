@@ -1,7 +1,15 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Product } from "@/core/domain/entities/Product";
 
-export function getProductTableColumns(): DataTableColumn<Product>[] {
+type ProductTableColumnOptions = {
+  onView?: (product: Product) => void;
+};
+
+export function getProductTableColumns(
+  options: ProductTableColumnOptions = {},
+): DataTableColumn<Product>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
@@ -9,9 +17,20 @@ export function getProductTableColumns(): DataTableColumn<Product>[] {
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
       render: (p) => (
-        <span className="font-medium text-foreground truncate" title={p.name}>
-          {p.name}
-        </span>
+        onView ? (
+          <button
+            type="button"
+            className="inline-flex max-w-full cursor-pointer items-center rounded-sm font-medium text-foreground truncate text-left transition-colors hover:text-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40"
+            title={p.name}
+            onClick={() => onView(p)}
+          >
+            {p.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={p.name}>
+            {p.name}
+          </span>
+        )
       ),
     },
     {

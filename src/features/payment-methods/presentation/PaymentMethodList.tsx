@@ -74,7 +74,13 @@ export function PaymentMethodList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getPaymentMethodTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getPaymentMethodTableColumns({
+        onView: (m) => router.push(`/payment-methods/${m.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<PaymentMethod>

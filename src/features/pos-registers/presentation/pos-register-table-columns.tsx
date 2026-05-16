@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PosRegister } from "@/core/domain/entities/PosRegister";
 
-export function getPosRegisterTableColumns(): DataTableColumn<PosRegister>[] {
+type PosRegisterTableColumnOptions = {
+  onView?: (register: PosRegister) => void;
+};
+
+export function getPosRegisterTableColumns(
+  options: PosRegisterTableColumnOptions = {},
+): DataTableColumn<PosRegister>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[140px] max-w-[220px]",
-      render: (r) => (
-        <span className="font-medium text-foreground truncate" title={r.name}>
-          {r.name}
-        </span>
-      ),
+      render: (r) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={r.name}
+            onClick={() => onView(r)}
+          >
+            {r.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={r.name}>
+            {r.name}
+          </span>
+        ),
     },
     {
       key: "locationId",

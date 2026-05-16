@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useLocations,
@@ -10,6 +10,7 @@ import {
 import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getLocationRowActions } from "./location-row-actions";
 import { getLocationTableColumns } from "./location-table-columns";
@@ -19,9 +20,12 @@ import type { Location } from "@/core/domain/entities/Location";
 
 const CREATE_LOCATION_FORM_ID = "create-location-form";
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function LocationList() {
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: locations = [],
@@ -38,10 +42,26 @@ export function LocationList() {
   const deleteLocation = useDeleteLocation();
   const toast = useToast();
   const confirm = useConfirm();
+  const filteredLocations = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return locations;
+    return locations.filter((l) =>
+      [l.name, l.type, l.tenantId, String(l.id)].join(" ").toLowerCase().includes(q),
+    );
+  }, [locations, search]);
 
   useEffect(() => {
-    pagination.observePageResult(locations.length);
-  }, [locations.length, pagination]);
+    const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  useEffect(() => {
+    pagination.observePageResult(filteredLocations.length);
+  }, [filteredLocations.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
 
   const actions = useMemo(
     () =>
@@ -66,17 +86,33 @@ export function LocationList() {
     [router, deleteLocation, toast, confirm]
   );
 
-  const columns = useMemo(() => getLocationTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getLocationTableColumns({
+        onView: (l) => router.push(`/locations/${l.id}`),
+      }),
+    [router],
+  );
 
   return (
     <div className="space-y-8">
       <EntityListWithCreateModal<Location>
-        data={locations}
+        data={filteredLocations}
         columns={columns}
         actions={actions}
         isLoading={isLoading}
         loadingText="Loading locations..."
-        emptyText="No locations yet."
+        emptyText={search.trim() ? "No locations match your search." : "No locations yet."}
+        topContent={
+          <div className="mb-4">
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search locations..."
+              className="sm:w-[360px]"
+            />
+          </div>
+        }
         error={
           error
             ? {

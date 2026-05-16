@@ -73,7 +73,13 @@ export function LoyaltyLedgerList({
     [router, customerId, deleteEntry, toast, confirm, basePath]
   );
 
-  const columns = useMemo(() => getLoyaltyLedgerTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getLoyaltyLedgerTableColumns({
+        onView: (row) => router.push(`${basePath}/${row.id}`),
+      }),
+    [router, basePath],
+  );
 
   return (
     <EntityListWithCreateModal<LoyaltyLedgerEntry>

@@ -74,7 +74,13 @@ export function ChartOfAccountList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getChartOfAccountTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getChartOfAccountTableColumns({
+        onView: (a) => router.push(`/chart-of-accounts/${a.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<ChartOfAccount>

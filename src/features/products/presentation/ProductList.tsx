@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useProducts,
@@ -9,6 +9,15 @@ import {
 import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
+import { useCategories } from "@/presentation/hooks/useCategories";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getProductRowActions } from "./product-row-actions";
 import { getProductTableColumns } from "./product-table-columns";
@@ -17,9 +26,13 @@ import type { Product } from "@/core/domain/entities/Product";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function ProductList() {
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: products = [],
@@ -27,13 +40,54 @@ export function ProductList() {
     error,
     refetch,
   } = useProducts({ page: pagination.page, limit: PAGE_SIZE });
+  const { data: categories = [] } = useCategories();
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const searchedProducts = !q
+      ? products
+      : products.filter((p) =>
+          [
+            p.name,
+            p.baseSku,
+            p.categoryName ?? "",
+            p.baseUomName ?? "",
+            p.tenantId,
+            String(p.id),
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
+        );
+
+    if (selectedCategoryId === "__all__") return searchedProducts;
+    return searchedProducts.filter((p) => p.categoryId === selectedCategoryId);
+  }, [products, search, selectedCategoryId]);
+
+  const categoryOptions = useMemo(() => {
+    return categories
+      .map((category) => ({ id: String(category.id), name: category.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories]);
 
   useEffect(() => {
-    pagination.observePageResult(products.length);
-  }, [products.length, pagination]);
+    const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [searchInput]);
+
+  useEffect(() => {
+    pagination.observePageResult(filteredProducts.length);
+  }, [filteredProducts.length, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [search, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [selectedCategoryId, pagination]);
 
   const actions = useMemo(
     () =>
@@ -58,16 +112,54 @@ export function ProductList() {
     [router, deleteProduct, toast, confirm],
   );
 
-  const columns = useMemo(() => getProductTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getProductTableColumns({
+        onView: (p) => router.push(`/products/${p.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<Product>
-      data={products}
+      data={filteredProducts}
       columns={columns}
       actions={actions}
       isLoading={isLoading}
       loadingText="Loading products..."
-      emptyText="No products yet."
+      emptyText={
+        search.trim()
+          ? "No products match your search."
+          : selectedCategoryId !== "__all__"
+            ? "No products match this category."
+            : "No products yet."
+      }
+      topContent={
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search products..."
+            className="sm:w-[360px]"
+          />
+          <Select
+            value={selectedCategoryId}
+            onValueChange={setSelectedCategoryId}
+          >
+            <SelectTrigger className="sm:w-[240px]">
+              <SelectValue placeholder="Filter by category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All categories</SelectItem>
+              {categoryOptions.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      }
       error={
         error
           ? {

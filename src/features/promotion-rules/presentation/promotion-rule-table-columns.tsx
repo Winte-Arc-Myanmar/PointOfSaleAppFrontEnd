@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 
-export function getPromotionRuleTableColumns(): DataTableColumn<PromotionRule>[] {
+type PromotionRuleTableColumnOptions = {
+  onView?: (rule: PromotionRule) => void;
+};
+
+export function getPromotionRuleTableColumns(
+  options: PromotionRuleTableColumnOptions = {},
+): DataTableColumn<PromotionRule>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[160px] max-w-[280px]",
-      render: (r) => (
-        <span className="font-medium text-foreground truncate" title={r.name}>
-          {r.name}
-        </span>
-      ),
+      render: (r) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={r.name}
+            onClick={() => onView(r)}
+          >
+            {r.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={r.name}>
+            {r.name}
+          </span>
+        ),
     },
     {
       key: "rewardAction",

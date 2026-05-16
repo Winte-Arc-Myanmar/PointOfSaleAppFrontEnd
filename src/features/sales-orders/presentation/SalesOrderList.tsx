@@ -71,7 +71,13 @@ export function SalesOrderList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getSalesOrderTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getSalesOrderTableColumns({
+        onView: (o) => router.push(`/sales-orders/${o.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<SalesOrder>

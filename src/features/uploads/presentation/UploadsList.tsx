@@ -30,6 +30,18 @@ import { getUploadsRowActions } from "./uploads-row-actions";
 import { getUploadsTableColumns } from "./uploads-table-columns";
 
 const PAGE_SIZE = 20;
+const CUSTOM_FOLDER_VALUE = "__custom__";
+const UPLOAD_TARGETS = [
+  { value: "products", label: "Products" },
+  { value: "categories", label: "Categories" },
+  { value: "customers", label: "Customers" },
+  { value: "vendors", label: "Vendors" },
+  { value: "users", label: "Users" },
+  { value: "branches", label: "Branches" },
+  { value: "locations", label: "Locations" },
+  { value: "uploads", label: "Uploads" },
+  { value: "system", label: "System" },
+] as const;
 
 function resolveUploadPreviewUrl(url: string): string {
   const trimmed = url.trim();
@@ -54,6 +66,7 @@ export function UploadsList() {
 
   const [page, setPage] = useState(1);
   const [folder, setFolder] = useState("products");
+  const [folderMode, setFolderMode] = useState<string>("products");
   const [branchFilter, setBranchFilter] = useState<string>("__active__");
 
   const branchIdForQuery =
@@ -151,20 +164,56 @@ export function UploadsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
-        <div className="grid gap-2 w-full sm:w-48">
-          <Label htmlFor="upload-folder">Folder (query &amp; upload)</Label>
-          <Input
-            id="upload-folder"
-            value={folder}
-            onChange={(e) => {
-              setFolder(e.target.value);
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:gap-3">
+        <div className="grid gap-2 w-full sm:w-48 xl:w-48">
+          <Label htmlFor="upload-folder-select">Upload target</Label>
+          <Select
+            value={folderMode}
+            onValueChange={(value) => {
+              setFolderMode(value);
+              if (value !== CUSTOM_FOLDER_VALUE) {
+                setFolder(value);
+              }
               setPage(1);
             }}
-            placeholder="products"
-          />
+          >
+            <SelectTrigger id="upload-folder-select">
+              <SelectValue placeholder="Select upload target" />
+            </SelectTrigger>
+            <SelectContent>
+              {UPLOAD_TARGETS.map((target) => (
+                <SelectItem key={target.value} value={target.value}>
+                  {target.label}
+                </SelectItem>
+              ))}
+              <SelectItem value={CUSTOM_FOLDER_VALUE}>Custom folder</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="grid gap-2 w-full sm:w-56">
+        {folderMode === CUSTOM_FOLDER_VALUE && (
+          <div className="grid gap-2 w-full sm:w-48 xl:w-48">
+            <Label htmlFor="upload-folder">Custom folder</Label>
+            <Input
+              id="upload-folder"
+              value={folder}
+              onChange={(e) => {
+                setFolder(e.target.value);
+                setPage(1);
+              }}
+              placeholder="products"
+            />
+          </div>
+        )}
+        {folderMode !== CUSTOM_FOLDER_VALUE && (
+          <div className="grid gap-2 w-full sm:w-48 xl:w-48">
+            <Label>Selected folder</Label>
+            <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+              {folder}
+            </div>
+          </div>
+        )}
+        <div className="grid gap-2 w-full sm:w-56 xl:w-56">
           <Label>Branch filter</Label>
           <Select
             value={branchFilter}
@@ -189,7 +238,8 @@ export function UploadsList() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex flex-wrap gap-2">
+        </div>
+        <div className="flex flex-wrap gap-2 xl:flex-nowrap xl:self-end">
           <input
             ref={singleInputRef}
             type="file"

@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PaymentMethod } from "@/core/domain/entities/PaymentMethod";
 
-export function getPaymentMethodTableColumns(): DataTableColumn<PaymentMethod>[] {
+type PaymentMethodTableColumnOptions = {
+  onView?: (method: PaymentMethod) => void;
+};
+
+export function getPaymentMethodTableColumns(
+  options: PaymentMethodTableColumnOptions = {},
+): DataTableColumn<PaymentMethod>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[160px] max-w-[260px]",
-      render: (m) => (
-        <span className="font-medium text-foreground truncate" title={m.name}>
-          {m.name}
-        </span>
-      ),
+      render: (m) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={m.name}
+            onClick={() => onView(m)}
+          >
+            {m.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={m.name}>
+            {m.name}
+          </span>
+        ),
     },
     {
       key: "tenantId",

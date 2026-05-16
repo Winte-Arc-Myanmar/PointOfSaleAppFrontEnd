@@ -6,18 +6,36 @@ function truncate(str: string | null | undefined, max = 12): string {
   return str.length > max ? `${str.slice(0, max)}…` : str;
 }
 
-export function getBranchTableColumns(): DataTableColumn<Branch>[] {
+type BranchTableColumnOptions = {
+  onView?: (branch: Branch) => void;
+};
+
+export function getBranchTableColumns(
+  options: BranchTableColumnOptions = {},
+): DataTableColumn<Branch>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
-      render: (b) => (
-        <span className="font-medium text-foreground truncate" title={b.name}>
-          {truncate(b.name)}
-        </span>
-      ),
+      render: (b) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={b.name}
+            onClick={() => onView(b)}
+          >
+            {truncate(b.name)}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={b.name}>
+            {truncate(b.name)}
+          </span>
+        ),
     },
     {
       key: "branchCode",

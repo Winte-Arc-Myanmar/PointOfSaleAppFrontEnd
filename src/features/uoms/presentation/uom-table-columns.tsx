@@ -1,18 +1,36 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Uom } from "@/core/domain/entities/Uom";
 
-export function getUomTableColumns(): DataTableColumn<Uom>[] {
+type UomTableColumnOptions = {
+  onView?: (uom: Uom) => void;
+};
+
+export function getUomTableColumns(
+  options: UomTableColumnOptions = {},
+): DataTableColumn<Uom>[] {
+  const { onView } = options;
+
   return [
     {
       key: "name",
       header: "Name",
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
-      render: (u) => (
-        <span className="font-medium text-foreground truncate" title={u.name}>
-          {u.name}
-        </span>
-      ),
+      render: (u) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={u.name}
+            onClick={() => onView(u)}
+          >
+            {u.name}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={u.name}>
+            {u.name}
+          </span>
+        ),
     },
     {
       key: "abbreviation",

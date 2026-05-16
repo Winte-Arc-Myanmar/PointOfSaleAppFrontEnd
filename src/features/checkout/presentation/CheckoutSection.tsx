@@ -311,6 +311,12 @@ export function CheckoutSection() {
   const { data: variants = [], isLoading: variantsLoading } =
     useProductVariants(variantPickerProductId, { page: 1, limit: 200 });
 
+  const shouldShowVariantPicker =
+    variantPickerProductId != null &&
+    selectedProduct != null &&
+    !variantsLoading &&
+    variants.length > 1;
+
   const filteredProducts = useMemo(() => {
     const s = productSearch.trim().toLowerCase();
     const base = Array.isArray(products) ? products : [];
@@ -406,6 +412,27 @@ export function CheckoutSection() {
   function onProductClick(product: Product) {
     setVariantPickerProductId(String(product.id));
   }
+
+  useEffect(() => {
+    if (!variantPickerProductId || !selectedProduct || variantsLoading) return;
+
+    if (variants.length === 1) {
+      addVariantToCart(selectedProduct, variants[0]);
+      return;
+    }
+
+    if (variants.length === 0) {
+      setVariantPickerProductId(null);
+      toast.error("No variants found for this product.");
+    }
+  }, [
+    variantPickerProductId,
+    selectedProduct,
+    variantsLoading,
+    variants,
+    addVariantToCart,
+    toast,
+  ]);
 
   function setQty(index: number, value: number) {
     form.setValue(`items.${index}.quantity`, Math.max(0, value));
@@ -892,7 +919,7 @@ export function CheckoutSection() {
       </div>
 
       <VariantPickerModal
-        isOpen={variantPickerProductId != null}
+        isOpen={shouldShowVariantPicker}
         onClose={() => setVariantPickerProductId(null)}
         product={selectedProduct}
         variants={variants}

@@ -53,7 +53,13 @@ export function UomList() {
     [router, deleteUom, toast, confirm]
   );
 
-  const columns = useMemo(() => getUomTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getUomTableColumns({
+        onView: (u) => router.push(`/uoms/${u.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<Uom>

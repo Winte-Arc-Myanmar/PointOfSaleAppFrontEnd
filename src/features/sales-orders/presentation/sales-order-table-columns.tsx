@@ -6,18 +6,36 @@ function formatMoney(n: number | null | undefined): string {
   return n.toFixed(2);
 }
 
-export function getSalesOrderTableColumns(): DataTableColumn<SalesOrder>[] {
+type SalesOrderTableColumnOptions = {
+  onView?: (order: SalesOrder) => void;
+};
+
+export function getSalesOrderTableColumns(
+  options: SalesOrderTableColumnOptions = {},
+): DataTableColumn<SalesOrder>[] {
+  const { onView } = options;
+
   return [
     {
       key: "orderNumber",
       header: "Order #",
       sortable: true,
       className: "min-w-[120px] max-w-[160px]",
-      render: (o) => (
-        <span className="font-medium text-foreground truncate" title={o.orderNumber}>
-          {o.orderNumber}
-        </span>
-      ),
+      render: (o) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={o.orderNumber}
+            onClick={() => onView(o)}
+          >
+            {o.orderNumber}
+          </button>
+        ) : (
+          <span className="font-medium text-foreground truncate" title={o.orderNumber}>
+            {o.orderNumber}
+          </span>
+        ),
     },
     {
       key: "status",

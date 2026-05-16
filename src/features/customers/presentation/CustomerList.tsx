@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import {
   useCustomers,
@@ -33,6 +40,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedLoyaltyTier, setSelectedLoyaltyTier] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
@@ -54,14 +62,27 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     search: search || undefined,
   });
 
+  const filteredCustomers = useMemo(() => {
+    if (selectedLoyaltyTier === "__all__") return customers;
+    return customers.filter(
+      (customer) =>
+        String(customer.loyaltyTier).toUpperCase() === selectedLoyaltyTier,
+    );
+  }, [customers, selectedLoyaltyTier]);
+
   useEffect(() => {
-    pagination.observePageResult(customers.length);
-  }, [customers.length, pagination]);
+    pagination.observePageResult(filteredCustomers.length);
+  }, [filteredCustomers.length, pagination]);
 
   useEffect(() => {
     // New search => go back to page 1 and drop any inferred max page.
     pagination.reset(1);
   }, [search, pagination]);
+
+  useEffect(() => {
+    // New loyalty tier filter => go back to page 1.
+    pagination.reset(1);
+  }, [selectedLoyaltyTier, pagination]);
 
   const actions = useMemo(
     () =>
@@ -86,18 +107,28 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     [router, deleteCustomer, toast, confirm],
   );
 
-  const columns = useMemo(() => getCustomerTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getCustomerTableColumns({
+        onView: (c) => router.push(`/customers/${c.id}`),
+      }),
+    [router],
+  );
 
   return (
     <div className="space-y-4">
       <EntityListWithCreateModal<Customer>
-        data={customers}
+        data={filteredCustomers}
         columns={columns}
         actions={actions}
         isLoading={isLoading}
         loadingText="Loading customers..."
         emptyText={
-          search ? "No customers match your search." : "No customers yet."
+          search
+            ? "No customers match your search."
+            : selectedLoyaltyTier !== "__all__"
+              ? "No customers match this loyalty tier."
+              : "No customers yet."
         }
         topContent={
           showSearch ? (
@@ -106,8 +137,23 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search customers by name, phone, or email..."
-                className="sm:max-w-md"
+                className="sm:w-[360px]"
               />
+              <Select
+                value={selectedLoyaltyTier}
+                onValueChange={setSelectedLoyaltyTier}
+              >
+                <SelectTrigger className="sm:w-[200px]">
+                  <SelectValue placeholder="Filter by loyalty tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All loyalty tiers</SelectItem>
+                  <SelectItem value="BRONZE">Bronze</SelectItem>
+                  <SelectItem value="SILVER">Silver</SelectItem>
+                  <SelectItem value="GOLD">Gold</SelectItem>
+                  <SelectItem value="PLATINUM">Platinum</SelectItem>
+                </SelectContent>
+              </Select>
               {search && (
                 <p className="text-sm text-muted">
                   Showing results for{" "}

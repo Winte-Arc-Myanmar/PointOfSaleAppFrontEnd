@@ -104,7 +104,7 @@ export function FormModal({
                 type="submit"
                 form={formId}
                 disabled={isLoading}
-                className="min-w-[4.5rem] bg-mint text-gloss-black hover:bg-mint-hover"
+                className="min-w-[4.5rem] bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
               >
                 {isLoading ? loadingText : submitText}
               </Button>
@@ -133,7 +133,7 @@ export function FormModal({
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="min-w-[4.5rem] bg-mint text-gloss-black hover:bg-mint-hover"
+                className="min-w-[4.5rem] bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
               >
                 {isLoading ? loadingText : submitText}
               </Button>

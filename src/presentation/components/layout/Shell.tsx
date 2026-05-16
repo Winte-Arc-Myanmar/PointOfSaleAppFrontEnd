@@ -70,21 +70,21 @@ export function Shell({ children }: ShellProps) {
   const title = getTitle(pathname);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <SidebarMenu
         isOpen={menuOpen}
         isCollapsed={isCollapsed}
         onClose={() => setMenuOpen(false)}
         pathname={pathname}
       />
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex h-screen flex-1 flex-col min-w-0 overflow-hidden">
         <Navbar
           onMenuToggle={() => setMenuOpen(true)}
           onCollapseToggle={() => setIsCollapsed((c) => !c)}
           isCollapsed={isCollapsed}
           title={title}
         />
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 4 }}

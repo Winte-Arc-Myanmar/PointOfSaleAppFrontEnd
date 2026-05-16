@@ -3,30 +3,46 @@ import type { InventoryLedgerEntry } from "@/core/domain/entities/InventoryLedge
 import { formatDate } from "@/presentation/components/detail";
 
 function shortId(id: string, n = 8): string {
-  if (!id) return "—";
-  return id.length > n ? `${id.slice(0, n)}…` : id;
+  if (!id) return "-";
+  return id.length > n ? `${id.slice(0, n)}...` : id;
 }
 
-export function getInventoryLedgerTableColumns(): DataTableColumn<InventoryLedgerEntry>[] {
+type InventoryLedgerTableColumnOptions = {
+  onView?: (row: InventoryLedgerEntry) => void;
+};
+
+export function getInventoryLedgerTableColumns(
+  options: InventoryLedgerTableColumnOptions = {},
+): DataTableColumn<InventoryLedgerEntry>[] {
+  const { onView } = options;
+
   return [
     {
       key: "transactionType",
       header: "Type",
       sortable: true,
       className: "min-w-[100px] max-w-[140px]",
-      render: (row) => (
-        <span className="font-mono text-xs text-foreground" title={row.transactionType}>
-          {row.transactionType || "—"}
-        </span>
-      ),
+      render: (row) =>
+        onView ? (
+          <button
+            type="button"
+            className="font-mono text-xs text-foreground truncate text-left hover:text-mint transition-colors"
+            title={row.transactionType}
+            onClick={() => onView(row)}
+          >
+            {row.transactionType || "-"}
+          </button>
+        ) : (
+          <span className="font-mono text-xs text-foreground" title={row.transactionType}>
+            {row.transactionType || "-"}
+          </span>
+        ),
     },
     {
       key: "quantity",
       header: "Qty",
       className: "min-w-[72px]",
-      render: (row) => (
-        <span className="tabular-nums text-sm">{row.quantity}</span>
-      ),
+      render: (row) => <span className="tabular-nums text-sm">{row.quantity}</span>,
     },
     {
       key: "unitCost",
@@ -60,11 +76,7 @@ export function getInventoryLedgerTableColumns(): DataTableColumn<InventoryLedge
       key: "expiryDate",
       header: "Expiry",
       className: "min-w-[88px]",
-      render: (row) => (
-        <span className="text-xs text-muted">
-          {row.expiryDate ?? "—"}
-        </span>
-      ),
+      render: (row) => <span className="text-xs text-muted">{row.expiryDate ?? "-"}</span>,
     },
     {
       key: "createdAt",

@@ -185,12 +185,12 @@ export function SidebarMenu({
           mass: 0.8,
         }}
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden bg-background shadow-xl lg:static lg:z-auto border-r border-border"
+          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden border-r border-gray-300 bg-white shadow-sm dark:border-border dark:bg-background dark:shadow-xl lg:static lg:z-auto"
         )}
       >
         <div
           className={cn(
-            "flex h-16 shrink-0 items-center border-b border-mint/20 transition-all duration-300",
+            "flex h-16 shrink-0 items-center border-b border-gray-300 transition-all duration-300 dark:border-mint/20",
             isCollapsed ? "justify-center px-0" : "justify-between px-4"
           )}
         >
@@ -200,7 +200,7 @@ export function SidebarMenu({
             size={isCollapsed ? "sidebarCollapsed" : "sidebar"}
             onClick={onClose}
             className={cn(
-              "text-foreground [&:hover]:text-mint",
+              "text-gray-900 [&:hover]:text-mint dark:text-foreground",
               isCollapsed && "justify-center"
             )}
           />
@@ -208,7 +208,7 @@ export function SidebarMenu({
             <button
               type="button"
               onClick={onClose}
-              className="flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-mint/10 hover:text-foreground lg:hidden"
+              className="flex size-9 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-[#54e3a1]/12 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground lg:hidden"
               aria-label="Close menu"
             >
               <X className="size-5" strokeWidth={2} />
@@ -218,7 +218,7 @@ export function SidebarMenu({
 
         <nav
           className={cn(
-            "flex-1 overflow-y-auto py-6 transition-all duration-300",
+            "hide-scrollbar flex-1 overflow-y-auto py-6 transition-all duration-300",
             isCollapsed ? "px-2" : "px-3"
           )}
         >
@@ -242,19 +242,21 @@ export function SidebarMenu({
                     onClick={onClose}
                     title={isCollapsed ? label : undefined}
                     className={cn(
-                      "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                      "group flex items-center rounded-lg text-sm font-medium transition-all duration-200",
                       isCollapsed
                         ? "justify-center px-0 py-2.5"
                         : "gap-3 px-3 py-2.5 pl-3",
                       isActive
-                        ? "bg-mint/20 text-foreground shadow-sm border border-mint/30 dark:bg-mint/15 dark:border-mint/20 border-l-2 border-l-mint"
-                        : "text-muted hover:bg-mint/10 hover:text-foreground border-l-2 border-l-transparent"
+                        ? "border border-[#54e3a1]/40 border-l-2 border-l-[#54e3a1] bg-[#54e3a1]/12 text-[#177a55] shadow-sm dark:border-mint/20 dark:border-l-mint dark:bg-mint/15 dark:text-foreground"
+                        : "border-l-2 border-l-transparent text-gray-700 hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5 shrink-0",
-                        isActive ? "text-mint" : "text-muted"
+                        isActive
+                          ? "text-[#2bc787] dark:text-mint"
+                          : "text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted dark:group-hover:text-mint"
                       )}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
@@ -277,11 +279,11 @@ export function SidebarMenu({
             onClick={() => signOut({ callbackUrl: "/login" })}
             title={isCollapsed ? "Sign out" : undefined}
             className={cn(
-              "flex w-full items-center rounded-lg text-sm font-medium text-muted transition-colors hover:bg-mint/10 hover:text-foreground",
+              "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
-            <LogOut className="size-5 shrink-0 text-muted" strokeWidth={2} />
+            <LogOut className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted" strokeWidth={2} />
             {!isCollapsed && <span>Sign out</span>}
           </button>
         </div>

@@ -53,7 +53,13 @@ export function RoleList() {
     [router, confirm, deleteRole, toast]
   );
 
-  const columns = useMemo(() => getRoleTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getRoleTableColumns({
+        onView: (r) => router.push(`/roles/${r.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<Role>

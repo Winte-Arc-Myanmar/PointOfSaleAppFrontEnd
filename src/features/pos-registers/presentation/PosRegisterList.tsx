@@ -56,7 +56,13 @@ export function PosRegisterList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(() => getPosRegisterTableColumns(), []);
+  const columns = useMemo(
+    () =>
+      getPosRegisterTableColumns({
+        onView: (r) => router.push(`/pos-registers/${r.id}`),
+      }),
+    [router],
+  );
 
   return (
     <EntityListWithCreateModal<PosRegister>
