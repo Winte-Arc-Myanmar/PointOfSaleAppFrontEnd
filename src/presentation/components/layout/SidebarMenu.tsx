@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -151,6 +151,7 @@ export function SidebarMenu({
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const { canAny, isSystemAdmin } = usePermissions();
   const { t } = useLanguage();
+  const activeItemRef = useRef<HTMLAnchorElement | null>(null);
 
   const menuItems = useMemo(() => {
     const items = allMenuItems.filter((item) => {
@@ -162,6 +163,14 @@ export function SidebarMenu({
     }
     return items;
   }, [canAny, isSystemAdmin]);
+
+  useEffect(() => {
+    // Keep the active route visible in the scrollable sidebar list.
+    activeItemRef.current?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [pathname, menuItems.length]);
 
   return (
     <>
@@ -246,6 +255,7 @@ export function SidebarMenu({
                   )}
                   <Link
                     href={href}
+                    ref={isActive ? activeItemRef : null}
                     onClick={() => {
                       onMenuNavigate?.(href);
                       onClose();

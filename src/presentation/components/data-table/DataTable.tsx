@@ -47,6 +47,93 @@ export interface DataTableColumn<T> {
   accessorKey?: keyof T | string;
 }
 
+function resolveHeaderTranslationKey(header: string): string | null {
+  const normalized = header
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+  const map: Record<string, string> = {
+    abbreviation: "abbreviation",
+    accountname: "accountName",
+    accounttype: "accountType",
+    agent: "agent",
+    barcode: "barcode",
+    baseprice: "basePrice",
+    basesku: "baseSku",
+    cashier: "cashier",
+    channel: "channel",
+    classid: "classId",
+    name: "name",
+    code: "code",
+    conversionrate: "conversionRate",
+    createdat: "createdAt",
+    credit: "credit",
+    type: "type",
+    default: "default",
+    deletedat: "deletedAt",
+    description: "description",
+    domain: "domain",
+    expectedclose: "expectedClose",
+    expiry: "expiry",
+    filename: "fileName",
+    folder: "folder",
+    fullname: "fullName",
+    glaccountid: "glAccountId",
+    grandtotal: "grandTotal",
+    jobtitle: "jobTitle",
+    legalname: "legalName",
+    loyaltytier: "loyaltyTier",
+    macaddress: "macAddress",
+    openingfloat: "openingFloat",
+    options: "options",
+    order: "orderNumber",
+    orderref: "orderRef",
+    points: "points",
+    pricemodifier: "priceModifier",
+    priority: "priority",
+    qty: "qty",
+    reconcilable: "reconcilable",
+    register: "register",
+    reward: "reward",
+    size: "size",
+    stackable: "stackable",
+    status: "status",
+    summary: "summary",
+    customer: "customer",
+    product: "product",
+    category: "category",
+    branch: "branch",
+    city: "city",
+    country: "country",
+    location: "location",
+    tenant: "tenant",
+    tenantid: "tenantId",
+    role: "role",
+    email: "email",
+    phone: "phone",
+    amount: "amount",
+    total: "total",
+    subtotal: "subtotal",
+    tax: "tax",
+    taxable: "taxable",
+    quantity: "quantity",
+    uom: "uom",
+    unitcost: "unitCost",
+    updatedat: "updatedAt",
+    url: "url",
+    username: "username",
+    variant: "variant",
+    variantsku: "variantSku",
+    tracking: "tracking",
+    price: "price",
+    created: "created",
+    updated: "updated",
+    date: "date",
+    id: "id",
+  };
+  return map[normalized] ?? null;
+}
+
 export interface DataTableAction<T> {
   label: string;
   icon?: React.ElementType;
@@ -138,7 +225,11 @@ export function DataTable<T extends { id: string | number }>({
     const cols: ColumnDef<T>[] = columns.map((col) => ({
       id: col.key,
       accessorKey: (col.accessorKey as keyof T) ?? col.key,
-      header: col.header,
+      header: (() => {
+        const key = resolveHeaderTranslationKey(col.header);
+        if (!key) return col.header;
+        return t(`tableHeaders.${key}` as never, col.header);
+      })(),
       enableSorting: col.sortable ?? false,
       cell: ({ row }) => {
         if (col.render) return col.render(row.original);
@@ -148,7 +239,7 @@ export function DataTable<T extends { id: string | number }>({
       meta: { className: col.className },
     }));
     return cols;
-  }, [columns]);
+  }, [columns, t]);
 
   // TanStack Table returns non-memoizable refs; React Compiler skips this by design.
   // eslint-disable-next-line react-hooks/incompatible-library
