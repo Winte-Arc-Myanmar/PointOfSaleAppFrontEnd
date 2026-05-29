@@ -38,10 +38,12 @@ import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
+import type { TranslationKey } from "@/presentation/i18n/translations";
 
 interface MenuItem {
   href: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: typeof Package;
   permissions?: string[];
   /** Only visible to systemAdmin (ignores permission check). */
@@ -49,85 +51,86 @@ interface MenuItem {
 }
 
 const allMenuItems: MenuItem[] = [
-  { href: "/customers", label: "Customers", icon: UserRound, permissions: ["customers:read"] },
+  { href: "/customers", labelKey: "nav.customers", icon: UserRound, permissions: ["customers:read"] },
   {
     href: "/customer-interactions",
-    label: "Interactions",
+    labelKey: "nav.interactions",
     icon: MessageSquareText,
     permissions: ["customer-interactions:read"],
   },
   {
     href: "/loyalty-ledger",
-    label: "Loyalty ledger",
+    labelKey: "nav.loyaltyLedger",
     icon: Gift,
     permissions: ["loyalty-ledger:read"],
   },
-  { href: "/vendors", label: "Vendors", icon: Truck, permissions: ["vendors:read"] },
-  { href: "/products", label: "Products", icon: Package, permissions: ["products:read"] },
-  { href: "/tenants", label: "Tenants", icon: Building2, permissions: ["tenants:read"] },
-  { href: "/users", label: "Users", icon: Users, permissions: ["users:read"] },
-  { href: "/roles", label: "Roles", icon: Shield, permissions: ["roles:read"] },
-  { href: "/categories", label: "Categories", icon: FolderTree, permissions: ["categories:read"] },
-  { href: "/branches", label: "Branches", icon: MapPin, permissions: ["branches:read"] },
-  { href: "/locations", label: "Locations", icon: Warehouse, permissions: ["locations:read"] },
+  { href: "/vendors", labelKey: "nav.vendors", icon: Truck, permissions: ["vendors:read"] },
+  { href: "/products", labelKey: "nav.products", icon: Package, permissions: ["products:read"] },
+  { href: "/tenants", labelKey: "nav.tenants", icon: Building2, permissions: ["tenants:read"] },
+  { href: "/users", labelKey: "nav.users", icon: Users, permissions: ["users:read"] },
+  { href: "/roles", labelKey: "nav.roles", icon: Shield, permissions: ["roles:read"] },
+  { href: "/categories", labelKey: "nav.categories", icon: FolderTree, permissions: ["categories:read"] },
+  { href: "/branches", labelKey: "nav.branches", icon: MapPin, permissions: ["branches:read"] },
+  { href: "/locations", labelKey: "nav.locations", icon: Warehouse, permissions: ["locations:read"] },
   {
     href: "/inventory-ledger",
-    label: "Inventory ledger",
+    labelKey: "nav.inventoryLedger",
     icon: ScrollText,
     permissions: ["inventory-ledger:read"],
   },
-  { href: "/uom", label: "UOM", icon: Ruler, permissions: ["uom:read"] },
-  { href: "/uploads", label: "Uploads", icon: Upload, permissions: ["uploads:read"] },
-  { href: "/sales-orders", label: "Sales orders", icon: Receipt, permissions: ["sales-orders:read"] },
+  { href: "/uom-classes", labelKey: "nav.uomClasses", icon: Ruler, permissions: ["uom:read"] },
+  { href: "/uoms", labelKey: "nav.uoms", icon: Ruler, permissions: ["uom:read"] },
+  { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },
+  { href: "/sales-orders", labelKey: "nav.salesOrders", icon: Receipt, permissions: ["sales-orders:read"] },
   {
     href: "/promotion-rules",
-    label: "Promotion rules",
+    labelKey: "nav.promotionRules",
     icon: Percent,
     permissions: ["promotion-rules:read"],
   },
   {
     href: "/pos-registers",
-    label: "POS registers",
+    labelKey: "nav.posRegisters",
     icon: Monitor,
     permissions: ["pos-registers:read"],
   },
   {
     href: "/pos-sessions",
-    label: "POS sessions",
+    labelKey: "nav.posSessions",
     icon: Clock,
     permissions: ["pos-sessions:read"],
   },
   {
     href: "/payment-methods",
-    label: "Payment methods",
+    labelKey: "nav.paymentMethods",
     icon: CreditCard,
     permissions: ["payment-methods:read"],
   },
   {
     href: "/chart-of-accounts",
-    label: "Chart of Accounts",
+    labelKey: "nav.chartOfAccounts",
     icon: BookText,
     permissions: ["chart-of-accounts:read"],
   },
   {
     href: "/checkout",
-    label: "Checkout",
+    labelKey: "nav.checkout",
     icon: ShoppingCart,
     permissions: ["sales:checkout:write"],
   },
   {
     href: "/refunds",
-    label: "Refunds",
+    labelKey: "nav.refunds",
     icon: RotateCcw,
     permissions: ["sales:refund:write", "sales:refund:read"],
   },
 ];
 
 const adminMenuItems: MenuItem[] = [
-  { href: "/admin/onboard", label: "Onboard tenant", icon: ShieldPlus, adminOnly: true },
-  { href: "/admin/create-user", label: "Create user", icon: UserRoundPlus, adminOnly: true },
-  { href: "/admin/assign-permissions", label: "Assign permissions", icon: KeyRound, adminOnly: true },
-  { href: "/admin/assign-role", label: "Assign role", icon: UserCog, adminOnly: true },
+  { href: "/admin/onboard", labelKey: "nav.onboardTenant", icon: ShieldPlus, adminOnly: true },
+  { href: "/admin/create-user", labelKey: "nav.createUser", icon: UserRoundPlus, adminOnly: true },
+  { href: "/admin/assign-permissions", labelKey: "nav.assignPermissions", icon: KeyRound, adminOnly: true },
+  { href: "/admin/assign-role", labelKey: "nav.assignRole", icon: UserCog, adminOnly: true },
 ];
 
 interface SidebarMenuProps {
@@ -135,6 +138,7 @@ interface SidebarMenuProps {
   isCollapsed: boolean;
   onClose: () => void;
   pathname: string;
+  onMenuNavigate?: (href: string) => void;
 }
 
 export function SidebarMenu({
@@ -142,9 +146,11 @@ export function SidebarMenu({
   isCollapsed,
   onClose,
   pathname,
+  onMenuNavigate,
 }: SidebarMenuProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const { canAny, isSystemAdmin } = usePermissions();
+  const { t } = useLanguage();
 
   const menuItems = useMemo(() => {
     const items = allMenuItems.filter((item) => {
@@ -209,7 +215,7 @@ export function SidebarMenu({
               type="button"
               onClick={onClose}
               className="flex size-9 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-[#54e3a1]/12 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground lg:hidden"
-              aria-label="Close menu"
+              aria-label={t("common.close")}
             >
               <X className="size-5" strokeWidth={2} />
             </button>
@@ -222,9 +228,10 @@ export function SidebarMenu({
             isCollapsed ? "px-2" : "px-3"
           )}
         >
-          {!isCollapsed && <p className="section-label mb-3 px-3">Menu</p>}
+          {!isCollapsed && <p className="section-label mb-3 px-3">{t("common.menu")}</p>}
           <ul className="space-y-0.5">
-            {menuItems.map(({ href, label, icon: Icon, adminOnly }, i) => {
+            {menuItems.map(({ href, labelKey, icon: Icon, adminOnly }, i) => {
+              const label = t(labelKey);
               const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
               const showDivider = adminOnly && i > 0 && !menuItems[i - 1]?.adminOnly;
               return (
@@ -235,11 +242,14 @@ export function SidebarMenu({
                   transition={{ delay: isCollapsed ? 0 : i * 0.03 }}
                 >
                   {showDivider && !isCollapsed && (
-                    <p className="section-label mt-5 mb-3 px-3">System Admin</p>
+                    <p className="section-label mt-5 mb-3 px-3">{t("nav.systemAdmin")}</p>
                   )}
                   <Link
                     href={href}
-                    onClick={onClose}
+                    onClick={() => {
+                      onMenuNavigate?.(href);
+                      onClose();
+                    }}
                     title={isCollapsed ? label : undefined}
                     className={cn(
                       "group flex items-center rounded-lg text-sm font-medium transition-all duration-200",
@@ -277,14 +287,14 @@ export function SidebarMenu({
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            title={isCollapsed ? "Sign out" : undefined}
+            title={isCollapsed ? t("common.signOut") : undefined}
             className={cn(
               "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
             )}
           >
             <LogOut className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted" strokeWidth={2} />
-            {!isCollapsed && <span>Sign out</span>}
+            {!isCollapsed && <span>{t("common.signOut")}</span>}
           </button>
         </div>
       </motion.aside>

@@ -13,9 +13,11 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
   LayoutGrid,
   List,
   MoreHorizontal,
+  Square,
 } from "lucide-react";
 import {
   Table,
@@ -34,6 +36,7 @@ import {
 } from "@/presentation/components/ui/dropdown-menu";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -85,6 +88,11 @@ export interface DataTableProps<T extends { id: string | number }> {
   renderGridItem?: (item: T) => React.ReactNode;
   gridClassName?: string;
   gridCardClassName?: string;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  allSelected?: boolean;
+  onToggleSelectAll?: () => void;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -112,7 +120,13 @@ export function DataTable<T extends { id: string | number }>({
   renderGridItem,
   gridClassName,
   gridCardClassName,
+  selectable = false,
+  selectedIds,
+  onToggleSelect,
+  allSelected = false,
+  onToggleSelectAll,
 }: DataTableProps<T>) {
+  const { t } = useLanguage();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [viewMode, setViewMode] =
     React.useState<DataTableViewMode>(defaultViewMode);
@@ -209,12 +223,12 @@ export function DataTable<T extends { id: string | number }>({
       <DropdownMenuContent align="end">
         {onView && (
           <DropdownMenuItem onClick={() => onView(item)}>
-            View
+            {t("common.view")}
           </DropdownMenuItem>
         )}
         {onEdit && (
           <DropdownMenuItem onClick={() => onEdit(item)}>
-            Edit
+            {t("common.edit")}
           </DropdownMenuItem>
         )}
         {onDelete && (
@@ -222,7 +236,7 @@ export function DataTable<T extends { id: string | number }>({
             variant="destructive"
             onClick={() => onDelete(item)}
           >
-            Delete
+            {t("common.delete")}
           </DropdownMenuItem>
         )}
         {actions.map((action, idx) => {
@@ -254,7 +268,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setViewMode("table")}
           >
             <List className="h-4 w-4" />
-            Table
+            {t("common.table")}
           </Button>
           <Button
             type="button"
@@ -263,7 +277,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setViewMode("grid")}
           >
             <LayoutGrid className="h-4 w-4" />
-            Grid
+            {t("common.grid")}
           </Button>
         </div>
       )}
@@ -278,7 +292,7 @@ export function DataTable<T extends { id: string | number }>({
               <p className="text-red-400">{error.message}</p>
               {error.onRetry && (
                 <Button variant="outline" size="sm" onClick={error.onRetry}>
-                  Retry
+                  {t("common.retry")}
                 </Button>
               )}
             </div>
@@ -324,13 +338,30 @@ export function DataTable<T extends { id: string | number }>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
+                {selectable && (
+                  <TableHead className="w-12 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={onToggleSelectAll}
+                      className="inline-flex items-center justify-center text-muted hover:text-foreground"
+                      aria-label={t("common.selectAll")}
+                    >
+                      {allSelected ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
+                  </TableHead>
+                )}
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={
+                    className={cn(
+                      "text-xs font-bold",
                       (header.column.columnDef.meta as { className?: string })
                         ?.className
-                    }
+                    )}
                   >
                     {header.column.getCanSort() ? (
                       <button
@@ -360,7 +391,7 @@ export function DataTable<T extends { id: string | number }>({
                   </TableHead>
                 ))}
                 {hasActions && (
-                  <TableHead className="w-25 section-label">Actions</TableHead>
+                  <TableHead className="w-25 text-xs font-bold">{t("common.actions")}</TableHead>
                 )}
               </TableRow>
             ))}
@@ -380,7 +411,7 @@ export function DataTable<T extends { id: string | number }>({
                         size="sm"
                         onClick={error.onRetry}
                       >
-                        Retry
+                        {t("common.retry")}
                       </Button>
                     )}
                   </div>
@@ -409,6 +440,17 @@ export function DataTable<T extends { id: string | number }>({
             ) : (
               rows.map((row) => (
                 <TableRow key={row.id}>
+                  {selectable && (
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds?.has(String(row.original.id)) ?? false}
+                        onChange={() => onToggleSelect?.(String(row.original.id))}
+                        aria-label={`Select row ${row.original.id}`}
+                        className="h-4 w-4 rounded border border-input align-middle"
+                      />
+                    </TableCell>
+                  )}
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
@@ -441,7 +483,10 @@ export function DataTable<T extends { id: string | number }>({
         (hasServerPagination ? !!onPageChange : pageCount > 1) && (
           <div className="flex items-center justify-between px-2 py-4">
             <p className="page-description text-sm">
-              Showing {total === 0 ? 0 : start} to {end} of {total} results
+              {t("common.showingResults")
+                .replace("{start}", String(total === 0 ? 0 : start))
+                .replace("{end}", String(end))
+                .replace("{total}", String(total))}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -455,10 +500,10 @@ export function DataTable<T extends { id: string | number }>({
                 }
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                {t("common.previous")}
               </Button>
               <span className="page-description text-sm">
-                Page {pageIndex + 1} of {pageCount}
+                {t("common.page")} {pageIndex + 1} {t("common.of")} {pageCount}
               </span>
               <Button
                 variant="outline"
@@ -475,7 +520,7 @@ export function DataTable<T extends { id: string | number }>({
                     : table.nextPage()
                 }
               >
-                Next
+                {t("common.next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

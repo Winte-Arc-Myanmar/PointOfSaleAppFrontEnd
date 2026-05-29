@@ -148,7 +148,7 @@ export function UploadsList() {
             variant: "destructive",
           });
           if (ok) {
-            deleteUpload.mutate(row.url, {
+            deleteUpload.mutate(String(row.id), {
               onSuccess: () => toast.success("File deleted."),
               onError: () => toast.error("Failed to delete file."),
             });

@@ -120,6 +120,25 @@ export function ProductList() {
     [router],
   );
 
+  async function handleDeleteSelected(items: Product[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete products",
+      description: `Delete ${items.length} selected product(s)? This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteProduct.mutateAsync(item.id);
+      }
+      toast.success(`${items.length} product(s) deleted.`);
+    } catch {
+      toast.error("Failed to delete some products.");
+    }
+  }
+
   return (
     <EntityListWithCreateModal<Product>
       data={filteredProducts}
@@ -179,6 +198,9 @@ export function ProductList() {
       createLoadingText="Creating..."
       createFormId={CREATE_PRODUCT_FORM_ID}
       createMaxWidth="2xl"
+      enableRowSelection
+      onEditSelected={(item) => router.push(`/products/${item.id}/edit`)}
+      onDeleteSelected={handleDeleteSelected}
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreateProductForm
           formId={formId}

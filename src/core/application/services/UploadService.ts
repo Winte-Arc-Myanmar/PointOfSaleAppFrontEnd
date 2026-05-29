@@ -16,7 +16,7 @@ export class UploadService implements IUploadService {
     return this.uploadRepository.uploadMultiple(files, folder, branchId);
   }
 
-  delete(url: string) {
-    return this.uploadRepository.delete(url);
+  delete(id: string) {
+    return this.uploadRepository.delete(id);
   }
 }

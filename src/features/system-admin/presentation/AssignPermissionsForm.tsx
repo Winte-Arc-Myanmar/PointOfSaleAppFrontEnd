@@ -81,8 +81,11 @@ export function AssignPermissionsForm() {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-4">
-      <div className="grid gap-2">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="max-w-3xl space-y-4"
+    >
+      <div className="grid max-w-xl gap-2">
         <Label htmlFor="roleId">Role *</Label>
         <Controller
           control={form.control}
@@ -115,7 +118,7 @@ export function AssignPermissionsForm() {
         ) : null}
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid max-w-xl gap-2">
         <Label htmlFor="permission-trigger">Permissions *</Label>
         <div className="relative">
           <button

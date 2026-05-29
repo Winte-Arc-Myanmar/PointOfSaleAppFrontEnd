@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Shell } from "@/presentation/components/layout/Shell";
 import { Button } from "@/presentation/components/ui/button";
+import { useCustomer } from "@/presentation/hooks/useCustomers";
 import { LoyaltyLedgerList } from "./LoyaltyLedgerList";
 import {
   getLoyaltyLedgerListPath,
@@ -17,6 +20,8 @@ export function LoyaltyLedgerListShell({
   placement,
 }: LoyaltyLedgerListShellProps) {
   const routeBasePath = getLoyaltyLedgerListPath(customerId, placement);
+  const { data: customer } = useCustomer(customerId);
+  const customerName = customer?.name?.trim() || customerId;
 
   return (
     <Shell>
@@ -30,7 +35,7 @@ export function LoyaltyLedgerListShell({
                 </Button>
               </Link>
               <p className="page-description mb-0">
-                Loyalty ledger for this customer.
+                Loyalty ledger for: <span className="font-semibold text-foreground">{customerName}</span>
               </p>
             </>
           ) : (

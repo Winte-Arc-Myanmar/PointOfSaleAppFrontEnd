@@ -5,6 +5,7 @@ import { QueryProvider } from "@/presentation/providers/QueryProvider";
 import { ThemeProvider } from "@/presentation/providers/ThemeProvider";
 import { ToastProvider } from "@/presentation/providers/ToastProvider";
 import { ConfirmProvider } from "@/presentation/hooks/useConfirm";
+import { LanguageProvider } from "@/presentation/providers/LanguageProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,13 +37,15 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <SessionProvider>
-            <QueryProvider>
-              <ToastProvider>
-                <ConfirmProvider>{children}</ConfirmProvider>
-              </ToastProvider>
-            </QueryProvider>
-          </SessionProvider>
+          <LanguageProvider>
+            <SessionProvider>
+              <QueryProvider>
+                <ToastProvider>
+                  <ConfirmProvider>{children}</ConfirmProvider>
+                </ToastProvider>
+              </QueryProvider>
+            </SessionProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

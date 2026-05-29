@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
+import { LanguageSwitcher } from "@/presentation/components/language/LanguageSwitcher";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -22,6 +24,7 @@ export function Navbar({
   className,
 }: NavbarProps) {
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const user = session?.user;
   const displayName = user?.name ?? user?.email ?? null;
 
@@ -39,7 +42,7 @@ export function Navbar({
         type="button"
         onClick={onMenuToggle}
         className="flex size-10 items-center justify-center rounded-lg text-gray-900 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-foreground dark:hover:bg-mint/10 dark:active:bg-mint/20 lg:hidden"
-        aria-label="Open menu"
+        aria-label={t("common.openMenu")}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -49,7 +52,9 @@ export function Navbar({
         type="button"
         onClick={onCollapseToggle}
         className="hidden size-10 items-center justify-center rounded-lg text-gray-900 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-foreground dark:hover:bg-mint/10 dark:active:bg-mint/20 lg:flex"
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={
+          isCollapsed ? t("common.expandSidebar") : t("common.collapseSidebar")
+        }
       >
         {isCollapsed ? (
           <PanelLeft className="size-5" strokeWidth={2} />
@@ -69,6 +74,7 @@ export function Navbar({
         </motion.h1>
       )}
       <div className="ml-auto flex items-center gap-3">
+        <LanguageSwitcher />
         {displayName && (
           <div className="hidden items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-900 dark:border-transparent dark:bg-mint/10 dark:text-foreground sm:flex">
             <User className="size-4 shrink-0 text-[#2bc787] dark:text-mint" />

@@ -27,8 +27,8 @@ export function UomClassDetail({ uomClassId }: { uomClassId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">UOM class not found or failed to load.</p>
-        <Link href="/uom">
-          <Button variant="outline">Back to UOM</Button>
+        <Link href="/uom-classes">
+          <Button variant="outline">Back to UOM Classes</Button>
         </Link>
       </div>
     );
@@ -36,8 +36,8 @@ export function UomClassDetail({ uomClassId }: { uomClassId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/uom"
-        backLabel="UOM"
+        backHref="/uom-classes"
+        backLabel="UOM Classes"
         title={safeText(uomClass.name)}
         editHref={`/uom-classes/${uomClass.id}/edit`}
       />

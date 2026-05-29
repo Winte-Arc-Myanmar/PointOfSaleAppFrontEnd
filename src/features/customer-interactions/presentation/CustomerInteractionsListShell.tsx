@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Shell } from "@/presentation/components/layout/Shell";
 import { Button } from "@/presentation/components/ui/button";
+import { useCustomer } from "@/presentation/hooks/useCustomers";
 import { CustomerInteractionList } from "./CustomerInteractionList";
 import {
   getCustomerInteractionsListPath,
@@ -17,6 +20,8 @@ export function CustomerInteractionsListShell({
   placement,
 }: CustomerInteractionsListShellProps) {
   const routeBasePath = getCustomerInteractionsListPath(customerId, placement);
+  const { data: customer } = useCustomer(customerId);
+  const customerName = customer?.name?.trim() || customerId;
 
   return (
     <Shell>
@@ -30,7 +35,7 @@ export function CustomerInteractionsListShell({
                 </Button>
               </Link>
               <p className="page-description mb-0">
-                Interactions for this customer.
+                Interactions for: <span className="font-semibold text-foreground">{customerName}</span>
               </p>
             </>
           ) : (

@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteVendor, useVendors } from "@/presentation/hooks/useVendors";
 import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
@@ -21,6 +28,7 @@ export function VendorList() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedTenantId, setSelectedTenantId] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: vendors = [],
@@ -33,11 +41,19 @@ export function VendorList() {
   const confirm = useConfirm();
   const filteredVendors = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return vendors;
-    return vendors.filter((v) =>
+    const searched = !q
+      ? vendors
+      : vendors.filter((v) =>
       [v.name, v.tenantId, String(v.id)].join(" ").toLowerCase().includes(q),
     );
-  }, [vendors, search]);
+    if (selectedTenantId === "__all__") return searched;
+    return searched.filter((v) => v.tenantId === selectedTenantId);
+  }, [vendors, search, selectedTenantId]);
+
+  const tenantOptions = useMemo(() => {
+    const ids = new Set(vendors.map((v) => v.tenantId).filter(Boolean));
+    return Array.from(ids).sort((a, b) => a.localeCompare(b));
+  }, [vendors]);
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -51,6 +67,10 @@ export function VendorList() {
   useEffect(() => {
     pagination.reset(1);
   }, [search, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [selectedTenantId, pagination]);
 
   const actions = useMemo(
     () =>
@@ -83,6 +103,25 @@ export function VendorList() {
     [router],
   );
 
+  async function handleDeleteSelected(items: Vendor[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete vendors",
+      description: `Delete ${items.length} selected vendor(s)? This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteVendor.mutateAsync(String(item.id));
+      }
+      toast.success(`${items.length} vendor(s) deleted.`);
+    } catch {
+      toast.error("Failed to delete some vendors.");
+    }
+  }
+
   return (
     <EntityListWithCreateModal<Vendor>
       data={filteredVendors}
@@ -90,15 +129,34 @@ export function VendorList() {
       actions={actions}
       isLoading={isLoading}
       loadingText="Loading vendors..."
-      emptyText={search.trim() ? "No vendors match your search." : "No vendors yet."}
+      emptyText={
+        search.trim()
+          ? "No vendors match your search."
+          : selectedTenantId !== "__all__"
+            ? "No vendors match this tenant."
+            : "No vendors yet."
+      }
       topContent={
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search vendors..."
             className="sm:w-[360px]"
           />
+          <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
+            <SelectTrigger className="sm:w-[240px]">
+              <SelectValue placeholder="Filter by tenant" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All tenants</SelectItem>
+              {tenantOptions.map((tenantId) => (
+                <SelectItem key={tenantId} value={tenantId}>
+                  {tenantId}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       }
       error={
@@ -120,6 +178,9 @@ export function VendorList() {
       createLoadingText="Creating..."
       createFormId={CREATE_VENDOR_FORM_ID}
       createMaxWidth="md"
+      enableRowSelection
+      onEditSelected={(item) => router.push(`/vendors/${item.id}/edit`)}
+      onDeleteSelected={handleDeleteSelected}
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreateVendorForm
           formId={formId}

@@ -7,6 +7,13 @@ import { useInferredServerPagination } from "@/presentation/hooks/useInferredSer
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getBranchRowActions } from "./branch-row-actions";
 import { getBranchTableColumns } from "./branch-table-columns";
@@ -21,6 +28,7 @@ export function BranchList() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedType, setSelectedType] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const { data: branches = [], isLoading, error, refetch } = useBranches({
     page: pagination.page,
@@ -31,8 +39,9 @@ export function BranchList() {
   const confirm = useConfirm();
   const filteredBranches = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return branches;
-    return branches.filter((b) =>
+    const searched = !q
+      ? branches
+      : branches.filter((b) =>
       [
         b.name,
         b.branchCode,
@@ -49,7 +58,18 @@ export function BranchList() {
         .toLowerCase()
         .includes(q),
     );
-  }, [branches, search]);
+    if (selectedType === "__all__") return searched;
+    return searched.filter((b) => (b.type?.trim() || "__none__") === selectedType);
+  }, [branches, search, selectedType]);
+
+  const typeOptions = useMemo(() => {
+    const types = new Set<string>();
+    branches.forEach((b) => {
+      const value = (b.type ?? "").trim();
+      if (value) types.add(value);
+    });
+    return Array.from(types).sort((a, b) => a.localeCompare(b));
+  }, [branches]);
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -63,6 +83,10 @@ export function BranchList() {
   useEffect(() => {
     pagination.reset(1);
   }, [search, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [selectedType, pagination]);
 
   const actions = useMemo(
     () =>
@@ -95,6 +119,25 @@ export function BranchList() {
     [router],
   );
 
+  async function handleDeleteSelected(items: Branch[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete branches",
+      description: `Delete ${items.length} selected branch(es)? This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteBranch.mutateAsync(item.id);
+      }
+      toast.success(`${items.length} branch(es) deleted.`);
+    } catch {
+      toast.error("Failed to delete some branches.");
+    }
+  }
+
   return (
     <EntityListWithCreateModal<Branch>
       data={filteredBranches}
@@ -102,15 +145,34 @@ export function BranchList() {
       actions={actions}
       isLoading={isLoading}
       loadingText="Loading branches..."
-      emptyText={search.trim() ? "No branches match your search." : "No branches yet."}
+      emptyText={
+        search.trim()
+          ? "No branches match your search."
+          : selectedType !== "__all__"
+            ? "No branches match this type."
+            : "No branches yet."
+      }
       topContent={
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search branches..."
             className="sm:w-[360px]"
           />
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="sm:w-[220px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All types</SelectItem>
+              {typeOptions.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       }
       error={
@@ -132,6 +194,9 @@ export function BranchList() {
       createLoadingText="Creating..."
       createFormId={CREATE_BRANCH_FORM_ID}
       createMaxWidth="2xl"
+      enableRowSelection
+      onEditSelected={(item) => router.push(`/branches/${item.id}/edit`)}
+      onDeleteSelected={handleDeleteSelected}
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreateBranchForm
           formId={formId}

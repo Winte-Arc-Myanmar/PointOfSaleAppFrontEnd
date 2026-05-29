@@ -11,11 +11,13 @@ import {
   Package,
   Receipt,
   Tag,
+  Warehouse,
 } from "lucide-react";
 import { useProduct } from "@/presentation/hooks/useProducts";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { Button } from "@/presentation/components/ui/button";
 import { ProductVariantSection } from "./ProductVariantSection";
+import { InventoryBalancePanel } from "@/features/inventory-ledger/presentation/InventoryBalancePanel";
 import {
   DetailSection,
   DetailRows,
@@ -29,8 +31,8 @@ import { cn } from "@/lib/utils";
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
   { key: "category", label: "Category", icon: FolderTree },
-  { key: "baseUom", label: "Base UOM", icon: Box },
   { key: "tax", label: "Tax", icon: Receipt },
+  { key: "stock", label: "Stock", icon: Warehouse },
   { key: "recordInfo", label: "Record Info", icon: Info },
 ] as const;
 
@@ -90,6 +92,10 @@ export function ProductDetail({ productId }: { productId: string }) {
   const taxRows = product
     ? [
         {
+          label: "Product price",
+          value: safeText(product.basePrice),
+        },
+        {
           label: "Taxable",
           value: product.isTaxable == null ? "—" : product.isTaxable ? "Yes" : "No",
         },
@@ -111,10 +117,10 @@ export function ProductDetail({ productId }: { productId: string }) {
         return overviewRows;
       case "category":
         return categoryRows;
-      case "baseUom":
-        return uomRows;
       case "tax":
         return taxRows;
+      case "stock":
+        return [];
       case "recordInfo":
         return recordRows;
       default:
@@ -150,45 +156,6 @@ export function ProductDetail({ productId }: { productId: string }) {
       />
 
       <section className="overflow-hidden rounded-2xl border border-border bg-background/80 shadow-sm">
-        <div className="border-b border-border bg-gradient-to-r from-background via-background to-mint/5 px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                <Package className="size-3.5 text-mint" />
-                Product details
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                  {safeText(product.name)}
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                  Review key product information through a cleaner, focused layout with
-                  fast section switching and a more polished presentation.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[260px]">
-              <div className="rounded-xl border border-border bg-background/90 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
-                  Base SKU
-                </p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {safeText(product.baseSku)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border bg-background/90 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">
-                  Base price
-                </p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {safeText(product.basePrice)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="px-4 py-4 sm:px-6">
           <div className="inline-flex w-full flex-wrap gap-2 rounded-2xl border border-border bg-background/60 p-2">
             {DETAIL_TABS.map((tab) => {
@@ -230,45 +197,69 @@ export function ProductDetail({ productId }: { productId: string }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/70 bg-background/60 p-1">
-            <DetailRows rows={activeRows} />
-          </div>
+          {activeTab !== "stock" && (
+            <div className="rounded-xl border border-border/70 bg-background/60 p-1">
+              <DetailRows rows={activeRows} />
+            </div>
+          )}
+
+          {activeTab === "category" && (
+            <div className="mt-4">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1 text-xs font-medium text-muted">
+                <Box className="size-3.5 text-mint" />
+                Base UOM
+              </div>
+              <div className="rounded-xl border border-border/70 bg-background/60 p-1">
+                <DetailRows rows={uomRows} />
+              </div>
+            </div>
+          )}
+
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <DetailSection title="Product image" icon={ImageIcon}>
-          {product.imageUrl ? (
-            <div className="relative mx-auto aspect-square w-full max-w-xs rounded-xl border border-border bg-muted/20 sm:max-w-sm">
-              <Image
-                src={
-                  product.imageUrl.startsWith("data:") || /^https?:\/\//i.test(product.imageUrl)
-                    ? product.imageUrl
-                    : resolveMediaUrl(product.imageUrl)
-                }
-                alt={`${product.name} product image`}
-                fill
-                className="object-contain p-4"
-                sizes="(max-width: 640px) 100vw, 384px"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-muted">No image for this product.</p>
-          )}
-        </DetailSection>
-
-        {product.globalAttributes != null &&
-          Object.keys(product.globalAttributes).length > 0 && (
-            <DetailSection title="Global attributes" icon={Tag}>
-              <pre className="overflow-auto rounded-xl bg-muted/40 p-4 text-xs font-mono text-foreground">
-                {JSON.stringify(product.globalAttributes, null, 2)}
-              </pre>
+      {activeTab === "overview" && (
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <DetailSection title="Product image" icon={ImageIcon}>
+              {product.imageUrl ? (
+                <div className="relative mx-auto aspect-square w-full max-w-xs rounded-xl border border-border bg-muted/20 sm:max-w-sm">
+                  <Image
+                    src={
+                      product.imageUrl.startsWith("data:") || /^https?:\/\//i.test(product.imageUrl)
+                        ? product.imageUrl
+                        : resolveMediaUrl(product.imageUrl)
+                    }
+                    alt={`${product.name} product image`}
+                    fill
+                    className="object-contain p-4"
+                    sizes="(max-width: 640px) 100vw, 384px"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-muted">No image for this product.</p>
+              )}
             </DetailSection>
-          )}
-      </div>
 
-      <ProductVariantSection productId={productId} />
+            {product.globalAttributes != null &&
+              Object.keys(product.globalAttributes).length > 0 && (
+                <DetailSection title="Global attributes" icon={Tag}>
+                  <pre className="overflow-auto rounded-xl bg-muted/40 p-4 text-xs font-mono text-foreground">
+                    {JSON.stringify(product.globalAttributes, null, 2)}
+                  </pre>
+                </DetailSection>
+              )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "stock" && (
+        <div className="space-y-5">
+          <InventoryBalancePanel />
+          <ProductVariantSection productId={productId} />
+        </div>
+      )}
     </div>
   );
 }

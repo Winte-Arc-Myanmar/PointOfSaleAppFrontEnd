@@ -87,8 +87,8 @@ export class ApiUploadRepository implements IUploadRepository {
     return { urls };
   }
 
-  async delete(url: string): Promise<void> {
-    await this.httpClient.post(API_ENDPOINTS.UPLOADS.DELETE, { url });
+  async delete(id: string): Promise<void> {
+    await this.httpClient.delete(API_ENDPOINTS.UPLOADS.DELETE(id));
   }
 }
 

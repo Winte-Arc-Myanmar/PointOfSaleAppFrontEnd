@@ -68,9 +68,9 @@ export function useUploadMultipleFiles() {
 export function useDeleteUpload() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (url: string) => {
+    mutationFn: (id: string) => {
       const service = container.resolve<IUploadService>("uploadService");
-      return service.delete(url);
+      return service.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: UPLOADS_QUERY_KEY });
