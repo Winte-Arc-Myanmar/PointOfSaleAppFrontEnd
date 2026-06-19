@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { ChevronDown, ChevronRight, FolderTree } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderTree, List } from "lucide-react";
 import { useCategoryTree } from "@/presentation/hooks/useCategories";
 import type { Category } from "@/core/domain/entities/Category";
 import { AppLoader } from "@/presentation/components/loader";
@@ -130,9 +130,16 @@ export function CategoryTree({
             <FolderTree className="size-4" strokeWidth={2.2} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">
-              Category Tree
-            </h2>
+            <button
+              type="button"
+              onClick={() => onSelectCategory?.(null)}
+              className="text-left"
+              title="Show all categories"
+            >
+              <h2 className="text-lg font-semibold tracking-tight text-foreground hover:text-mint">
+                Category Tree
+              </h2>
+            </button>
             <p className="mt-1 text-sm text-muted">
               Browse or focus one category at a time.
             </p>
@@ -155,6 +162,30 @@ export function CategoryTree({
 
       {isOpen ? (
         <ul className="space-y-1">
+          <li>
+            <button
+              type="button"
+              onClick={() => onSelectCategory?.(null)}
+              className={cn(
+                "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition",
+                "focus:outline-none focus:ring-2 focus:ring-mint/50 focus:ring-offset-0",
+                selectedCategoryId === null
+                  ? "bg-mint/15 text-foreground"
+                  : "text-muted hover:bg-mint/5 hover:text-foreground",
+              )}
+              title="Show all categories"
+            >
+              <List
+                className={cn(
+                  "size-4 shrink-0",
+                  selectedCategoryId === null ? "text-mint" : "text-muted",
+                )}
+              />
+              <span className="min-w-0 truncate text-sm font-semibold">
+                All categories
+              </span>
+            </button>
+          </li>
           {roots.map((category) => (
             <TreeNode
               key={String(category.id)}

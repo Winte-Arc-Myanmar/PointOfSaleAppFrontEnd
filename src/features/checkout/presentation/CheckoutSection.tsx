@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,10 +8,10 @@ import {
   ShoppingCart,
   Search,
   Plus,
+  Minus,
   Trash2,
   Settings2,
   KeyRound,
-  Delete,
   CreditCard,
   RefreshCw,
   Package,
@@ -438,35 +438,19 @@ export function CheckoutSection() {
     form.setValue(`items.${index}.quantity`, Math.max(0, value));
   }
 
-  function numpadPress(key: string) {
-    if (activeLineIndex == null) {
-      toast.error("Select a cart line first.");
+  function incrementItem(index: number) {
+    const currentQty = Number(form.getValues(`items.${index}.quantity`)) || 0;
+    setQty(index, currentQty + 1);
+  }
+
+  function decrementItem(index: number) {
+    const currentQty = Number(form.getValues(`items.${index}.quantity`)) || 0;
+    if (currentQty <= 1) {
+      items.remove(index);
+      if (activeLineIndex === index) setActiveLineIndex(null);
       return;
     }
-    const current = String(
-      form.getValues(`items.${activeLineIndex}.quantity`) ?? "",
-    );
-    if (key === "C") {
-      setQty(activeLineIndex, 0);
-      return;
-    }
-    if (key === "<") {
-      const next = current.length <= 1 ? "0" : current.slice(0, -1);
-      const n = Number(next);
-      setQty(activeLineIndex, Number.isFinite(n) ? n : 0);
-      return;
-    }
-    if (key === ".") {
-      if (current.includes(".")) return;
-      form.setValue(
-        `items.${activeLineIndex}.quantity`,
-        Number(current + ".") || 0,
-      );
-      return;
-    }
-    const next = current === "0" ? key : current + key;
-    const n = Number(next);
-    if (Number.isFinite(n)) setQty(activeLineIndex, n);
+    setQty(index, currentQty - 1);
   }
 
   async function clearCart() {
@@ -604,15 +588,36 @@ export function CheckoutSection() {
                             {meta?.variantSku ?? variantId} · {money(unitPrice)}
                           </div>
                         </div>
-                        <div
-                          className={cn(
-                            "shrink-0 w-16 text-center rounded-md border px-2 py-1 font-mono text-sm",
-                            isActive
-                              ? "border-mint bg-mint/20 text-foreground"
-                              : "border-border bg-muted/20 text-muted",
-                          )}
-                        >
-                          × {qty}
+                        <div className="shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-1.5 py-1">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              decrementItem(idx);
+                            }}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </Button>
+                          <span className="w-8 text-center font-mono text-sm font-medium">
+                            {qty}
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              incrementItem(idx);
+                            }}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                         <div className="w-24 text-right shrink-0 font-medium">
                           {money(lineTotal)}
@@ -638,53 +643,7 @@ export function CheckoutSection() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-border bg-background p-4 space-y-3">
-              <h3 className="section-label">Number pad</h3>
-              <p className="text-xs text-muted">
-                {activeLineIndex == null
-                  ? "Select a cart line to edit its quantity."
-                  : `Editing line #${activeLineIndex + 1} quantity.`}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  "7",
-                  "8",
-                  "9",
-                  "4",
-                  "5",
-                  "6",
-                  "1",
-                  "2",
-                  "3",
-                  ".",
-                  "0",
-                  "<",
-                ].map((k) => (
-                  <Button
-                    key={k}
-                    type="button"
-                    variant="outline"
-                    className="h-12 text-base font-medium"
-                    onClick={() => numpadPress(k)}
-                    disabled={activeLineIndex == null}
-                  >
-                    {k === "<" ? <Delete className="h-4 w-4" /> : k}
-                  </Button>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12 col-span-3 text-base font-medium"
-                  onClick={() => numpadPress("C")}
-                  disabled={activeLineIndex == null}
-                >
-                  Clear qty
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+          <div className="rounded-xl border border-border bg-background p-5 space-y-4">
               <h3 className="section-label">Totals</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
@@ -705,33 +664,44 @@ export function CheckoutSection() {
                 </div>
                 <div className="pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Grand total</span>
-                  <span className="text-lg font-semibold text-mint">
+                  <span className="text-2xl font-bold text-mint">
                     {money4(subtotal)}
                   </span>
                 </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  if (watchedPayments.length === 1) {
-                    form.setValue(
-                      "payments.0.amount",
-                      Number(subtotal.toFixed(4)),
-                    );
-                    toast.success("Exact amount set.");
-                  } else {
-                    toast.error(
-                      "Exact amount only works with a single payment line.",
-                    );
-                  }
-                }}
-                disabled={subtotal <= 0}
-              >
-                Exact amount
-              </Button>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12"
+                  onClick={() => {
+                    if (watchedPayments.length === 1) {
+                      form.setValue(
+                        "payments.0.amount",
+                        Number(subtotal.toFixed(4)),
+                      );
+                      toast.success("Exact amount set.");
+                    } else {
+                      toast.error(
+                        "Exact amount only works with a single payment line.",
+                      );
+                    }
+                  }}
+                  disabled={subtotal <= 0}
+                >
+                  Exact amount
+                </Button>
+                <Button
+                  type="button"
+                  onClick={form.handleSubmit(onSubmit)}
+                  disabled={checkout.isPending || items.fields.length === 0}
+                  className="h-12 md:h-14 text-base font-semibold bg-mint text-gloss-black hover:bg-mint-hover"
+                >
+                  {checkout.isPending
+                    ? "Processing..."
+                    : `Pay now ${money4(subtotal)}`}
+                </Button>
+              </div>
           </div>
 
           <div className="rounded-xl border border-border bg-background p-4 space-y-3">
@@ -822,16 +792,6 @@ export function CheckoutSection() {
             </div>
           </div>
 
-          <Button
-            type="button"
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={checkout.isPending || items.fields.length === 0}
-            className="w-full h-14 text-base font-semibold bg-mint text-gloss-black hover:bg-mint-hover"
-          >
-            {checkout.isPending
-              ? "Processing..."
-              : `Charge ${money4(subtotal)}`}
-          </Button>
         </div>
 
         <div className="lg:col-span-5 xl:col-span-5">
@@ -1246,3 +1206,4 @@ function VariantPickerModal({
     </Dialog>
   );
 }
+

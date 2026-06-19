@@ -39,8 +39,8 @@ export function UomDetail({ uomId }: { uomId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">UOM not found or failed to load.</p>
-        <Link href="/uom">
-          <Button variant="outline">Back to UOM</Button>
+        <Link href="/uoms">
+          <Button variant="outline">Back to UOMs</Button>
         </Link>
       </div>
     );
@@ -48,8 +48,8 @@ export function UomDetail({ uomId }: { uomId: string }) {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        backHref="/uom"
-        backLabel="UOM"
+        backHref="/uoms"
+        backLabel="UOMs"
         title={safeText(uom.name)}
         editHref={`/uoms/${uom.id}/edit`}
       />

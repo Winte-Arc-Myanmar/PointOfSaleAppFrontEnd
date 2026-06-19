@@ -13,9 +13,11 @@ import {
 import {
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
   LayoutGrid,
   List,
   MoreHorizontal,
+  Square,
 } from "lucide-react";
 import {
   Table,
@@ -34,6 +36,7 @@ import {
 } from "@/presentation/components/ui/dropdown-menu";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -42,6 +45,93 @@ export interface DataTableColumn<T> {
   render?: (item: T) => React.ReactNode;
   className?: string;
   accessorKey?: keyof T | string;
+}
+
+function resolveHeaderTranslationKey(header: string): string | null {
+  const normalized = header
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+  const map: Record<string, string> = {
+    abbreviation: "abbreviation",
+    accountname: "accountName",
+    accounttype: "accountType",
+    agent: "agent",
+    barcode: "barcode",
+    baseprice: "basePrice",
+    basesku: "baseSku",
+    cashier: "cashier",
+    channel: "channel",
+    classid: "classId",
+    name: "name",
+    code: "code",
+    conversionrate: "conversionRate",
+    createdat: "createdAt",
+    credit: "credit",
+    type: "type",
+    default: "default",
+    deletedat: "deletedAt",
+    description: "description",
+    domain: "domain",
+    expectedclose: "expectedClose",
+    expiry: "expiry",
+    filename: "fileName",
+    folder: "folder",
+    fullname: "fullName",
+    glaccountid: "glAccountId",
+    grandtotal: "grandTotal",
+    jobtitle: "jobTitle",
+    legalname: "legalName",
+    loyaltytier: "loyaltyTier",
+    macaddress: "macAddress",
+    openingfloat: "openingFloat",
+    options: "options",
+    order: "orderNumber",
+    orderref: "orderRef",
+    points: "points",
+    pricemodifier: "priceModifier",
+    priority: "priority",
+    qty: "qty",
+    reconcilable: "reconcilable",
+    register: "register",
+    reward: "reward",
+    size: "size",
+    stackable: "stackable",
+    status: "status",
+    summary: "summary",
+    customer: "customer",
+    product: "product",
+    category: "category",
+    branch: "branch",
+    city: "city",
+    country: "country",
+    location: "location",
+    tenant: "tenant",
+    tenantid: "tenantId",
+    role: "role",
+    email: "email",
+    phone: "phone",
+    amount: "amount",
+    total: "total",
+    subtotal: "subtotal",
+    tax: "tax",
+    taxable: "taxable",
+    quantity: "quantity",
+    uom: "uom",
+    unitcost: "unitCost",
+    updatedat: "updatedAt",
+    url: "url",
+    username: "username",
+    variant: "variant",
+    variantsku: "variantSku",
+    tracking: "tracking",
+    price: "price",
+    created: "created",
+    updated: "updated",
+    date: "date",
+    id: "id",
+  };
+  return map[normalized] ?? null;
 }
 
 export interface DataTableAction<T> {
@@ -85,6 +175,11 @@ export interface DataTableProps<T extends { id: string | number }> {
   renderGridItem?: (item: T) => React.ReactNode;
   gridClassName?: string;
   gridCardClassName?: string;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  allSelected?: boolean;
+  onToggleSelectAll?: () => void;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -112,7 +207,13 @@ export function DataTable<T extends { id: string | number }>({
   renderGridItem,
   gridClassName,
   gridCardClassName,
+  selectable = false,
+  selectedIds,
+  onToggleSelect,
+  allSelected = false,
+  onToggleSelectAll,
 }: DataTableProps<T>) {
+  const { t } = useLanguage();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [viewMode, setViewMode] =
     React.useState<DataTableViewMode>(defaultViewMode);
@@ -124,7 +225,11 @@ export function DataTable<T extends { id: string | number }>({
     const cols: ColumnDef<T>[] = columns.map((col) => ({
       id: col.key,
       accessorKey: (col.accessorKey as keyof T) ?? col.key,
-      header: col.header,
+      header: (() => {
+        const key = resolveHeaderTranslationKey(col.header);
+        if (!key) return col.header;
+        return t(`tableHeaders.${key}` as never, col.header);
+      })(),
       enableSorting: col.sortable ?? false,
       cell: ({ row }) => {
         if (col.render) return col.render(row.original);
@@ -134,7 +239,7 @@ export function DataTable<T extends { id: string | number }>({
       meta: { className: col.className },
     }));
     return cols;
-  }, [columns]);
+  }, [columns, t]);
 
   // TanStack Table returns non-memoizable refs; React Compiler skips this by design.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -209,12 +314,12 @@ export function DataTable<T extends { id: string | number }>({
       <DropdownMenuContent align="end">
         {onView && (
           <DropdownMenuItem onClick={() => onView(item)}>
-            View
+            {t("common.view")}
           </DropdownMenuItem>
         )}
         {onEdit && (
           <DropdownMenuItem onClick={() => onEdit(item)}>
-            Edit
+            {t("common.edit")}
           </DropdownMenuItem>
         )}
         {onDelete && (
@@ -222,7 +327,7 @@ export function DataTable<T extends { id: string | number }>({
             variant="destructive"
             onClick={() => onDelete(item)}
           >
-            Delete
+            {t("common.delete")}
           </DropdownMenuItem>
         )}
         {actions.map((action, idx) => {
@@ -254,7 +359,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setViewMode("table")}
           >
             <List className="h-4 w-4" />
-            Table
+            {t("common.table")}
           </Button>
           <Button
             type="button"
@@ -263,7 +368,7 @@ export function DataTable<T extends { id: string | number }>({
             onClick={() => setViewMode("grid")}
           >
             <LayoutGrid className="h-4 w-4" />
-            Grid
+            {t("common.grid")}
           </Button>
         </div>
       )}
@@ -278,7 +383,7 @@ export function DataTable<T extends { id: string | number }>({
               <p className="text-red-400">{error.message}</p>
               {error.onRetry && (
                 <Button variant="outline" size="sm" onClick={error.onRetry}>
-                  Retry
+                  {t("common.retry")}
                 </Button>
               )}
             </div>
@@ -324,13 +429,30 @@ export function DataTable<T extends { id: string | number }>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
+                {selectable && (
+                  <TableHead className="w-12 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={onToggleSelectAll}
+                      className="inline-flex items-center justify-center text-muted hover:text-foreground"
+                      aria-label={t("common.selectAll")}
+                    >
+                      {allSelected ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
+                  </TableHead>
+                )}
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={
+                    className={cn(
+                      "text-xs font-bold",
                       (header.column.columnDef.meta as { className?: string })
                         ?.className
-                    }
+                    )}
                   >
                     {header.column.getCanSort() ? (
                       <button
@@ -360,7 +482,7 @@ export function DataTable<T extends { id: string | number }>({
                   </TableHead>
                 ))}
                 {hasActions && (
-                  <TableHead className="w-25 section-label">Actions</TableHead>
+                  <TableHead className="w-25 text-xs font-bold">{t("common.actions")}</TableHead>
                 )}
               </TableRow>
             ))}
@@ -380,7 +502,7 @@ export function DataTable<T extends { id: string | number }>({
                         size="sm"
                         onClick={error.onRetry}
                       >
-                        Retry
+                        {t("common.retry")}
                       </Button>
                     )}
                   </div>
@@ -409,6 +531,17 @@ export function DataTable<T extends { id: string | number }>({
             ) : (
               rows.map((row) => (
                 <TableRow key={row.id}>
+                  {selectable && (
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds?.has(String(row.original.id)) ?? false}
+                        onChange={() => onToggleSelect?.(String(row.original.id))}
+                        aria-label={`Select row ${row.original.id}`}
+                        className="h-4 w-4 rounded border border-input align-middle"
+                      />
+                    </TableCell>
+                  )}
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
@@ -441,7 +574,10 @@ export function DataTable<T extends { id: string | number }>({
         (hasServerPagination ? !!onPageChange : pageCount > 1) && (
           <div className="flex items-center justify-between px-2 py-4">
             <p className="page-description text-sm">
-              Showing {total === 0 ? 0 : start} to {end} of {total} results
+              {t("common.showingResults")
+                .replace("{start}", String(total === 0 ? 0 : start))
+                .replace("{end}", String(end))
+                .replace("{total}", String(total))}
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -455,10 +591,10 @@ export function DataTable<T extends { id: string | number }>({
                 }
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                {t("common.previous")}
               </Button>
               <span className="page-description text-sm">
-                Page {pageIndex + 1} of {pageCount}
+                {t("common.page")} {pageIndex + 1} {t("common.of")} {pageCount}
               </span>
               <Button
                 variant="outline"
@@ -475,7 +611,7 @@ export function DataTable<T extends { id: string | number }>({
                     : table.nextPage()
                 }
               >
-                Next
+                {t("common.next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

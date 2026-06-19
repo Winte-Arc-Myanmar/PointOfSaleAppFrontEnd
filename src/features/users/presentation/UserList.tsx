@@ -119,6 +119,25 @@ export function UserList() {
     [router],
   );
 
+  async function handleDeleteSelected(items: AppUser[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete users",
+      description: `Delete ${items.length} selected user(s)? This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteUser.mutateAsync(item.id);
+      }
+      toast.success(`${items.length} user(s) deleted.`);
+    } catch {
+      toast.error("Failed to delete some users.");
+    }
+  }
+
   return (
     <EntityListWithCreateModal<AppUser>
       data={filteredUsers}
@@ -175,6 +194,9 @@ export function UserList() {
       createLoadingText="Creating..."
       createFormId={CREATE_USER_FORM_ID}
       createMaxWidth="2xl"
+      enableRowSelection
+      onEditSelected={(item) => router.push(`/users/${item.id}/edit`)}
+      onDeleteSelected={handleDeleteSelected}
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreateUserForm
           formId={formId}

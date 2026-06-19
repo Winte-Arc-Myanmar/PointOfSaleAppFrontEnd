@@ -22,6 +22,7 @@ import type { Customer } from "@/core/domain/entities/Customer";
 import { CreateCustomerForm } from "./CreateCustomerForm";
 import { getCustomerRowActions } from "./customer-row-actions";
 import { getCustomerTableColumns } from "./customer-table-columns";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 
 const CREATE_CUSTOMER_FORM_ID = "create-customer-form";
 
@@ -33,6 +34,7 @@ export interface CustomerListProps {
 }
 
 export function CustomerList({ showSearch = true }: CustomerListProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const deleteCustomer = useDeleteCustomer();
   const toast = useToast();
@@ -41,6 +43,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedLoyaltyTier, setSelectedLoyaltyTier] = useState("__all__");
+  const [selectedAccountType, setSelectedAccountType] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
@@ -63,12 +66,25 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   });
 
   const filteredCustomers = useMemo(() => {
-    if (selectedLoyaltyTier === "__all__") return customers;
-    return customers.filter(
-      (customer) =>
-        String(customer.loyaltyTier).toUpperCase() === selectedLoyaltyTier,
-    );
-  }, [customers, selectedLoyaltyTier]);
+    return customers.filter((customer) => {
+      const loyaltyOk =
+        selectedLoyaltyTier === "__all__" ||
+        String(customer.loyaltyTier).toUpperCase() === selectedLoyaltyTier;
+      const accountTypeOk =
+        selectedAccountType === "__all__" ||
+        String(customer.accountType).toUpperCase() === selectedAccountType;
+      return loyaltyOk && accountTypeOk;
+    });
+  }, [customers, selectedLoyaltyTier, selectedAccountType]);
+
+  const accountTypeOptions = useMemo(() => {
+    const types = new Set<string>();
+    customers.forEach((customer) => {
+      const value = String(customer.accountType ?? "").trim().toUpperCase();
+      if (value) types.add(value);
+    });
+    return Array.from(types).sort((a, b) => a.localeCompare(b));
+  }, [customers]);
 
   useEffect(() => {
     pagination.observePageResult(filteredCustomers.length);
@@ -83,6 +99,10 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     // New loyalty tier filter => go back to page 1.
     pagination.reset(1);
   }, [selectedLoyaltyTier, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [selectedAccountType, pagination]);
 
   const actions = useMemo(
     () =>
@@ -115,6 +135,25 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     [router],
   );
 
+  async function handleDeleteSelected(items: Customer[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete customers",
+      description: `Delete ${items.length} selected customer(s)? This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteCustomer.mutateAsync(String(item.id));
+      }
+      toast.success(`${items.length} customer(s) deleted.`);
+    } catch {
+      toast.error("Failed to delete some customers.");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <EntityListWithCreateModal<Customer>
@@ -122,13 +161,15 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
         columns={columns}
         actions={actions}
         isLoading={isLoading}
-        loadingText="Loading customers..."
+        loadingText={t("customerPage.loadingCustomers")}
         emptyText={
           search
-            ? "No customers match your search."
+            ? t("customerPage.noCustomersMatchSearch")
             : selectedLoyaltyTier !== "__all__"
-              ? "No customers match this loyalty tier."
-              : "No customers yet."
+              ? t("customerPage.noCustomersMatchLoyaltyTier")
+              : selectedAccountType !== "__all__"
+                ? t("customerPage.noCustomersMatchAccountType")
+              : t("customerPage.noCustomersYet")
         }
         topContent={
           showSearch ? (
@@ -136,7 +177,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search customers by name, phone, or email..."
+                placeholder={t("customerPage.searchPlaceholder")}
                 className="sm:w-[360px]"
               />
               <Select
@@ -144,21 +185,37 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
                 onValueChange={setSelectedLoyaltyTier}
               >
                 <SelectTrigger className="sm:w-[200px]">
-                  <SelectValue placeholder="Filter by loyalty tier" />
+                  <SelectValue placeholder={t("customerPage.filterByLoyaltyTier")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">All loyalty tiers</SelectItem>
+                  <SelectItem value="__all__">{t("customerPage.allLoyaltyTiers")}</SelectItem>
                   <SelectItem value="BRONZE">Bronze</SelectItem>
                   <SelectItem value="SILVER">Silver</SelectItem>
                   <SelectItem value="GOLD">Gold</SelectItem>
                   <SelectItem value="PLATINUM">Platinum</SelectItem>
                 </SelectContent>
               </Select>
+              <Select
+                value={selectedAccountType}
+                onValueChange={setSelectedAccountType}
+              >
+                <SelectTrigger className="sm:w-[200px]">
+                  <SelectValue placeholder={t("customerPage.filterByAccountType")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{t("customerPage.allAccountTypes")}</SelectItem>
+                  {accountTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {search && (
                 <p className="text-sm text-muted">
-                  Showing results for{" "}
+                  {t("customerPage.showingResultsFor")}{" "}
                   <span className="font-medium text-foreground">
-                    "{search}"
+                    &quot;{search}&quot;
                   </span>
                 </p>
               )}
@@ -178,12 +235,15 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
         totalPages={pagination.totalPages}
         totalItems={pagination.totalItems}
         onPageChange={(p) => pagination.setPage(p)}
-        addLabel="Add Customer"
-        createTitle="Create Customer"
-        createSubmitText="Create Customer"
-        createLoadingText="Creating..."
+        addLabel={t("customerPage.addCustomer")}
+        createTitle={t("customerPage.createCustomer")}
+        createSubmitText={t("customerPage.createCustomer")}
+        createLoadingText={t("customerPage.creating")}
         createFormId={CREATE_CUSTOMER_FORM_ID}
         createMaxWidth="lg"
+        enableRowSelection
+        onEditSelected={(item) => router.push(`/customers/${item.id}/edit`)}
+        onDeleteSelected={handleDeleteSelected}
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
           <CreateCustomerForm
             formId={formId}

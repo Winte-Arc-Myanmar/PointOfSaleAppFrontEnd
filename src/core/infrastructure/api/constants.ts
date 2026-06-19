@@ -148,7 +148,7 @@ export const API_ENDPOINTS = {
     LIST: "/v1/uploads",
     UPLOAD: "/v1/uploads",
     UPLOAD_MULTIPLE: "/v1/uploads/multiple",
-    DELETE: "/v1/uploads",
+    DELETE: (id: string) => `/v1/uploads/${id}`,
   },
   SALES_ORDERS: {
     LIST: "/v1/sales-orders",

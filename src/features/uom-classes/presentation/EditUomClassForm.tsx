@@ -72,7 +72,7 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
-            router.push("/uom");
+            router.push("/uom-classes");
           }, REDIRECT_DELAY_MS);
         },
         onError: () => toast.error("Failed to update UOM class."),
@@ -94,7 +94,7 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/uom">
+        <Link href="/uom-classes">
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -155,7 +155,7 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
           <Button type="submit" disabled={updateUomClass.isPending}>
             {updateUomClass.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href="/uom">
+          <Link href="/uom-classes">
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

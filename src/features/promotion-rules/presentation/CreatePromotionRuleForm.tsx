@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,12 +18,20 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 
+const REWARD_TYPE_OPTIONS = [
+  "PERCENTAGE_DISCOUNT",
+  "FIXED_AMOUNT_DISCOUNT",
+  "FIXED_PRICE",
+  "BUY_X_GET_Y",
+] as const;
+const CUSTOM_REWARD_TYPE = "__CUSTOM__";
+
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   name: z.string().min(1, "Name is required"),
   eligibilityCriteriaJson: z.string(),
   rewardType: z.string().min(1, "Reward type is required"),
-  rewardValue: z.number(),
+  rewardValue: z.number().finite("Reward value is required"),
   priorityLevel: z.number(),
   isStackable: z.boolean(),
   startDate: z.string().min(1),
@@ -69,6 +77,7 @@ export function CreatePromotionRuleForm({
     resolver: zodResolver(schema),
     defaultValues,
   });
+  const [rewardTypeMode, setRewardTypeMode] = useState<string>("PERCENTAGE_DISCOUNT");
 
   useEffect(() => {
     onLoadingChange?.(create.isPending ?? false);
@@ -168,11 +177,45 @@ export function CreatePromotionRuleForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label>Reward type</Label>
-          <Input {...form.register("rewardType")} placeholder="PERCENTAGE_DISCOUNT" />
+          <Select
+            value={rewardTypeMode}
+            onValueChange={(value) => {
+              setRewardTypeMode(value);
+              if (value !== CUSTOM_REWARD_TYPE) {
+                form.setValue("rewardType", value, { shouldValidate: true });
+              } else {
+                form.setValue("rewardType", "", { shouldValidate: true });
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select reward type" />
+            </SelectTrigger>
+            <SelectContent>
+              {REWARD_TYPE_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+              <SelectItem value={CUSTOM_REWARD_TYPE}>CUSTOM (manual)</SelectItem>
+            </SelectContent>
+          </Select>
+          {rewardTypeMode === CUSTOM_REWARD_TYPE && (
+            <Input
+              {...form.register("rewardType")}
+              placeholder="Enter custom reward type"
+            />
+          )}
+          {form.formState.errors.rewardType && (
+            <p className="text-sm text-red-600">{form.formState.errors.rewardType.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
           <Label>Reward value</Label>
           <Input type="number" step="0.01" {...form.register("rewardValue", { valueAsNumber: true })} />
+          {form.formState.errors.rewardValue && (
+            <p className="text-sm text-red-600">{form.formState.errors.rewardValue.message}</p>
+          )}
         </div>
       </div>
 

@@ -80,7 +80,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
           form.reset(form.getValues());
           setShowSuccess(true);
           setTimeout(() => {
-            router.push("/uom");
+            router.push("/uoms");
           }, REDIRECT_DELAY_MS);
         },
         onError: () => toast.error("Failed to update UOM."),
@@ -93,8 +93,8 @@ export function EditUomForm({ uomId }: { uomId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">UOM not found.</p>
-        <Link href="/uom">
-          <Button variant="outline">Back to UOM</Button>
+        <Link href="/uoms">
+          <Button variant="outline">Back to UOMs</Button>
         </Link>
       </div>
     );
@@ -184,7 +184,7 @@ export function EditUomForm({ uomId }: { uomId: string }) {
           <Button type="submit" disabled={updateUom.isPending}>
             {updateUom.isPending ? "Saving..." : "Save changes"}
           </Button>
-          <Link href="/uom">
+          <Link href="/uoms">
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>

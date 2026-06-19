@@ -11,6 +11,13 @@ import { useInferredServerPagination } from "@/presentation/hooks/useInferredSer
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getLocationRowActions } from "./location-row-actions";
 import { getLocationTableColumns } from "./location-table-columns";
@@ -26,6 +33,7 @@ export function LocationList() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedType, setSelectedType] = useState("__all__");
   const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
   const {
     data: locations = [],
@@ -44,11 +52,23 @@ export function LocationList() {
   const confirm = useConfirm();
   const filteredLocations = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return locations;
-    return locations.filter((l) =>
+    const searched = !q
+      ? locations
+      : locations.filter((l) =>
       [l.name, l.type, l.tenantId, String(l.id)].join(" ").toLowerCase().includes(q),
     );
-  }, [locations, search]);
+    if (selectedType === "__all__") return searched;
+    return searched.filter((l) => (l.type?.trim() || "__none__") === selectedType);
+  }, [locations, search, selectedType]);
+
+  const typeOptions = useMemo(() => {
+    const types = new Set<string>();
+    locations.forEach((l) => {
+      const value = (l.type ?? "").trim();
+      if (value) types.add(value);
+    });
+    return Array.from(types).sort((a, b) => a.localeCompare(b));
+  }, [locations]);
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -62,6 +82,10 @@ export function LocationList() {
   useEffect(() => {
     pagination.reset(1);
   }, [search, pagination]);
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [selectedType, pagination]);
 
   const actions = useMemo(
     () =>
@@ -94,6 +118,25 @@ export function LocationList() {
     [router],
   );
 
+  async function handleDeleteSelected(items: Location[]) {
+    if (items.length === 0) return;
+    const ok = await confirm({
+      title: "Delete locations",
+      description: `Delete ${items.length} selected location(s)? Child locations may need to be reassigned first.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!ok) return;
+    try {
+      for (const item of items) {
+        await deleteLocation.mutateAsync(item.id);
+      }
+      toast.success(`${items.length} location(s) deleted.`);
+    } catch {
+      toast.error("Failed to delete some locations.");
+    }
+  }
+
   return (
     <div className="space-y-8">
       <EntityListWithCreateModal<Location>
@@ -102,15 +145,34 @@ export function LocationList() {
         actions={actions}
         isLoading={isLoading}
         loadingText="Loading locations..."
-        emptyText={search.trim() ? "No locations match your search." : "No locations yet."}
+        emptyText={
+          search.trim()
+            ? "No locations match your search."
+            : selectedType !== "__all__"
+              ? "No locations match this type."
+              : "No locations yet."
+        }
         topContent={
-          <div className="mb-4">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search locations..."
               className="sm:w-[360px]"
             />
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="sm:w-[220px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All types</SelectItem>
+                {typeOptions.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         }
         error={
@@ -132,6 +194,9 @@ export function LocationList() {
         createLoadingText="Creating..."
         createFormId={CREATE_LOCATION_FORM_ID}
         sectionTitle="All locations"
+        enableRowSelection
+        onEditSelected={(item) => router.push(`/locations/${item.id}/edit`)}
+        onDeleteSelected={handleDeleteSelected}
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
           <CreateLocationForm
             formId={formId}
