@@ -8,4 +8,12 @@ The dependency flow is strictly directed: the app/ layer depends on presentation
 
 A sample feature, Products, demonstrates the layered approach: the domain defines the Product entity along with IProductRepository and IProductService; the application layer contains ProductDto, ProductService, and ProductMapper; the infrastructure layer provides an HTTP client, ApiProductRepository, and DI container bindings; and the presentation layer includes the useProducts hook and UI components such as ProductList and CreateProductForm.
 
-Environment variables are managed by copying .env.example to .env.local, including NEXT_PUBLIC_API_URL for the backend base URL  and AUTH_SECRET for NextAuth. The backend contract follows a simple REST approach: authentication is handled via POST {API_URL}/auth/login with { email, password } returning { token, user }, and product management through GET {API_URL}/products and POST {API_URL}/products.
+Note on feature organization: feature folders under src/features/ are presentation-only (screens/forms/columns/row actions). The domain, application, and infrastructure layers are centralized under src/core/ and shared across features. This keeps dependency flow consistent and avoids duplicating service/repository implementations per feature.
+
+Environment variables are managed via .env (or a local override like .env.local), and include NEXT_PUBLIC_API_URL for the backend base URL and AUTH_SECRET for NextAuth.
+
+Backend contract (current):
+- Auth: POST {API_URL}/v1/auth/signin with body { email, password, type } where type is "system_admin" or "user".
+  - When type is "user", tenantId and branchId are also sent.
+  - Response is expected to include an access token (e.g. access_token / token / accessToken) plus user/session fields.
+- Example resource routes: /v1/products, /v1/customers, /v1/roles, etc. (see src/core/infrastructure/api/constants.ts for the full list).
