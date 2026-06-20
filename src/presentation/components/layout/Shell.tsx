@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { SidebarMenu } from "./SidebarMenu";
 import { Navbar } from "./Navbar";
+import { PoweredByWinterArc } from "@/presentation/components/brand/PoweredByWinterArc";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
@@ -243,6 +244,10 @@ export function Shell({ children }: ShellProps) {
           >
             {children}
           </motion.div>
+          <PoweredByWinterArc
+            variant="footer"
+            className="mx-auto mt-10 max-w-6xl border-t border-border/60 pt-6 pb-2"
+          />
         </main>
       </div>
     </div>

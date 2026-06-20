@@ -169,6 +169,118 @@ summary {
   filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
 }
 
+/* Winter Arc branding */
+@keyframes winter-arc-text-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes winter-arc-text-glow-light {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 1px rgba(2, 132, 199, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.35));
+  }
+}
+
+@keyframes winter-arc-text-glow-dark {
+  0%,
+  100% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(56, 189, 248, 0.25));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45));
+  }
+}
+
+.powered-by-winter-arc-text {
+  animation: winter-arc-text-glow-light 3.5s ease-in-out infinite;
+}
+
+.dark .powered-by-winter-arc-text {
+  animation-name: winter-arc-text-glow-dark;
+}
+
+.powered-by-winter-arc-prefix {
+  color: #374151;
+  opacity: 1;
+}
+
+.dark .powered-by-winter-arc-prefix {
+  color: inherit;
+  opacity: 0.9;
+}
+
+.powered-by-winter-arc-brand {
+  background: linear-gradient(
+    90deg,
+    #374151 0%,
+    #0369a1 22%,
+    #0284c7 45%,
+    #0ea5e9 55%,
+    #0369a1 78%,
+    #374151 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: winter-arc-text-shimmer 4s linear infinite;
+  font-weight: 600;
+}
+
+.dark .powered-by-winter-arc-brand {
+  background: linear-gradient(
+    90deg,
+    var(--color-muted) 0%,
+    #38bdf8 25%,
+    #ffffff 50%,
+    #7dd3fc 75%,
+    var(--color-muted) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.winter-arc-logo-glow {
+  background: radial-gradient(
+    circle,
+    rgba(12, 74, 110, 0.55) 0%,
+    rgba(2, 132, 199, 0.22) 55%,
+    transparent 72%
+  );
+}
+
+.dark .winter-arc-logo-glow {
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.4) 0%,
+    transparent 70%
+  );
+}
+
+.winter-arc-logo-image {
+  filter: drop-shadow(0 3px 8px rgba(12, 74, 110, 0.45));
+}
+
+.dark .winter-arc-logo-image {
+  filter: drop-shadow(0 6px 14px rgba(56, 189, 248, 0.45));
+}
+
+.winter-arc-logo-3d {
+  transform-style: preserve-3d;
+}
+
 /* Print only the receipt container. */
 @media print {
   body * {
