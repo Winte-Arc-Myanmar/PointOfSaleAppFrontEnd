@@ -23,9 +23,9 @@ const VARIANT_CONFIG = {
     gap: "gap-1.5",
   },
   auth: {
-    logoSize: 52,
-    textClass: "text-sm",
-    gap: "gap-3",
+    logoSize: 44,
+    textClass: "text-xs",
+    gap: "gap-2",
   },
 } as const;
 
