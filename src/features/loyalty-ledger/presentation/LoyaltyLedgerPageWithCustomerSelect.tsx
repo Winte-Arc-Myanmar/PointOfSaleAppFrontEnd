@@ -2,9 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import container from "@/core/infrastructure/di/container";
-import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedgerService";
 import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
 import { DataTable } from "@/presentation/components/data-table";
 import { Label } from "@/presentation/components/ui/label";
@@ -18,7 +15,10 @@ import {
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useDeleteLoyaltyLedgerEntry } from "@/presentation/hooks/useLoyaltyLedger";
+import {
+  useAllCustomersLoyaltyLedgerEntries,
+  useDeleteLoyaltyLedgerEntry,
+} from "@/presentation/hooks/useLoyaltyLedger";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { LoyaltyLedgerList } from "./LoyaltyLedgerList";
 import { getLoyaltyLedgerTableColumns } from "./loyalty-ledger-table-columns";
@@ -27,12 +27,6 @@ import { getLoyaltyLedgerRowActions } from "./loyalty-ledger-row-actions";
 const CUSTOMER_LIST_LIMIT = 500;
 const ALL_CUSTOMERS = "__all__";
 const PER_CUSTOMER_FETCH_LIMIT = 50;
-
-function toTimestamp(value?: string | null): number {
-  if (!value) return 0;
-  const t = Date.parse(value);
-  return Number.isNaN(t) ? 0 : t;
-}
 
 export function LoyaltyLedgerPageWithCustomerSelect() {
   const { t } = useLanguage();
@@ -51,29 +45,14 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
     [customers],
   );
 
-  const allRowsQuery = useQuery({
-    queryKey: ["loyalty-ledger", "all-customers", sorted.map((c) => c.id)],
-    enabled: sorted.length > 0,
-    queryFn: async () => {
-      const service = container.resolve<ILoyaltyLedgerService>(
-        "loyaltyLedgerService",
-      );
-      const lists = await Promise.all(
-        sorted.map((customer) =>
-          service.getAll(String(customer.id), {
-            page: 1,
-            limit: PER_CUSTOMER_FETCH_LIMIT,
-          }),
-        ),
-      );
-      return lists
-        .flat()
-        .sort(
-          (a, b) =>
-            toTimestamp(b.createdAt ?? b.updatedAt) -
-            toTimestamp(a.createdAt ?? a.updatedAt),
-        );
-    },
+  const customerIds = useMemo(
+    () => sorted.map((customer) => String(customer.id)),
+    [sorted],
+  );
+
+  const allRowsQuery = useAllCustomersLoyaltyLedgerEntries(customerIds, {
+    page: 1,
+    limit: PER_CUSTOMER_FETCH_LIMIT,
   });
 
   const columns = useMemo(

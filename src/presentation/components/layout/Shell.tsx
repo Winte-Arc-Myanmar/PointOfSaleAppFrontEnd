@@ -165,18 +165,19 @@ export function Shell({ children }: ShellProps) {
   }
 
   function handleCloseTab(href: string) {
-    setOpenTabs((prev) => {
-      const idx = prev.findIndex((t) => t.href === href);
-      if (idx < 0) return prev;
-      const nextTabs = prev.filter((t) => t.href !== href);
-      const isClosingActive =
-        pathname === href || pathname.startsWith(`${href}/`);
-      if (isClosingActive) {
-        const fallback = nextTabs[idx] ?? nextTabs[idx - 1] ?? null;
-        router.push(fallback?.href ?? "/customers");
-      }
-      return nextTabs;
-    });
+    const idx = openTabs.findIndex((t) => t.href === href);
+    if (idx < 0) return;
+
+    const nextTabs = openTabs.filter((t) => t.href !== href);
+    const isClosingActive =
+      pathname === href || pathname.startsWith(`${href}/`);
+
+    setOpenTabs(nextTabs);
+
+    if (isClosingActive) {
+      const fallback = nextTabs[idx] ?? nextTabs[idx - 1] ?? null;
+      router.push(fallback?.href ?? "/customers");
+    }
   }
 
   return (

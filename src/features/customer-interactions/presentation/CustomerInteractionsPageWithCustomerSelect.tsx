@@ -2,9 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import container from "@/core/infrastructure/di/container";
-import type { ICustomerInteractionService } from "@/core/domain/services/ICustomerInteractionService";
 import type { CustomerInteraction } from "@/core/domain/entities/CustomerInteraction";
 import { DataTable } from "@/presentation/components/data-table";
 import { Label } from "@/presentation/components/ui/label";
@@ -18,7 +15,10 @@ import {
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useDeleteCustomerInteraction } from "@/presentation/hooks/useCustomerInteractions";
+import {
+  useAllCustomersCustomerInteractions,
+  useDeleteCustomerInteraction,
+} from "@/presentation/hooks/useCustomerInteractions";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { CustomerInteractionList } from "./CustomerInteractionList";
 import { getCustomerInteractionTableColumns } from "./customer-interaction-table-columns";
@@ -27,12 +27,6 @@ import { getCustomerInteractionRowActions } from "./customer-interaction-row-act
 const CUSTOMER_LIST_LIMIT = 500;
 const ALL_CUSTOMERS = "__all__";
 const PER_CUSTOMER_FETCH_LIMIT = 50;
-
-function toTimestamp(value?: string | null): number {
-  if (!value) return 0;
-  const t = Date.parse(value);
-  return Number.isNaN(t) ? 0 : t;
-}
 
 export function CustomerInteractionsPageWithCustomerSelect() {
   const { t } = useLanguage();
@@ -51,29 +45,14 @@ export function CustomerInteractionsPageWithCustomerSelect() {
     [customers],
   );
 
-  const allRowsQuery = useQuery({
-    queryKey: ["customer-interactions", "all-customers", sorted.map((c) => c.id)],
-    enabled: sorted.length > 0,
-    queryFn: async () => {
-      const service = container.resolve<ICustomerInteractionService>(
-        "customerInteractionService",
-      );
-      const lists = await Promise.all(
-        sorted.map((customer) =>
-          service.getAll(String(customer.id), {
-            page: 1,
-            limit: PER_CUSTOMER_FETCH_LIMIT,
-          }),
-        ),
-      );
-      return lists
-        .flat()
-        .sort(
-          (a, b) =>
-            toTimestamp(b.interactionDate ?? b.updatedAt) -
-            toTimestamp(a.interactionDate ?? a.updatedAt),
-        );
-    },
+  const customerIds = useMemo(
+    () => sorted.map((customer) => String(customer.id)),
+    [sorted],
+  );
+
+  const allRowsQuery = useAllCustomersCustomerInteractions(customerIds, {
+    page: 1,
+    limit: PER_CUSTOMER_FETCH_LIMIT,
   });
 
   const columns = useMemo(

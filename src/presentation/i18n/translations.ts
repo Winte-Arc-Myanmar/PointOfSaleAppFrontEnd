@@ -29,6 +29,7 @@ export const translations = {
       selectAll: "Select all",
       customer: "Customer",
       allCustomers: "All customers",
+      selectCustomer: "Select a customer",
       loadingCustomers: "Loading customers...",
     },
     tableHeaders: {
