@@ -6,14 +6,7 @@ import { ImagePlus, Loader2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/presentation/components/ui/dialog";
+import { Modal } from "@/presentation/components/modal/Modal";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { useUploads } from "@/presentation/hooks/useUploads";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -141,104 +134,26 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
         </p>
       ) : null}
 
-      <Dialog
-        open={pickerOpen}
-        onOpenChange={(open) => {
-          setPickerOpen(open);
-          if (!open) {
-            setSearch("");
-            setPage(1);
-          }
+      <Modal
+        isOpen={pickerOpen}
+        onClose={() => {
+          setPickerOpen(false);
+          setSearch("");
+          setPage(1);
         }}
-      >
-        <DialogContent maxWidth="2xl" className="w-[calc(100vw-2rem)] p-0">
-          <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle>Select Product Image</DialogTitle>
-            <DialogDescription>
-              Choose an existing image uploaded to the <code>products</code> folder.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 px-6 pt-4">
-            <div className="flex items-center gap-2">
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by file name or URL on this page..."
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isFetching}
-                onClick={() => refetch()}
-              >
-                {isFetching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                Refresh
-              </Button>
-            </div>
-          </div>
-
-          <div className="min-h-56 max-h-[55vh] overflow-y-auto px-6 py-4">
-            {isLoading ? (
-              <div className="flex h-44 items-center justify-center text-sm text-muted">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading uploaded images...
-              </div>
-            ) : error ? (
-              <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                Failed to load uploaded images.
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <p className="text-sm text-muted">
-                No images found on this page.
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {filteredItems.map((item) => {
-                  const src = previewSrcFromValue(item.url);
-                  const selected = value.trim() === item.url.trim();
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => onSelect(item.url)}
-                      className={`overflow-hidden rounded-md border text-left transition-colors ${
-                        selected
-                          ? "border-mint ring-2 ring-mint/40"
-                          : "border-border hover:border-mint/60"
-                      }`}
-                    >
-                      <div className="relative aspect-square bg-muted/20">
-                        <Image
-                          src={src}
-                          alt={item.originalName || "Uploaded image"}
-                          fill
-                          className="object-cover"
-                          sizes="(min-width: 1024px) 200px, (min-width: 640px) 33vw, 50vw"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="space-y-1 px-2 py-2">
-                        <p className="truncate text-xs font-medium">
-                          {item.originalName || "Untitled image"}
-                        </p>
-                        <p className="truncate text-[11px] text-muted">
-                          {item.url}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="border-t border-border px-6 py-3">
+        title="Select Product Image"
+        description={
+          <>
+            Choose an existing image uploaded to the <code>products</code> folder.
+          </>
+        }
+        maxWidth="2xl"
+        flush
+        className="w-[calc(100vw-2rem)]"
+        headerClassName="border-b border-border px-6 py-4"
+        footerClassName="border-t border-border px-6 py-3"
+        footer={
+          <>
             <div className="mr-auto text-xs text-muted">
               {total != null ? `Total files: ${total}` : null}
               {total != null ? ` | Page ${page}` : null}
@@ -261,12 +176,98 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
             >
               Next
             </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setPickerOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setPickerOpen(false);
+                setSearch("");
+                setPage(1);
+              }}
+            >
               Close
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="space-y-3 px-6 pt-4">
+          <div className="flex items-center gap-2">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by file name or URL on this page..."
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isFetching}
+              onClick={() => refetch()}
+            >
+              {isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        <div className="min-h-56 max-h-[55vh] overflow-y-auto px-6 py-4">
+          {isLoading ? (
+          <div className="flex h-44 items-center justify-center text-sm text-muted">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading uploaded images...
+          </div>
+        ) : error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Failed to load uploaded images.
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <p className="text-sm text-muted">No images found on this page.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {filteredItems.map((item) => {
+              const src = previewSrcFromValue(item.url);
+              const selected = value.trim() === item.url.trim();
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onSelect(item.url)}
+                  className={`overflow-hidden rounded-md border text-left transition-colors ${
+                    selected
+                      ? "border-mint ring-2 ring-mint/40"
+                      : "border-border hover:border-mint/60"
+                  }`}
+                >
+                  <div className="relative aspect-square bg-muted/20">
+                    <Image
+                      src={src}
+                      alt={item.originalName || "Uploaded image"}
+                      fill
+                      className="object-cover"
+                      sizes="(min-width: 1024px) 200px, (min-width: 640px) 33vw, 50vw"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="space-y-1 px-2 py-2">
+                    <p className="truncate text-xs font-medium">
+                      {item.originalName || "Untitled image"}
+                    </p>
+                    <p className="truncate text-[11px] text-muted">
+                      {item.url}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        </div>
+      </Modal>
     </div>
   );
 }
