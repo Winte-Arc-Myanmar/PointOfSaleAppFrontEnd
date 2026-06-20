@@ -46,6 +46,10 @@ import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
+import {
+  calcLineTotals,
+  calcTax,
+} from "@/core/application/business-rules/checkout/checkoutCalculations";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
 import type { Product } from "@/core/domain/entities/Product";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
@@ -64,52 +68,6 @@ function resolveProductImageSrc(url: string): string {
   if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed))
     return trimmed;
   return resolveMediaUrl(trimmed);
-}
-
-function safeRate(val: unknown): number {
-  const n = typeof val === "number" ? val : Number(val);
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
-function calcTax(
-  amount: number,
-  rate: number,
-  isPriceInclusive: boolean,
-): number {
-  if (!Number.isFinite(amount) || amount <= 0) return 0;
-  const r = safeRate(rate);
-  if (r <= 0) return 0;
-  if (isPriceInclusive) {
-    // gross already includes tax: tax = gross - gross/(1+r)
-    return amount - amount / (1 + r);
-  }
-  // net excludes tax: tax = net*r
-  return amount * r;
-}
-
-function calcLineTotals(args: {
-  unitPrice: number;
-  quantity: number;
-  lineDiscount: number;
-  isTaxable: boolean;
-  taxRate: number;
-  isPriceInclusive: boolean;
-}) {
-  const qty = Number(args.quantity) || 0;
-  const unit = Number(args.unitPrice) || 0;
-  const discount = Number(args.lineDiscount) || 0;
-  const base = unit * qty - discount;
-  const netOrGross = base > 0 ? base : 0;
-
-  const taxable = Boolean(args.isTaxable);
-  const rate = safeRate(args.taxRate);
-  const inclusive = Boolean(args.isPriceInclusive);
-
-  const taxAmount =
-    taxable && rate > 0 ? calcTax(netOrGross, rate, inclusive) : 0;
-  const lineTotal = inclusive ? netOrGross : netOrGross + taxAmount;
-
-  return { netOrGross, taxAmount, lineTotal };
 }
 
 function newIdempotencyKey(): string {
