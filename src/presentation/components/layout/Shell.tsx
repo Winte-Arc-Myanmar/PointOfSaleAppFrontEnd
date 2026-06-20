@@ -9,7 +9,7 @@ import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import { SidebarMenu } from "./SidebarMenu";
 import { Navbar } from "./Navbar";
-import { PoweredByWinterArc } from "@/presentation/components/brand/PoweredByWinterArc";
+import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";

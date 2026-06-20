@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { WinterArcLogo3D } from "@/presentation/components/brand/WinterArcLogo3D";
+import { WinterArcLogo3D } from "./WinterArcLogo3D";
+import "./poweredByWinterArcAnimation.css";
 
 const WINTER_ARC_URL = "https://winterarc.asia/";
 

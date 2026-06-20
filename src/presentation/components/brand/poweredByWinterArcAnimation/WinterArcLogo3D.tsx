@@ -2,8 +2,8 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { WinterArcSnowflakeIcon } from "@/presentation/components/brand/WinterArcSnowflakeIcon";
-import { WinterArcSnowfall } from "@/presentation/components/brand/WinterArcSnowfall";
+import { WinterArcSnowflakeIcon } from "./WinterArcSnowflakeIcon";
+import { WinterArcSnowfall } from "./WinterArcSnowfall";
 
 export interface WinterArcLogo3DProps {
   size?: number;

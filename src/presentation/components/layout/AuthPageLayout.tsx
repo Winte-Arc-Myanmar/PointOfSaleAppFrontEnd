@@ -2,7 +2,7 @@
 
 import { Suspense, useSyncExternalStore, type ReactNode } from "react";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
-import { PoweredByWinterArc } from "@/presentation/components/brand/PoweredByWinterArc";
+import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AppLoader } from "@/presentation/components/loader";
 
 const emptySubscribe = () => () => {};

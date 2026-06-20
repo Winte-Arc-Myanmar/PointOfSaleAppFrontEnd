@@ -37,7 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
-import { PoweredByWinterArc } from "@/presentation/components/brand/PoweredByWinterArc";
+import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";

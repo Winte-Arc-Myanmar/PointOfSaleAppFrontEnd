@@ -49,8 +49,8 @@ function buildSnowflakes(count: number): SnowflakeParticle[] {
       id: i,
       left: 4 + r * 92,
       size,
-      delay: r2 * 5.5,
-      duration: 4.2 + (1 - depth) * 3.5 + r4 * 2,
+      delay: r2 * 3.2,
+      duration: 2.8 + (1 - depth) * 2.4 + r4 * 1.6,
       opacity: 0.25 + depth * 0.55,
       blur: variant === "speck" ? 0.4 + r * 1.2 : variant === "flake" ? r * 0.6 : 0,
       sway: -14 + r2 * 28,
@@ -80,13 +80,13 @@ export function WinterArcSnowfall({ size, className }: WinterArcSnowfallProps) {
 
   if (reduceMotion) return null;
 
-  const spreadW = Math.round(size * 1.9);
-  const spreadH = Math.round(size * 1.65);
+  const spreadW = Math.round(size * 1.95);
+  const spreadH = Math.round(size * 2.35);
 
   return (
     <div
       className={cn(
-        "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[46%] overflow-visible",
+        "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[50%] overflow-visible",
         className
       )}
       style={{ width: spreadW, height: spreadH }}
@@ -98,7 +98,10 @@ export function WinterArcSnowfall({ size, className }: WinterArcSnowfallProps) {
         <span className="winter-arc-breeze winter-arc-breeze-3" />
       </div>
 
-      <div className="winter-arc-snow-field absolute inset-0">
+      <div
+        className="winter-arc-snow-field absolute inset-0"
+        style={{ ["--snow-fall-height" as string]: `${spreadH}px` }}
+      >
         {snowflakes.map((flake) => (
           <span
             key={flake.id}
