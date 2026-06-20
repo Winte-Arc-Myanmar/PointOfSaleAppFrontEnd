@@ -16,6 +16,7 @@ export function WinterArcSnowflakeIcon({ className }: WinterArcSnowflakeIconProp
       aria-hidden="true"
       className={cn(
         "h-full w-full text-sky-900 dark:text-sky-100",
+        "drop-shadow-[0_1px_0_rgba(255,255,255,0.35)] dark:drop-shadow-[0_1px_0_rgba(255,255,255,0.15)]",
         className
       )}
     >

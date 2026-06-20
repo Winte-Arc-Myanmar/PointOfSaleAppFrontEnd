@@ -281,6 +281,54 @@ summary {
   transform-style: preserve-3d;
 }
 
+.winter-arc-logo-shimmer {
+  opacity: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.55) 48%,
+    rgba(186, 230, 253, 0.35) 52%,
+    transparent 62%,
+    transparent 100%
+  );
+  mix-blend-mode: overlay;
+  animation: winter-arc-shimmer-pulse 2.8s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+@keyframes winter-arc-shimmer-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45%,
+  55% {
+    opacity: 0.65;
+  }
+}
+
+.dark .winter-arc-logo-shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0.65) 48%,
+    rgba(125, 211, 252, 0.4) 52%,
+    transparent 62%,
+    transparent 100%
+  );
+  mix-blend-mode: soft-light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .powered-by-winter-arc-text,
+  .powered-by-winter-arc-brand,
+  .winter-arc-logo-shimmer {
+    animation: none !important;
+  }
+}
+
 /* Print only the receipt container. */
 @media print {
   body * {
