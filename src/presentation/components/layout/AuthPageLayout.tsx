@@ -2,6 +2,7 @@
 
 import { Suspense, useSyncExternalStore, type ReactNode } from "react";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
+import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AppLoader } from "@/presentation/components/loader";
 
 const emptySubscribe = () => () => {};
@@ -24,7 +25,7 @@ export function AuthPageLayout({
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-background px-4 py-8"
+      className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8"
       suppressHydrationWarning
     >
       <div
@@ -64,6 +65,10 @@ export function AuthPageLayout({
           {children}
         </Suspense>
       </div>
+      <PoweredByWinterArc
+        variant="auth"
+        className="mt-6 w-full max-w-md shrink-0 overflow-visible px-2 pb-2 pt-1"
+      />
     </div>
   );
 }

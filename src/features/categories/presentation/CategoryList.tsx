@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
+import { useProducts } from "@/presentation/hooks/useProducts";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
@@ -39,10 +40,6 @@ function getDescription(category: Category) {
   return description && description.length > 0 ? description : "No description";
 }
 
-function getProductCount() {
-  return 0;
-}
-
 function getFilterLabel(value: DescriptionFilter) {
   switch (value) {
     case "with-description":
@@ -60,6 +57,7 @@ export function CategoryList() {
     page: 1,
     limit: FETCH_LIMIT,
   });
+  const { data: products = [] } = useProducts({ page: 1, limit: 500 });
   const deleteCategory = useDeleteCategory();
   const toast = useToast();
   const confirm = useConfirm();
@@ -73,6 +71,15 @@ export function CategoryList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createFormLoading, setCreateFormLoading] = useState(false);
+
+  const productCountByCategoryId = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const product of products) {
+      const categoryId = String(product.categoryId);
+      counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1);
+    }
+    return counts;
+  }, [products]);
 
   const filteredCategories = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -305,7 +312,7 @@ export function CategoryList() {
                               </p>
                             </td>
                             <td className="px-5 py-4 align-top text-sm text-muted">
-                              {getProductCount()}
+                              {productCountByCategoryId.get(String(category.id)) ?? 0}
                             </td>
                             <td className="px-5 py-4 align-top">
                               <div className="flex items-center justify-end gap-2">

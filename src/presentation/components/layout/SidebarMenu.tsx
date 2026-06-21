@@ -37,6 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
+import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
@@ -291,9 +292,14 @@ export function SidebarMenu({
         <div
           className={cn(
             "shrink-0 border-t border-border transition-all duration-300",
-            isCollapsed ? "p-2" : "p-4"
+            isCollapsed ? "p-2" : "p-4 space-y-3"
           )}
         >
+          {!isCollapsed ? (
+            <PoweredByWinterArc variant="compact" className="pb-1" />
+          ) : (
+            <PoweredByWinterArc variant="compact" className="pb-1 [&_.powered-by-winter-arc-text]:sr-only" />
+          )}
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}

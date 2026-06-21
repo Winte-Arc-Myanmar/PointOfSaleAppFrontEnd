@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,12 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/presentation/components/ui/dialog";
+import { Modal } from "@/presentation/components/modal/Modal";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import { resolveMediaUrl } from "@/lib/media-url";
@@ -1092,76 +1087,74 @@ function VariantPickerModal({
   onPickVariant: (v: ProductVariant) => void;
 }) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => (!open ? onClose() : null)}>
-      <DialogContent maxWidth="2xl" className="p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-mint/5">
-          <DialogTitle className="panel-header text-xl tracking-tight text-foreground">
-            {product ? `Choose variant — ${product.name}` : "Choose variant"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          {!product ? null : variantsLoading ? (
-            <AppLoader
-              fullScreen={false}
-              size="sm"
-              message="Loading variants..."
-            />
-          ) : variants.length === 0 ? (
-            <p className="text-sm text-muted">
-              No variants found for this product.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {variants.map((v) => {
-                const baseUnit =
-                  (Number(product.basePrice) || 0) +
-                  (Number(v.priceModifier) || 0);
-                const price = (() => {
-                  const taxable = Boolean(product.isTaxable);
-                  const rate = product.taxRateRatePercentage ?? 0;
-                  const inclusive = Boolean(product.taxRateIsPriceInclusive);
-                  if (!taxable) return baseUnit;
-                  if (inclusive) return baseUnit;
-                  return baseUnit + calcTax(baseUnit, rate, false);
-                })();
-                const opts = v.matrixOptions
-                  ? Object.entries(v.matrixOptions)
-                      .map(([k, val]) => `${k}: ${val}`)
-                      .join(" · ")
-                  : "";
-                return (
-                  <button
-                    key={String(v.id)}
-                    type="button"
-                    onClick={() => onPickVariant(v)}
-                    className="rounded-xl border border-border hover:border-mint/40 hover:bg-mint/5 transition-colors overflow-hidden text-left p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">
-                          {v.variantSku}
-                        </div>
-                        <div className="mt-1 text-xs text-muted line-clamp-2">
-                          {opts || "—"}
-                        </div>
-                      </div>
-                      <div className="text-sm font-medium">{money(price)}</div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product ? `Choose variant — ${product.name}` : "Choose variant"}
+      maxWidth="2xl"
+      flush
+      headerVariant="mint"
+      animateClose
+      bodyClassName="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto"
+      footer={
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      }
+    >
+      {!product ? null : variantsLoading ? (
+        <AppLoader
+          fullScreen={false}
+          size="sm"
+          message="Loading variants..."
+        />
+      ) : variants.length === 0 ? (
+        <p className="text-sm text-muted">
+          No variants found for this product.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {variants.map((v) => {
+            const baseUnit =
+              (Number(product.basePrice) || 0) +
+              (Number(v.priceModifier) || 0);
+            const price = (() => {
+              const taxable = Boolean(product.isTaxable);
+              const rate = product.taxRateRatePercentage ?? 0;
+              const inclusive = Boolean(product.taxRateIsPriceInclusive);
+              if (!taxable) return baseUnit;
+              if (inclusive) return baseUnit;
+              return baseUnit + calcTax(baseUnit, rate, false);
+            })();
+            const opts = v.matrixOptions
+              ? Object.entries(v.matrixOptions)
+                  .map(([k, val]) => `${k}: ${val}`)
+                  .join(" · ")
+              : "";
+            return (
+              <button
+                key={String(v.id)}
+                type="button"
+                onClick={() => onPickVariant(v)}
+                className="rounded-xl border border-border hover:border-mint/40 hover:bg-mint/5 transition-colors overflow-hidden text-left p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">
+                      {v.variantSku}
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    <div className="mt-1 text-xs text-muted line-clamp-2">
+                      {opts || "—"}
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium">{money(price)}</div>
+                </div>
+              </button>
+            );
+          })}
         </div>
-
-        <div className="px-6 py-4 border-t border-border/80 bg-background/50 flex justify-end">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      )}
+    </Modal>
   );
 }
 
