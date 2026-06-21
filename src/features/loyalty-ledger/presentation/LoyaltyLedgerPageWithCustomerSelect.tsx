@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
-import { DataTable } from "@/presentation/components/data-table";
 import { Label } from "@/presentation/components/ui/label";
 import {
   Select,
@@ -13,27 +11,15 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
-import { useConfirm } from "@/presentation/hooks/useConfirm";
-import { useToast } from "@/presentation/providers/ToastProvider";
-import {
-  useAllCustomersLoyaltyLedgerEntries,
-  useDeleteLoyaltyLedgerEntry,
-} from "@/presentation/hooks/useLoyaltyLedger";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { LoyaltyLedgerList } from "./LoyaltyLedgerList";
-import { getLoyaltyLedgerTableColumns } from "./loyalty-ledger-table-columns";
-import { getLoyaltyLedgerRowActions } from "./loyalty-ledger-row-actions";
+import { LoyaltyLedgerAllCustomersList } from "./LoyaltyLedgerAllCustomersList";
 
 const CUSTOMER_LIST_LIMIT = 500;
 const ALL_CUSTOMERS = "__all__";
-const PER_CUSTOMER_FETCH_LIMIT = 50;
 
 export function LoyaltyLedgerPageWithCustomerSelect() {
   const { t } = useLanguage();
-  const router = useRouter();
-  const toast = useToast();
-  const confirm = useConfirm();
-  const deleteEntry = useDeleteLoyaltyLedgerEntry();
   const { data: customers = [], isLoading } = useCustomers({
     page: 1,
     limit: CUSTOMER_LIST_LIMIT,
@@ -50,53 +36,11 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
     [sorted],
   );
 
-  const allRowsQuery = useAllCustomersLoyaltyLedgerEntries(customerIds, {
-    page: 1,
-    limit: PER_CUSTOMER_FETCH_LIMIT,
-  });
-
-  const columns = useMemo(
-    () =>
-      getLoyaltyLedgerTableColumns({
-        onView: (row) => router.push(`/loyalty-ledger/${row.customerId}/${row.id}`),
-      }),
-    [router],
-  );
-
-  const actions = useMemo(
-    () =>
-      getLoyaltyLedgerRowActions({
-        onView: (row) => router.push(`/loyalty-ledger/${row.customerId}/${row.id}`),
-        onEdit: (row) =>
-          router.push(`/loyalty-ledger/${row.customerId}/${row.id}/edit`),
-        onDelete: async (row: LoyaltyLedgerEntry) => {
-          const ok = await confirm({
-            title: "Delete loyalty entry",
-            description: `Delete ${row.transactionType} (${row.points} pts)? This cannot be undone.`,
-            confirmLabel: "Delete",
-            variant: "destructive",
-          });
-          if (!ok) return;
-          deleteEntry.mutate(
-            { customerId: row.customerId, entryId: String(row.id) },
-            {
-              onSuccess: async () => {
-                toast.success("Loyalty entry deleted.");
-                await allRowsQuery.refetch();
-              },
-              onError: () => toast.error("Failed to delete loyalty entry."),
-            },
-          );
-        },
-      }),
-    [router, confirm, deleteEntry, toast, allRowsQuery],
-  );
-
   const isAllMode = selectedId === ALL_CUSTOMERS;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-2 max-w-md">
+      <div className="grid max-w-md gap-2">
         <Label htmlFor="customer-select">{t("common.customer")}</Label>
         <Select
           value={selectedId}
@@ -122,23 +66,7 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
       </div>
 
       {isAllMode ? (
-        <DataTable<LoyaltyLedgerEntry>
-          data={allRowsQuery.data ?? []}
-          columns={columns}
-          actions={actions}
-          isLoading={allRowsQuery.isLoading}
-          loadingText={t("loyaltyPage.loadingLoyaltyLedger")}
-          emptyText={t("loyaltyPage.noLoyaltyEntriesYet")}
-          error={
-            allRowsQuery.error
-              ? {
-                  message: t("loyaltyPage.failedToLoadLoyaltyLedger"),
-                  onRetry: () => allRowsQuery.refetch(),
-                }
-              : undefined
-          }
-          pageSize={10}
-        />
+        <LoyaltyLedgerAllCustomersList customerIds={customerIds} />
       ) : (
         <LoyaltyLedgerList
           customerId={selectedId}

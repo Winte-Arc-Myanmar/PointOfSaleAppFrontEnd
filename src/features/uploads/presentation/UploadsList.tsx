@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, Images } from "lucide-react";
-import { DataTable } from "@/presentation/components/data-table";
+import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -18,6 +18,7 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useBranches } from "@/presentation/hooks/useBranches";
+import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
 import { resolveMediaUrl } from "@/lib/media-url";
 import {
   useDeleteUpload,
@@ -63,8 +64,8 @@ export function UploadsList() {
   const confirm = useConfirm();
   const { activeBranch, isSystemAdmin } = usePermissions();
   const { data: branches = [] } = useBranches({ page: 1, limit: 200 });
+  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
 
-  const [page, setPage] = useState(1);
   const [folder, setFolder] = useState("products");
   const [folderMode, setFolderMode] = useState<string>("products");
   const [branchFilter, setBranchFilter] = useState<string>("__active__");
@@ -77,7 +78,7 @@ export function UploadsList() {
         : branchFilter;
 
   const { data, isLoading, error, refetch } = useUploads({
-    page,
+    page: pagination.page,
     limit: PAGE_SIZE,
     folder: folder.trim() || undefined,
     branchId: branchIdForQuery?.trim() || undefined,
@@ -85,9 +86,10 @@ export function UploadsList() {
 
   const items: UploadedFile[] = data?.items ?? [];
   const total = data?.total;
-  const hasPrev = page > 1;
-  const hasNext =
-    total != null ? page * PAGE_SIZE < total : items.length === PAGE_SIZE;
+
+  useEffect(() => {
+    pagination.observePageResult(items.length);
+  }, [items.length, pagination]);
 
   const uploadOne = useUploadFile();
   const uploadMany = useUploadMultipleFiles();
@@ -101,7 +103,7 @@ export function UploadsList() {
       folder: folder.trim() || undefined,
       branchId: branchIdForQuery?.trim() || undefined,
     }),
-    [folder, branchIdForQuery]
+    [folder, branchIdForQuery],
   );
 
   const onSingleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +115,7 @@ export function UploadsList() {
       {
         onSuccess: () => toast.success("File uploaded."),
         onError: () => toast.error("Upload failed."),
-      }
+      },
     );
   };
 
@@ -130,10 +132,10 @@ export function UploadsList() {
       {
         onSuccess: (r) =>
           toast.success(
-            r.urls.length ? `${r.urls.length} file(s) uploaded.` : "Upload complete."
+            r.urls.length ? `${r.urls.length} file(s) uploaded.` : "Upload complete.",
           ),
         onError: () => toast.error("Upload failed."),
-      }
+      },
     );
   };
 
@@ -155,212 +157,194 @@ export function UploadsList() {
           }
         },
       }),
-    [confirm, deleteUpload, toast]
+    [confirm, deleteUpload, toast],
   );
 
   const columns = useMemo(() => getUploadsTableColumns(), []);
-
   const busy = uploadOne.isPending || uploadMany.isPending;
 
+  const totalPages =
+    total != null
+      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
+      : pagination.totalPages;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:gap-3">
-        <div className="grid gap-2 w-full sm:w-48 xl:w-48">
-          <Label htmlFor="upload-folder-select">Upload target</Label>
-          <Select
-            value={folderMode}
-            onValueChange={(value) => {
-              setFolderMode(value);
-              if (value !== CUSTOM_FOLDER_VALUE) {
-                setFolder(value);
-              }
-              setPage(1);
-            }}
-          >
-            <SelectTrigger id="upload-folder-select">
-              <SelectValue placeholder="Select upload target" />
-            </SelectTrigger>
-            <SelectContent>
-              {UPLOAD_TARGETS.map((target) => (
-                <SelectItem key={target.value} value={target.value}>
-                  {target.label}
-                </SelectItem>
-              ))}
-              <SelectItem value={CUSTOM_FOLDER_VALUE}>Custom folder</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {folderMode === CUSTOM_FOLDER_VALUE && (
-          <div className="grid gap-2 w-full sm:w-48 xl:w-48">
-            <Label htmlFor="upload-folder">Custom folder</Label>
-            <Input
-              id="upload-folder"
-              value={folder}
-              onChange={(e) => {
-                setFolder(e.target.value);
-                setPage(1);
-              }}
-              placeholder="products"
-            />
-          </div>
-        )}
-        {folderMode !== CUSTOM_FOLDER_VALUE && (
-          <div className="grid gap-2 w-full sm:w-48 xl:w-48">
-            <Label>Selected folder</Label>
-            <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3 text-sm text-foreground">
-              {folder}
-            </div>
-          </div>
-        )}
-        <div className="grid gap-2 w-full sm:w-56 xl:w-56">
-          <Label>Branch filter</Label>
-          <Select
-            value={branchFilter}
-            onValueChange={(v) => {
-              setBranchFilter(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Branch" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__active__">Active branch</SelectItem>
-              {isSystemAdmin && (
-                <SelectItem value="__all__">All branches</SelectItem>
+    <EntityListWithCreateModal<UploadedFile>
+      data={items}
+      columns={columns}
+      actions={actions}
+      isLoading={isLoading}
+      loadingText="Loading uploads…"
+      emptyText="No files in this folder/branch."
+      error={
+        error
+          ? {
+              message: "Failed to load uploads.",
+              onRetry: () => refetch(),
+            }
+          : undefined
+      }
+      pageSize={PAGE_SIZE}
+      currentPage={pagination.page}
+      totalPages={totalPages}
+      totalItems={total ?? pagination.totalItems}
+      onPageChange={(page) => pagination.setPage(page)}
+      createEnabled={false}
+      showActionBar={false}
+      enableGridView
+      defaultViewMode="grid"
+      gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+      renderGridItem={(item) => {
+        const fileName = item.originalName || item.url.split("/").pop() || "-";
+        const previewUrl = resolveUploadPreviewUrl(item.url);
+        const image = isImageUpload(item);
+        return (
+          <div className="space-y-3">
+            <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+              {image && previewUrl ? (
+                <Image
+                  src={previewUrl}
+                  alt={fileName}
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1280px) 16rem, (min-width: 1024px) 20rem, (min-width: 640px) 50vw, 100vw"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center px-4 text-center text-xs text-muted">
+                  No image preview
+                </div>
               )}
-              {branches.map((b) => (
-                <SelectItem key={b.id} value={String(b.id)}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        </div>
-        <div className="flex flex-wrap gap-2 xl:flex-nowrap xl:self-end">
-          <input
-            ref={singleInputRef}
-            type="file"
-            className="sr-only"
-            onChange={onSingleFiles}
-          />
-          <input
-            ref={multiInputRef}
-            type="file"
-            multiple
-            className="sr-only"
-            onChange={onMultiFiles}
-          />
-          <Button
-            type="button"
-            variant="default"
-            disabled={busy}
-            onClick={() => singleInputRef.current?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {uploadOne.isPending ? "Uploading…" : "Upload file"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy}
-            onClick={() => multiInputRef.current?.click()}
-          >
-            <Images className="mr-2 h-4 w-4" />
-            {uploadMany.isPending ? "Uploading…" : "Upload multiple (max 10)"}
-          </Button>
-        </div>
-      </div>
-      {!isSystemAdmin && !activeBranch && (
-        <p className="text-sm text-amber-600">
-          Select an active branch in the header so uploads use the correct branch.
-        </p>
-      )}
-
-      <DataTable<UploadedFile>
-        data={items}
-        columns={columns}
-        actions={actions}
-        isLoading={isLoading}
-        loadingText="Loading uploads…"
-        emptyText="No files in this folder/branch."
-        error={
-          error
-            ? {
-                message: "Failed to load uploads.",
-                onRetry: () => refetch(),
-              }
-            : undefined
-        }
-        pageSize={PAGE_SIZE}
-        enableGridView
-        defaultViewMode="grid"
-        renderGridItem={(item) => {
-          const fileName = item.originalName || item.url.split("/").pop() || "-";
-          const previewUrl = resolveUploadPreviewUrl(item.url);
-          const image = isImageUpload(item);
-          return (
-            <div className="space-y-3">
-              <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
-                {image && previewUrl ? (
-                  <Image
-                    src={previewUrl}
-                    alt={fileName}
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1280px) 16rem, (min-width: 1024px) 20rem, (min-width: 640px) 50vw, 100vw"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center px-4 text-center text-xs text-muted">
-                    No image preview
-                  </div>
-                )}
+            </div>
+            <div className="space-y-1">
+              <p className="truncate text-sm font-medium" title={fileName}>
+                {fileName}
+              </p>
+              <p className="truncate font-mono text-xs text-muted" title={item.url}>
+                {item.url}
+              </p>
+            </div>
+          </div>
+        );
+      }}
+      topContent={
+        <>
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:gap-3">
+              <div className="grid w-full gap-2 sm:w-48 xl:w-48">
+                <Label htmlFor="upload-folder-select">Upload target</Label>
+                <Select
+                  value={folderMode}
+                  onValueChange={(value) => {
+                    setFolderMode(value);
+                    if (value !== CUSTOM_FOLDER_VALUE) {
+                      setFolder(value);
+                    }
+                    pagination.reset(1);
+                  }}
+                >
+                  <SelectTrigger id="upload-folder-select">
+                    <SelectValue placeholder="Select upload target" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UPLOAD_TARGETS.map((target) => (
+                      <SelectItem key={target.value} value={target.value}>
+                        {target.label}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={CUSTOM_FOLDER_VALUE}>Custom folder</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="space-y-1">
-                <p className="truncate text-sm font-medium" title={fileName}>
-                  {fileName}
-                </p>
-                <p className="truncate font-mono text-xs text-muted" title={item.url}>
-                  {item.url}
-                </p>
+              {folderMode === CUSTOM_FOLDER_VALUE && (
+                <div className="grid w-full gap-2 sm:w-48 xl:w-48">
+                  <Label htmlFor="upload-folder">Custom folder</Label>
+                  <Input
+                    id="upload-folder"
+                    value={folder}
+                    onChange={(e) => {
+                      setFolder(e.target.value);
+                      pagination.reset(1);
+                    }}
+                    placeholder="products"
+                  />
+                </div>
+              )}
+              {folderMode !== CUSTOM_FOLDER_VALUE && (
+                <div className="grid w-full gap-2 sm:w-48 xl:w-48">
+                  <Label>Selected folder</Label>
+                  <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+                    {folder}
+                  </div>
+                </div>
+              )}
+              <div className="grid w-full gap-2 sm:w-56 xl:w-56">
+                <Label>Branch filter</Label>
+                <Select
+                  value={branchFilter}
+                  onValueChange={(value) => {
+                    setBranchFilter(value);
+                    pagination.reset(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__active__">Active branch</SelectItem>
+                    {isSystemAdmin && (
+                      <SelectItem value="__all__">All branches</SelectItem>
+                    )}
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          );
-        }}
-        gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
-      />
-
-      {(hasPrev || hasNext) && (
-        <div className="flex items-center justify-between gap-4 text-sm text-muted">
-          <span>
-            {total != null ? `Total: ${total}` : null}
-            {total != null ? ` · Page ${page}` : null}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!hasPrev || isLoading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!hasNext || isLoading}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
+            <div className="flex flex-wrap gap-2 xl:flex-nowrap xl:self-end">
+              <input
+                ref={singleInputRef}
+                type="file"
+                className="sr-only"
+                onChange={onSingleFiles}
+              />
+              <input
+                ref={multiInputRef}
+                type="file"
+                multiple
+                className="sr-only"
+                onChange={onMultiFiles}
+              />
+              <Button
+                type="button"
+                variant="default"
+                disabled={busy}
+                onClick={() => singleInputRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {uploadOne.isPending ? "Uploading…" : "Upload file"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => multiInputRef.current?.click()}
+              >
+                <Images className="mr-2 h-4 w-4" />
+                {uploadMany.isPending ? "Uploading…" : "Upload multiple (max 10)"}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+          {!isSystemAdmin && !activeBranch && (
+            <p className="text-sm text-amber-600">
+              Select an active branch in the header so uploads use the correct branch.
+            </p>
+          )}
+        </>
+      }
+    />
   );
 }
