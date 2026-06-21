@@ -16,6 +16,7 @@ import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { useClientPagination } from "@/presentation/hooks/useClientPagination";
 import { useSalesOrder } from "@/presentation/hooks/useSalesOrders";
 import { useCreateSalesOrderLine, useDeleteSalesOrderLine, useSalesOrderLines } from "@/presentation/hooks/useSalesOrderLines";
 import { useCreateSalesOrderPayment, useDeleteSalesOrderPayment, useSalesOrderPayments } from "@/presentation/hooks/useSalesOrderPayments";
@@ -36,6 +37,7 @@ import {
 
 const CREATE_LINE_FORM_ID = "create-sales-order-line";
 const CREATE_PAYMENT_FORM_ID = "create-sales-order-payment";
+const DETAIL_PAGE_SIZE = 10;
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -55,6 +57,9 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [lineLoading, setLineLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
+
+  const linePagination = useClientPagination(lines, { pageSize: DETAIL_PAGE_SIZE });
+  const paymentPagination = useClientPagination(payments, { pageSize: DETAIL_PAGE_SIZE });
 
   const overviewRows = order ? [
     { label: "Order ID", value: safeText(order.id), mono: true },
@@ -182,7 +187,7 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           </Button>
         </div>
         <DataTable<SalesOrderLine>
-          data={lines}
+          data={linePagination.items}
           columns={lineColumns}
           actions={[
             {
@@ -207,7 +212,11 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           isLoading={linesLoading}
           loadingText="Loading lines..."
           emptyText="No lines yet."
-          pageSize={10}
+          pageSize={DETAIL_PAGE_SIZE}
+          currentPage={linePagination.page}
+          totalPages={linePagination.totalPages}
+          totalItems={linePagination.totalItems}
+          onPageChange={linePagination.setPage}
         />
       </div>
 
@@ -220,7 +229,7 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           </Button>
         </div>
         <DataTable<SalesOrderPayment>
-          data={payments}
+          data={paymentPagination.items}
           columns={paymentColumns}
           actions={[
             {
@@ -245,7 +254,11 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           isLoading={payLoading}
           loadingText="Loading payments..."
           emptyText="No payments yet."
-          pageSize={10}
+          pageSize={DETAIL_PAGE_SIZE}
+          currentPage={paymentPagination.page}
+          totalPages={paymentPagination.totalPages}
+          totalItems={paymentPagination.totalItems}
+          onPageChange={paymentPagination.setPage}
         />
       </div>
 

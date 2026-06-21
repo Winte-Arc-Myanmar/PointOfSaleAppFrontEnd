@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Filter, Plus, Search, X } from "lucide-react";
 import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
+import { useClientPagination } from "@/presentation/hooks/useClientPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
@@ -92,6 +93,12 @@ export function CategoryList() {
     });
   }, [categories, descriptionFilter, searchQuery, selectedCategoryId]);
 
+  const pagination = useClientPagination(filteredCategories, { pageSize: PAGE_SIZE });
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [searchQuery, descriptionFilter, selectedCategoryId, pagination.reset]);
+
   const handleDelete = useCallback(
     async (category: Category) => {
       const ok = await confirm({
@@ -133,7 +140,7 @@ export function CategoryList() {
 
   return (
     <EntityListWithCreateModal<Category>
-      data={filteredCategories}
+      data={pagination.items}
       columns={columns}
       actions={[]}
       isLoading={isLoading}
@@ -148,6 +155,10 @@ export function CategoryList() {
           : undefined
       }
       pageSize={PAGE_SIZE}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={pagination.setPage}
       showActionBar={false}
       addLabel="Add Category"
       createTitle="Add Category"

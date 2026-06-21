@@ -45,11 +45,11 @@ export function ChartOfAccountList() {
 
   useEffect(() => {
     pagination.observePageResult(accounts.length);
-  }, [accounts.length, pagination]);
+  }, [accounts.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   const actions = useMemo(
     () =>

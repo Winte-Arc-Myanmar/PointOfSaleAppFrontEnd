@@ -7,6 +7,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { Modal } from "@/presentation/components/modal/Modal";
+import { TablePagination } from "@/presentation/components/data-table";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { useUploads } from "@/presentation/hooks/useUploads";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -68,9 +69,14 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
   }, [imageItems, search]);
 
   const total = data?.total;
-  const hasPrev = page > 1;
   const hasNext =
     total != null ? page * PAGE_SIZE < total : (data?.items?.length ?? 0) === PAGE_SIZE;
+  const totalPages =
+    total != null
+      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
+      : Math.max(1, page + (hasNext ? 1 : 0));
+  const totalItems =
+    total ?? (page - 1) * PAGE_SIZE + (data?.items?.length ?? 0);
 
   const onSelect = (url: string) => {
     onChange(url);
@@ -153,29 +159,19 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
         headerClassName="border-b border-border px-6 py-4"
         footerClassName="border-t border-border px-6 py-3"
         footer={
-          <>
-            <div className="mr-auto text-xs text-muted">
-              {total != null ? `Total files: ${total}` : null}
-              {total != null ? ` | Page ${page}` : null}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!hasPrev || isFetching}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Previous
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={!hasNext || isFetching}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <TablePagination
+              page={page}
+              pageCount={totalPages}
+              pageSize={PAGE_SIZE}
+              totalItems={totalItems}
+              onPageChange={setPage}
+              canPreviousPage={page > 1}
+              canNextPage={hasNext}
+              isLoading={isFetching}
+              forceShow
+              className="w-full py-0 sm:flex-1"
+            />
             <Button
               type="button"
               variant="ghost"
@@ -188,7 +184,7 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
             >
               Close
             </Button>
-          </>
+          </div>
         }
       >
         <div className="space-y-3 px-6 pt-4">

@@ -31,7 +31,7 @@ export function PosSessionList() {
 
   useEffect(() => {
     pagination.observePageResult(sessions.length);
-  }, [sessions.length, pagination]);
+  }, [sessions.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>

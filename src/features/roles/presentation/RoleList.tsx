@@ -28,7 +28,7 @@ export function RoleList() {
 
   useEffect(() => {
     pagination.observePageResult(roles.length);
-  }, [roles.length, pagination]);
+  }, [roles.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>

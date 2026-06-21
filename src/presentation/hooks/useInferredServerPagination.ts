@@ -1,23 +1,38 @@
- "use client";
+"use client";
 
- import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { PaginationControl } from "./pagination/types";
 
- export interface InferredServerPaginationOptions {
-   initialPage?: number;
-   pageSize: number;
- }
+export interface InferredServerPaginationOptions {
+  initialPage?: number;
+  pageSize: number;
+}
 
- /**
-  * Minimal server-pagination helper when the backend doesn't return total counts.
-  * We infer "has next page" based on whether the current page returns `pageSize` items.
-  */
- export function useInferredServerPagination({
-   initialPage = 1,
-   pageSize,
- }: InferredServerPaginationOptions) {
-   const [page, setPage] = useState(initialPage);
-   const [maxKnownPage, setMaxKnownPage] = useState(initialPage);
-   const [lastPageSize, setLastPageSize] = useState<number>(0);
+export interface InferredServerPaginationControl extends PaginationControl {
+  /** TEMP: call after each fetch when API does not return `total`. */
+  observePageResult: (itemsLength: number) => void;
+}
+
+/**
+ * TEMPORARY — server-side pagination when the API does not return totals.
+ *
+ * Guesses "has next page" from whether the current response length equals `pageSize`.
+ * Totals and page counts are approximate until the user visits later pages.
+ *
+ * Proper fix (server API type):
+ * - Backend list endpoints return `PaginatedResult<T>` (`items`, `total`, `page`, `limit`).
+ * - Repositories/services expose `PaginatedResult<T>` instead of `T[]`.
+ * - Replace this hook with `useServerPagination` driven by API `total` / `totalPages`.
+ *
+ * @see src/core/domain/types/pagination.ts
+ */
+export function useInferredServerPagination({
+  initialPage = 1,
+  pageSize,
+}: InferredServerPaginationOptions): InferredServerPaginationControl {
+  const [page, setPage] = useState(initialPage);
+  const [maxKnownPage, setMaxKnownPage] = useState(initialPage);
+  const [lastPageSize, setLastPageSize] = useState<number>(0);
 
   const reset = useCallback(
     (nextPage: number = initialPage) => {
@@ -25,34 +40,35 @@
       setMaxKnownPage(nextPage);
       setLastPageSize(0);
     },
-    [initialPage]
+    [initialPage],
   );
 
-   const observePageResult = useCallback(
-     (itemsLength: number) => {
-       setLastPageSize(itemsLength);
-       setMaxKnownPage((prev) => {
-         // If the page is "full", we assume there might be another page after it.
-         const impliedMax = itemsLength >= pageSize ? page + 1 : page;
-         return Math.max(prev, impliedMax);
-       });
-     },
-     [page, pageSize]
-   );
+  const observePageResult = useCallback(
+    (itemsLength: number) => {
+      setLastPageSize(itemsLength);
+      setMaxKnownPage((prev) => {
+        const impliedMax = itemsLength >= pageSize ? page + 1 : page;
+        return Math.max(prev, impliedMax);
+      });
+    },
+    [page, pageSize],
+  );
 
-   const totalPages = maxKnownPage;
-   const totalItems = useMemo(() => {
-     // Lower-bound estimate (enough to render a stable "showing X-Y of Z" label).
-     return (page - 1) * pageSize + lastPageSize;
-   }, [page, pageSize, lastPageSize]);
+  const totalPages = maxKnownPage;
+  const totalItems = useMemo(() => {
+    return (page - 1) * pageSize + lastPageSize;
+  }, [page, pageSize, lastPageSize]);
 
-   return {
-     page,
-     setPage,
-     totalPages,
-     totalItems,
-     observePageResult,
-    reset,
-   };
- }
-
+  return useMemo(
+    () => ({
+      page,
+      setPage,
+      totalPages,
+      totalItems,
+      observePageResult,
+      reset,
+      pageSize,
+    }),
+    [page, setPage, totalPages, totalItems, observePageResult, reset, pageSize],
+  );
+}

@@ -88,21 +88,21 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
 
   useEffect(() => {
     pagination.observePageResult(filteredCustomers.length);
-  }, [filteredCustomers.length, pagination]);
+  }, [filteredCustomers.length, pagination.observePageResult]);
 
   useEffect(() => {
     // New search => go back to page 1 and drop any inferred max page.
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     // New loyalty tier filter => go back to page 1.
     pagination.reset(1);
-  }, [selectedLoyaltyTier, pagination]);
+  }, [selectedLoyaltyTier, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedAccountType, pagination]);
+  }, [selectedAccountType, pagination.reset]);
 
   const actions = useMemo(
     () =>

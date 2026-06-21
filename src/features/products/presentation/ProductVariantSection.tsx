@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useProductVariants, useDeleteProductVariant } from "@/presentation/hooks/useProductVariants";
+import { useClientPagination } from "@/presentation/hooks/useClientPagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -14,6 +15,7 @@ import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 
 const CREATE_VARIANT_FORM_ID = "create-variant-form";
 const EDIT_VARIANT_FORM_ID = "edit-variant-form";
+const PAGE_SIZE = 10;
 
 export function ProductVariantSection({ productId }: { productId: string }) {
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -21,6 +23,7 @@ export function ProductVariantSection({ productId }: { productId: string }) {
   const [editFormLoading, setEditFormLoading] = useState(false);
 
   const { data: variants = [], isLoading, error, refetch } = useProductVariants(productId);
+  const pagination = useClientPagination(variants, { pageSize: PAGE_SIZE });
   const deleteVariant = useDeleteProductVariant(productId);
   const toast = useToast();
   const confirm = useConfirm();
@@ -56,7 +59,7 @@ export function ProductVariantSection({ productId }: { productId: string }) {
     <>
       <EntityListWithCreateModal<ProductVariant>
         sectionTitle="Variants"
-        data={variants}
+        data={pagination.items}
         columns={columns}
         actions={actions}
         isLoading={isLoading}
@@ -70,7 +73,11 @@ export function ProductVariantSection({ productId }: { productId: string }) {
               }
             : undefined
         }
-        pageSize={10}
+        pageSize={PAGE_SIZE}
+        currentPage={pagination.page}
+        totalPages={pagination.totalPages}
+        totalItems={pagination.totalItems}
+        onPageChange={pagination.setPage}
         addLabel="Add Variant"
         createTitle="Create Variant"
         createSubmitText="Create Variant"

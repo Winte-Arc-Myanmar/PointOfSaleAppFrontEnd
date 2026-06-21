@@ -28,7 +28,7 @@ export function UomList() {
 
   useEffect(() => {
     pagination.observePageResult(uoms.length);
-  }, [uoms.length, pagination]);
+  }, [uoms.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>

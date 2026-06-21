@@ -28,7 +28,7 @@ export function UomClassList() {
 
   useEffect(() => {
     pagination.observePageResult(uomClasses.length);
-  }, [uomClasses.length, pagination]);
+  }, [uomClasses.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>

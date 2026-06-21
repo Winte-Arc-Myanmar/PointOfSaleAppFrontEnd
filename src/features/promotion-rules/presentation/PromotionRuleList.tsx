@@ -45,11 +45,11 @@ export function PromotionRuleList() {
 
   useEffect(() => {
     pagination.observePageResult(rules.length);
-  }, [rules.length, pagination]);
+  }, [rules.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   const actions = useMemo(
     () =>

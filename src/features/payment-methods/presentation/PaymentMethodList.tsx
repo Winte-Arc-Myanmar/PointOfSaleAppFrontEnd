@@ -45,11 +45,11 @@ export function PaymentMethodList() {
 
   useEffect(() => {
     pagination.observePageResult(methods.length);
-  }, [methods.length, pagination]);
+  }, [methods.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   const actions = useMemo(
     () =>

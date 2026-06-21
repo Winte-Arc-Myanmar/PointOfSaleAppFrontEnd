@@ -79,16 +79,16 @@ export function InventoryLedgerList() {
 
   useEffect(() => {
     if (view === "all") paginationAll.observePageResult(allRows.length);
-  }, [allRows.length, paginationAll, view]);
+  }, [allRows.length, paginationAll.observePageResult, view]);
 
   useEffect(() => {
     if (view === "expiring")
       paginationExpiring.observePageResult(expiringRows.length);
-  }, [expiringRows.length, paginationExpiring, view]);
+  }, [expiringRows.length, paginationExpiring.observePageResult, view]);
 
   useEffect(() => {
     if (view === "expiring") paginationExpiring.reset(1);
-  }, [expiringDays, paginationExpiring, view]);
+  }, [expiringDays, paginationExpiring.reset, view]);
 
   const actions = useMemo(
     () =>

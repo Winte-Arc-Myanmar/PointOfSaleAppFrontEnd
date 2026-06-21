@@ -78,15 +78,15 @@ export function UserList() {
 
   useEffect(() => {
     pagination.observePageResult(filteredUsers.length);
-  }, [filteredUsers.length, pagination]);
+  }, [filteredUsers.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedJobTitle, pagination]);
+  }, [selectedJobTitle, pagination.reset]);
 
   const actions = useMemo(
     () =>

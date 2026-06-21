@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { CustomerInteraction } from "@/core/domain/entities/CustomerInteraction";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useClientPagination } from "@/presentation/hooks/useClientPagination";
 import {
   useAllCustomersCustomerInteractions,
   useDeleteCustomerInteraction,
@@ -15,6 +16,7 @@ import { getCustomerInteractionTableColumns } from "./customer-interaction-table
 import { getCustomerInteractionRowActions } from "./customer-interaction-row-actions";
 
 const PER_CUSTOMER_FETCH_LIMIT = 50;
+const PAGE_SIZE = 10;
 
 export interface CustomerInteractionsAllCustomersListProps {
   customerIds: string[];
@@ -33,6 +35,13 @@ export function CustomerInteractionsAllCustomersList({
     page: 1,
     limit: PER_CUSTOMER_FETCH_LIMIT,
   });
+
+  const rows = allRowsQuery.data ?? [];
+  const pagination = useClientPagination(rows, { pageSize: PAGE_SIZE });
+
+  useEffect(() => {
+    pagination.reset(1);
+  }, [customerIds.join(","), pagination.reset]);
 
   const columns = useMemo(
     () =>
@@ -75,7 +84,7 @@ export function CustomerInteractionsAllCustomersList({
 
   return (
     <EntityListWithCreateModal<CustomerInteraction>
-      data={allRowsQuery.data ?? []}
+      data={pagination.items}
       columns={columns}
       actions={actions}
       isLoading={allRowsQuery.isLoading}
@@ -89,7 +98,11 @@ export function CustomerInteractionsAllCustomersList({
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
+      currentPage={pagination.page}
+      totalPages={pagination.totalPages}
+      totalItems={pagination.totalItems}
+      onPageChange={pagination.setPage}
       createEnabled={false}
       showActionBar={false}
     />

@@ -78,15 +78,15 @@ export function BranchList() {
 
   useEffect(() => {
     pagination.observePageResult(filteredBranches.length);
-  }, [filteredBranches.length, pagination]);
+  }, [filteredBranches.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedType, pagination]);
+  }, [selectedType, pagination.reset]);
 
   const actions = useMemo(
     () =>

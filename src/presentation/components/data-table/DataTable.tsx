@@ -11,8 +11,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  ChevronLeft,
-  ChevronRight,
   CheckSquare,
   LayoutGrid,
   List,
@@ -37,6 +35,7 @@ import {
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
+import { TablePagination } from "./TablePagination";
 
 export interface DataTableColumn<T> {
   key: string;
@@ -280,21 +279,29 @@ export function DataTable<T extends { id: string | number }>({
     ? (currentPage ?? 1) - 1
     : table.getState().pagination.pageIndex;
   const pageCount = hasServerPagination
-    ? // Some APIs don't return total pages. When server pagination is enabled,
-      // infer at least one more page if the current page is "full".
-      Math.max(
+    ? Math.max(
         totalPages,
-        data.length >= pageSize ? pageIndex + 2 : pageIndex + 1
+        data.length >= pageSize ? pageIndex + 2 : pageIndex + 1,
       )
-    : table.getPageCount();
+    : Math.max(1, table.getPageCount());
   const total = hasServerPagination ? totalItems : data.length;
-  const start = hasServerPagination
-    ? pageIndex * (table.getState().pagination?.pageSize ?? pageSize) + 1
-    : pageIndex * pageSize + 1;
-  const end = Math.min(
-    start + (table.getState().pagination?.pageSize ?? pageSize) - 1,
-    total
-  );
+  const currentPageOneBased = pageIndex + 1;
+
+  const canPreviousPage = hasServerPagination
+    ? currentPageOneBased > 1
+    : table.getCanPreviousPage();
+  const canNextPage = hasServerPagination
+    ? data.length >= pageSize
+    : table.getCanNextPage();
+
+  const handlePageChange = (nextPage: number) => {
+    const safePage = Math.max(1, nextPage);
+    if (hasServerPagination) {
+      onPageChange?.(safePage);
+      return;
+    }
+    table.setPageIndex(safePage - 1);
+  };
 
   const hasActions = actions.length > 0 || onView || onEdit || onDelete;
   const rows = table.getRowModel().rows;
@@ -568,55 +575,19 @@ export function DataTable<T extends { id: string | number }>({
         </Table>
       )}
 
-      {!error &&
-        // Server-side lists should always show the pager (even when there's only 1 page),
-        // so users can see current page and navigate back from page > 1.
-        (hasServerPagination ? !!onPageChange : pageCount > 1) && (
-          <div className="flex items-center justify-between px-2 py-4">
-            <p className="page-description text-sm">
-              {t("common.showingResults")
-                .replace("{start}", String(total === 0 ? 0 : start))
-                .replace("{end}", String(end))
-                .replace("{total}", String(total))}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pageIndex <= 0}
-                onClick={() =>
-                  hasServerPagination
-                    ? onPageChange?.(pageIndex)
-                    : table.previousPage()
-                }
-              >
-                <ChevronLeft className="h-4 w-4" />
-                {t("common.previous")}
-              </Button>
-              <span className="page-description text-sm">
-                {t("common.page")} {pageIndex + 1} {t("common.of")} {pageCount}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={
-                  hasServerPagination
-                    ? // If we don't know real totals, allow "Next" only when we got a full page.
-                      !(data.length >= pageSize)
-                    : pageIndex >= pageCount - 1
-                }
-                onClick={() =>
-                  hasServerPagination
-                    ? onPageChange?.(pageIndex + 2)
-                    : table.nextPage()
-                }
-              >
-                {t("common.next")}
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
+      {!error && !showLoading && (
+        <TablePagination
+          page={currentPageOneBased}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          totalItems={total}
+          onPageChange={handlePageChange}
+          canPreviousPage={canPreviousPage}
+          canNextPage={canNextPage}
+          isLoading={isLoading}
+          forceShow={!!hasServerPagination}
+        />
+      )}
     </div>
   );
 }

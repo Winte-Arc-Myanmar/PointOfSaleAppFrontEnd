@@ -62,15 +62,15 @@ export function VendorList() {
 
   useEffect(() => {
     pagination.observePageResult(filteredVendors.length);
-  }, [filteredVendors.length, pagination]);
+  }, [filteredVendors.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedTenantId, pagination]);
+  }, [selectedTenantId, pagination.reset]);
 
   const actions = useMemo(
     () =>

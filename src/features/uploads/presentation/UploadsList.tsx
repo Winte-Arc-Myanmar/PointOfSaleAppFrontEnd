@@ -89,7 +89,7 @@ export function UploadsList() {
 
   useEffect(() => {
     pagination.observePageResult(items.length);
-  }, [items.length, pagination]);
+  }, [items.length, pagination.observePageResult]);
 
   const uploadOne = useUploadFile();
   const uploadMany = useUploadMultipleFiles();

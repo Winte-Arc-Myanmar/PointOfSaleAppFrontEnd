@@ -79,15 +79,15 @@ export function ProductList() {
 
   useEffect(() => {
     pagination.observePageResult(filteredProducts.length);
-  }, [filteredProducts.length, pagination]);
+  }, [filteredProducts.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedCategoryId, pagination]);
+  }, [selectedCategoryId, pagination.reset]);
 
   const actions = useMemo(
     () =>

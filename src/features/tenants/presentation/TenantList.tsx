@@ -80,15 +80,15 @@ export function TenantList() {
 
   useEffect(() => {
     pagination.observePageResult(filteredTenants.length);
-  }, [filteredTenants.length, pagination]);
+  }, [filteredTenants.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedStatus, pagination]);
+  }, [selectedStatus, pagination.reset]);
 
   const actions = useMemo(
     () =>

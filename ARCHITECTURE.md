@@ -17,3 +17,18 @@ Backend contract (current):
   - When type is "user", tenantId and branchId are also sent.
   - Response is expected to include an access token (e.g. access_token / token / accessToken) plus user/session fields.
 - Example resource routes: /v1/products, /v1/customers, /v1/roles, etc. (see src/core/infrastructure/api/constants.ts for the full list).
+
+Pagination (temporary — needs proper fix on both API types):
+
+The UI uses a single `TablePagination` component everywhere, but two temporary pagination hooks feed it:
+
+1. **Server lists (`useInferredServerPagination`) — TEMP**
+   - Most list endpoints return only a page of rows (array or `{ data: T[] }`) with no `total`.
+   - The hook infers whether a next page exists from the current page length. Totals are approximate.
+   - **Proper fix:** Backend returns `PaginatedResult<T>` (`items`, `total`, `page`, `limit`) for every list route. Repositories and services adopt that type (`src/core/domain/types/pagination.ts`). Replace inferred pagination with a `useServerPagination` hook driven by API totals.
+
+2. **Client lists (`useClientPagination`) — TEMP**
+   - Some screens load the full dataset and slice in the browser (categories with local filters, all-customers hub tables, product variants, etc.).
+   - **Proper fix:** Push search/filter/sort/pagination to the API via `PaginatedQueryParams` and use server pagination. Keep client pagination only for small bounded sets (e.g. lines/payments on one sales order).
+
+Reference: `UploadListResult` (uploads) is the closest current example of a list API that can return `total`.

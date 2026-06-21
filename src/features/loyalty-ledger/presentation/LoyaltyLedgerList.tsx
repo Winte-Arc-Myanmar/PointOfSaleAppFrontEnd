@@ -42,7 +42,7 @@ export function LoyaltyLedgerList({
 
   useEffect(() => {
     pagination.observePageResult(entries.length);
-  }, [entries.length, pagination]);
+  }, [entries.length, pagination.observePageResult]);
 
   const basePath =
     routeBasePath ?? `/customers/${customerId}/loyalty-ledger`;

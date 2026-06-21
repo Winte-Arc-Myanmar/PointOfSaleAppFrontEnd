@@ -31,7 +31,7 @@ export function PosRegisterList() {
 
   useEffect(() => {
     pagination.observePageResult(registers.length);
-  }, [registers.length, pagination]);
+  }, [registers.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>

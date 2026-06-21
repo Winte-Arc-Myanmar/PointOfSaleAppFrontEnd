@@ -42,11 +42,11 @@ export function SalesOrderList() {
 
   useEffect(() => {
     pagination.observePageResult(orders.length);
-  }, [orders.length, pagination]);
+  }, [orders.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   const actions = useMemo(
     () =>

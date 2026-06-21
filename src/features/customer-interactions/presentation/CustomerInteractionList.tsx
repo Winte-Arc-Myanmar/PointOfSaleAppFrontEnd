@@ -41,7 +41,7 @@ export function CustomerInteractionList({
 
   useEffect(() => {
     pagination.observePageResult(rows.length);
-  }, [rows.length, pagination]);
+  }, [rows.length, pagination.observePageResult]);
 
   const basePath =
     routeBasePath ?? `/customers/${customerId}/interactions`;
