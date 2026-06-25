@@ -31,6 +31,10 @@ const routeTitles: Record<string, string> = {
   "/admin/assign-role": "Assign role",
   "/chart-of-accounts": "Chart of Accounts",
   "/accounting-periods": "Accounting Periods",
+  "/exchange-rates": "Exchange Rates",
+  "/tax-rates": "Tax Rates",
+  "/journal-entries": "Journal Entries",
+  "/journal-lines": "Journal Lines",
 };
 
 function getTitle(pathname: string): string {
@@ -68,6 +72,19 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/accounting-periods/") && pathname.endsWith("/edit"))
     return "Edit accounting period";
   if (pathname.startsWith("/accounting-periods/")) return "Accounting period";
+  if (pathname.startsWith("/exchange-rates/") && pathname.endsWith("/edit"))
+    return "Edit exchange rate";
+  if (pathname.startsWith("/exchange-rates/")) return "Exchange rate";
+  if (pathname.startsWith("/tax-rates/") && pathname.endsWith("/edit"))
+    return "Edit tax rate";
+  if (pathname.startsWith("/tax-rates/")) return "Tax rate";
+  if (pathname.startsWith("/journal-entries/") && pathname.endsWith("/edit"))
+    return "Edit journal entry";
+  if (pathname.startsWith("/journal-entries/")) return "Journal entry";
+  if (pathname.startsWith("/journal-lines/") && pathname.endsWith("/edit"))
+    return "Edit journal line";
+  if (pathname.match(/^\/journal-lines\/[^/]+\/[^/]+$/)) return "Journal line";
+  if (pathname.startsWith("/journal-lines/")) return "Journal lines";
   return routeTitles[pathname] ?? "";
 }
 
@@ -105,6 +122,10 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/payment-methods", labelKey: "nav.paymentMethods" },
   { href: "/chart-of-accounts", labelKey: "nav.chartOfAccounts" },
   { href: "/accounting-periods", labelKey: "nav.accountingPeriods" },
+  { href: "/exchange-rates", labelKey: "nav.exchangeRates" },
+  { href: "/tax-rates", labelKey: "nav.taxRates" },
+  { href: "/journal-entries", labelKey: "nav.journalEntries" },
+  { href: "/journal-lines", labelKey: "nav.journalLines" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

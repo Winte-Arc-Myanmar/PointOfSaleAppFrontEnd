@@ -34,6 +34,10 @@ import {
   RotateCcw,
   BookText,
   CalendarRange,
+  ArrowLeftRight,
+  BadgePercent,
+  NotebookPen,
+  ListTree,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -119,6 +123,30 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.accountingPeriods",
     icon: CalendarRange,
     permissions: ["accounting-periods:read"],
+  },
+  {
+    href: "/exchange-rates",
+    labelKey: "nav.exchangeRates",
+    icon: ArrowLeftRight,
+    permissions: ["exchange-rates:read"],
+  },
+  {
+    href: "/tax-rates",
+    labelKey: "nav.taxRates",
+    icon: BadgePercent,
+    permissions: ["tax-rates:read"],
+  },
+  {
+    href: "/journal-entries",
+    labelKey: "nav.journalEntries",
+    icon: NotebookPen,
+    permissions: ["journal-entries:read"],
+  },
+  {
+    href: "/journal-lines",
+    labelKey: "nav.journalLines",
+    icon: ListTree,
+    permissions: ["journal-lines:read"],
   },
   {
     href: "/checkout",
