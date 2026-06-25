@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { BranchLocationCapture } from "./BranchLocationCapture";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -57,7 +58,8 @@ const REDIRECT_DELAY_MS = 1500;
 export function EditBranchForm({ branchId }: { branchId: string }) {
   const router = useRouter();
   const { data: branch, isLoading, error } = useBranch(branchId);
-  const { data: tenants = [] } = useTenants();
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const updateBranch = useUpdateBranch();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

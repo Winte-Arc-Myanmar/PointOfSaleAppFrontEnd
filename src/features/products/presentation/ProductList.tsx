@@ -6,7 +6,7 @@ import {
   useProducts,
   useDeleteProduct,
 } from "@/presentation/hooks/useProducts";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -33,14 +33,16 @@ export function ProductList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
   const {
-    data: products = [],
+    data: productsResult,
     isLoading,
     error,
     refetch,
   } = useProducts({ page: pagination.page, limit: PAGE_SIZE });
-  const { data: categories = [] } = useCategories();
+  const { data: categoriesResult } = useCategories();
+  const products = productsResult?.items ?? [];
+  const categories = categoriesResult?.items ?? [];
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
@@ -76,10 +78,6 @@ export function ProductList() {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
-
-  useEffect(() => {
-    pagination.observePageResult(filteredProducts.length);
-  }, [filteredProducts.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
@@ -187,11 +185,11 @@ export function ProductList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(productsResult?.total)}
+      totalItems={productsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add Product"
       createTitle="Create Product"
       createSubmitText="Create Product"

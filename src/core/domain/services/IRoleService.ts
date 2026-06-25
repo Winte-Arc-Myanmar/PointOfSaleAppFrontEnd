@@ -6,9 +6,10 @@
 import type { Role } from "@/core/domain/entities/Role";
 import type { CreateRoleDto } from "@/core/application/dtos/RoleDto";
 import type { GetRolesParams } from "../repositories/IRoleRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface IRoleService {
-  getAll(params?: GetRolesParams): Promise<Role[]>;
+  getAll(params?: GetRolesParams): Promise<PaginatedResult<Role>>;
   getById(id: string): Promise<Role>;
   create(data: CreateRoleDto): Promise<Role>;
   delete(id: string): Promise<void>;

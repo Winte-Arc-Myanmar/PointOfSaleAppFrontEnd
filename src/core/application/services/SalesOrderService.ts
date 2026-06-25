@@ -3,11 +3,13 @@ import type { ISalesOrderRepository } from "@/core/domain/repositories/ISalesOrd
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
 import type { GetSalesOrdersParams } from "@/core/domain/repositories/ISalesOrderRepository";
 import type { SalesOrderDto } from "../dtos/SalesOrderDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class SalesOrderService implements ISalesOrderService {
   constructor(private readonly salesOrderRepository: ISalesOrderRepository) {}
 
-  getAll(params?: GetSalesOrdersParams): Promise<SalesOrder[]> {
+  getAll(params?: GetSalesOrdersParams): Promise<PaginatedResult<SalesOrder>> {
     return this.salesOrderRepository.getAll(params);
   }
 

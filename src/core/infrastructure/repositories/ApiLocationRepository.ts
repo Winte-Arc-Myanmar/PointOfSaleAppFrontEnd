@@ -9,8 +9,13 @@ import type {
 import type { Location, LocationTreeNode } from "@/core/domain/entities/Location";
 import type { LocationDto } from "@/core/application/dtos/LocationDto";
 import { toLocation, toLocationTreeNode } from "@/core/application/mappers/LocationMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function normalizeLocationWrite(
   data: Omit<LocationDto, "id" | "subLocations">
@@ -46,19 +51,18 @@ function parseTreeRoots(body: unknown): LocationTreeNode[] {
 export class ApiLocationRepository implements ILocationRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetLocationsParams): Promise<Location[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<
-      LocationDto[] | { data?: LocationDto[] }
-    >(API_ENDPOINTS.LOCATIONS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is LocationDto & { id: string } => !!dto?.id)
-      .map((d) => toLocation(d));
+  async getAll(params?: GetLocationsParams): Promise<PaginatedResult<Location>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.LOCATIONS.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<LocationDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toLocation(dto as LocationDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getTree(): Promise<LocationTreeNode[]> {

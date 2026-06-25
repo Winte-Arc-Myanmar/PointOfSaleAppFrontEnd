@@ -23,6 +23,7 @@ import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useCustomer, useUpdateCustomer } from "@/presentation/hooks/useCustomers";
 import { CUSTOMER_ACCOUNT_TYPES, CUSTOMER_LOYALTY_TIERS } from "./customer-constants";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -44,7 +45,8 @@ export function EditCustomerForm({ customerId }: { customerId: string }) {
   const router = useRouter();
   const { tenantId: lockedTenantId } = usePermissions();
   const { data: customer, isLoading, error } = useCustomer(customerId);
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const updateCustomer = useUpdateCustomer();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

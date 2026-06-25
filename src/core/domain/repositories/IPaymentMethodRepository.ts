@@ -1,5 +1,7 @@
 import type { PaymentMethod } from "../entities/PaymentMethod";
 import type { PaymentMethodDto } from "@/core/application/dtos/PaymentMethodDto";
+import type { PaginatedResult } from "../types/pagination";
+
 
 export interface GetPaymentMethodsParams {
   page?: number;
@@ -10,7 +12,7 @@ export interface GetPaymentMethodsParams {
 }
 
 export interface IPaymentMethodRepository {
-  getAll(params?: GetPaymentMethodsParams): Promise<PaymentMethod[]>;
+  getAll(params?: GetPaymentMethodsParams): Promise<PaginatedResult<PaymentMethod>>;
   getById(id: string): Promise<PaymentMethod | null>;
   create(data: Omit<PaymentMethodDto, "id" | "createdAt" | "updatedAt">): Promise<PaymentMethod>;
   update(

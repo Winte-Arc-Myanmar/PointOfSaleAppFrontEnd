@@ -4,11 +4,13 @@ import type { GetPosSessionsParams } from "@/core/domain/repositories/IPosSessio
 import type { PosSession } from "@/core/domain/entities/PosSession";
 import type { PosSessionDto, ClosePosSessionRequestDto } from "../dtos/PosSessionDto";
 import type { PosSessionSummary } from "@/core/domain/entities/PosSessionSummary";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class PosSessionService implements IPosSessionService {
   constructor(private readonly posSessionRepository: IPosSessionRepository) {}
 
-  getAll(params?: GetPosSessionsParams): Promise<PosSession[]> {
+  getAll(params?: GetPosSessionsParams): Promise<PaginatedResult<PosSession>> {
     return this.posSessionRepository.getAll(params);
   }
 

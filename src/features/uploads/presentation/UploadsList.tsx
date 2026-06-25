@@ -18,7 +18,7 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useBranches } from "@/presentation/hooks/useBranches";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { resolveMediaUrl } from "@/lib/media-url";
 import {
   useDeleteUpload,
@@ -63,8 +63,9 @@ export function UploadsList() {
   const toast = useToast();
   const confirm = useConfirm();
   const { activeBranch, isSystemAdmin } = usePermissions();
-  const { data: branches = [] } = useBranches({ page: 1, limit: 200 });
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const { data: branchesResult } = useBranches({ page: 1, limit: 200 });
+  const branches = branchesResult?.items ?? [];
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   const [folder, setFolder] = useState("products");
   const [folderMode, setFolderMode] = useState<string>("products");
@@ -85,11 +86,7 @@ export function UploadsList() {
   });
 
   const items: UploadedFile[] = data?.items ?? [];
-  const total = data?.total;
-
-  useEffect(() => {
-    pagination.observePageResult(items.length);
-  }, [items.length, pagination.observePageResult]);
+  const total = data?.total ?? 0;
 
   const uploadOne = useUploadFile();
   const uploadMany = useUploadMultipleFiles();
@@ -163,11 +160,6 @@ export function UploadsList() {
   const columns = useMemo(() => getUploadsTableColumns(), []);
   const busy = uploadOne.isPending || uploadMany.isPending;
 
-  const totalPages =
-    total != null
-      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
-      : pagination.totalPages;
-
   return (
     <EntityListWithCreateModal<UploadedFile>
       data={items}
@@ -186,9 +178,9 @@ export function UploadsList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={totalPages}
-      totalItems={total ?? pagination.totalItems}
-      onPageChange={(page) => pagination.setPage(page)}
+      totalPages={pagination.getTotalPages(total)}
+      totalItems={total}
+      onPageChange={pagination.setPage}
       createEnabled={false}
       showActionBar={false}
       enableGridView

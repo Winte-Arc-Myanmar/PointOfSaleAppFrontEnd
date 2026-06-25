@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteRole, useRolesPaged } from "@/presentation/hooks/useRoles";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { getRoleRowActions } from "./role-row-actions";
 import { getRoleTableColumns } from "./role-table-columns";
 import { CreateRoleForm } from "./CreateRoleForm";
@@ -19,16 +19,13 @@ export function RoleList() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: roles = [], isLoading, error, refetch } = useRolesPaged({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: rolesResult, isLoading, error, refetch } = useRolesPaged({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const roles = rolesResult?.items ?? [];
   const deleteRole = useDeleteRole();
-
-  useEffect(() => {
-    pagination.observePageResult(roles.length);
-  }, [roles.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>
@@ -77,11 +74,11 @@ export function RoleList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(rolesResult?.total)}
+      totalItems={rolesResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add Role"
       createTitle="Create Role"
       createSubmitText="Create Role"

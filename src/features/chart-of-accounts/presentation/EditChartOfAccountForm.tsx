@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const REDIRECT_DELAY_MS = 1500;
 const PARENT_NONE = "__none__";
@@ -48,13 +49,15 @@ export function EditChartOfAccountForm({ chartOfAccountId }: { chartOfAccountId:
   const { tenantId: lockedTenantId } = usePermissions();
   const update = useUpdateChartOfAccount();
   const { data: account, isLoading, error } = useChartOfAccount(chartOfAccountId);
-  const { data: tenants = [] } = useTenants();
-  const { data: parentAccounts = [] } = useChartOfAccounts({
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: parentAccountsData } = useChartOfAccounts({
     page: 1,
     limit: 200,
     sortBy: "accountCode",
     sortOrder: "asc",
   });
+  const parentAccounts = getPaginatedItems(parentAccountsData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({

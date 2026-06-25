@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -49,8 +50,10 @@ export function CreatePosRegisterForm({
 }: CreatePosRegisterFormProps) {
   const create = useCreatePosRegister();
   const toast = useToast();
-  const { data: tenants = [] } = useTenants();
-  const { data: locations = [] } = useLocations({ page: 1, limit: 200 });
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
+  const locations = getPaginatedItems(locationsData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),

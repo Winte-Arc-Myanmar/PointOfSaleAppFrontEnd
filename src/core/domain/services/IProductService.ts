@@ -6,9 +6,10 @@
 import type { Product } from "../entities/Product";
 import type { ProductDto } from "@/core/application/dtos/ProductDto";
 import type { GetProductsParams } from "../repositories/IProductRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface IProductService {
-  getAll(params?: GetProductsParams): Promise<Product[]>;
+  getAll(params?: GetProductsParams): Promise<PaginatedResult<Product>>;
   getById(id: string): Promise<Product | null>;
   create(data: Omit<ProductDto, "id">): Promise<Product>;
   update(id: string, data: Omit<ProductDto, "id">): Promise<Product>;

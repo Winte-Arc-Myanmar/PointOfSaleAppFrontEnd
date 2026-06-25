@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Filter, Plus, Search, X } from "lucide-react";
 import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
-import { useClientPagination } from "@/presentation/hooks/useClientPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
@@ -27,7 +27,6 @@ import type { Category } from "@/core/domain/entities/Category";
 
 const CREATE_CATEGORY_FORM_ID = "create-category-form";
 const PAGE_SIZE = 6;
-const FETCH_LIMIT = 200;
 
 type DescriptionFilter = "all" | "with-description" | "no-description";
 
@@ -44,11 +43,14 @@ function getFilterLabel(value: DescriptionFilter) {
 
 export function CategoryList() {
   const router = useRouter();
-  const { data: categories = [], isLoading, error, refetch } = useCategories({
-    page: 1,
-    limit: FETCH_LIMIT,
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: categoriesResult, isLoading, error, refetch } = useCategories({
+    page: pagination.page,
+    limit: PAGE_SIZE,
   });
-  const { data: products = [] } = useProducts({ page: 1, limit: 500 });
+  const { data: productsResult } = useProducts({ page: 1, limit: 500 });
+  const categories = categoriesResult?.items ?? [];
+  const products = productsResult?.items ?? [];
   const deleteCategory = useDeleteCategory();
   const toast = useToast();
   const confirm = useConfirm();
@@ -92,8 +94,6 @@ export function CategoryList() {
       );
     });
   }, [categories, descriptionFilter, searchQuery, selectedCategoryId]);
-
-  const pagination = useClientPagination(filteredCategories, { pageSize: PAGE_SIZE });
 
   useEffect(() => {
     pagination.reset(1);
@@ -140,7 +140,7 @@ export function CategoryList() {
 
   return (
     <EntityListWithCreateModal<Category>
-      data={pagination.items}
+      data={filteredCategories}
       columns={columns}
       actions={[]}
       isLoading={isLoading}
@@ -156,8 +156,8 @@ export function CategoryList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
+      totalPages={pagination.getTotalPages(categoriesResult?.total)}
+      totalItems={categoriesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       showActionBar={false}
       addLabel="Add Category"

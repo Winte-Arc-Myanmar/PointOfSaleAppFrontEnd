@@ -10,8 +10,13 @@ import type {
 import type { Product } from "@/core/domain/entities/Product";
 import type { ProductDto } from "@/core/application/dtos/ProductDto";
 import { toProduct } from "@/core/application/mappers/ProductMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 /**
  * Product API expects a strict decimal string (e.g. "999.0000").
@@ -45,19 +50,18 @@ function normalizeProductWritePayload(
 export class ApiProductRepository implements IProductRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetProductsParams): Promise<Product[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<
-      ProductDto[] | { data?: ProductDto[] }
-    >(API_ENDPOINTS.PRODUCTS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : (res?.data ?? []);
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is ProductDto & { id: string } => !!dto?.id)
-      .map(toProduct);
+  async getAll(params?: GetProductsParams): Promise<PaginatedResult<Product>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.PRODUCTS.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<ProductDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toProduct(dto as ProductDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<Product | null> {

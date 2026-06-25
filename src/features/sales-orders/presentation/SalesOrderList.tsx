@@ -7,7 +7,7 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteSalesOrder, useSalesOrders } from "@/presentation/hooks/useSalesOrders";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
 import { CreateSalesOrderForm } from "./CreateSalesOrderForm";
 import { getSalesOrderRowActions } from "./sales-order-row-actions";
@@ -25,24 +25,21 @@ export function SalesOrderList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const { data: orders = [], isLoading, error, refetch } = useSalesOrders({
+  const { data: ordersResult, isLoading, error, refetch } = useSalesOrders({
     search: search || undefined,
     page: pagination.page,
     limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-
-  useEffect(() => {
-    pagination.observePageResult(orders.length);
-  }, [orders.length, pagination.observePageResult]);
+  const orders = ordersResult?.items ?? [];
 
   useEffect(() => {
     pagination.reset(1);
@@ -104,11 +101,11 @@ export function SalesOrderList() {
           />
         </div>
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(ordersResult?.total)}
+      totalItems={ordersResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="New Sales Order"
       createTitle="Create Sales Order"
       createSubmitText="Create Sales Order"

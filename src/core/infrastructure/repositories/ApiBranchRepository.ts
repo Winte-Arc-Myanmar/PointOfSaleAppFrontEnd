@@ -10,8 +10,13 @@ import type {
 import type { Branch } from "@/core/domain/entities/Branch";
 import type { BranchDto } from "@/core/application/dtos/BranchDto";
 import { toBranch } from "@/core/application/mappers/BranchMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 /** API expects latitude/longitude as decimal strings; omit when not both set. */
 function normalizeBranchWritePayload(
@@ -46,20 +51,18 @@ function normalizeBranchWritePayload(
 export class ApiBranchRepository implements IBranchRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetBranchesParams): Promise<Branch[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<BranchDto[] | { data?: BranchDto[] }>(
-      API_ENDPOINTS.BRANCHES.LIST,
-      { params: query }
+  async getAll(params?: GetBranchesParams): Promise<PaginatedResult<Branch>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.BRANCHES.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<BranchDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toBranch(dto as BranchDto & { id: string }),
+      (dto) => !!dto?.id,
     );
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is BranchDto & { id: string } => !!dto?.id)
-      .map(toBranch);
   }
 
   async getById(id: string): Promise<Branch | null> {

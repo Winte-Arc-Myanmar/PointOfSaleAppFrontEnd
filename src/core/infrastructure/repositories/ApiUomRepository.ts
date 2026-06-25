@@ -10,8 +10,13 @@ import type {
 import type { Uom } from "@/core/domain/entities/Uom";
 import type { UomDto } from "@/core/application/dtos/UomDto";
 import { toUom } from "@/core/application/mappers/UomMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function toApiDecimalString(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
@@ -36,21 +41,22 @@ function normalizeUomWritePayload(data: Omit<UomDto, "id">): Record<string, unkn
 export class ApiUomRepository implements IUomRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetUomsParams): Promise<Uom[]> {
-    const query: Record<string, number | string | undefined> = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    if (params?.classId) query.classId = params.classId;
-    const res = await this.httpClient.get<UomDto[] | { data?: UomDto[] }>(
-      API_ENDPOINTS.UOMS.LIST,
-      { params: query }
+  async getAll(params?: GetUomsParams): Promise<PaginatedResult<Uom>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.UOMS.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.classId ? { classId: params.classId } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<UomDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toUom(dto as Parameters<typeof toUom>[0]),
+      (dto) => !!dto?.id,
     );
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is UomDto & { id: string } => !!dto?.id)
-      .map((d) => toUom(d as Parameters<typeof toUom>[0]));
   }
 
   async getById(id: string): Promise<Uom | null> {

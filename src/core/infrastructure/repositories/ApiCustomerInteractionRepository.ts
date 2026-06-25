@@ -10,8 +10,13 @@ import type {
 } from "@/core/domain/repositories/ICustomerInteractionRepository";
 import type { CustomerInteractionDto } from "@/core/application/dtos/CustomerInteractionDto";
 import { toCustomerInteraction } from "@/core/application/mappers/CustomerInteractionMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiCustomerInteractionRepository
   implements ICustomerInteractionRepository
@@ -21,22 +26,19 @@ export class ApiCustomerInteractionRepository
   async getAll(
     customerId: string,
     params?: GetCustomerInteractionsParams
-  ): Promise<CustomerInteraction[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
+  ): Promise<PaginatedResult<CustomerInteraction>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.CUSTOMERS.INTERACTIONS(customerId);
-    const res = await this.httpClient.get<
-      CustomerInteractionDto[] | { data?: CustomerInteractionDto[] }
-    >(endpoints.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter(
-        (dto): dto is CustomerInteractionDto & { id: string } => !!dto?.id
-      )
-      .map((dto) => toCustomerInteraction(dto, customerId));
+    const res = await this.httpClient.get<unknown>(endpoints.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<CustomerInteractionDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toCustomerInteraction(dto as CustomerInteractionDto & { id: string }, customerId),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(

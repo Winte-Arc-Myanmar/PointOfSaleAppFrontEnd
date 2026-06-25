@@ -5,28 +5,35 @@ import type {
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { PromotionRuleDto } from "@/core/application/dtos/PromotionRuleDto";
 import { toPromotionRule } from "@/core/application/mappers/PromotionRuleMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiPromotionRuleRepository implements IPromotionRuleRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetPromotionRulesParams): Promise<PromotionRule[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-    const res = await this.httpClient.get<
-      PromotionRuleDto[] | { data?: PromotionRuleDto[] }
-    >(API_ENDPOINTS.PROMOTION_RULES.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is PromotionRuleDto & { id: string } => !!d?.id)
-      .map((d) => toPromotionRule(d as PromotionRuleDto & { id: string }));
+  async getAll(params?: GetPromotionRulesParams): Promise<PaginatedResult<PromotionRule>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.PROMOTION_RULES.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+        ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<PromotionRuleDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toPromotionRule(dto as PromotionRuleDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<PromotionRule | null> {

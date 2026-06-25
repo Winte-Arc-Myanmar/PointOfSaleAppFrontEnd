@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { AppLoader } from "@/presentation/components/loader";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -50,9 +51,12 @@ export function EditSalesOrderForm({ salesOrderId }: { salesOrderId: string }) {
   const toast = useToast();
   const update = useUpdateSalesOrder();
   const { data: order, isLoading, error } = useSalesOrder(salesOrderId);
-  const { data: tenants = [] } = useTenants();
-  const { data: customers = [] } = useCustomers();
-  const { data: locations = [] } = useLocations({ page: 1, limit: 200 });
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: customersData } = useCustomers();
+  const customers = getPaginatedItems(customersData);
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
+  const locations = getPaginatedItems(locationsData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({

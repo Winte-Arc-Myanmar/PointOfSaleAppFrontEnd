@@ -5,30 +5,35 @@ import type {
 import type { ChartOfAccount } from "@/core/domain/entities/ChartOfAccount";
 import type { ChartOfAccountDto } from "@/core/application/dtos/ChartOfAccountDto";
 import { toChartOfAccount } from "@/core/application/mappers/ChartOfAccountMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiChartOfAccountRepository implements IChartOfAccountRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetChartOfAccountsParams): Promise<ChartOfAccount[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-
-    const res = await this.httpClient.get<
-      ChartOfAccountDto[] | { data?: ChartOfAccountDto[] }
-    >(API_ENDPOINTS.CHART_OF_ACCOUNTS.LIST, { params: query });
-
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is ChartOfAccountDto & { id: string } => !!d?.id)
-      .map((d) => toChartOfAccount(d as ChartOfAccountDto & { id: string }));
+  async getAll(params?: GetChartOfAccountsParams): Promise<PaginatedResult<ChartOfAccount>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CHART_OF_ACCOUNTS.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+        ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<ChartOfAccountDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toChartOfAccount(dto as ChartOfAccountDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<ChartOfAccount | null> {

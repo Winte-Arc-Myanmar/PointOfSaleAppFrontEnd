@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { CustomerInteractionList } from "./CustomerInteractionList";
 import { CustomerInteractionsAllCustomersList } from "./CustomerInteractionsAllCustomersList";
@@ -19,10 +20,11 @@ const ALL_CUSTOMERS = "__all__";
 
 export function CustomerInteractionsPageWithCustomerSelect() {
   const { t } = useLanguage();
-  const { data: customers = [], isLoading } = useCustomers({
+  const { data: customersResult, isLoading } = useCustomers({
     page: 1,
     limit: CUSTOMER_LIST_LIMIT,
   });
+  const customers = getPaginatedItems(customersResult);
   const [selectedId, setSelectedId] = useState<string>(ALL_CUSTOMERS);
 
   const sorted = useMemo(

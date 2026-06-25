@@ -6,7 +6,7 @@ import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import {
   useDeletePromotionRule,
   usePromotionRules,
@@ -28,24 +28,21 @@ export function PromotionRuleList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const { data: rules = [], isLoading, error, refetch } = usePromotionRules({
+  const { data: rulesResult, isLoading, error, refetch } = usePromotionRules({
     search: search || undefined,
     page: pagination.page,
     limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-
-  useEffect(() => {
-    pagination.observePageResult(rules.length);
-  }, [rules.length, pagination.observePageResult]);
+  const rules = rulesResult?.items ?? [];
 
   useEffect(() => {
     pagination.reset(1);
@@ -107,11 +104,11 @@ export function PromotionRuleList() {
           />
         </div>
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(rulesResult?.total)}
+      totalItems={rulesResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="New Rule"
       createTitle="Create Promotion Rule"
       createSubmitText="Create Rule"

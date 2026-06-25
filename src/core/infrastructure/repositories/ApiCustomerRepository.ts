@@ -10,26 +10,33 @@ import type {
 } from "@/core/domain/repositories/ICustomerRepository";
 import type { CustomerDto } from "@/core/application/dtos/CustomerDto";
 import { toCustomer } from "@/core/application/mappers/CustomerMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiCustomerRepository implements ICustomerRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetCustomersParams): Promise<Customer[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-    };
-    const res = await this.httpClient.get<
-      CustomerDto[] | { data?: CustomerDto[] }
-    >(API_ENDPOINTS.CUSTOMERS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : (res?.data ?? []);
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is CustomerDto & { id: string } => !!dto?.id)
-      .map(toCustomer);
+  async getAll(params?: GetCustomersParams): Promise<PaginatedResult<Customer>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CUSTOMERS.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.search ? { search: params.search } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<CustomerDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toCustomer(dto as CustomerDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<Customer | null> {

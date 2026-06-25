@@ -8,7 +8,7 @@ import {
   useInventoryLedgerExpiring,
   useDeleteInventoryLedgerEntry,
 } from "@/presentation/hooks/useInventoryLedger";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -42,11 +42,11 @@ export function InventoryLedgerList() {
   const [expiringDays, setExpiringDays] = useState(30);
   const [writeOffOpen, setWriteOffOpen] = useState(false);
   const [writeOffLoading, setWriteOffLoading] = useState(false);
-  const paginationAll = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const paginationExpiring = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const paginationAll = usePagination({ pageSize: PAGE_SIZE });
+  const paginationExpiring = usePagination({ pageSize: PAGE_SIZE });
 
   const {
-    data: allRows = [],
+    data: allRowsResult,
     isLoading: allLoading,
     error: allError,
     refetch: refetchAll,
@@ -56,7 +56,7 @@ export function InventoryLedgerList() {
   );
 
   const {
-    data: expiringRows = [],
+    data: expiringRowsResult,
     isLoading: expiringLoading,
     error: expiringError,
     refetch: refetchExpiring,
@@ -69,6 +69,8 @@ export function InventoryLedgerList() {
   const toast = useToast();
   const confirm = useConfirm();
 
+  const allRows = allRowsResult?.items ?? [];
+  const expiringRows = expiringRowsResult ?? [];
   const data: InventoryLedgerEntry[] =
     view === "expiring" ? expiringRows : view === "all" ? allRows : [];
   const isLoading =
@@ -76,15 +78,8 @@ export function InventoryLedgerList() {
   const error = view === "expiring" ? expiringError : view === "all" ? allError : null;
   const refetch = view === "expiring" ? refetchExpiring : refetchAll;
   const pagination = view === "expiring" ? paginationExpiring : paginationAll;
-
-  useEffect(() => {
-    if (view === "all") paginationAll.observePageResult(allRows.length);
-  }, [allRows.length, paginationAll.observePageResult, view]);
-
-  useEffect(() => {
-    if (view === "expiring")
-      paginationExpiring.observePageResult(expiringRows.length);
-  }, [expiringRows.length, paginationExpiring.observePageResult, view]);
+  const totalItems =
+    view === "expiring" ? expiringRows.length : allRowsResult?.total ?? 0;
 
   useEffect(() => {
     if (view === "expiring") paginationExpiring.reset(1);
@@ -190,11 +185,11 @@ export function InventoryLedgerList() {
                 }
               : undefined
           }
-          pageSize={10}
+          pageSize={PAGE_SIZE}
           currentPage={pagination.page}
-          totalPages={pagination.totalPages}
-          totalItems={pagination.totalItems}
-          onPageChange={(p) => pagination.setPage(p)}
+          totalPages={pagination.getTotalPages(totalItems)}
+          totalItems={totalItems}
+          onPageChange={pagination.setPage}
           showTopContent={view === "expiring"}
           topContent={expiringFilter}
           addLabel="New entry"

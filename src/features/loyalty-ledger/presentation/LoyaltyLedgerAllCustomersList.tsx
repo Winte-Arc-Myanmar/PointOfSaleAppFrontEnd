@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useClientPagination } from "@/presentation/hooks/useClientPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import {
   useAllCustomersLoyaltyLedgerEntries,
   useDeleteLoyaltyLedgerEntry,
@@ -15,7 +15,6 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { getLoyaltyLedgerTableColumns } from "./loyalty-ledger-table-columns";
 import { getLoyaltyLedgerRowActions } from "./loyalty-ledger-row-actions";
 
-const PER_CUSTOMER_FETCH_LIMIT = 50;
 const PAGE_SIZE = 10;
 
 export interface LoyaltyLedgerAllCustomersListProps {
@@ -31,17 +30,12 @@ export function LoyaltyLedgerAllCustomersList({
   const confirm = useConfirm();
   const deleteEntry = useDeleteLoyaltyLedgerEntry();
 
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
   const allRowsQuery = useAllCustomersLoyaltyLedgerEntries(customerIds, {
-    page: 1,
-    limit: PER_CUSTOMER_FETCH_LIMIT,
+    page: pagination.page,
+    limit: PAGE_SIZE,
   });
-
-  const rows = allRowsQuery.data ?? [];
-  const pagination = useClientPagination(rows, { pageSize: PAGE_SIZE });
-
-  useEffect(() => {
-    pagination.reset(1);
-  }, [customerIds.join(","), pagination.reset]);
+  const rows = allRowsQuery.data?.items ?? [];
 
   const columns = useMemo(
     () =>
@@ -82,7 +76,7 @@ export function LoyaltyLedgerAllCustomersList({
 
   return (
     <EntityListWithCreateModal<LoyaltyLedgerEntry>
-      data={pagination.items}
+      data={rows}
       columns={columns}
       actions={actions}
       isLoading={allRowsQuery.isLoading}
@@ -98,8 +92,8 @@ export function LoyaltyLedgerAllCustomersList({
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
+      totalPages={pagination.getTotalPages(allRowsQuery.data?.total)}
+      totalItems={allRowsQuery.data?.total ?? 0}
       onPageChange={pagination.setPage}
       createEnabled={false}
       showActionBar={false}

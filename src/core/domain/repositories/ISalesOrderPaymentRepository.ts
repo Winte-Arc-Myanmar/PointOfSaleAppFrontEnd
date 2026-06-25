@@ -1,5 +1,7 @@
 import type { SalesOrderPayment } from "../entities/SalesOrderPayment";
 import type { SalesOrderPaymentDto } from "@/core/application/dtos/SalesOrderPaymentDto";
+import type { PaginatedResult } from "../types/pagination";
+
 
 export interface GetSalesOrderPaymentsParams {
   page?: number;
@@ -13,7 +15,7 @@ export interface ISalesOrderPaymentRepository {
   getAll(
     salesOrderId: string,
     params?: GetSalesOrderPaymentsParams
-  ): Promise<SalesOrderPayment[]>;
+  ): Promise<PaginatedResult<SalesOrderPayment>>;
   getById(
     salesOrderId: string,
     id: string

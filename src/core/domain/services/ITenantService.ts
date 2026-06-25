@@ -6,9 +6,10 @@
 import type { Tenant } from "../entities/Tenant";
 import type { TenantDto } from "@/core/application/dtos/TenantDto";
 import type { GetTenantsParams } from "../repositories/ITenantRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface ITenantService {
-  getAll(params?: GetTenantsParams): Promise<Tenant[]>;
+  getAll(params?: GetTenantsParams): Promise<PaginatedResult<Tenant>>;
   getById(id: string): Promise<Tenant | null>;
   create(data: Omit<TenantDto, "id">): Promise<Tenant>;
   update(id: string, data: Omit<TenantDto, "id">): Promise<Tenant>;

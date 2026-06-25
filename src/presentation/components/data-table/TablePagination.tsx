@@ -10,7 +10,7 @@ export interface TablePaginationProps {
   page: number;
   pageCount: number;
   pageSize: number;
-  /** May be approximate when fed by useInferredServerPagination until APIs return `total`. */
+  /** Total row count from the paginated API response. */
   totalItems: number;
   onPageChange: (page: number) => void;
   canPreviousPage?: boolean;

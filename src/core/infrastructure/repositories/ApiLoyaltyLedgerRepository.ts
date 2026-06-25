@@ -10,8 +10,13 @@ import type {
 } from "@/core/domain/repositories/ILoyaltyLedgerRepository";
 import type { LoyaltyLedgerEntryDto } from "@/core/application/dtos/LoyaltyLedgerEntryDto";
 import { toLoyaltyLedgerEntry } from "@/core/application/mappers/LoyaltyLedgerEntryMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiLoyaltyLedgerRepository implements ILoyaltyLedgerRepository {
   constructor(private readonly httpClient: HttpClient) {}
@@ -19,20 +24,19 @@ export class ApiLoyaltyLedgerRepository implements ILoyaltyLedgerRepository {
   async getAll(
     customerId: string,
     params?: GetLoyaltyLedgerParams
-  ): Promise<LoyaltyLedgerEntry[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
+  ): Promise<PaginatedResult<LoyaltyLedgerEntry>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.CUSTOMERS.LOYALTY_LEDGER(customerId);
-    const res = await this.httpClient.get<
-      LoyaltyLedgerEntryDto[] | { data?: LoyaltyLedgerEntryDto[] }
-    >(endpoints.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is LoyaltyLedgerEntryDto & { id: string } => !!dto?.id)
-      .map((dto) => toLoyaltyLedgerEntry(dto, customerId));
+    const res = await this.httpClient.get<unknown>(endpoints.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<LoyaltyLedgerEntryDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toLoyaltyLedgerEntry(dto as LoyaltyLedgerEntryDto & { id: string }, customerId),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(

@@ -15,6 +15,7 @@ import { AppLoader } from "@/presentation/components/loader";
 import { Shield, KeyRound, ListChecks, Search } from "lucide-react";
 import { useRole, useAssignRolePermissions } from "@/presentation/hooks/useRoles";
 import { usePermissionCatalog } from "@/presentation/hooks/usePermissionCatalog";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 function permissionLabel(p: { module: string; subject: string; action: string }) {
   return `${p.module}:${p.subject}:${p.action}`.toLowerCase();
@@ -23,7 +24,8 @@ function permissionLabel(p: { module: string; subject: string; action: string })
 export function RoleDetail({ roleId }: { roleId: string }) {
   const toast = useToast();
   const { data: role, isLoading, error } = useRole(roleId);
-  const { data: permissions = [], isLoading: isPermLoading } = usePermissionCatalog();
+  const { data: permissionsData, isLoading: isPermLoading } = usePermissionCatalog();
+  const permissions = getPaginatedItems(permissionsData);
   const assign = useAssignRolePermissions();
 
   const [query, setQuery] = useState("");

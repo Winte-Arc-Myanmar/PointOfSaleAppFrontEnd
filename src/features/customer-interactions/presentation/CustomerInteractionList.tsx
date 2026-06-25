@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -9,7 +9,7 @@ import {
   useCustomerInteractions,
   useDeleteCustomerInteraction,
 } from "@/presentation/hooks/useCustomerInteractions";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import type { CustomerInteraction } from "@/core/domain/entities/CustomerInteraction";
 import { CreateCustomerInteractionForm } from "./CreateCustomerInteractionForm";
 import { getCustomerInteractionRowActions } from "./customer-interaction-row-actions";
@@ -32,16 +32,13 @@ export function CustomerInteractionList({
   routeBasePath,
 }: CustomerInteractionListProps) {
   const router = useRouter();
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: rows = [], isLoading, error, refetch } =
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: rowsResult, isLoading, error, refetch } =
     useCustomerInteractions(customerId, { page: pagination.page, limit: PAGE_SIZE });
+  const rows = rowsResult?.items ?? [];
   const deleteInteraction = useDeleteCustomerInteraction();
   const toast = useToast();
   const confirm = useConfirm();
-
-  useEffect(() => {
-    pagination.observePageResult(rows.length);
-  }, [rows.length, pagination.observePageResult]);
 
   const basePath =
     routeBasePath ?? `/customers/${customerId}/interactions`;
@@ -96,11 +93,11 @@ export function CustomerInteractionList({
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(rowsResult?.total)}
+      totalItems={rowsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add interaction"
       createTitle="Log customer interaction"
       createSubmitText="Create interaction"

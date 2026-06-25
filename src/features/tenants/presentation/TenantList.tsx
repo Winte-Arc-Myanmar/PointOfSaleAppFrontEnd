@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { getTenantRowActions } from "./tenant-row-actions";
 import { getTenantTableColumns } from "./tenant-table-columns";
 import { CreateTenantForm } from "./CreateTenantForm";
@@ -30,11 +30,12 @@ export function TenantList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: tenants = [], isLoading, error, refetch } = useTenants({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: tenantsResult, isLoading, error, refetch } = useTenants({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const tenants = tenantsResult?.items ?? [];
   const deleteTenant = useSystemAdminDeleteTenant();
   const toast = useToast();
   const confirm = useConfirm();
@@ -77,10 +78,6 @@ export function TenantList() {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
-
-  useEffect(() => {
-    pagination.observePageResult(filteredTenants.length);
-  }, [filteredTenants.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
@@ -185,11 +182,11 @@ export function TenantList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(tenantsResult?.total)}
+      totalItems={tenantsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add Tenant"
       createTitle="Create Tenant"
       createSubmitText="Create Tenant"

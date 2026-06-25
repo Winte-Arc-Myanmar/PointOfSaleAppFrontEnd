@@ -5,6 +5,7 @@
 
 import type { Category } from "../entities/Category";
 import type { CategoryDto } from "@/core/application/dtos/CategoryDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetCategoriesParams {
   page?: number;
@@ -12,7 +13,7 @@ export interface GetCategoriesParams {
 }
 
 export interface ICategoryRepository {
-  getAll(params?: GetCategoriesParams): Promise<Category[]>;
+  getAll(params?: GetCategoriesParams): Promise<PaginatedResult<Category>>;
   getTree(): Promise<Category[]>;
   getById(id: string): Promise<Category | null>;
   create(data: Omit<CategoryDto, "id">): Promise<Category>;

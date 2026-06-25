@@ -31,6 +31,7 @@ import {
   INTERACTION_CHANNELS,
   INTERACTION_TYPES,
 } from "./customer-interaction-constants";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const USERS_PAGE_SIZE = 300;
 const REDIRECT_DELAY_MS = 1500;
@@ -64,11 +65,13 @@ export function EditCustomerInteractionForm({
     customerId,
     interactionId
   );
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
-  const { data: users = [], isLoading: isUsersLoading } = useUsers({
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: usersData, isLoading: isUsersLoading } = useUsers({
     page: 1,
     limit: USERS_PAGE_SIZE,
   });
+  const users = getPaginatedItems(usersData);
   const updateInteraction = useUpdateCustomerInteraction();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

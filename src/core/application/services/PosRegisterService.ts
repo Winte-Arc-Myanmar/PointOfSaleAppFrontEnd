@@ -3,11 +3,13 @@ import type { IPosRegisterRepository } from "@/core/domain/repositories/IPosRegi
 import type { GetPosRegistersParams } from "@/core/domain/repositories/IPosRegisterRepository";
 import type { PosRegister } from "@/core/domain/entities/PosRegister";
 import type { PosRegisterDto } from "../dtos/PosRegisterDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class PosRegisterService implements IPosRegisterService {
   constructor(private readonly posRegisterRepository: IPosRegisterRepository) {}
 
-  getAll(params?: GetPosRegistersParams): Promise<PosRegister[]> {
+  getAll(params?: GetPosRegistersParams): Promise<PaginatedResult<PosRegister>> {
     return this.posRegisterRepository.getAll(params);
   }
 

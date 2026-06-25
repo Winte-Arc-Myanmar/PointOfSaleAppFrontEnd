@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useProductVariants, useDeleteProductVariant } from "@/presentation/hooks/useProductVariants";
-import { useClientPagination } from "@/presentation/hooks/useClientPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -22,8 +22,12 @@ export function ProductVariantSection({ productId }: { productId: string }) {
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [editFormLoading, setEditFormLoading] = useState(false);
 
-  const { data: variants = [], isLoading, error, refetch } = useProductVariants(productId);
-  const pagination = useClientPagination(variants, { pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: variantsResult, isLoading, error, refetch } = useProductVariants(productId, {
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
+  const variants = variantsResult?.items ?? [];
   const deleteVariant = useDeleteProductVariant(productId);
   const toast = useToast();
   const confirm = useConfirm();
@@ -59,7 +63,7 @@ export function ProductVariantSection({ productId }: { productId: string }) {
     <>
       <EntityListWithCreateModal<ProductVariant>
         sectionTitle="Variants"
-        data={pagination.items}
+        data={variants}
         columns={columns}
         actions={actions}
         isLoading={isLoading}
@@ -75,8 +79,8 @@ export function ProductVariantSection({ productId }: { productId: string }) {
         }
         pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.totalPages}
-        totalItems={pagination.totalItems}
+        totalPages={pagination.getTotalPages(variantsResult?.total)}
+        totalItems={variantsResult?.total ?? 0}
         onPageChange={pagination.setPage}
         addLabel="Add Variant"
         createTitle="Create Variant"

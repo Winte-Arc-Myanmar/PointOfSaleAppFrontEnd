@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUoms, useDeleteUom } from "@/presentation/hooks/useUoms";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -17,18 +17,15 @@ const PAGE_SIZE = 10;
 
 export function UomList() {
   const router = useRouter();
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: uoms = [], isLoading, error, refetch } = useUoms({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: uomsResult, isLoading, error, refetch } = useUoms({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const uoms = uomsResult?.items ?? [];
   const deleteUom = useDeleteUom();
   const toast = useToast();
   const confirm = useConfirm();
-
-  useEffect(() => {
-    pagination.observePageResult(uoms.length);
-  }, [uoms.length, pagination.observePageResult]);
 
   const actions = useMemo(
     () =>
@@ -77,11 +74,11 @@ export function UomList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(uomsResult?.total)}
+      totalItems={uomsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add UOM"
       createTitle="Create UOM"
       createSubmitText="Create UOM"

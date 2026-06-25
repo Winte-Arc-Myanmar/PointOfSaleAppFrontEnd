@@ -7,26 +7,29 @@ import type { IUserRepository, GetUsersParams } from "@/core/domain/repositories
 import type { AppUser } from "@/core/domain/entities/AppUser";
 import type { UserDto, UserUpdateDto } from "@/core/application/dtos/UserDto";
 import { toAppUser } from "@/core/application/mappers/UserMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiUserRepository implements IUserRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetUsersParams): Promise<AppUser[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<UserDto[] | { data?: UserDto[] }>(
-      API_ENDPOINTS.USERS.LIST,
-      { params: query }
+  async getAll(params?: GetUsersParams): Promise<PaginatedResult<AppUser>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.USERS.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<UserDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toAppUser(dto as UserDto & { id: string }),
+      (dto) => !!dto?.id,
     );
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is UserDto & { id: string } => !!dto?.id)
-      .map(toAppUser);
   }
 
   async getById(id: string): Promise<AppUser | null> {

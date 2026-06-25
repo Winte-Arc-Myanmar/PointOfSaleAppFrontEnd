@@ -10,11 +10,12 @@ import type {
 } from "@/core/domain/repositories/ICustomerRepository";
 import type { ICustomerService } from "@/core/domain/services/ICustomerService";
 import type { CustomerDto } from "../dtos/CustomerDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class CustomerService implements ICustomerService {
   constructor(private readonly customerRepository: ICustomerRepository) {}
 
-  async getAll(params?: GetCustomersParams): Promise<Customer[]> {
+  async getAll(params?: GetCustomersParams): Promise<PaginatedResult<Customer>> {
     return this.customerRepository.getAll(params);
   }
 

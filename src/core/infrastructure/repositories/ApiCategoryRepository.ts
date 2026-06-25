@@ -10,25 +10,29 @@ import type {
 import type { Category } from "@/core/domain/entities/Category";
 import type { CategoryDto } from "@/core/application/dtos/CategoryDto";
 import { toCategory } from "@/core/application/mappers/CategoryMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiCategoryRepository implements ICategoryRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetCategoriesParams): Promise<Category[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<
-      CategoryDto[] | { data?: CategoryDto[] }
-    >(API_ENDPOINTS.CATEGORIES.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is CategoryDto & { id: string } => !!dto?.id)
-      .map(toCategory);
+  async getAll(params?: GetCategoriesParams): Promise<PaginatedResult<Category>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CATEGORIES.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<CategoryDto>(res, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toCategory(dto as CategoryDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getTree(): Promise<Category[]> {

@@ -7,6 +7,7 @@ import type {
   InventoryLedgerDto,
   InventoryLedgerWriteOffDto,
 } from "@/core/application/dtos/InventoryLedgerDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetInventoryLedgerParams {
   page?: number;
@@ -19,7 +20,7 @@ export interface GetInventoryLedgerExpiringParams
 }
 
 export interface IInventoryLedgerRepository {
-  getAll(params?: GetInventoryLedgerParams): Promise<InventoryLedgerEntry[]>;
+  getAll(params?: GetInventoryLedgerParams): Promise<PaginatedResult<InventoryLedgerEntry>>;
   getExpiring(
     params?: GetInventoryLedgerExpiringParams
   ): Promise<InventoryLedgerEntry[]>;

@@ -7,11 +7,12 @@ import type { Vendor } from "@/core/domain/entities/Vendor";
 import type { IVendorRepository, GetVendorsParams } from "@/core/domain/repositories/IVendorRepository";
 import type { IVendorService } from "@/core/domain/services/IVendorService";
 import type { VendorDto } from "../dtos/VendorDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class VendorService implements IVendorService {
   constructor(private readonly vendorRepository: IVendorRepository) {}
 
-  async getAll(params?: GetVendorsParams): Promise<Vendor[]> {
+  async getAll(params?: GetVendorsParams): Promise<PaginatedResult<Vendor>> {
     return this.vendorRepository.getAll(params);
   }
 

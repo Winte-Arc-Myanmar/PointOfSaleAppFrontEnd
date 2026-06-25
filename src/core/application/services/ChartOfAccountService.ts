@@ -3,13 +3,15 @@ import type { IChartOfAccountRepository } from "@/core/domain/repositories/IChar
 import type { ChartOfAccount } from "@/core/domain/entities/ChartOfAccount";
 import type { GetChartOfAccountsParams } from "@/core/domain/repositories/IChartOfAccountRepository";
 import type { ChartOfAccountDto } from "../dtos/ChartOfAccountDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class ChartOfAccountService implements IChartOfAccountService {
   constructor(
     private readonly chartOfAccountRepository: IChartOfAccountRepository
   ) {}
 
-  getAll(params?: GetChartOfAccountsParams): Promise<ChartOfAccount[]> {
+  getAll(params?: GetChartOfAccountsParams): Promise<PaginatedResult<ChartOfAccount>> {
     return this.chartOfAccountRepository.getAll(params);
   }
 

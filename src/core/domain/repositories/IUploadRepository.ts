@@ -1,4 +1,5 @@
 import type { UploadedFile } from "../entities/UploadedFile";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetUploadsParams {
   page?: number;
@@ -7,10 +8,7 @@ export interface GetUploadsParams {
   branchId?: string;
 }
 
-export interface UploadListResult {
-  items: UploadedFile[];
-  total?: number;
-}
+export type UploadListResult = PaginatedResult<UploadedFile>;
 
 export interface UploadMultipleResult {
   urls: string[];

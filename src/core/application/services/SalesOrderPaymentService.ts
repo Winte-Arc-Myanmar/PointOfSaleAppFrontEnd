@@ -3,6 +3,8 @@ import type { ISalesOrderPaymentRepository } from "@/core/domain/repositories/IS
 import type { SalesOrderPayment } from "@/core/domain/entities/SalesOrderPayment";
 import type { GetSalesOrderPaymentsParams } from "@/core/domain/repositories/ISalesOrderPaymentRepository";
 import type { SalesOrderPaymentDto } from "../dtos/SalesOrderPaymentDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class SalesOrderPaymentService implements ISalesOrderPaymentService {
   constructor(
@@ -12,7 +14,7 @@ export class SalesOrderPaymentService implements ISalesOrderPaymentService {
   getAll(
     salesOrderId: string,
     params?: GetSalesOrderPaymentsParams
-  ): Promise<SalesOrderPayment[]> {
+  ): Promise<PaginatedResult<SalesOrderPayment>> {
     return this.salesOrderPaymentRepository.getAll(salesOrderId, params);
   }
 

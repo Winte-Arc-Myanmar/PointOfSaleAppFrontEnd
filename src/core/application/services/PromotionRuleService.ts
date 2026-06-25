@@ -3,11 +3,13 @@ import type { IPromotionRuleRepository } from "@/core/domain/repositories/IPromo
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { GetPromotionRulesParams } from "@/core/domain/repositories/IPromotionRuleRepository";
 import type { PromotionRuleDto } from "../dtos/PromotionRuleDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class PromotionRuleService implements IPromotionRuleService {
   constructor(private readonly promotionRuleRepository: IPromotionRuleRepository) {}
 
-  getAll(params?: GetPromotionRulesParams): Promise<PromotionRule[]> {
+  getAll(params?: GetPromotionRulesParams): Promise<PaginatedResult<PromotionRule>> {
     return this.promotionRuleRepository.getAll(params);
   }
 

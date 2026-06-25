@@ -5,6 +5,7 @@
 
 import type { ProductVariant } from "../entities/ProductVariant";
 import type { ProductVariantDto } from "@/core/application/dtos/ProductVariantDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetProductVariantsParams {
   page?: number;
@@ -15,7 +16,7 @@ export interface IProductVariantRepository {
   getAll(
     productId: string,
     params?: GetProductVariantsParams
-  ): Promise<ProductVariant[]>;
+  ): Promise<PaginatedResult<ProductVariant>>;
   getById(productId: string, id: string): Promise<ProductVariant | null>;
   create(
     productId: string,

@@ -8,11 +8,12 @@ import type { IUomRepository } from "@/core/domain/repositories/IUomRepository";
 import type { Uom } from "@/core/domain/entities/Uom";
 import type { UomDto } from "../dtos/UomDto";
 import type { GetUomsParams } from "@/core/domain/repositories/IUomRepository";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class UomService implements IUomService {
   constructor(private readonly uomRepository: IUomRepository) {}
 
-  async getAll(params?: GetUomsParams): Promise<Uom[]> {
+  async getAll(params?: GetUomsParams): Promise<PaginatedResult<Uom>> {
     return this.uomRepository.getAll(params);
   }
 

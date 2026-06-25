@@ -20,6 +20,7 @@ import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import { useCreateRefund, useRefundsByOrder } from "@/presentation/hooks/useRefunds";
 import type { RefundRequestDto, RefundMethod } from "@/core/application/dtos/RefundDto";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -50,15 +51,17 @@ export function RefundSection() {
 
   const prefillOrderId = searchParams.get("salesOrderId");
 
-  const { data: sessions = [] } = usePosSessions({
+  const { data: sessionsData } = usePosSessions({
     page: 1,
     limit: 200,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+  const sessions = getPaginatedItems(sessionsData);
 
   const [orderIdForList, setOrderIdForList] = useState<string | null>(prefillOrderId);
-  const { data: existingRefunds = [] } = useRefundsByOrder(orderIdForList);
+  const { data: existingRefundsData } = useRefundsByOrder(orderIdForList);
+  const existingRefunds = existingRefundsData ?? [];
 
   const form = useForm<FormValues>({
     defaultValues: {

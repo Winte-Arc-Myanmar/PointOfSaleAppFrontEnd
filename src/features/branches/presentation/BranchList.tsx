@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBranches, useDeleteBranch } from "@/presentation/hooks/useBranches";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -29,11 +29,12 @@ export function BranchList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: branches = [], isLoading, error, refetch } = useBranches({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: branchesResult, isLoading, error, refetch } = useBranches({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const branches = branchesResult?.items ?? [];
   const deleteBranch = useDeleteBranch();
   const toast = useToast();
   const confirm = useConfirm();
@@ -75,10 +76,6 @@ export function BranchList() {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
-
-  useEffect(() => {
-    pagination.observePageResult(filteredBranches.length);
-  }, [filteredBranches.length, pagination.observePageResult]);
 
   useEffect(() => {
     pagination.reset(1);
@@ -183,11 +180,11 @@ export function BranchList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={pagination.getTotalPages(branchesResult?.total)}
+      totalItems={branchesResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add Branch"
       createTitle="Create Branch"
       createSubmitText="Create Branch"

@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { LEDGER_TRANSACTION_TYPES } from "./ledger-constants";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -71,9 +72,12 @@ export function CreateInventoryLedgerForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const toast = useToast();
   const createEntry = useCreateInventoryLedgerEntry();
-  const { data: tenants = [] } = useTenants();
-  const { data: products = [] } = useProducts({ page: 1, limit: 200 });
-  const { data: locations = [] } = useLocations({ page: 1, limit: 200 });
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const products = getPaginatedItems(productsData);
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
+  const locations = getPaginatedItems(locationsData);
 
   useEffect(() => {
     onLoadingChange?.(createEntry.isPending ?? false);
@@ -97,8 +101,9 @@ export function CreateInventoryLedgerForm({
 
   const tenantWatch = useWatch({ control, name: "tenantId" });
   const productWatch = useWatch({ control, name: "productId" });
-  const { data: variants = [], isLoading: variantsLoading } =
+  const { data: variantsData, isLoading: variantsLoading } =
     useProductVariants(productWatch || null, { page: 1, limit: 100 });
+  const variants = getPaginatedItems(variantsData);
 
   const filteredLocations = locations.filter((l) =>
     tenantWatch ? l.tenantId === tenantWatch : false,

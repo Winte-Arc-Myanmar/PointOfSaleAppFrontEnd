@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const QUERY_KEY = ["category-form-options"];
 
@@ -18,12 +19,15 @@ export function useCategoryFormOptions() {
         "categoryService"
       );
 
-      const [tenants, categories] = await Promise.all([
+      const [tenantsResult, categoriesResult] = await Promise.all([
         tenantService.getAll(),
         categoryService.getAll({ page: 1, limit: LIST_LIMIT }),
       ]);
 
-      return { tenants, categories };
+      return {
+        tenants: getPaginatedItems(tenantsResult),
+        categories: getPaginatedItems(categoriesResult),
+      };
     },
   });
 }

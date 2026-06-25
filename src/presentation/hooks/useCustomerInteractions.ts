@@ -5,6 +5,7 @@ import container from "@/core/infrastructure/di/container";
 import type { CustomerInteractionDto } from "@/core/application/dtos/CustomerInteractionDto";
 import type { GetCustomerInteractionsParams } from "@/core/domain/repositories/ICustomerInteractionRepository";
 import type { ICustomerInteractionService } from "@/core/domain/services/ICustomerInteractionService";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 const CUSTOMER_INTERACTIONS_QUERY_KEY = ["customer-interactions"];
 
@@ -115,13 +116,19 @@ export function useAllCustomersCustomerInteractions(
       const lists = await mapWithConcurrency(customerIds, 5, (customerId) =>
         withRateLimitRetry(() => service.getAll(customerId, params))
       );
-      return lists
-        .flat()
+      const items = lists
+        .flatMap((list) => list.items)
         .sort(
           (a, b) =>
             toInteractionTimestamp(b.interactionDate ?? b.updatedAt) -
             toInteractionTimestamp(a.interactionDate ?? a.updatedAt)
         );
+      return {
+        items,
+        total: lists.reduce((sum, list) => sum + list.total, 0),
+        page: params?.page ?? 1,
+        limit: params?.limit ?? items.length,
+      } satisfies PaginatedResult<(typeof items)[number]>;
     },
   });
 }

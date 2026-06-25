@@ -5,6 +5,7 @@
 
 import type { AppUser } from "../entities/AppUser";
 import type { UserDto, UserUpdateDto } from "@/core/application/dtos/UserDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetUsersParams {
   page?: number;
@@ -12,7 +13,7 @@ export interface GetUsersParams {
 }
 
 export interface IUserRepository {
-  getAll(params?: GetUsersParams): Promise<AppUser[]>;
+  getAll(params?: GetUsersParams): Promise<PaginatedResult<AppUser>>;
   getById(id: string): Promise<AppUser | null>;
   create(data: Omit<UserDto, "id">): Promise<AppUser>;
   update(id: string, data: UserUpdateDto): Promise<AppUser>;

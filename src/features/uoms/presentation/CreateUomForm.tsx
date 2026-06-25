@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -47,7 +48,8 @@ export function CreateUomForm({
 }: CreateUomFormProps) {
   const createUom = useCreateUom();
   const toast = useToast();
-  const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
+  const { data: uomClassesData, isLoading: isClassesLoading } = useUomClasses();
+  const uomClasses = getPaginatedItems(uomClassesData);
 
   useEffect(() => {
     onLoadingChange?.(createUom.isPending ?? false);
