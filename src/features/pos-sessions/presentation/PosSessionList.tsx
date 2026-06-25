@@ -79,7 +79,7 @@ export function PosSessionList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(sessionsResult?.total)}
+      totalPages={sessionsResult?.totalPages ?? pagination.getTotalPages(sessionsResult?.total)}
       totalItems={sessionsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Session"

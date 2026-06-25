@@ -79,7 +79,7 @@ export function ProductVariantSection({ productId }: { productId: string }) {
         }
         pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.getTotalPages(variantsResult?.total)}
+        totalPages={variantsResult?.totalPages ?? pagination.getTotalPages(variantsResult?.total)}
         totalItems={variantsResult?.total ?? 0}
         onPageChange={pagination.setPage}
         addLabel="Add Variant"

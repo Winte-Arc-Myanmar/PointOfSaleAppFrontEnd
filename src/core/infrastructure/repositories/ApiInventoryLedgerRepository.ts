@@ -80,10 +80,10 @@ export class ApiInventoryLedgerRepository implements IInventoryLedgerRepository 
   async getAll(params?: GetInventoryLedgerParams): Promise<PaginatedResult<InventoryLedgerEntry>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.INVENTORY_LEDGER.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.INVENTORY_LEDGER.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<InventoryLedgerDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<InventoryLedgerDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toInventoryLedgerEntry(dto as InventoryLedgerDto & { id: string }),

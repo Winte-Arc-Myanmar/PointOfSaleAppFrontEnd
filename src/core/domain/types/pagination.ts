@@ -5,6 +5,8 @@ export interface PaginatedResult<T> {
   total: number;
   page: number;
   limit: number;
+  /** Optional server-provided page count. Preferred when available. */
+  totalPages?: number;
 }
 
 /** Common query params for paginated list endpoints. */

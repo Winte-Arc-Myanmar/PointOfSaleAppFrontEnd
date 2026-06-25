@@ -92,7 +92,9 @@ export function LoyaltyLedgerAllCustomersList({
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(allRowsQuery.data?.total)}
+      totalPages={
+        allRowsQuery.data?.totalPages ?? pagination.getTotalPages(allRowsQuery.data?.total)
+      }
       totalItems={allRowsQuery.data?.total ?? 0}
       onPageChange={pagination.setPage}
       createEnabled={false}

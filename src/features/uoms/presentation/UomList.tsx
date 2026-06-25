@@ -76,7 +76,7 @@ export function UomList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(uomsResult?.total)}
+      totalPages={uomsResult?.totalPages ?? pagination.getTotalPages(uomsResult?.total)}
       totalItems={uomsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add UOM"

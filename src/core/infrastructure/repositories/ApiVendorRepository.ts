@@ -24,10 +24,10 @@ export class ApiVendorRepository implements IVendorRepository {
   async getAll(params?: GetVendorsParams): Promise<PaginatedResult<Vendor>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.VENDORS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.VENDORS.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<VendorDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<VendorDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toVendor(dto as VendorDto & { id: string }),

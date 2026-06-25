@@ -40,7 +40,7 @@ export class ApiSalesOrderPaymentRepository implements ISalesOrderPaymentReposit
   ): Promise<PaginatedResult<SalesOrderPayment>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
       API_ENDPOINTS.SALES_ORDERS.PAYMENTS(salesOrderId).LIST,
       {
         params: {
@@ -52,7 +52,7 @@ export class ApiSalesOrderPaymentRepository implements ISalesOrderPaymentReposit
         },
       },
     );
-    const parsed = parsePaginatedResponse<SalesOrderPaymentDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<SalesOrderPaymentDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toSalesOrderPayment(salesOrderId, dto as SalesOrderPaymentDto & { id: string }),

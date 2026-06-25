@@ -182,7 +182,9 @@ export function LocationList() {
         }
         pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.getTotalPages(locationsResult?.total)}
+        totalPages={
+          locationsResult?.totalPages ?? pagination.getTotalPages(locationsResult?.total)
+        }
         totalItems={locationsResult?.total ?? 0}
         onPageChange={pagination.setPage}
         addLabel="Add location"

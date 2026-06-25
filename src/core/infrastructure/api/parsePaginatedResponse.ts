@@ -13,10 +13,12 @@ type PaginatedResponse<T> =
       total?: number;
       page?: number;
       limit?: number;
+      totalPages?: number;
       meta?: {
         total?: number;
         page?: number;
         limit?: number;
+        totalPages?: number;
         totalItems?: number;
         currentPage?: number;
         perPage?: number;
@@ -56,6 +58,7 @@ export function parsePaginatedResponse<T>(
     ),
     page: getNumber(payload?.page ?? payload?.meta?.page ?? payload?.meta?.currentPage, page),
     limit: getNumber(payload?.limit ?? payload?.meta?.limit ?? payload?.meta?.perPage, limit),
+    totalPages: getNumber(payload?.totalPages ?? payload?.meta?.totalPages, 0) || undefined,
   };
 }
 

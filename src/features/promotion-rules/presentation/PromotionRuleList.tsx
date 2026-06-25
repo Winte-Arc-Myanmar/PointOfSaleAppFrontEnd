@@ -106,7 +106,7 @@ export function PromotionRuleList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(rulesResult?.total)}
+      totalPages={rulesResult?.totalPages ?? pagination.getTotalPages(rulesResult?.total)}
       totalItems={rulesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Rule"

@@ -28,10 +28,10 @@ export class ApiLoyaltyLedgerRepository implements ILoyaltyLedgerRepository {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.CUSTOMERS.LOYALTY_LEDGER(customerId);
-    const res = await this.httpClient.get<unknown>(endpoints.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(endpoints.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<LoyaltyLedgerEntryDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<LoyaltyLedgerEntryDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toLoyaltyLedgerEntry(dto as LoyaltyLedgerEntryDto & { id: string }, customerId),

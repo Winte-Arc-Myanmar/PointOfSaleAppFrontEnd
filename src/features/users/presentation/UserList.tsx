@@ -182,7 +182,7 @@ export function UserList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(usersResult?.total)}
+      totalPages={usersResult?.totalPages ?? pagination.getTotalPages(usersResult?.total)}
       totalItems={usersResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add User"

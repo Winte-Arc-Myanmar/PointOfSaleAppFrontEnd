@@ -44,14 +44,14 @@ export class ApiUomRepository implements IUomRepository {
   async getAll(params?: GetUomsParams): Promise<PaginatedResult<Uom>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.UOMS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.UOMS.LIST, {
       params: {
         page,
         limit,
         ...(params?.classId ? { classId: params.classId } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<UomDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<UomDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toUom(dto as Parameters<typeof toUom>[0]),

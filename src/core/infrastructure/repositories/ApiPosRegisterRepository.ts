@@ -19,7 +19,7 @@ export class ApiPosRegisterRepository implements IPosRegisterRepository {
   async getAll(params?: GetPosRegistersParams): Promise<PaginatedResult<PosRegister>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.POS_REGISTERS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.POS_REGISTERS.LIST, {
       params: {
         page,
         limit,
@@ -28,7 +28,7 @@ export class ApiPosRegisterRepository implements IPosRegisterRepository {
         ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<PosRegisterDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<PosRegisterDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toPosRegister(dto as PosRegisterDto & { id: string }),

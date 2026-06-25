@@ -106,7 +106,7 @@ export function PaymentMethodList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(methodsResult?.total)}
+      totalPages={methodsResult?.totalPages ?? pagination.getTotalPages(methodsResult?.total)}
       totalItems={methodsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Method"

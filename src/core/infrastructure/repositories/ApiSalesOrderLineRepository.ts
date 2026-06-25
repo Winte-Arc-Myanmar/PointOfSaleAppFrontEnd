@@ -43,7 +43,7 @@ export class ApiSalesOrderLineRepository implements ISalesOrderLineRepository {
   ): Promise<PaginatedResult<SalesOrderLine>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
       API_ENDPOINTS.SALES_ORDERS.LINES(salesOrderId).LIST,
       {
         params: {
@@ -55,7 +55,7 @@ export class ApiSalesOrderLineRepository implements ISalesOrderLineRepository {
         },
       },
     );
-    const parsed = parsePaginatedResponse<SalesOrderLineDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<SalesOrderLineDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toSalesOrderLine(salesOrderId, dto as SalesOrderLineDto & { id: string }),

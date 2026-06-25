@@ -222,7 +222,7 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           emptyText="No lines yet."
           pageSize={DETAIL_PAGE_SIZE}
           currentPage={linePagination.page}
-          totalPages={linePagination.getTotalPages(linesResult?.total)}
+          totalPages={linesResult?.totalPages ?? linePagination.getTotalPages(linesResult?.total)}
           totalItems={linesResult?.total ?? 0}
           onPageChange={linePagination.setPage}
         />
@@ -264,7 +264,9 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           emptyText="No payments yet."
           pageSize={DETAIL_PAGE_SIZE}
           currentPage={paymentPagination.page}
-          totalPages={paymentPagination.getTotalPages(paymentsResult?.total)}
+          totalPages={
+            paymentsResult?.totalPages ?? paymentPagination.getTotalPages(paymentsResult?.total)
+          }
           totalItems={paymentsResult?.total ?? 0}
           onPageChange={paymentPagination.setPage}
         />

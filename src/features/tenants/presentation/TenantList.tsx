@@ -184,7 +184,7 @@ export function TenantList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(tenantsResult?.total)}
+      totalPages={tenantsResult?.totalPages ?? pagination.getTotalPages(tenantsResult?.total)}
       totalItems={tenantsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add Tenant"

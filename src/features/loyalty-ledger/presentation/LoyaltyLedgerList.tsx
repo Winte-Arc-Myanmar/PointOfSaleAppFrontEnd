@@ -96,7 +96,7 @@ export function LoyaltyLedgerList({
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(entriesResult?.total)}
+      totalPages={entriesResult?.totalPages ?? pagination.getTotalPages(entriesResult?.total)}
       totalItems={entriesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add entry"

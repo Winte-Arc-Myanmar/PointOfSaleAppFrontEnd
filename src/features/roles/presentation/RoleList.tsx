@@ -76,7 +76,7 @@ export function RoleList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(rolesResult?.total)}
+      totalPages={rolesResult?.totalPages ?? pagination.getTotalPages(rolesResult?.total)}
       totalItems={rolesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add Role"

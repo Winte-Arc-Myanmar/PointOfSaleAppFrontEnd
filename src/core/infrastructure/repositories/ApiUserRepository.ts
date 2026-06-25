@@ -21,10 +21,10 @@ export class ApiUserRepository implements IUserRepository {
   async getAll(params?: GetUsersParams): Promise<PaginatedResult<AppUser>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.USERS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.USERS.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<UserDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<UserDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toAppUser(dto as UserDto & { id: string }),

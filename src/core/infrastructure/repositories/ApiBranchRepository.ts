@@ -54,10 +54,10 @@ export class ApiBranchRepository implements IBranchRepository {
   async getAll(params?: GetBranchesParams): Promise<PaginatedResult<Branch>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.BRANCHES.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.BRANCHES.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<BranchDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<BranchDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toBranch(dto as BranchDto & { id: string }),

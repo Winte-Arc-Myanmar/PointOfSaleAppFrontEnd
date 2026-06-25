@@ -42,10 +42,10 @@ export class ApiRoleRepository implements IRoleRepository {
   async getAll(params?: GetRolesParams): Promise<PaginatedResult<Role>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const data = await this.httpClient.get<unknown>(API_ENDPOINTS.ROLES.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.ROLES.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<RoleDto>(preprocessRolePayload(data), {
+    const parsed = parsePaginatedResponse<RoleDto>(preprocessRolePayload({ data, meta }), {
       page,
       limit,
     });

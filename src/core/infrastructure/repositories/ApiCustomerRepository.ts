@@ -24,14 +24,14 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async getAll(params?: GetCustomersParams): Promise<PaginatedResult<Customer>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CUSTOMERS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.CUSTOMERS.LIST, {
       params: {
         page,
         limit,
         ...(params?.search ? { search: params.search } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<CustomerDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<CustomerDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toCustomer(dto as CustomerDto & { id: string }),

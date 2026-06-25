@@ -54,10 +54,10 @@ export class ApiLocationRepository implements ILocationRepository {
   async getAll(params?: GetLocationsParams): Promise<PaginatedResult<Location>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.LOCATIONS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.LOCATIONS.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<LocationDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<LocationDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toLocation(dto as LocationDto & { id: string }),

@@ -103,7 +103,7 @@ export function SalesOrderList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(ordersResult?.total)}
+      totalPages={ordersResult?.totalPages ?? pagination.getTotalPages(ordersResult?.total)}
       totalItems={ordersResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Sales Order"

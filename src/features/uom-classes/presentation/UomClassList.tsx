@@ -76,7 +76,9 @@ export function UomClassList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(uomClassesResult?.total)}
+      totalPages={
+        uomClassesResult?.totalPages ?? pagination.getTotalPages(uomClassesResult?.total)
+      }
       totalItems={uomClassesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add UOM Class"

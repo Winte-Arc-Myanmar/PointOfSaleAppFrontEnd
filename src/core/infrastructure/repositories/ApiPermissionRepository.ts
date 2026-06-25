@@ -38,11 +38,11 @@ export class ApiPermissionRepository implements IPermissionRepository {
   async getAll(): Promise<PaginatedResult<Permission>> {
     const page = 1;
     const limit = 1000;
-    const data = await this.httpClient.get<unknown>(API_ENDPOINTS.PERMISSIONS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.PERMISSIONS.LIST, {
       params: { page, limit },
     });
     const parsed = parsePaginatedResponse<PermissionDto>(
-      preprocessPermissionPayload(data),
+      preprocessPermissionPayload({ data, meta }),
       { page, limit },
     );
     return mapPaginatedResult(

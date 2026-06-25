@@ -279,10 +279,7 @@ export function DataTable<T extends { id: string | number }>({
     ? (currentPage ?? 1) - 1
     : table.getState().pagination.pageIndex;
   const pageCount = hasServerPagination
-    ? Math.max(
-        totalPages,
-        data.length >= pageSize ? pageIndex + 2 : pageIndex + 1,
-      )
+    ? Math.max(1, totalPages)
     : Math.max(1, table.getPageCount());
   const total = hasServerPagination ? totalItems : data.length;
   const currentPageOneBased = pageIndex + 1;
@@ -291,7 +288,7 @@ export function DataTable<T extends { id: string | number }>({
     ? currentPageOneBased > 1
     : table.getCanPreviousPage();
   const canNextPage = hasServerPagination
-    ? data.length >= pageSize
+    ? currentPageOneBased < pageCount
     : table.getCanNextPage();
 
   const handlePageChange = (nextPage: number) => {

@@ -24,10 +24,10 @@ export class ApiUploadRepository implements IUploadRepository {
     if (params?.folder) query.folder = params.folder;
     if (params?.branchId) query.branchId = params.branchId;
 
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.UPLOADS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.UPLOADS.LIST, {
       params: query,
     });
-    const parsed = parsePaginatedResponse<UploadDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<UploadDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toUploadedFile(dto as UploadDto & { url: string }),

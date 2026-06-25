@@ -124,6 +124,7 @@ export function useAllCustomersLoyaltyLedgerEntries(
         total: lists.reduce((sum, list) => sum + list.total, 0),
         page: params?.page ?? 1,
         limit: params?.limit ?? items.length,
+        totalPages: undefined,
       } satisfies PaginatedResult<(typeof items)[number]>;
     },
   });

@@ -95,7 +95,7 @@ export function CustomerInteractionList({
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(rowsResult?.total)}
+      totalPages={rowsResult?.totalPages ?? pagination.getTotalPages(rowsResult?.total)}
       totalItems={rowsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add interaction"

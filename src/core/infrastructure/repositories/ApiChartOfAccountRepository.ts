@@ -19,7 +19,7 @@ export class ApiChartOfAccountRepository implements IChartOfAccountRepository {
   async getAll(params?: GetChartOfAccountsParams): Promise<PaginatedResult<ChartOfAccount>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CHART_OF_ACCOUNTS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.CHART_OF_ACCOUNTS.LIST, {
       params: {
         page,
         limit,
@@ -28,7 +28,7 @@ export class ApiChartOfAccountRepository implements IChartOfAccountRepository {
         ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<ChartOfAccountDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<ChartOfAccountDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toChartOfAccount(dto as ChartOfAccountDto & { id: string }),

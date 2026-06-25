@@ -187,7 +187,11 @@ export function InventoryLedgerList() {
           }
           pageSize={PAGE_SIZE}
           currentPage={pagination.page}
-          totalPages={pagination.getTotalPages(totalItems)}
+          totalPages={
+            view === "all"
+              ? allRowsResult?.totalPages ?? pagination.getTotalPages(totalItems)
+              : pagination.getTotalPages(totalItems)
+          }
           totalItems={totalItems}
           onPageChange={pagination.setPage}
           showTopContent={view === "expiring"}

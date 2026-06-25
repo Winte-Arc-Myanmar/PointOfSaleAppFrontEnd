@@ -156,7 +156,9 @@ export function CategoryList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(categoriesResult?.total)}
+      totalPages={
+        categoriesResult?.totalPages ?? pagination.getTotalPages(categoriesResult?.total)
+      }
       totalItems={categoriesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       showActionBar={false}

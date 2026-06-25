@@ -30,10 +30,10 @@ export class ApiProductVariantRepository implements IProductVariantRepository {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.PRODUCTS.VARIANTS(productId);
-    const res = await this.httpClient.get<unknown>(endpoints.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(endpoints.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<ProductVariantDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<ProductVariantDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toProductVariant(productId, dto as ProductVariantDto & { id: string }),

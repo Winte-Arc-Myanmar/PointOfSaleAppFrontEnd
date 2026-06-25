@@ -79,7 +79,7 @@ export function PosRegisterList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(registersResult?.total)}
+      totalPages={registersResult?.totalPages ?? pagination.getTotalPages(registersResult?.total)}
       totalItems={registersResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Register"

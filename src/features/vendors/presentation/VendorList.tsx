@@ -166,7 +166,7 @@ export function VendorList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(vendorsResult?.total)}
+      totalPages={vendorsResult?.totalPages ?? pagination.getTotalPages(vendorsResult?.total)}
       totalItems={vendorsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add Vendor"

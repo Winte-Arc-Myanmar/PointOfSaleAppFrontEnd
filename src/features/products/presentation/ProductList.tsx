@@ -187,7 +187,7 @@ export function ProductList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(productsResult?.total)}
+      totalPages={productsResult?.totalPages ?? pagination.getTotalPages(productsResult?.total)}
       totalItems={productsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add Product"

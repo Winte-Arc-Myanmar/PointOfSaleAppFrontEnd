@@ -30,10 +30,10 @@ export class ApiCustomerInteractionRepository
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.CUSTOMERS.INTERACTIONS(customerId);
-    const res = await this.httpClient.get<unknown>(endpoints.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(endpoints.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<CustomerInteractionDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<CustomerInteractionDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toCustomerInteraction(dto as CustomerInteractionDto & { id: string }, customerId),

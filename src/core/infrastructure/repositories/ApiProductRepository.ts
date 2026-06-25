@@ -53,10 +53,11 @@ export class ApiProductRepository implements IProductRepository {
   async getAll(params?: GetProductsParams): Promise<PaginatedResult<Product>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.PRODUCTS.LIST, {
-      params: { page, limit },
-    });
-    const parsed = parsePaginatedResponse<ProductDto>(res, { page, limit });
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
+      API_ENDPOINTS.PRODUCTS.LIST,
+      { params: { page, limit } },
+    );
+    const parsed = parsePaginatedResponse<ProductDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toProduct(dto as ProductDto & { id: string }),

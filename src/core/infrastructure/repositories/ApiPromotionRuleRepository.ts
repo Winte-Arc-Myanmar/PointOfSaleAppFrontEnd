@@ -19,7 +19,7 @@ export class ApiPromotionRuleRepository implements IPromotionRuleRepository {
   async getAll(params?: GetPromotionRulesParams): Promise<PaginatedResult<PromotionRule>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.PROMOTION_RULES.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.PROMOTION_RULES.LIST, {
       params: {
         page,
         limit,
@@ -28,7 +28,7 @@ export class ApiPromotionRuleRepository implements IPromotionRuleRepository {
         ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<PromotionRuleDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<PromotionRuleDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toPromotionRule(dto as PromotionRuleDto & { id: string }),

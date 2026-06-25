@@ -106,7 +106,7 @@ export function ChartOfAccountList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(accountsResult?.total)}
+      totalPages={accountsResult?.totalPages ?? pagination.getTotalPages(accountsResult?.total)}
       totalItems={accountsResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="New Account"

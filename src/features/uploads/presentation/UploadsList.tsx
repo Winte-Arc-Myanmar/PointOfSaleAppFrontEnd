@@ -178,7 +178,7 @@ export function UploadsList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(total)}
+      totalPages={data?.totalPages ?? pagination.getTotalPages(total)}
       totalItems={total}
       onPageChange={pagination.setPage}
       createEnabled={false}

@@ -228,7 +228,9 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
         }
         pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.getTotalPages(customersResult?.total)}
+        totalPages={
+          customersResult?.totalPages ?? pagination.getTotalPages(customersResult?.total)
+        }
         totalItems={customersResult?.total ?? 0}
         onPageChange={pagination.setPage}
         addLabel={t("customerPage.addCustomer")}

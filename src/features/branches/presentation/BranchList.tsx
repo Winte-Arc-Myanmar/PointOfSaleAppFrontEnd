@@ -182,7 +182,7 @@ export function BranchList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.getTotalPages(branchesResult?.total)}
+      totalPages={branchesResult?.totalPages ?? pagination.getTotalPages(branchesResult?.total)}
       totalItems={branchesResult?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add Branch"

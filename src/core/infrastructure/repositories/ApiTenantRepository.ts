@@ -22,10 +22,10 @@ export class ApiTenantRepository implements ITenantRepository {
   async getAll(params?: GetTenantsParams): Promise<PaginatedResult<Tenant>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.TENANTS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.TENANTS.LIST, {
       params: { page, limit },
     });
-    const parsed = parsePaginatedResponse<TenantDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<TenantDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toTenant(dto as TenantDto & { id: string }),

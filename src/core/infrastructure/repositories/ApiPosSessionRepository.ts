@@ -51,7 +51,7 @@ export class ApiPosSessionRepository implements IPosSessionRepository {
   async getAll(params?: GetPosSessionsParams): Promise<PaginatedResult<PosSession>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.POS_SESSIONS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.POS_SESSIONS.LIST, {
       params: {
         page,
         limit,
@@ -60,7 +60,7 @@ export class ApiPosSessionRepository implements IPosSessionRepository {
         ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<PosSessionDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<PosSessionDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toPosSession(dto as PosSessionDto & { id: string }),

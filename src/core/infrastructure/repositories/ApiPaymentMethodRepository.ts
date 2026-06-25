@@ -19,7 +19,7 @@ export class ApiPaymentMethodRepository implements IPaymentMethodRepository {
   async getAll(params?: GetPaymentMethodsParams): Promise<PaginatedResult<PaymentMethod>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.PAYMENT_METHODS.LIST, {
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.PAYMENT_METHODS.LIST, {
       params: {
         page,
         limit,
@@ -28,7 +28,7 @@ export class ApiPaymentMethodRepository implements IPaymentMethodRepository {
         ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
       },
     });
-    const parsed = parsePaginatedResponse<PaymentMethodDto>(res, { page, limit });
+    const parsed = parsePaginatedResponse<PaymentMethodDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toPaymentMethod(dto as PaymentMethodDto & { id: string }),

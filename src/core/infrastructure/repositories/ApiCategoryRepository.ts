@@ -24,10 +24,11 @@ export class ApiCategoryRepository implements ICategoryRepository {
   async getAll(params?: GetCategoriesParams): Promise<PaginatedResult<Category>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const res = await this.httpClient.get<unknown>(API_ENDPOINTS.CATEGORIES.LIST, {
-      params: { page, limit },
-    });
-    const parsed = parsePaginatedResponse<CategoryDto>(res, { page, limit });
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
+      API_ENDPOINTS.CATEGORIES.LIST,
+      { params: { page, limit } },
+    );
+    const parsed = parsePaginatedResponse<CategoryDto>({ data, meta }, { page, limit });
     return mapPaginatedResult(
       parsed,
       (dto) => toCategory(dto as CategoryDto & { id: string }),
