@@ -30,6 +30,7 @@ const routeTitles: Record<string, string> = {
   "/admin/assign-permissions": "Assign permissions",
   "/admin/assign-role": "Assign role",
   "/chart-of-accounts": "Chart of Accounts",
+  "/accounting-periods": "Accounting Periods",
 };
 
 function getTitle(pathname: string): string {
@@ -64,6 +65,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
     return "Edit chart account";
   if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
+  if (pathname.startsWith("/accounting-periods/") && pathname.endsWith("/edit"))
+    return "Edit accounting period";
+  if (pathname.startsWith("/accounting-periods/")) return "Accounting period";
   return routeTitles[pathname] ?? "";
 }
 
@@ -100,6 +104,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/pos-sessions", labelKey: "nav.posSessions" },
   { href: "/payment-methods", labelKey: "nav.paymentMethods" },
   { href: "/chart-of-accounts", labelKey: "nav.chartOfAccounts" },
+  { href: "/accounting-periods", labelKey: "nav.accountingPeriods" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

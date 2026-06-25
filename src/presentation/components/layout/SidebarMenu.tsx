@@ -33,6 +33,7 @@ import {
   ShoppingCart,
   RotateCcw,
   BookText,
+  CalendarRange,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -112,6 +113,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.chartOfAccounts",
     icon: BookText,
     permissions: ["chart-of-accounts:read"],
+  },
+  {
+    href: "/accounting-periods",
+    labelKey: "nav.accountingPeriods",
+    icon: CalendarRange,
+    permissions: ["accounting-periods:read"],
   },
   {
     href: "/checkout",

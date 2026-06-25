@@ -58,6 +58,8 @@ import { ApiPaymentMethodRepository } from "../repositories/ApiPaymentMethodRepo
 import { PaymentMethodService } from "@/core/application/services/PaymentMethodService";
 import { ApiChartOfAccountRepository } from "../repositories/ApiChartOfAccountRepository";
 import { ChartOfAccountService } from "@/core/application/services/ChartOfAccountService";
+import { ApiAccountingPeriodRepository } from "../repositories/ApiAccountingPeriodRepository";
+import { AccountingPeriodService } from "@/core/application/services/AccountingPeriodService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -118,6 +120,8 @@ import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPayme
 import type { IPaymentMethodService } from "@/core/domain/services/IPaymentMethodService";
 import type { IChartOfAccountRepository } from "@/core/domain/repositories/IChartOfAccountRepository";
 import type { IChartOfAccountService } from "@/core/domain/services/IChartOfAccountService";
+import type { IAccountingPeriodRepository } from "@/core/domain/repositories/IAccountingPeriodRepository";
+import type { IAccountingPeriodService } from "@/core/domain/services/IAccountingPeriodService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -198,6 +202,8 @@ class Container {
     const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
     const chartOfAccountRepository = new ApiChartOfAccountRepository(httpClient);
     const chartOfAccountService = new ChartOfAccountService(chartOfAccountRepository);
+    const accountingPeriodRepository = new ApiAccountingPeriodRepository(httpClient);
+    const accountingPeriodService = new AccountingPeriodService(accountingPeriodRepository);
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -316,6 +322,14 @@ class Container {
     this.register<IChartOfAccountService>(
       "chartOfAccountService",
       chartOfAccountService
+    );
+    this.register<IAccountingPeriodRepository>(
+      "accountingPeriodRepository",
+      accountingPeriodRepository
+    );
+    this.register<IAccountingPeriodService>(
+      "accountingPeriodService",
+      accountingPeriodService
     );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
