@@ -35,6 +35,8 @@ const routeTitles: Record<string, string> = {
   "/tax-rates": "Tax Rates",
   "/journal-entries": "Journal Entries",
   "/journal-lines": "Journal Lines",
+  "/bank-statements": "Bank Statements",
+  "/bank-statement-lines": "Bank Statement Lines",
 };
 
 function getTitle(pathname: string): string {
@@ -85,6 +87,13 @@ function getTitle(pathname: string): string {
     return "Edit journal line";
   if (pathname.match(/^\/journal-lines\/[^/]+\/[^/]+$/)) return "Journal line";
   if (pathname.startsWith("/journal-lines/")) return "Journal lines";
+  if (pathname.startsWith("/bank-statements/") && pathname.endsWith("/edit"))
+    return "Edit bank statement";
+  if (pathname.startsWith("/bank-statements/")) return "Bank statement";
+  if (pathname.startsWith("/bank-statement-lines/") && pathname.endsWith("/edit"))
+    return "Edit bank statement line";
+  if (pathname.match(/^\/bank-statement-lines\/[^/]+\/[^/]+$/)) return "Bank statement line";
+  if (pathname.startsWith("/bank-statement-lines/")) return "Bank statement lines";
   return routeTitles[pathname] ?? "";
 }
 
@@ -126,6 +135,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/tax-rates", labelKey: "nav.taxRates" },
   { href: "/journal-entries", labelKey: "nav.journalEntries" },
   { href: "/journal-lines", labelKey: "nav.journalLines" },
+  { href: "/bank-statements", labelKey: "nav.bankStatements" },
+  { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

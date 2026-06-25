@@ -68,6 +68,10 @@ import { ApiJournalEntryRepository } from "../repositories/ApiJournalEntryReposi
 import { JournalEntryService } from "@/core/application/services/JournalEntryService";
 import { ApiJournalLineRepository } from "../repositories/ApiJournalLineRepository";
 import { JournalLineService } from "@/core/application/services/JournalLineService";
+import { ApiBankStatementRepository } from "../repositories/ApiBankStatementRepository";
+import { BankStatementService } from "@/core/application/services/BankStatementService";
+import { ApiBankStatementLineRepository } from "../repositories/ApiBankStatementLineRepository";
+import { BankStatementLineService } from "@/core/application/services/BankStatementLineService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -138,6 +142,10 @@ import type { IJournalEntryRepository } from "@/core/domain/repositories/IJourna
 import type { IJournalEntryService } from "@/core/domain/services/IJournalEntryService";
 import type { IJournalLineRepository } from "@/core/domain/repositories/IJournalLineRepository";
 import type { IJournalLineService } from "@/core/domain/services/IJournalLineService";
+import type { IBankStatementRepository } from "@/core/domain/repositories/IBankStatementRepository";
+import type { IBankStatementService } from "@/core/domain/services/IBankStatementService";
+import type { IBankStatementLineRepository } from "@/core/domain/repositories/IBankStatementLineRepository";
+import type { IBankStatementLineService } from "@/core/domain/services/IBankStatementLineService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -228,6 +236,10 @@ class Container {
     const journalEntryService = new JournalEntryService(journalEntryRepository);
     const journalLineRepository = new ApiJournalLineRepository(httpClient);
     const journalLineService = new JournalLineService(journalLineRepository);
+    const bankStatementRepository = new ApiBankStatementRepository(httpClient);
+    const bankStatementService = new BankStatementService(bankStatementRepository);
+    const bankStatementLineRepository = new ApiBankStatementLineRepository(httpClient);
+    const bankStatementLineService = new BankStatementLineService(bankStatementLineRepository);
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -372,6 +384,19 @@ class Container {
     this.register<IJournalEntryService>("journalEntryService", journalEntryService);
     this.register<IJournalLineRepository>("journalLineRepository", journalLineRepository);
     this.register<IJournalLineService>("journalLineService", journalLineService);
+    this.register<IBankStatementRepository>(
+      "bankStatementRepository",
+      bankStatementRepository
+    );
+    this.register<IBankStatementService>("bankStatementService", bankStatementService);
+    this.register<IBankStatementLineRepository>(
+      "bankStatementLineRepository",
+      bankStatementLineRepository
+    );
+    this.register<IBankStatementLineService>(
+      "bankStatementLineService",
+      bankStatementLineService
+    );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
     this.register<IReceiptRepository>("receiptRepository", receiptRepository);

@@ -38,6 +38,7 @@ import {
   BadgePercent,
   NotebookPen,
   ListTree,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -147,6 +148,18 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.journalLines",
     icon: ListTree,
     permissions: ["journal-lines:read"],
+  },
+  {
+    href: "/bank-statements",
+    labelKey: "nav.bankStatements",
+    icon: Landmark,
+    permissions: ["bank-statements:read"],
+  },
+  {
+    href: "/bank-statement-lines",
+    labelKey: "nav.bankStatementLines",
+    icon: ListTree,
+    permissions: ["bank-statement-lines:read"],
   },
   {
     href: "/checkout",

@@ -243,6 +243,20 @@ export const API_ENDPOINTS = {
       DELETE: (id: string) => `/v1/journal-entries/${journalEntryId}/lines/${id}`,
     }),
   },
+  BANK_STATEMENTS: {
+    LIST: "/v1/bank-statements",
+    BY_ID: (id: string) => `/v1/bank-statements/${id}`,
+    CREATE: "/v1/bank-statements",
+    UPDATE: (id: string) => `/v1/bank-statements/${id}`,
+    DELETE: (id: string) => `/v1/bank-statements/${id}`,
+    LINES: (bankStatementId: string) => ({
+      LIST: `/v1/bank-statements/${bankStatementId}/lines`,
+      BY_ID: (id: string) => `/v1/bank-statements/${bankStatementId}/lines/${id}`,
+      CREATE: `/v1/bank-statements/${bankStatementId}/lines`,
+      UPDATE: (id: string) => `/v1/bank-statements/${bankStatementId}/lines/${id}`,
+      DELETE: (id: string) => `/v1/bank-statements/${bankStatementId}/lines/${id}`,
+    }),
+  },
   CHECKOUT: {
     PROCESS: "/v1/checkout",
     VOID: (id: string) => `/v1/checkout/${id}/void`,
