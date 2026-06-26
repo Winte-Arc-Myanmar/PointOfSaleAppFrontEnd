@@ -6,12 +6,13 @@
 import type { ProductVariant } from "../entities/ProductVariant";
 import type { ProductVariantDto } from "@/core/application/dtos/ProductVariantDto";
 import type { GetProductVariantsParams } from "../repositories/IProductVariantRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface IProductVariantService {
   getAll(
     productId: string,
     params?: GetProductVariantsParams
-  ): Promise<ProductVariant[]>;
+  ): Promise<PaginatedResult<ProductVariant>>;
   getById(productId: string, id: string): Promise<ProductVariant | null>;
   create(
     productId: string,

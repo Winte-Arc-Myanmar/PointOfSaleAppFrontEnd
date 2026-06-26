@@ -5,8 +5,13 @@ import type {
 import type { SalesOrderLine } from "@/core/domain/entities/SalesOrderLine";
 import type { SalesOrderLineDto } from "@/core/application/dtos/SalesOrderLineDto";
 import { toSalesOrderLine } from "@/core/application/mappers/SalesOrderLineMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function toApiDecimalStringFixed4(value: unknown): string {
   let n: number;
@@ -35,22 +40,27 @@ export class ApiSalesOrderLineRepository implements ISalesOrderLineRepository {
   async getAll(
     salesOrderId: string,
     params?: GetSalesOrderLinesParams
-  ): Promise<SalesOrderLine[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-    const res = await this.httpClient.get<
-      SalesOrderLineDto[] | { data?: SalesOrderLineDto[] }
-    >(API_ENDPOINTS.SALES_ORDERS.LINES(salesOrderId).LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is SalesOrderLineDto & { id: string } => !!d?.id)
-      .map((d) => toSalesOrderLine(salesOrderId, d as any));
+  ): Promise<PaginatedResult<SalesOrderLine>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
+      API_ENDPOINTS.SALES_ORDERS.LINES(salesOrderId).LIST,
+      {
+        params: {
+          page,
+          limit,
+          ...(params?.search ? { search: params.search } : {}),
+          ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+          ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+        },
+      },
+    );
+    const parsed = parsePaginatedResponse<SalesOrderLineDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toSalesOrderLine(salesOrderId, dto as SalesOrderLineDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(salesOrderId: string, id: string): Promise<SalesOrderLine | null> {

@@ -10,25 +10,29 @@ import type {
 import type { UomClass } from "@/core/domain/entities/UomClass";
 import type { UomClassDto } from "@/core/application/dtos/UomClassDto";
 import { toUomClass } from "@/core/application/mappers/UomClassMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiUomClassRepository implements IUomClassRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetUomClassesParams): Promise<UomClass[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<
-      UomClassDto[] | { data?: UomClassDto[] }
-    >(API_ENDPOINTS.UOM_CLASSES.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is UomClassDto & { id: string } => !!dto?.id)
-      .map(toUomClass);
+  async getAll(params?: GetUomClassesParams): Promise<PaginatedResult<UomClass>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.UOM_CLASSES.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<UomClassDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toUomClass(dto as UomClassDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<UomClass | null> {

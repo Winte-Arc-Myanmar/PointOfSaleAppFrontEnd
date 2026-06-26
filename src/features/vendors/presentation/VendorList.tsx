@@ -14,7 +14,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useDeleteVendor, useVendors } from "@/presentation/hooks/useVendors";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import type { Vendor } from "@/core/domain/entities/Vendor";
 import { CreateVendorForm } from "./CreateVendorForm";
 import { getVendorRowActions } from "./vendor-row-actions";
@@ -29,13 +29,14 @@ export function VendorList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedTenantId, setSelectedTenantId] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
   const {
-    data: vendors = [],
+    data: vendorsResult,
     isLoading,
     error,
     refetch,
   } = useVendors({ page: pagination.page, limit: PAGE_SIZE });
+  const vendors = vendorsResult?.items ?? [];
   const deleteVendor = useDeleteVendor();
   const toast = useToast();
   const confirm = useConfirm();
@@ -61,16 +62,12 @@ export function VendorList() {
   }, [searchInput]);
 
   useEffect(() => {
-    pagination.observePageResult(filteredVendors.length);
-  }, [filteredVendors.length, pagination]);
+    pagination.reset(1);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
-
-  useEffect(() => {
-    pagination.reset(1);
-  }, [selectedTenantId, pagination]);
+  }, [selectedTenantId, pagination.reset]);
 
   const actions = useMemo(
     () =>
@@ -167,11 +164,11 @@ export function VendorList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={vendorsResult?.totalPages ?? pagination.getTotalPages(vendorsResult?.total)}
+      totalItems={vendorsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add Vendor"
       createTitle="Create Vendor"
       createSubmitText="Create Vendor"

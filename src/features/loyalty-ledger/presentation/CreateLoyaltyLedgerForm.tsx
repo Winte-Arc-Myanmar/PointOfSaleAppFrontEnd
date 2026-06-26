@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { LOYALTY_TRANSACTION_TYPES } from "./loyalty-ledger-constants";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -58,7 +59,8 @@ export function CreateLoyaltyLedgerForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const createEntry = useCreateLoyaltyLedgerEntry();
   const toast = useToast();
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
 
   useEffect(() => {
     onLoadingChange?.(createEntry.isPending ?? false);

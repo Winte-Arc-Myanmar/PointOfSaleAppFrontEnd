@@ -17,3 +17,10 @@ Backend contract (current):
   - When type is "user", tenantId and branchId are also sent.
   - Response is expected to include an access token (e.g. access_token / token / accessToken) plus user/session fields.
 - Example resource routes: /v1/products, /v1/customers, /v1/roles, etc. (see src/core/infrastructure/api/constants.ts for the full list).
+
+Pagination:
+
+- All list endpoints are expected to return `PaginatedResult<T>` (`items`, `total`, `page`, `limit`) from `src/core/domain/types/pagination.ts`.
+- List query params should use `page` and `limit`, plus optional `search`, `sortBy`, and `sortOrder` where the endpoint supports them.
+- Repositories parse backend responses through `parsePaginatedResponse`, services return `PaginatedResult<T>`, and presentation list screens use the single `usePagination` hook for page state.
+- The UI uses `DataTable` / `EntityListWithCreateModal` with the shared `TablePagination` component. Rows come from `result.items`; page counts come from `result.total`.

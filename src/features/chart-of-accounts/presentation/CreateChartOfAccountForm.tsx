@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const PARENT_NONE = "__none__";
 const ACCOUNT_TYPES = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"] as const;
@@ -55,13 +56,15 @@ export function CreateChartOfAccountForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const create = useCreateChartOfAccount();
   const toast = useToast();
-  const { data: tenants = [] } = useTenants();
-  const { data: parentAccounts = [] } = useChartOfAccounts({
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: parentAccountsData } = useChartOfAccounts({
     page: 1,
     limit: 200,
     sortBy: "accountCode",
     sortOrder: "asc",
   });
+  const parentAccounts = getPaginatedItems(parentAccountsData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),

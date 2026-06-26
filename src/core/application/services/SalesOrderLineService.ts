@@ -3,6 +3,8 @@ import type { ISalesOrderLineRepository } from "@/core/domain/repositories/ISale
 import type { SalesOrderLine } from "@/core/domain/entities/SalesOrderLine";
 import type { GetSalesOrderLinesParams } from "@/core/domain/repositories/ISalesOrderLineRepository";
 import type { SalesOrderLineDto } from "../dtos/SalesOrderLineDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class SalesOrderLineService implements ISalesOrderLineService {
   constructor(private readonly salesOrderLineRepository: ISalesOrderLineRepository) {}
@@ -10,7 +12,7 @@ export class SalesOrderLineService implements ISalesOrderLineService {
   getAll(
     salesOrderId: string,
     params?: GetSalesOrderLinesParams
-  ): Promise<SalesOrderLine[]> {
+  ): Promise<PaginatedResult<SalesOrderLine>> {
     return this.salesOrderLineRepository.getAll(salesOrderId, params);
   }
 

@@ -7,7 +7,7 @@ import {
   useLocationTree,
   useDeleteLocation,
 } from "@/presentation/hooks/useLocations";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -34,13 +34,14 @@ export function LocationList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedType, setSelectedType] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
   const {
-    data: locations = [],
+    data: locationsResult,
     isLoading,
     error,
     refetch,
   } = useLocations({ page: pagination.page, limit: PAGE_SIZE });
+  const locations = locationsResult?.items ?? [];
   const {
     data: treeRoots = [],
     isLoading: treeLoading,
@@ -76,16 +77,12 @@ export function LocationList() {
   }, [searchInput]);
 
   useEffect(() => {
-    pagination.observePageResult(filteredLocations.length);
-  }, [filteredLocations.length, pagination]);
+    pagination.reset(1);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
-
-  useEffect(() => {
-    pagination.reset(1);
-  }, [selectedType, pagination]);
+  }, [selectedType, pagination.reset]);
 
   const actions = useMemo(
     () =>
@@ -183,11 +180,13 @@ export function LocationList() {
               }
             : undefined
         }
-        pageSize={10}
+        pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.totalPages}
-        totalItems={pagination.totalItems}
-        onPageChange={(p) => pagination.setPage(p)}
+        totalPages={
+          locationsResult?.totalPages ?? pagination.getTotalPages(locationsResult?.total)
+        }
+        totalItems={locationsResult?.total ?? 0}
+        onPageChange={pagination.setPage}
         addLabel="Add location"
         createTitle="Create location"
         createSubmitText="Create"

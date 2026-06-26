@@ -8,11 +8,12 @@ import type { IUserRepository } from "@/core/domain/repositories/IUserRepository
 import type { GetUsersParams } from "@/core/domain/repositories/IUserRepository";
 import type { AppUser } from "@/core/domain/entities/AppUser";
 import type { UserDto, UserUpdateDto } from "../dtos/UserDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class UserService implements IUserService {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async getAll(params?: GetUsersParams): Promise<AppUser[]> {
+  async getAll(params?: GetUsersParams): Promise<PaginatedResult<AppUser>> {
     return this.userRepository.getAll(params);
   }
 

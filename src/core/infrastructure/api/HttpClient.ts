@@ -25,6 +25,22 @@ function unwrap<T>(body: unknown): T {
   return body as T;
 }
 
+/** Extract { data, meta } wrapper for paginated endpoints. */
+function unwrapWithMeta<T>(body: unknown): { data: T; meta?: Record<string, unknown> } {
+  if (
+    body != null &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as Record<string, unknown>).data !== undefined
+  ) {
+    return {
+      data: (body as { data: T }).data,
+      meta: (body as { meta?: Record<string, unknown> }).meta,
+    };
+  }
+  return { data: body as T };
+}
+
 export class HttpClient {
   private client: AxiosInstance;
 
@@ -61,6 +77,14 @@ export class HttpClient {
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const res: AxiosResponse<unknown> = await this.client.get(url, config);
     return unwrap<T>(res.data);
+  }
+
+  async getPaginated<T>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<{ data: T; meta?: Record<string, unknown> }> {
+    const res: AxiosResponse<unknown> = await this.client.get(url, config);
+    return unwrapWithMeta<T>(res.data);
   }
 
   async post<T>(

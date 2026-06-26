@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useProductVariants, useDeleteProductVariant } from "@/presentation/hooks/useProductVariants";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { FormModal } from "@/presentation/components/modal/FormModal";
@@ -14,13 +15,19 @@ import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 
 const CREATE_VARIANT_FORM_ID = "create-variant-form";
 const EDIT_VARIANT_FORM_ID = "edit-variant-form";
+const PAGE_SIZE = 10;
 
 export function ProductVariantSection({ productId }: { productId: string }) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [editFormLoading, setEditFormLoading] = useState(false);
 
-  const { data: variants = [], isLoading, error, refetch } = useProductVariants(productId);
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: variantsResult, isLoading, error, refetch } = useProductVariants(productId, {
+    page: pagination.page,
+    limit: PAGE_SIZE,
+  });
+  const variants = variantsResult?.items ?? [];
   const deleteVariant = useDeleteProductVariant(productId);
   const toast = useToast();
   const confirm = useConfirm();
@@ -70,7 +77,11 @@ export function ProductVariantSection({ productId }: { productId: string }) {
               }
             : undefined
         }
-        pageSize={10}
+        pageSize={PAGE_SIZE}
+        currentPage={pagination.page}
+        totalPages={variantsResult?.totalPages ?? pagination.getTotalPages(variantsResult?.total)}
+        totalItems={variantsResult?.total ?? 0}
+        onPageChange={pagination.setPage}
         addLabel="Add Variant"
         createTitle="Create Variant"
         createSubmitText="Create Variant"

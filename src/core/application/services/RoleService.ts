@@ -10,11 +10,12 @@ import type {
 } from "@/core/domain/repositories/IRoleRepository";
 import type { Role } from "@/core/domain/entities/Role";
 import type { CreateRoleDto } from "@/core/application/dtos/RoleDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class RoleService implements IRoleService {
   constructor(private readonly repo: IRoleRepository) {}
 
-  getAll(params?: GetRolesParams): Promise<Role[]> {
+  getAll(params?: GetRolesParams): Promise<PaginatedResult<Role>> {
     return this.repo.getAll(params);
   }
 

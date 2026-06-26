@@ -5,6 +5,7 @@
 
 import type { Branch } from "../entities/Branch";
 import type { BranchDto } from "@/core/application/dtos/BranchDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetBranchesParams {
   page?: number;
@@ -12,7 +13,7 @@ export interface GetBranchesParams {
 }
 
 export interface IBranchRepository {
-  getAll(params?: GetBranchesParams): Promise<Branch[]>;
+  getAll(params?: GetBranchesParams): Promise<PaginatedResult<Branch>>;
   getById(id: string): Promise<Branch | null>;
   create(data: Omit<BranchDto, "id">): Promise<Branch>;
   update(id: string, data: Omit<BranchDto, "id">): Promise<Branch>;

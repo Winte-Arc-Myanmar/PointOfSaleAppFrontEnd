@@ -1,9 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { CustomerInteraction } from "@/core/domain/entities/CustomerInteraction";
-import { DataTable } from "@/presentation/components/data-table";
 import { Label } from "@/presentation/components/ui/label";
 import {
   Select,
@@ -13,31 +10,21 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
-import { useConfirm } from "@/presentation/hooks/useConfirm";
-import { useToast } from "@/presentation/providers/ToastProvider";
-import {
-  useAllCustomersCustomerInteractions,
-  useDeleteCustomerInteraction,
-} from "@/presentation/hooks/useCustomerInteractions";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { CustomerInteractionList } from "./CustomerInteractionList";
-import { getCustomerInteractionTableColumns } from "./customer-interaction-table-columns";
-import { getCustomerInteractionRowActions } from "./customer-interaction-row-actions";
+import { CustomerInteractionsAllCustomersList } from "./CustomerInteractionsAllCustomersList";
 
 const CUSTOMER_LIST_LIMIT = 500;
 const ALL_CUSTOMERS = "__all__";
-const PER_CUSTOMER_FETCH_LIMIT = 50;
 
 export function CustomerInteractionsPageWithCustomerSelect() {
   const { t } = useLanguage();
-  const router = useRouter();
-  const toast = useToast();
-  const confirm = useConfirm();
-  const deleteInteraction = useDeleteCustomerInteraction();
-  const { data: customers = [], isLoading } = useCustomers({
+  const { data: customersResult, isLoading } = useCustomers({
     page: 1,
     limit: CUSTOMER_LIST_LIMIT,
   });
+  const customers = getPaginatedItems(customersResult);
   const [selectedId, setSelectedId] = useState<string>(ALL_CUSTOMERS);
 
   const sorted = useMemo(
@@ -50,55 +37,11 @@ export function CustomerInteractionsPageWithCustomerSelect() {
     [sorted],
   );
 
-  const allRowsQuery = useAllCustomersCustomerInteractions(customerIds, {
-    page: 1,
-    limit: PER_CUSTOMER_FETCH_LIMIT,
-  });
-
-  const columns = useMemo(
-    () =>
-      getCustomerInteractionTableColumns({
-        onView: (row) =>
-          router.push(`/customer-interactions/${row.customerId}/${row.id}`),
-      }),
-    [router],
-  );
-
-  const actions = useMemo(
-    () =>
-      getCustomerInteractionRowActions({
-        onView: (row) =>
-          router.push(`/customer-interactions/${row.customerId}/${row.id}`),
-        onEdit: (row) =>
-          router.push(`/customer-interactions/${row.customerId}/${row.id}/edit`),
-        onDelete: async (row: CustomerInteraction) => {
-          const ok = await confirm({
-            title: "Delete interaction",
-            description: `Delete this ${row.interactionType} interaction? This cannot be undone.`,
-            confirmLabel: "Delete",
-            variant: "destructive",
-          });
-          if (!ok) return;
-          deleteInteraction.mutate(
-            { customerId: row.customerId, interactionId: String(row.id) },
-            {
-              onSuccess: async () => {
-                toast.success("Interaction deleted.");
-                await allRowsQuery.refetch();
-              },
-              onError: () => toast.error("Failed to delete interaction."),
-            },
-          );
-        },
-      }),
-    [router, confirm, deleteInteraction, toast, allRowsQuery],
-  );
-
   const isAllMode = selectedId === ALL_CUSTOMERS;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-2 max-w-md">
+      <div className="grid max-w-md gap-2">
         <Label htmlFor="customer-select-interactions">{t("common.customer")}</Label>
         <Select
           value={selectedId}
@@ -124,23 +67,7 @@ export function CustomerInteractionsPageWithCustomerSelect() {
       </div>
 
       {isAllMode ? (
-        <DataTable<CustomerInteraction>
-          data={allRowsQuery.data ?? []}
-          columns={columns}
-          actions={actions}
-          isLoading={allRowsQuery.isLoading}
-          loadingText={t("interactionsPage.loadingInteractions")}
-          emptyText={t("interactionsPage.noInteractionsYet")}
-          error={
-            allRowsQuery.error
-              ? {
-                  message: t("interactionsPage.failedToLoadInteractions"),
-                  onRetry: () => allRowsQuery.refetch(),
-                }
-              : undefined
-          }
-          pageSize={10}
-        />
+        <CustomerInteractionsAllCustomersList customerIds={customerIds} />
       ) : (
         <CustomerInteractionList
           customerId={selectedId}

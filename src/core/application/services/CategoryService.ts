@@ -8,11 +8,12 @@ import type { ICategoryRepository } from "@/core/domain/repositories/ICategoryRe
 import type { Category } from "@/core/domain/entities/Category";
 import type { CategoryDto } from "../dtos/CategoryDto";
 import type { GetCategoriesParams } from "@/core/domain/repositories/ICategoryRepository";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class CategoryService implements ICategoryService {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
 
-  async getAll(params?: GetCategoriesParams): Promise<Category[]> {
+  async getAll(params?: GetCategoriesParams): Promise<PaginatedResult<Category>> {
     return this.categoryRepository.getAll(params);
   }
 

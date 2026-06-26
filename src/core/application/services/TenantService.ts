@@ -10,11 +10,12 @@ import type {
 } from "@/core/domain/repositories/ITenantRepository";
 import type { Tenant } from "@/core/domain/entities/Tenant";
 import type { TenantDto } from "../dtos/TenantDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class TenantService implements ITenantService {
   constructor(private readonly tenantRepository: ITenantRepository) {}
 
-  async getAll(params?: GetTenantsParams): Promise<Tenant[]> {
+  async getAll(params?: GetTenantsParams): Promise<PaginatedResult<Tenant>> {
     return this.tenantRepository.getAll(params);
   }
 

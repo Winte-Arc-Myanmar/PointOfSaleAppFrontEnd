@@ -11,8 +11,14 @@ import type {
   AssignRolePermissionsDto,
 } from "@/core/application/dtos/RoleDto";
 import { toRole } from "@/core/application/mappers/RoleMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+import type { GetRolesParams } from "@/core/domain/repositories/IRoleRepository";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function isRoleDto(value: unknown): value is RoleDto {
   if (!value || typeof value !== "object") return false;
@@ -25,41 +31,29 @@ function isRoleDto(value: unknown): value is RoleDto {
   );
 }
 
-function normalizeRoleList(payload: unknown): RoleDto[] {
-  if (Array.isArray(payload)) return payload as RoleDto[];
-  // Some backends return { items: [...] } or a single object; handle gracefully.
-  if (payload && typeof payload === "object") {
-    const rec = payload as Record<string, unknown>;
-    if (Array.isArray(rec.items)) return rec.items as RoleDto[];
-    if (isRoleDto(rec)) return [rec];
-  }
-  return [];
+function preprocessRolePayload(payload: unknown): unknown {
+  if (isRoleDto(payload)) return { items: [payload] };
+  return payload;
 }
 
 export class ApiRoleRepository implements IRoleRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: { page?: number; limit?: number }): Promise<Role[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const data = await this.httpClient.get<unknown>(API_ENDPOINTS.ROLES.LIST, {
-      params: query,
-    });
-    const all = normalizeRoleList(data);
-
-    // Some backends ignore page/limit and always return the full list.
-    // If that happens, slice locally so UI pagination doesn't become "infinite".
+  async getAll(params?: GetRolesParams): Promise<PaginatedResult<Role>> {
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
-    const start = Math.max(0, (page - 1) * limit);
-    const pageItems =
-      params && Array.isArray(all) && all.length > limit
-        ? all.slice(start, start + limit)
-        : all;
-
-    return pageItems.map(toRole);
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.ROLES.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<RoleDto>(preprocessRolePayload({ data, meta }), {
+      page,
+      limit,
+    });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toRole(dto as RoleDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<Role> {
@@ -81,5 +75,3 @@ export class ApiRoleRepository implements IRoleRepository {
     await this.httpClient.post(API_ENDPOINTS.ROLES.ASSIGN_PERMISSIONS(roleId), body);
   }
 }
-
-

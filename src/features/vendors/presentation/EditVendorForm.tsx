@@ -22,6 +22,7 @@ import {
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useUpdateVendor, useVendor } from "@/presentation/hooks/useVendors";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,7 +37,8 @@ export function EditVendorForm({ vendorId }: { vendorId: string }) {
   const router = useRouter();
   const { tenantId: lockedTenantId } = usePermissions();
   const { data: vendor, isLoading, error } = useVendor(vendorId);
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const updateVendor = useUpdateVendor();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

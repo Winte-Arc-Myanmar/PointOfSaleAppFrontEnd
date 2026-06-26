@@ -13,15 +13,18 @@ import {
   DetailSection,
   safeText,
 } from "@/presentation/components/detail";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 export function CustomerDetail({ customerId }: { customerId: string }) {
   const { data: customer, isLoading, error } = useCustomer(customerId);
   const {
-    data: interactions = [],
+    data: interactionsData,
     isLoading: interactionsLoading,
   } = useCustomerInteractions(customerId, { page: 1, limit: 5 });
-  const { data: loyaltyEntries = [], isLoading: loyaltyLoading } =
+  const interactions = getPaginatedItems(interactionsData);
+  const { data: loyaltyEntriesData, isLoading: loyaltyLoading } =
     useLoyaltyLedgerEntries(customerId, { page: 1, limit: 5 });
+  const loyaltyEntries = getPaginatedItems(loyaltyEntriesData);
 
   const overviewRows = customer
     ? [

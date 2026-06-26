@@ -58,6 +58,20 @@ import { ApiPaymentMethodRepository } from "../repositories/ApiPaymentMethodRepo
 import { PaymentMethodService } from "@/core/application/services/PaymentMethodService";
 import { ApiChartOfAccountRepository } from "../repositories/ApiChartOfAccountRepository";
 import { ChartOfAccountService } from "@/core/application/services/ChartOfAccountService";
+import { ApiAccountingPeriodRepository } from "../repositories/ApiAccountingPeriodRepository";
+import { AccountingPeriodService } from "@/core/application/services/AccountingPeriodService";
+import { ApiExchangeRateRepository } from "../repositories/ApiExchangeRateRepository";
+import { ExchangeRateService } from "@/core/application/services/ExchangeRateService";
+import { ApiTaxRateRepository } from "../repositories/ApiTaxRateRepository";
+import { TaxRateService } from "@/core/application/services/TaxRateService";
+import { ApiJournalEntryRepository } from "../repositories/ApiJournalEntryRepository";
+import { JournalEntryService } from "@/core/application/services/JournalEntryService";
+import { ApiJournalLineRepository } from "../repositories/ApiJournalLineRepository";
+import { JournalLineService } from "@/core/application/services/JournalLineService";
+import { ApiBankStatementRepository } from "../repositories/ApiBankStatementRepository";
+import { BankStatementService } from "@/core/application/services/BankStatementService";
+import { ApiBankStatementLineRepository } from "../repositories/ApiBankStatementLineRepository";
+import { BankStatementLineService } from "@/core/application/services/BankStatementLineService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -118,6 +132,20 @@ import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPayme
 import type { IPaymentMethodService } from "@/core/domain/services/IPaymentMethodService";
 import type { IChartOfAccountRepository } from "@/core/domain/repositories/IChartOfAccountRepository";
 import type { IChartOfAccountService } from "@/core/domain/services/IChartOfAccountService";
+import type { IAccountingPeriodRepository } from "@/core/domain/repositories/IAccountingPeriodRepository";
+import type { IAccountingPeriodService } from "@/core/domain/services/IAccountingPeriodService";
+import type { IExchangeRateRepository } from "@/core/domain/repositories/IExchangeRateRepository";
+import type { IExchangeRateService } from "@/core/domain/services/IExchangeRateService";
+import type { ITaxRateRepository } from "@/core/domain/repositories/ITaxRateRepository";
+import type { ITaxRateService } from "@/core/domain/services/ITaxRateService";
+import type { IJournalEntryRepository } from "@/core/domain/repositories/IJournalEntryRepository";
+import type { IJournalEntryService } from "@/core/domain/services/IJournalEntryService";
+import type { IJournalLineRepository } from "@/core/domain/repositories/IJournalLineRepository";
+import type { IJournalLineService } from "@/core/domain/services/IJournalLineService";
+import type { IBankStatementRepository } from "@/core/domain/repositories/IBankStatementRepository";
+import type { IBankStatementService } from "@/core/domain/services/IBankStatementService";
+import type { IBankStatementLineRepository } from "@/core/domain/repositories/IBankStatementLineRepository";
+import type { IBankStatementLineService } from "@/core/domain/services/IBankStatementLineService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -198,6 +226,20 @@ class Container {
     const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
     const chartOfAccountRepository = new ApiChartOfAccountRepository(httpClient);
     const chartOfAccountService = new ChartOfAccountService(chartOfAccountRepository);
+    const accountingPeriodRepository = new ApiAccountingPeriodRepository(httpClient);
+    const accountingPeriodService = new AccountingPeriodService(accountingPeriodRepository);
+    const exchangeRateRepository = new ApiExchangeRateRepository(httpClient);
+    const exchangeRateService = new ExchangeRateService(exchangeRateRepository);
+    const taxRateRepository = new ApiTaxRateRepository(httpClient);
+    const taxRateService = new TaxRateService(taxRateRepository);
+    const journalEntryRepository = new ApiJournalEntryRepository(httpClient);
+    const journalEntryService = new JournalEntryService(journalEntryRepository);
+    const journalLineRepository = new ApiJournalLineRepository(httpClient);
+    const journalLineService = new JournalLineService(journalLineRepository);
+    const bankStatementRepository = new ApiBankStatementRepository(httpClient);
+    const bankStatementService = new BankStatementService(bankStatementRepository);
+    const bankStatementLineRepository = new ApiBankStatementLineRepository(httpClient);
+    const bankStatementLineService = new BankStatementLineService(bankStatementLineRepository);
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -316,6 +358,44 @@ class Container {
     this.register<IChartOfAccountService>(
       "chartOfAccountService",
       chartOfAccountService
+    );
+    this.register<IAccountingPeriodRepository>(
+      "accountingPeriodRepository",
+      accountingPeriodRepository
+    );
+    this.register<IAccountingPeriodService>(
+      "accountingPeriodService",
+      accountingPeriodService
+    );
+    this.register<IExchangeRateRepository>(
+      "exchangeRateRepository",
+      exchangeRateRepository
+    );
+    this.register<IExchangeRateService>(
+      "exchangeRateService",
+      exchangeRateService
+    );
+    this.register<ITaxRateRepository>("taxRateRepository", taxRateRepository);
+    this.register<ITaxRateService>("taxRateService", taxRateService);
+    this.register<IJournalEntryRepository>(
+      "journalEntryRepository",
+      journalEntryRepository
+    );
+    this.register<IJournalEntryService>("journalEntryService", journalEntryService);
+    this.register<IJournalLineRepository>("journalLineRepository", journalLineRepository);
+    this.register<IJournalLineService>("journalLineService", journalLineService);
+    this.register<IBankStatementRepository>(
+      "bankStatementRepository",
+      bankStatementRepository
+    );
+    this.register<IBankStatementService>("bankStatementService", bankStatementService);
+    this.register<IBankStatementLineRepository>(
+      "bankStatementLineRepository",
+      bankStatementLineRepository
+    );
+    this.register<IBankStatementLineService>(
+      "bankStatementLineService",
+      bankStatementLineService
     );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);

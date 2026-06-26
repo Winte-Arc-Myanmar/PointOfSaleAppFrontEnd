@@ -6,7 +6,7 @@ import { Input } from "@/presentation/components/ui/input";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import {
   useDeletePaymentMethod,
   usePaymentMethods,
@@ -28,28 +28,25 @@ export function PaymentMethodList() {
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const { data: methods = [], isLoading, error, refetch } = usePaymentMethods({
+  const { data: methodsResult, isLoading, error, refetch } = usePaymentMethods({
     search: search || undefined,
     page: pagination.page,
     limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-
-  useEffect(() => {
-    pagination.observePageResult(methods.length);
-  }, [methods.length, pagination]);
+  const methods = methodsResult?.items ?? [];
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   const actions = useMemo(
     () =>
@@ -107,11 +104,11 @@ export function PaymentMethodList() {
           />
         </div>
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={methodsResult?.totalPages ?? pagination.getTotalPages(methodsResult?.total)}
+      totalItems={methodsResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="New Method"
       createTitle="Create Payment Method"
       createSubmitText="Create Method"

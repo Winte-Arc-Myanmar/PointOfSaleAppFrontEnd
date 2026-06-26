@@ -1,6 +1,8 @@
 import type { PosSession } from "../entities/PosSession";
 import type { PosSessionDto, ClosePosSessionRequestDto } from "@/core/application/dtos/PosSessionDto";
 import type { PosSessionSummary } from "../entities/PosSessionSummary";
+import type { PaginatedResult } from "../types/pagination";
+
 
 export interface GetPosSessionsParams {
   page?: number;
@@ -11,7 +13,7 @@ export interface GetPosSessionsParams {
 }
 
 export interface IPosSessionRepository {
-  getAll(params?: GetPosSessionsParams): Promise<PosSession[]>;
+  getAll(params?: GetPosSessionsParams): Promise<PaginatedResult<PosSession>>;
   getById(id: string): Promise<PosSession | null>;
   create(data: Omit<PosSessionDto, "id" | "openedAt" | "updatedAt">): Promise<PosSession>;
   update(

@@ -4,6 +4,7 @@
 
 import type { Location, LocationTreeNode } from "../entities/Location";
 import type { LocationDto } from "@/core/application/dtos/LocationDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetLocationsParams {
   page?: number;
@@ -11,7 +12,7 @@ export interface GetLocationsParams {
 }
 
 export interface ILocationRepository {
-  getAll(params?: GetLocationsParams): Promise<Location[]>;
+  getAll(params?: GetLocationsParams): Promise<PaginatedResult<Location>>;
   getTree(): Promise<LocationTreeNode[]>;
   getById(id: string): Promise<Location | null>;
   create(data: Omit<LocationDto, "id" | "subLocations">): Promise<Location>;

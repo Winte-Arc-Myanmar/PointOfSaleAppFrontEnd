@@ -22,6 +22,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,7 +37,8 @@ export function EditUomClassForm({ uomClassId }: { uomClassId: string }) {
   const router = useRouter();
   const { tenantId: lockedTenantId } = usePermissions();
   const { data: uomClass, isLoading, error } = useUomClass(uomClassId);
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const updateUomClass = useUpdateUomClass();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

@@ -8,6 +8,7 @@ import type { IProductVariantRepository } from "@/core/domain/repositories/IProd
 import type { GetProductVariantsParams } from "@/core/domain/repositories/IProductVariantRepository";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 import type { ProductVariantDto } from "../dtos/ProductVariantDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class ProductVariantService implements IProductVariantService {
   constructor(
@@ -17,7 +18,7 @@ export class ProductVariantService implements IProductVariantService {
   async getAll(
     productId: string,
     params?: GetProductVariantsParams
-  ): Promise<ProductVariant[]> {
+  ): Promise<PaginatedResult<ProductVariant>> {
     return this.productVariantRepository.getAll(productId, params);
   }
 

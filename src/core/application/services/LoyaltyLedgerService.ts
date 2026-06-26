@@ -10,6 +10,7 @@ import type {
 } from "@/core/domain/repositories/ILoyaltyLedgerRepository";
 import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedgerService";
 import type { LoyaltyLedgerEntryDto } from "../dtos/LoyaltyLedgerEntryDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class LoyaltyLedgerService implements ILoyaltyLedgerService {
   constructor(private readonly repository: ILoyaltyLedgerRepository) {}
@@ -17,7 +18,7 @@ export class LoyaltyLedgerService implements ILoyaltyLedgerService {
   async getAll(
     customerId: string,
     params?: GetLoyaltyLedgerParams
-  ): Promise<LoyaltyLedgerEntry[]> {
+  ): Promise<PaginatedResult<LoyaltyLedgerEntry>> {
     return this.repository.getAll(customerId, params);
   }
 

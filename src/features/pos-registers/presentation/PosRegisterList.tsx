@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useDeletePosRegister, usePosRegisters } from "@/presentation/hooks/usePosRegisters";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import type { PosRegister } from "@/core/domain/entities/PosRegister";
 import { CreatePosRegisterForm } from "./CreatePosRegisterForm";
 import { getPosRegisterRowActions } from "./pos-register-row-actions";
@@ -20,18 +20,15 @@ export function PosRegisterList() {
   const toast = useToast();
   const confirm = useConfirm();
   const del = useDeletePosRegister();
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
-  const { data: registers = [], isLoading, error, refetch } = usePosRegisters({
+  const { data: registersResult, isLoading, error, refetch } = usePosRegisters({
     page: pagination.page,
     limit: PAGE_SIZE,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-
-  useEffect(() => {
-    pagination.observePageResult(registers.length);
-  }, [registers.length, pagination]);
+  const registers = registersResult?.items ?? [];
 
   const actions = useMemo(
     () =>
@@ -80,11 +77,11 @@ export function PosRegisterList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={registersResult?.totalPages ?? pagination.getTotalPages(registersResult?.total)}
+      totalItems={registersResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="New Register"
       createTitle="Create POS Register"
       createSubmitText="Create Register"

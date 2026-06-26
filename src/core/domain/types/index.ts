@@ -4,3 +4,5 @@
  */
 
 export type Id = string;
+
+export type { PaginatedResult, PaginatedQueryParams } from "./pagination";

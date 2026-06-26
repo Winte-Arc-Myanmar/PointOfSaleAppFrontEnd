@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { AppLoader } from "@/presentation/components/loader";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -37,7 +38,8 @@ export function EditPaymentMethodForm({ paymentMethodId }: { paymentMethodId: st
   const toast = useToast();
   const update = useUpdatePaymentMethod();
   const { data: method, isLoading, error } = usePaymentMethod(paymentMethodId);
-  const { data: tenants = [] } = useTenants();
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({

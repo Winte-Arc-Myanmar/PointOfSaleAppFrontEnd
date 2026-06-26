@@ -7,6 +7,7 @@ import type { IPermissionService } from "@/core/domain/services/IPermissionServi
 import type { IUserService } from "@/core/domain/services/IUserService";
 import type { IBranchService } from "@/core/domain/services/IBranchService";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
+import { getPaginatedItems } from "./pagination";
 
 export function useAssignPermissionsOptions() {
   return useQuery({
@@ -16,12 +17,15 @@ export function useAssignPermissionsOptions() {
       const permissionService =
         container.resolve<IPermissionService>("permissionService");
 
-      const [roles, permissions] = await Promise.all([
+      const [rolesResult, permissionsResult] = await Promise.all([
         roleService.getAll(),
         permissionService.getAll(),
       ]);
 
-      return { roles, permissions };
+      return {
+        roles: getPaginatedItems(rolesResult),
+        permissions: getPaginatedItems(permissionsResult),
+      };
     },
   });
 }
@@ -35,14 +39,19 @@ export function useAssignRoleOptions() {
       const tenantService = container.resolve<ITenantService>("tenantService");
       const branchService = container.resolve<IBranchService>("branchService");
 
-      const [users, roles, tenants, branches] = await Promise.all([
+      const [usersResult, rolesResult, tenantsResult, branchesResult] = await Promise.all([
         userService.getAll(),
         roleService.getAll(),
         tenantService.getAll(),
         branchService.getAll(),
       ]);
 
-      return { users, roles, tenants, branches };
+      return {
+        users: getPaginatedItems(usersResult),
+        roles: getPaginatedItems(rolesResult),
+        tenants: getPaginatedItems(tenantsResult),
+        branches: getPaginatedItems(branchesResult),
+      };
     },
   });
 }

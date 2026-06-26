@@ -5,6 +5,7 @@
 
 import type { CustomerInteraction } from "../entities/CustomerInteraction";
 import type { CustomerInteractionDto } from "@/core/application/dtos/CustomerInteractionDto";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface GetCustomerInteractionsParams {
   page?: number;
@@ -15,7 +16,7 @@ export interface ICustomerInteractionRepository {
   getAll(
     customerId: string,
     params?: GetCustomerInteractionsParams
-  ): Promise<CustomerInteraction[]>;
+  ): Promise<PaginatedResult<CustomerInteraction>>;
   getById(
     customerId: string,
     id: string

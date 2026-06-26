@@ -9,9 +9,14 @@ import type {
   PosSessionSummaryDto,
 } from "@/core/application/dtos/PosSessionDto";
 import { toPosSession, toPosSessionSummary } from "@/core/application/mappers/PosSessionMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { PosSessionSummary } from "@/core/domain/entities/PosSessionSummary";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function toApiDecimalStringFixed4(value: unknown): string {
   let n: number;
@@ -43,22 +48,24 @@ function normalizeWritePayload(
 export class ApiPosSessionRepository implements IPosSessionRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetPosSessionsParams): Promise<PosSession[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-    const res = await this.httpClient.get<
-      PosSessionDto[] | { data?: PosSessionDto[] }
-    >(API_ENDPOINTS.POS_SESSIONS.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is PosSessionDto & { id: string } => !!d?.id)
-      .map((d) => toPosSession(d as any));
+  async getAll(params?: GetPosSessionsParams): Promise<PaginatedResult<PosSession>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.POS_SESSIONS.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+        ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<PosSessionDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toPosSession(dto as PosSessionDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<PosSession | null> {

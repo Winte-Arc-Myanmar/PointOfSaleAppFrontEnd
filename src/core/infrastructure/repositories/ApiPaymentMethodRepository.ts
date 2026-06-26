@@ -5,30 +5,35 @@ import type {
 import type { PaymentMethod } from "@/core/domain/entities/PaymentMethod";
 import type { PaymentMethodDto } from "@/core/application/dtos/PaymentMethodDto";
 import { toPaymentMethod } from "@/core/application/mappers/PaymentMethodMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiPaymentMethodRepository implements IPaymentMethodRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetPaymentMethodsParams): Promise<PaymentMethod[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-
-    const res = await this.httpClient.get<
-      PaymentMethodDto[] | { data?: PaymentMethodDto[] }
-    >(API_ENDPOINTS.PAYMENT_METHODS.LIST, { params: query });
-
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is PaymentMethodDto & { id: string } => !!d?.id)
-      .map((d) => toPaymentMethod(d as PaymentMethodDto & { id: string }));
+  async getAll(params?: GetPaymentMethodsParams): Promise<PaginatedResult<PaymentMethod>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.PAYMENT_METHODS.LIST, {
+      params: {
+        page,
+        limit,
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+        ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+      },
+    });
+    const parsed = parsePaginatedResponse<PaymentMethodDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toPaymentMethod(dto as PaymentMethodDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(id: string): Promise<PaymentMethod | null> {

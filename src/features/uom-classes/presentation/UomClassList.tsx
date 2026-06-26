@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUomClasses, useDeleteUomClass } from "@/presentation/hooks/useUomClasses";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -17,18 +17,15 @@ const PAGE_SIZE = 10;
 
 export function UomClassList() {
   const router = useRouter();
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: uomClasses = [], isLoading, error, refetch } = useUomClasses({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: uomClassesResult, isLoading, error, refetch } = useUomClasses({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const uomClasses = uomClassesResult?.items ?? [];
   const deleteUomClass = useDeleteUomClass();
   const toast = useToast();
   const confirm = useConfirm();
-
-  useEffect(() => {
-    pagination.observePageResult(uomClasses.length);
-  }, [uomClasses.length, pagination]);
 
   const actions = useMemo(
     () =>
@@ -77,11 +74,13 @@ export function UomClassList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={
+        uomClassesResult?.totalPages ?? pagination.getTotalPages(uomClassesResult?.total)
+      }
+      totalItems={uomClassesResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add UOM Class"
       createTitle="Create UOM Class"
       createSubmitText="Create UOM Class"

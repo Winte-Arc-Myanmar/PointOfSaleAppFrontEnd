@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const PARENT_NONE = "__none__";
 
@@ -60,11 +61,13 @@ export function CreateLocationForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const createLocation = useCreateLocation();
   const toast = useToast();
-  const { data: tenants = [] } = useTenants();
-  const { data: allLocations = [], isLoading: isLocationsLoading } = useLocations({
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: allLocationsData, isLoading: isLocationsLoading } = useLocations({
     page: 1,
     limit: 200,
   });
+  const allLocations = getPaginatedItems(allLocationsData);
 
   useEffect(() => {
     onLoadingChange?.(createLocation.isPending ?? false);

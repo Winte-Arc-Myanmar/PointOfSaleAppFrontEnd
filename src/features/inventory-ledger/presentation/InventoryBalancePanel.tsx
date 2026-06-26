@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   productId: z.string().min(1, "Product is required"),
@@ -64,8 +65,10 @@ export function InventoryBalancePanel() {
   const toast = useToast();
   const balanceLookup = useInventoryBalanceLookup();
   const [result, setResult] = useState<unknown>(null);
-  const { data: products = [] } = useProducts({ page: 1, limit: 200 });
-  const { data: locations = [] } = useLocations({ page: 1, limit: 200 });
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const products = getPaginatedItems(productsData);
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
+  const locations = getPaginatedItems(locationsData);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -73,8 +76,9 @@ export function InventoryBalancePanel() {
   });
 
   const productWatch = useWatch({ control: form.control, name: "productId" });
-  const { data: variants = [], isLoading: variantsLoading } =
+  const { data: variantsData, isLoading: variantsLoading } =
     useProductVariants(productWatch || null, { page: 1, limit: 100 });
+  const variants = getPaginatedItems(variantsData);
 
   const filteredLocations = locations.filter((l) =>
     lockedTenantId ? l.tenantId === lockedTenantId : true,

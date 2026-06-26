@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -49,7 +50,8 @@ export function CreateVendorForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const createVendor = useCreateVendor();
   const toast = useToast();
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
 
   useEffect(() => {
     onLoadingChange?.(createVendor.isPending ?? false);

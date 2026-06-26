@@ -17,7 +17,7 @@ import {
   useCustomers,
   useDeleteCustomer,
 } from "@/presentation/hooks/useCustomers";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import type { Customer } from "@/core/domain/entities/Customer";
 import { CreateCustomerForm } from "./CreateCustomerForm";
 import { getCustomerRowActions } from "./customer-row-actions";
@@ -44,7 +44,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   const [search, setSearch] = useState("");
   const [selectedLoyaltyTier, setSelectedLoyaltyTier] = useState("__all__");
   const [selectedAccountType, setSelectedAccountType] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     const id = setTimeout(
@@ -55,7 +55,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   }, [searchInput]);
 
   const {
-    data: customers = [],
+    data: customersResult,
     isLoading,
     error,
     refetch,
@@ -64,6 +64,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
     limit: PAGE_SIZE,
     search: search || undefined,
   });
+  const customers = customersResult?.items ?? [];
 
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) => {
@@ -87,22 +88,17 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   }, [customers]);
 
   useEffect(() => {
-    pagination.observePageResult(filteredCustomers.length);
-  }, [filteredCustomers.length, pagination]);
-
-  useEffect(() => {
-    // New search => go back to page 1 and drop any inferred max page.
     pagination.reset(1);
-  }, [search, pagination]);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     // New loyalty tier filter => go back to page 1.
     pagination.reset(1);
-  }, [selectedLoyaltyTier, pagination]);
+  }, [selectedLoyaltyTier, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [selectedAccountType, pagination]);
+  }, [selectedAccountType, pagination.reset]);
 
   const actions = useMemo(
     () =>
@@ -230,11 +226,13 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
               }
             : undefined
         }
-        pageSize={10}
+        pageSize={PAGE_SIZE}
         currentPage={pagination.page}
-        totalPages={pagination.totalPages}
-        totalItems={pagination.totalItems}
-        onPageChange={(p) => pagination.setPage(p)}
+        totalPages={
+          customersResult?.totalPages ?? pagination.getTotalPages(customersResult?.total)
+        }
+        totalItems={customersResult?.total ?? 0}
+        onPageChange={pagination.setPage}
         addLabel={t("customerPage.addCustomer")}
         createTitle={t("customerPage.createCustomer")}
         createSubmitText={t("customerPage.createCustomer")}

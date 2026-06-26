@@ -5,45 +5,34 @@ import type {
   UploadMultipleResult,
 } from "@/core/domain/repositories/IUploadRepository";
 import type { UploadedFile } from "@/core/domain/entities/UploadedFile";
-import type { UploadDto, UploadListResponse, UploadMultipleResponse } from "@/core/application/dtos/UploadDto";
+import type { UploadDto, UploadMultipleResponse } from "@/core/application/dtos/UploadDto";
 import { toUploadedFile } from "@/core/application/mappers/UploadMapper";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiUploadRepository implements IUploadRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
   async getAll(params?: GetUploadsParams): Promise<UploadListResult> {
-    const query: Record<string, unknown> = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 20,
-    };
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 20;
+    const query: Record<string, unknown> = { page, limit };
     if (params?.folder) query.folder = params.folder;
     if (params?.branchId) query.branchId = params.branchId;
 
-    const res = await this.httpClient.get<
-      UploadListResponse | UploadDto[] | { data?: UploadDto[]; total?: number }
-    >(API_ENDPOINTS.UPLOADS.LIST, { params: query });
-
-    let items: UploadDto[] = [];
-    let total: number | undefined;
-
-    if (Array.isArray(res)) {
-      items = res;
-    } else if (res && typeof res === "object") {
-      if ("items" in res && Array.isArray((res as UploadListResponse).items)) {
-        items = (res as UploadListResponse).items;
-        total = (res as UploadListResponse).total;
-      } else if ("data" in res && Array.isArray((res as { data?: UploadDto[] }).data)) {
-        items = (res as { data: UploadDto[] }).data;
-        total = (res as { total?: number }).total;
-      }
-    }
-
-    return {
-      items: items.filter((d) => !!d?.url).map(toUploadedFile),
-      total,
-    };
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.UPLOADS.LIST, {
+      params: query,
+    });
+    const parsed = parsePaginatedResponse<UploadDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toUploadedFile(dto as UploadDto & { url: string }),
+      (dto) => !!dto?.url,
+    );
   }
 
   async uploadFile(file: File, folder?: string, branchId?: string): Promise<UploadedFile> {
@@ -91,4 +80,3 @@ export class ApiUploadRepository implements IUploadRepository {
     await this.httpClient.delete(API_ENDPOINTS.UPLOADS.DELETE(id));
   }
 }
-

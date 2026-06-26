@@ -41,6 +41,7 @@ import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   calcLineTotals,
   calcTax,
@@ -109,25 +110,31 @@ export function CheckoutSection() {
   const { tenantId } = usePermissions();
   const checkout = useCheckoutProcess();
 
-  const { data: tenants = [] } = useTenants();
-  const { data: allLocations = [] } = useLocations({ page: 1, limit: 200 });
-  const { data: allSessions = [] } = usePosSessions({
+  const { data: tenantsResult } = useTenants();
+  const { data: allLocationsResult } = useLocations({ page: 1, limit: 200 });
+  const { data: allSessionsResult } = usePosSessions({
     page: 1,
     limit: 200,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  const { data: allCustomers = [] } = useCustomers({ page: 1, limit: 50 });
-  const { data: allPaymentMethods = [] } = usePaymentMethods({
+  const { data: allCustomersResult } = useCustomers({ page: 1, limit: 50 });
+  const { data: allPaymentMethodsResult } = usePaymentMethods({
     page: 1,
     limit: 200,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  const { data: products = [], isLoading: productsLoading } = useProducts({
+  const { data: productsResult, isLoading: productsLoading } = useProducts({
     page: 1,
     limit: 200,
   });
+  const tenants = getPaginatedItems(tenantsResult);
+  const allLocations = getPaginatedItems(allLocationsResult);
+  const allSessions = getPaginatedItems(allSessionsResult);
+  const allCustomers = getPaginatedItems(allCustomersResult);
+  const allPaymentMethods = getPaginatedItems(allPaymentMethodsResult);
+  const products = getPaginatedItems(productsResult);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -261,8 +268,9 @@ export function CheckoutSection() {
     );
   }, [variantPickerProductId, products]);
 
-  const { data: variants = [], isLoading: variantsLoading } =
+  const { data: variantsResult, isLoading: variantsLoading } =
     useProductVariants(variantPickerProductId, { page: 1, limit: 200 });
+  const variants = getPaginatedItems(variantsResult);
 
   const shouldShowVariantPicker =
     variantPickerProductId != null &&

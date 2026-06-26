@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -36,7 +37,8 @@ const REDIRECT_DELAY_MS = 1500;
 export function EditUomForm({ uomId }: { uomId: string }) {
   const router = useRouter();
   const { data: uom, isLoading, error } = useUom(uomId);
-  const { data: uomClasses = [], isLoading: isClassesLoading } = useUomClasses();
+  const { data: uomClassesData, isLoading: isClassesLoading } = useUomClasses();
+  const uomClasses = getPaginatedItems(uomClassesData);
   const updateUom = useUpdateUom();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);

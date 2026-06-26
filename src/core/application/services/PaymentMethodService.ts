@@ -3,11 +3,13 @@ import type { IPaymentMethodRepository } from "@/core/domain/repositories/IPayme
 import type { PaymentMethod } from "@/core/domain/entities/PaymentMethod";
 import type { GetPaymentMethodsParams } from "@/core/domain/repositories/IPaymentMethodRepository";
 import type { PaymentMethodDto } from "../dtos/PaymentMethodDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
+
 
 export class PaymentMethodService implements IPaymentMethodService {
   constructor(private readonly paymentMethodRepository: IPaymentMethodRepository) {}
 
-  getAll(params?: GetPaymentMethodsParams): Promise<PaymentMethod[]> {
+  getAll(params?: GetPaymentMethodsParams): Promise<PaginatedResult<PaymentMethod>> {
     return this.paymentMethodRepository.getAll(params);
   }
 

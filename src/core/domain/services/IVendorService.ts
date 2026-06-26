@@ -6,9 +6,10 @@
 import type { Vendor } from "../entities/Vendor";
 import type { VendorDto } from "@/core/application/dtos/VendorDto";
 import type { GetVendorsParams } from "../repositories/IVendorRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface IVendorService {
-  getAll(params?: GetVendorsParams): Promise<Vendor[]>;
+  getAll(params?: GetVendorsParams): Promise<PaginatedResult<Vendor>>;
   getById(id: string): Promise<Vendor | null>;
   create(data: Omit<VendorDto, "id">): Promise<Vendor>;
   update(id: string, data: Omit<VendorDto, "id">): Promise<Vendor>;

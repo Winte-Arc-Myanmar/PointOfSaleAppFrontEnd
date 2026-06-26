@@ -5,8 +5,13 @@ import type {
 import type { SalesOrderPayment } from "@/core/domain/entities/SalesOrderPayment";
 import type { SalesOrderPaymentDto } from "@/core/application/dtos/SalesOrderPaymentDto";
 import { toSalesOrderPayment } from "@/core/application/mappers/SalesOrderPaymentMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function toApiDecimalStringFixed4(value: unknown): string {
   let n: number;
@@ -32,22 +37,27 @@ export class ApiSalesOrderPaymentRepository implements ISalesOrderPaymentReposit
   async getAll(
     salesOrderId: string,
     params?: GetSalesOrderPaymentsParams
-  ): Promise<SalesOrderPayment[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-      ...(params?.search ? { search: params.search } : {}),
-      ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
-      ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
-    };
-    const res = await this.httpClient.get<
-      SalesOrderPaymentDto[] | { data?: SalesOrderPaymentDto[] }
-    >(API_ENDPOINTS.SALES_ORDERS.PAYMENTS(salesOrderId).LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is SalesOrderPaymentDto & { id: string } => !!d?.id)
-      .map((d) => toSalesOrderPayment(salesOrderId, d as any));
+  ): Promise<PaginatedResult<SalesOrderPayment>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
+      API_ENDPOINTS.SALES_ORDERS.PAYMENTS(salesOrderId).LIST,
+      {
+        params: {
+          page,
+          limit,
+          ...(params?.search ? { search: params.search } : {}),
+          ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
+          ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+        },
+      },
+    );
+    const parsed = parsePaginatedResponse<SalesOrderPaymentDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toSalesOrderPayment(salesOrderId, dto as SalesOrderPaymentDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(

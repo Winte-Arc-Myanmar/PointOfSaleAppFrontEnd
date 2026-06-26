@@ -5,6 +5,7 @@ import container from "@/core/infrastructure/di/container";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import type { IUomService } from "@/core/domain/services/IUomService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const QUERY_KEY = ["create-product-form-options"];
 
@@ -20,13 +21,17 @@ export function useCreateProductFormOptions() {
         "categoryService"
       );
 
-      const [tenants, uoms, categories] = await Promise.all([
+      const [tenantsResult, uomsResult, categoriesResult] = await Promise.all([
         tenantService.getAll(),
         uomService.getAll({ page: 1, limit: LIST_LIMIT }),
         categoryService.getAll({ page: 1, limit: LIST_LIMIT }),
       ]);
 
-      return { tenants, uoms, categories };
+      return {
+        tenants: getPaginatedItems(tenantsResult),
+        uoms: getPaginatedItems(uomsResult),
+        categories: getPaginatedItems(categoriesResult),
+      };
     },
   });
 }

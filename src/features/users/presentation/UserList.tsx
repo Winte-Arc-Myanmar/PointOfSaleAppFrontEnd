@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUsers, useDeleteUser } from "@/presentation/hooks/useUsers";
-import { useInferredServerPagination } from "@/presentation/hooks/useInferredServerPagination";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -29,11 +29,12 @@ export function UserList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedJobTitle, setSelectedJobTitle] = useState("__all__");
-  const pagination = useInferredServerPagination({ pageSize: PAGE_SIZE });
-  const { data: users = [], isLoading, error, refetch } = useUsers({
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: usersResult, isLoading, error, refetch } = useUsers({
     page: pagination.page,
     limit: PAGE_SIZE,
   });
+  const users = usersResult?.items ?? [];
   const deleteUser = useDeleteUser();
   const toast = useToast();
   const confirm = useConfirm();
@@ -77,16 +78,12 @@ export function UserList() {
   }, [searchInput]);
 
   useEffect(() => {
-    pagination.observePageResult(filteredUsers.length);
-  }, [filteredUsers.length, pagination]);
+    pagination.reset(1);
+  }, [search, pagination.reset]);
 
   useEffect(() => {
     pagination.reset(1);
-  }, [search, pagination]);
-
-  useEffect(() => {
-    pagination.reset(1);
-  }, [selectedJobTitle, pagination]);
+  }, [selectedJobTitle, pagination.reset]);
 
   const actions = useMemo(
     () =>
@@ -183,11 +180,11 @@ export function UserList() {
             }
           : undefined
       }
-      pageSize={10}
+      pageSize={PAGE_SIZE}
       currentPage={pagination.page}
-      totalPages={pagination.totalPages}
-      totalItems={pagination.totalItems}
-      onPageChange={(p) => pagination.setPage(p)}
+      totalPages={usersResult?.totalPages ?? pagination.getTotalPages(usersResult?.total)}
+      totalItems={usersResult?.total ?? 0}
+      onPageChange={pagination.setPage}
       addLabel="Add User"
       createTitle="Create User"
       createSubmitText="Create User"

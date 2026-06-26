@@ -22,6 +22,7 @@ import { AppLoader } from "@/presentation/components/loader";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { usePosRegisters } from "@/presentation/hooks/usePosRegisters";
 import { usePosSession, useUpdatePosSession } from "@/presentation/hooks/usePosSessions";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1),
@@ -53,8 +54,10 @@ export function EditPosSessionForm({ sessionId }: { sessionId: string }) {
   const toast = useToast();
   const update = useUpdatePosSession();
   const { data: session, isLoading, error } = usePosSession(sessionId);
-  const { data: tenants = [] } = useTenants();
-  const { data: registers = [] } = usePosRegisters({ page: 1, limit: 200 });
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: registersData } = usePosRegisters({ page: 1, limit: 200 });
+  const registers = getPaginatedItems(registersData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({

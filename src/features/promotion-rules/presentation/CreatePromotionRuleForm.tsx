@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const REWARD_TYPE_OPTIONS = [
   "PERCENTAGE_DISCOUNT",
@@ -71,7 +72,8 @@ export function CreatePromotionRuleForm({
 }: CreatePromotionRuleFormProps) {
   const create = useCreatePromotionRule();
   const toast = useToast();
-  const { data: tenants = [] } = useTenants();
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),

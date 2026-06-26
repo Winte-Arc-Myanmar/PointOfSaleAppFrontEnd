@@ -5,6 +5,7 @@ import container from "@/core/infrastructure/di/container";
 import type { LoyaltyLedgerEntryDto } from "@/core/application/dtos/LoyaltyLedgerEntryDto";
 import type { GetLoyaltyLedgerParams } from "@/core/domain/repositories/ILoyaltyLedgerRepository";
 import type { ILoyaltyLedgerService } from "@/core/domain/services/ILoyaltyLedgerService";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 const LOYALTY_LEDGER_QUERY_KEY = ["loyalty-ledger"];
 
@@ -111,13 +112,20 @@ export function useAllCustomersLoyaltyLedgerEntries(
       const lists = await mapWithConcurrency(customerIds, 5, (customerId) =>
         withRateLimitRetry(() => service.getAll(customerId, params))
       );
-      return lists
-        .flat()
+      const items = lists
+        .flatMap((list) => list.items)
         .sort(
           (a, b) =>
             toLoyaltyEntryTimestamp(b.createdAt ?? b.updatedAt) -
             toLoyaltyEntryTimestamp(a.createdAt ?? a.updatedAt)
         );
+      return {
+        items,
+        total: lists.reduce((sum, list) => sum + list.total, 0),
+        page: params?.page ?? 1,
+        limit: params?.limit ?? items.length,
+        totalPages: undefined,
+      } satisfies PaginatedResult<(typeof items)[number]>;
     },
   });
 }

@@ -1,23 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Eye,
-  Filter,
-  PencilLine,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Filter, Plus, Search, X } from "lucide-react";
 import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Button } from "@/presentation/components/ui/button";
-import { FormModal } from "@/presentation/components/modal/FormModal";
-import { AppLoader } from "@/presentation/components/loader";
 import {
   Select,
   SelectContent,
@@ -25,20 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { CreateCategoryForm } from "./CreateCategoryForm";
 import { CategoryTree } from "./CategoryTree";
+import {
+  getCategoryInlineActionsColumn,
+  getCategoryTableColumns,
+} from "./category-table-columns";
 import type { Category } from "@/core/domain/entities/Category";
 
 const CREATE_CATEGORY_FORM_ID = "create-category-form";
 const PAGE_SIZE = 6;
-const FETCH_LIMIT = 200;
 
 type DescriptionFilter = "all" | "with-description" | "no-description";
-
-function getDescription(category: Category) {
-  const description = category.description?.trim();
-  return description && description.length > 0 ? description : "No description";
-}
 
 function getFilterLabel(value: DescriptionFilter) {
   switch (value) {
@@ -53,11 +43,14 @@ function getFilterLabel(value: DescriptionFilter) {
 
 export function CategoryList() {
   const router = useRouter();
-  const { data: categories = [], isLoading, error, refetch } = useCategories({
-    page: 1,
-    limit: FETCH_LIMIT,
+  const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { data: categoriesResult, isLoading, error, refetch } = useCategories({
+    page: pagination.page,
+    limit: PAGE_SIZE,
   });
-  const { data: products = [] } = useProducts({ page: 1, limit: 500 });
+  const { data: productsResult } = useProducts({ page: 1, limit: 500 });
+  const categories = categoriesResult?.items ?? [];
+  const products = productsResult?.items ?? [];
   const deleteCategory = useDeleteCategory();
   const toast = useToast();
   const confirm = useConfirm();
@@ -68,9 +61,6 @@ export function CategoryList() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
-  const [currentPage, setCurrentPage] = useState(1);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [createFormLoading, setCreateFormLoading] = useState(false);
 
   const productCountByCategoryId = useMemo(() => {
     const counts = new Map<string, number>();
@@ -105,51 +95,87 @@ export function CategoryList() {
     });
   }, [categories, descriptionFilter, searchQuery, selectedCategoryId]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCategories.length / PAGE_SIZE),
-  );
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const pageStart = (safeCurrentPage - 1) * PAGE_SIZE;
-  const paginatedCategories = filteredCategories.slice(
-    pageStart,
-    pageStart + PAGE_SIZE,
-  );
-
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, descriptionFilter, selectedCategoryId]);
+    pagination.reset(1);
+  }, [searchQuery, descriptionFilter, selectedCategoryId, pagination.reset]);
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
+  const handleDelete = useCallback(
+    async (category: Category) => {
+      const ok = await confirm({
+        title: "Delete category",
+        description: `Delete "${category.name}"? This cannot be undone.`,
+        confirmLabel: "Delete",
+        variant: "destructive",
+      });
 
-  const handleDelete = async (category: Category) => {
-    const ok = await confirm({
-      title: "Delete category",
-      description: `Delete "${category.name}"? This cannot be undone.`,
-      confirmLabel: "Delete",
-      variant: "destructive",
-    });
+      if (!ok) return;
 
-    if (!ok) return;
-
-    deleteCategory.mutate(String(category.id), {
-      onSuccess: () => toast.success("Category deleted."),
-      onError: () => toast.error("Failed to delete category."),
-    });
-  };
+      deleteCategory.mutate(String(category.id), {
+        onSuccess: () => toast.success("Category deleted."),
+        onError: () => toast.error("Failed to delete category."),
+      });
+    },
+    [confirm, deleteCategory, toast],
+  );
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 ||
     descriptionFilter !== "all" ||
     selectedCategoryId !== null;
 
+  const columns = useMemo(
+    () => [
+      ...getCategoryTableColumns({
+        onView: (category) => router.push(`/categories/${category.id}`),
+        productCountByCategoryId,
+      }),
+      getCategoryInlineActionsColumn({
+        onView: (category) => router.push(`/categories/${category.id}`),
+        onEdit: (category) => router.push(`/categories/${category.id}/edit`),
+        onDelete: handleDelete,
+      }),
+    ],
+    [router, productCountByCategoryId, handleDelete],
+  );
+
   return (
-    <>
-      <div className="rounded-[28px] border border-border bg-background/70 p-5 shadow-sm sm:p-8">
+    <EntityListWithCreateModal<Category>
+      data={filteredCategories}
+      columns={columns}
+      actions={[]}
+      isLoading={isLoading}
+      loadingText="Loading categories..."
+      emptyText="No categories match your current filters."
+      error={
+        error
+          ? {
+              message: "Failed to load categories.",
+              onRetry: () => refetch(),
+            }
+          : undefined
+      }
+      pageSize={PAGE_SIZE}
+      currentPage={pagination.page}
+      totalPages={
+        categoriesResult?.totalPages ?? pagination.getTotalPages(categoriesResult?.total)
+      }
+      totalItems={categoriesResult?.total ?? 0}
+      onPageChange={pagination.setPage}
+      showActionBar={false}
+      addLabel="Add Category"
+      createTitle="Add Category"
+      createSubmitText="Create Category"
+      createLoadingText="Creating..."
+      createFormId={CREATE_CATEGORY_FORM_ID}
+      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
+        <CreateCategoryForm
+          formId={formId}
+          onSuccess={onSuccess}
+          onLoadingChange={onLoadingChange}
+        />
+      )}
+      rootClassName="rounded-[28px] border border-border bg-background/70 p-5 shadow-sm sm:p-8"
+      renderPageHeader={({ openCreate }) => (
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-muted">
@@ -170,7 +196,7 @@ export function CategoryList() {
             </div>
             <Button
               type="button"
-              onClick={() => setCreateModalOpen(true)}
+              onClick={openCreate}
               className="h-11 rounded-xl bg-mint px-5 text-gloss-black hover:bg-mint-hover"
             >
               <Plus className="size-4" />
@@ -178,7 +204,8 @@ export function CategoryList() {
             </Button>
           </div>
         </div>
-
+      )}
+      topContent={
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-border bg-background/80 p-4 shadow-sm md:flex-row md:items-center">
           <label className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
@@ -227,206 +254,26 @@ export function CategoryList() {
             </button>
           ) : null}
         </div>
-
-        <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-          <div className="min-w-0">
-            <CategoryTree
-              selectedCategoryId={selectedCategoryId}
-              onSelectCategory={setSelectedCategoryId}
-            />
-          </div>
-
-          <div className="min-w-0 rounded-2xl border border-border bg-background/80 shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Categories
-                </h2>
-                <p className="mt-1 text-sm text-muted">
-                  Filter: {getFilterLabel(descriptionFilter)}
-                  {selectedCategoryId ? " • Tree selection active" : ""}
-                </p>
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="flex min-h-[360px] items-center justify-center px-6 py-12">
-                <AppLoader
-                  fullScreen={false}
-                  size="sm"
-                  message="Loading categories..."
-                />
-              </div>
-            ) : error ? (
-              <div className="px-6 py-12 text-center">
-                <p className="text-sm text-red-600">
-                  Failed to load categories.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="mt-3 inline-flex rounded-xl border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-mint/10"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          Name
-                        </th>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          Description
-                        </th>
-                        <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          Products
-                        </th>
-                        <th className="px-5 py-4 text-right text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedCategories.length > 0 ? (
-                        paginatedCategories.map((category) => (
-                          <tr
-                            key={String(category.id)}
-                            className="border-b border-border/60 last:border-0 hover:bg-mint/5"
-                          >
-                            <td className="px-5 py-4 align-top">
-                              <button
-                                type="button"
-                                onClick={() => router.push(`/categories/${category.id}`)}
-                                className="text-left text-sm font-semibold text-foreground transition hover:text-mint"
-                              >
-                                {category.name}
-                              </button>
-                            </td>
-                            <td className="px-5 py-4 align-top">
-                              <p className="max-w-[420px] text-sm leading-6 text-muted">
-                                {getDescription(category)}
-                              </p>
-                            </td>
-                            <td className="px-5 py-4 align-top text-sm text-muted">
-                              {productCountByCategoryId.get(String(category.id)) ?? 0}
-                            </td>
-                            <td className="px-5 py-4 align-top">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => router.push(`/categories/${category.id}`)}
-                                  className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted transition hover:border-mint/40 hover:bg-mint/10 hover:text-foreground"
-                                  title={`View ${category.name}`}
-                                  aria-label={`View ${category.name}`}
-                                >
-                                  <Eye className="size-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    router.push(`/categories/${category.id}/edit`)
-                                  }
-                                  className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted transition hover:border-mint/40 hover:bg-mint/10 hover:text-foreground"
-                                  title={`Edit ${category.name}`}
-                                  aria-label={`Edit ${category.name}`}
-                                >
-                                  <PencilLine className="size-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(category)}
-                                  className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
-                                  title={`Delete ${category.name}`}
-                                  aria-label={`Delete ${category.name}`}
-                                >
-                                  <Trash2 className="size-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-5 py-14 text-center text-sm text-muted"
-                          >
-                            No categories match your current filters.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-muted">
-                    Showing{" "}
-                    <span className="font-medium text-foreground">
-                      {filteredCategories.length === 0 ? 0 : pageStart + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium text-foreground">
-                      {Math.min(pageStart + PAGE_SIZE, filteredCategories.length)}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium text-foreground">
-                      {filteredCategories.length}
-                    </span>{" "}
-                    categories
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                      disabled={safeCurrentPage <= 1}
-                      className="inline-flex h-10 items-center justify-center rounded-xl border border-border px-4 text-sm font-medium text-foreground transition hover:bg-mint/10 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Previous
-                    </button>
-                    <div className="rounded-xl bg-background px-4 py-2 text-sm font-medium text-foreground border border-border">
-                      Page {safeCurrentPage} of {totalPages}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCurrentPage((page) => Math.min(totalPages, page + 1))
-                      }
-                      disabled={safeCurrentPage >= totalPages}
-                      className="inline-flex h-10 items-center justify-center rounded-xl border border-border px-4 text-sm font-medium text-foreground transition hover:bg-mint/10 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+      }
+      sidebarContent={
+        <CategoryTree
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={setSelectedCategoryId}
+        />
+      }
+      tablePanelClassName="rounded-2xl border border-border bg-background/80 shadow-sm"
+      tableContentClassName="px-5 pb-5"
+      tablePanelHeader={
+        <div className="flex flex-col gap-3 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Categories</h2>
+            <p className="mt-1 text-sm text-muted">
+              Filter: {getFilterLabel(descriptionFilter)}
+              {selectedCategoryId ? " • Tree selection active" : ""}
+            </p>
           </div>
         </div>
-      </div>
-
-      <FormModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        title="Add Category"
-        formId={CREATE_CATEGORY_FORM_ID}
-        formContent={
-          <CreateCategoryForm
-            formId={CREATE_CATEGORY_FORM_ID}
-            onSuccess={() => setCreateModalOpen(false)}
-            onLoadingChange={setCreateFormLoading}
-          />
-        }
-        submitText="Create Category"
-        loadingText="Creating..."
-        isLoading={createFormLoading}
-        maxWidth="md"
-      />
-    </>
+      }
+    />
   );
 }

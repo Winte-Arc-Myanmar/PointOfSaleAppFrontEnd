@@ -11,9 +11,10 @@ import type {
   GetInventoryLedgerExpiringParams,
   GetInventoryLedgerParams,
 } from "../repositories/IInventoryLedgerRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface IInventoryLedgerService {
-  getAll(params?: GetInventoryLedgerParams): Promise<InventoryLedgerEntry[]>;
+  getAll(params?: GetInventoryLedgerParams): Promise<PaginatedResult<InventoryLedgerEntry>>;
   getExpiring(
     params?: GetInventoryLedgerExpiringParams
   ): Promise<InventoryLedgerEntry[]>;

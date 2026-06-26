@@ -12,8 +12,13 @@ import type { ProductVariantDto } from "@/core/application/dtos/ProductVariantDt
 import {
   toProductVariant,
 } from "@/core/application/mappers/ProductVariantMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiProductVariantRepository implements IProductVariantRepository {
   constructor(private readonly httpClient: HttpClient) {}
@@ -21,20 +26,19 @@ export class ApiProductVariantRepository implements IProductVariantRepository {
   async getAll(
     productId: string,
     params?: GetProductVariantsParams
-  ): Promise<ProductVariant[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
+  ): Promise<PaginatedResult<ProductVariant>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
     const endpoints = API_ENDPOINTS.PRODUCTS.VARIANTS(productId);
-    const res = await this.httpClient.get<
-      ProductVariantDto[] | { data?: ProductVariantDto[] }
-    >(endpoints.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is ProductVariantDto & { id: string } => !!dto?.id)
-      .map((d) => toProductVariant(productId, d));
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(endpoints.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<ProductVariantDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toProductVariant(productId, dto as ProductVariantDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getById(

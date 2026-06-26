@@ -1,5 +1,7 @@
 import type { SalesOrder } from "../entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
+import type { PaginatedResult } from "../types/pagination";
+
 
 export interface GetSalesOrdersParams {
   page?: number;
@@ -14,7 +16,7 @@ export interface GetSalesOrdersParams {
 }
 
 export interface ISalesOrderRepository {
-  getAll(params?: GetSalesOrdersParams): Promise<SalesOrder[]>;
+  getAll(params?: GetSalesOrdersParams): Promise<PaginatedResult<SalesOrder>>;
   getById(id: string): Promise<SalesOrder | null>;
   create(data: Omit<SalesOrderDto, "id" | "createdAt" | "updatedAt">): Promise<SalesOrder>;
   update(

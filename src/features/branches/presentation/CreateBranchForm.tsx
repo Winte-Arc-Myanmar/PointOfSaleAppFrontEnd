@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { BranchLocationCapture } from "./BranchLocationCapture";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -78,7 +79,8 @@ export function CreateBranchForm({
 }: CreateBranchFormProps) {
   const createBranch = useCreateBranch();
   const toast = useToast();
-  const { data: tenants = [] } = useTenants();
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
 
   useEffect(() => {
     onLoadingChange?.(createBranch.isPending ?? false);

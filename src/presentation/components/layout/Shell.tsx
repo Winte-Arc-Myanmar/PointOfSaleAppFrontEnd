@@ -30,6 +30,13 @@ const routeTitles: Record<string, string> = {
   "/admin/assign-permissions": "Assign permissions",
   "/admin/assign-role": "Assign role",
   "/chart-of-accounts": "Chart of Accounts",
+  "/accounting-periods": "Accounting Periods",
+  "/exchange-rates": "Exchange Rates",
+  "/tax-rates": "Tax Rates",
+  "/journal-entries": "Journal Entries",
+  "/journal-lines": "Journal Lines",
+  "/bank-statements": "Bank Statements",
+  "/bank-statement-lines": "Bank Statement Lines",
 };
 
 function getTitle(pathname: string): string {
@@ -64,6 +71,29 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
     return "Edit chart account";
   if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
+  if (pathname.startsWith("/accounting-periods/") && pathname.endsWith("/edit"))
+    return "Edit accounting period";
+  if (pathname.startsWith("/accounting-periods/")) return "Accounting period";
+  if (pathname.startsWith("/exchange-rates/") && pathname.endsWith("/edit"))
+    return "Edit exchange rate";
+  if (pathname.startsWith("/exchange-rates/")) return "Exchange rate";
+  if (pathname.startsWith("/tax-rates/") && pathname.endsWith("/edit"))
+    return "Edit tax rate";
+  if (pathname.startsWith("/tax-rates/")) return "Tax rate";
+  if (pathname.startsWith("/journal-entries/") && pathname.endsWith("/edit"))
+    return "Edit journal entry";
+  if (pathname.startsWith("/journal-entries/")) return "Journal entry";
+  if (pathname.startsWith("/journal-lines/") && pathname.endsWith("/edit"))
+    return "Edit journal line";
+  if (pathname.match(/^\/journal-lines\/[^/]+\/[^/]+$/)) return "Journal line";
+  if (pathname.startsWith("/journal-lines/")) return "Journal lines";
+  if (pathname.startsWith("/bank-statements/") && pathname.endsWith("/edit"))
+    return "Edit bank statement";
+  if (pathname.startsWith("/bank-statements/")) return "Bank statement";
+  if (pathname.startsWith("/bank-statement-lines/") && pathname.endsWith("/edit"))
+    return "Edit bank statement line";
+  if (pathname.match(/^\/bank-statement-lines\/[^/]+\/[^/]+$/)) return "Bank statement line";
+  if (pathname.startsWith("/bank-statement-lines/")) return "Bank statement lines";
   return routeTitles[pathname] ?? "";
 }
 
@@ -100,6 +130,13 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/pos-sessions", labelKey: "nav.posSessions" },
   { href: "/payment-methods", labelKey: "nav.paymentMethods" },
   { href: "/chart-of-accounts", labelKey: "nav.chartOfAccounts" },
+  { href: "/accounting-periods", labelKey: "nav.accountingPeriods" },
+  { href: "/exchange-rates", labelKey: "nav.exchangeRates" },
+  { href: "/tax-rates", labelKey: "nav.taxRates" },
+  { href: "/journal-entries", labelKey: "nav.journalEntries" },
+  { href: "/journal-lines", labelKey: "nav.journalLines" },
+  { href: "/bank-statements", labelKey: "nav.bankStatements" },
+  { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

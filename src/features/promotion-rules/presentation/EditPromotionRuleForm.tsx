@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { AppLoader } from "@/presentation/components/loader";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -59,7 +60,8 @@ export function EditPromotionRuleForm({ ruleId }: { ruleId: string }) {
   const toast = useToast();
   const update = useUpdatePromotionRule();
   const { data: rule, isLoading, error } = usePromotionRule(ruleId);
-  const { data: tenants = [] } = useTenants();
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({

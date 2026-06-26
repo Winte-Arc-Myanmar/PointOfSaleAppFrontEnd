@@ -16,11 +16,13 @@ import { DataTable } from "@/presentation/components/data-table";
 import { FormModal } from "@/presentation/components/modal/FormModal";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { usePagination } from "@/presentation/hooks/usePagination";
 import { useSalesOrder } from "@/presentation/hooks/useSalesOrders";
 import { useCreateSalesOrderLine, useDeleteSalesOrderLine, useSalesOrderLines } from "@/presentation/hooks/useSalesOrderLines";
 import { useCreateSalesOrderPayment, useDeleteSalesOrderPayment, useSalesOrderPayments } from "@/presentation/hooks/useSalesOrderPayments";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import type { SalesOrderLine } from "@/core/domain/entities/SalesOrderLine";
 import type { SalesOrderPayment } from "@/core/domain/entities/SalesOrderPayment";
 import { Input } from "@/presentation/components/ui/input";
@@ -36,6 +38,7 @@ import {
 
 const CREATE_LINE_FORM_ID = "create-sales-order-line";
 const CREATE_PAYMENT_FORM_ID = "create-sales-order-payment";
+const DETAIL_PAGE_SIZE = 10;
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -43,8 +46,18 @@ function money(n: number): string {
 
 export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
   const { data: order, isLoading, error } = useSalesOrder(salesOrderId);
-  const { data: lines = [], isLoading: linesLoading } = useSalesOrderLines(salesOrderId, { page: 1, limit: 50 });
-  const { data: payments = [], isLoading: payLoading } = useSalesOrderPayments(salesOrderId, { page: 1, limit: 50 });
+  const linePagination = usePagination({ pageSize: DETAIL_PAGE_SIZE });
+  const paymentPagination = usePagination({ pageSize: DETAIL_PAGE_SIZE });
+  const { data: linesResult, isLoading: linesLoading } = useSalesOrderLines(salesOrderId, {
+    page: linePagination.page,
+    limit: DETAIL_PAGE_SIZE,
+  });
+  const { data: paymentsResult, isLoading: payLoading } = useSalesOrderPayments(salesOrderId, {
+    page: paymentPagination.page,
+    limit: DETAIL_PAGE_SIZE,
+  });
+  const lines = linesResult?.items ?? [];
+  const payments = paymentsResult?.items ?? [];
   const createLine = useCreateSalesOrderLine(salesOrderId);
   const createPayment = useCreateSalesOrderPayment(salesOrderId);
   const delLine = useDeleteSalesOrderLine(salesOrderId);
@@ -207,7 +220,11 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           isLoading={linesLoading}
           loadingText="Loading lines..."
           emptyText="No lines yet."
-          pageSize={10}
+          pageSize={DETAIL_PAGE_SIZE}
+          currentPage={linePagination.page}
+          totalPages={linesResult?.totalPages ?? linePagination.getTotalPages(linesResult?.total)}
+          totalItems={linesResult?.total ?? 0}
+          onPageChange={linePagination.setPage}
         />
       </div>
 
@@ -245,7 +262,13 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           isLoading={payLoading}
           loadingText="Loading payments..."
           emptyText="No payments yet."
-          pageSize={10}
+          pageSize={DETAIL_PAGE_SIZE}
+          currentPage={paymentPagination.page}
+          totalPages={
+            paymentsResult?.totalPages ?? paymentPagination.getTotalPages(paymentsResult?.total)
+          }
+          totalItems={paymentsResult?.total ?? 0}
+          onPageChange={paymentPagination.setPage}
         />
       </div>
 
@@ -375,18 +398,20 @@ function CreatePaymentInline({
   onLoadingChange: (loading: boolean) => void;
 }) {
   const toast = useToast();
-  const { data: paymentMethods = [] } = usePaymentMethods({
+  const { data: paymentMethodsResult } = usePaymentMethods({
     page: 1,
     limit: 200,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  const { data: posSessions = [] } = usePosSessions({
+  const { data: posSessionsResult } = usePosSessions({
     page: 1,
     limit: 200,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+  const paymentMethods = getPaginatedItems(paymentMethodsResult);
+  const posSessions = getPaginatedItems(posSessionsResult);
   const form = useForm({
     defaultValues: {
       tenantId: "",

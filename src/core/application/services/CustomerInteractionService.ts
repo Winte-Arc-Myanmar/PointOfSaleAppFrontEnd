@@ -10,6 +10,7 @@ import type {
 } from "@/core/domain/repositories/ICustomerInteractionRepository";
 import type { ICustomerInteractionService } from "@/core/domain/services/ICustomerInteractionService";
 import type { CustomerInteractionDto } from "../dtos/CustomerInteractionDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class CustomerInteractionService implements ICustomerInteractionService {
   constructor(private readonly repository: ICustomerInteractionRepository) {}
@@ -17,7 +18,7 @@ export class CustomerInteractionService implements ICustomerInteractionService {
   async getAll(
     customerId: string,
     params?: GetCustomerInteractionsParams
-  ): Promise<CustomerInteraction[]> {
+  ): Promise<PaginatedResult<CustomerInteraction>> {
     return this.repository.getAll(customerId, params);
   }
 

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { CUSTOMER_ACCOUNT_TYPES, CUSTOMER_LOYALTY_TIERS } from "./customer-constants";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -64,7 +65,8 @@ export function CreateCustomerForm({
   const { tenantId: lockedTenantId } = usePermissions();
   const createCustomer = useCreateCustomer();
   const toast = useToast();
-  const { data: tenants = [], isLoading: isTenantsLoading } = useTenants();
+  const { data: tenantsData, isLoading: isTenantsLoading } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
 
   useEffect(() => {
     onLoadingChange?.(createCustomer.isPending ?? false);

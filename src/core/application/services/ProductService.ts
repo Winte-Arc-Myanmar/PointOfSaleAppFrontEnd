@@ -8,11 +8,12 @@ import type { IProductRepository } from "@/core/domain/repositories/IProductRepo
 import type { GetProductsParams } from "@/core/domain/repositories/IProductRepository";
 import type { Product } from "@/core/domain/entities/Product";
 import type { ProductDto } from "../dtos/ProductDto";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 export class ProductService implements IProductService {
   constructor(private readonly productRepository: IProductRepository) {}
 
-  async getAll(params?: GetProductsParams): Promise<Product[]> {
+  async getAll(params?: GetProductsParams): Promise<PaginatedResult<Product>> {
     return this.productRepository.getAll(params);
   }
 

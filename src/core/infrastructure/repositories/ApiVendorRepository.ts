@@ -10,23 +10,29 @@ import type {
 } from "@/core/domain/repositories/IVendorRepository";
 import type { VendorDto } from "@/core/application/dtos/VendorDto";
 import { toVendor } from "@/core/application/mappers/VendorMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 export class ApiVendorRepository implements IVendorRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetVendorsParams): Promise<Vendor[]> {
-    const query = { page: params?.page ?? 1, limit: params?.limit ?? 10 };
-    const res = await this.httpClient.get<VendorDto[] | { data?: VendorDto[] }>(
-      API_ENDPOINTS.VENDORS.LIST,
-      { params: query }
+  async getAll(params?: GetVendorsParams): Promise<PaginatedResult<Vendor>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.VENDORS.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<VendorDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toVendor(dto as VendorDto & { id: string }),
+      (dto) => !!dto?.id,
     );
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((dto): dto is VendorDto & { id: string } => !!dto?.id)
-      .map(toVendor);
   }
 
   async getById(id: string): Promise<Vendor | null> {

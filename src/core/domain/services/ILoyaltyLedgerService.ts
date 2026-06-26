@@ -6,12 +6,13 @@
 import type { LoyaltyLedgerEntry } from "../entities/LoyaltyLedgerEntry";
 import type { LoyaltyLedgerEntryDto } from "@/core/application/dtos/LoyaltyLedgerEntryDto";
 import type { GetLoyaltyLedgerParams } from "../repositories/ILoyaltyLedgerRepository";
+import type { PaginatedResult } from "../types/pagination";
 
 export interface ILoyaltyLedgerService {
   getAll(
     customerId: string,
     params?: GetLoyaltyLedgerParams
-  ): Promise<LoyaltyLedgerEntry[]>;
+  ): Promise<PaginatedResult<LoyaltyLedgerEntry>>;
   getById(customerId: string, id: string): Promise<LoyaltyLedgerEntry | null>;
   create(
     customerId: string,

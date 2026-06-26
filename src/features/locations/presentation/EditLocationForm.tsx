@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const PARENT_NONE = "__none__";
 
@@ -50,11 +51,13 @@ export function EditLocationForm({ locationId }: { locationId: string }) {
   const { tenantId: lockedTenantId } = usePermissions();
   const toast = useToast();
   const { data: location, isLoading, error } = useLocation(locationId);
-  const { data: tenants = [] } = useTenants();
-  const { data: allLocations = [], isLoading: isLocationsLoading } = useLocations({
+  const { data: tenantsData } = useTenants();
+  const tenants = getPaginatedItems(tenantsData);
+  const { data: allLocationsData, isLoading: isLocationsLoading } = useLocations({
     page: 1,
     limit: 200,
   });
+  const allLocations = getPaginatedItems(allLocationsData);
   const updateLocation = useUpdateLocation();
   const [showSuccess, setShowSuccess] = useState(false);
 

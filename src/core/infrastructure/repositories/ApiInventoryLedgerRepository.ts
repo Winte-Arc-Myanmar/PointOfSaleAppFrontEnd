@@ -13,8 +13,13 @@ import type {
   InventoryLedgerWriteOffDto,
 } from "@/core/application/dtos/InventoryLedgerDto";
 import { toInventoryLedgerEntry } from "@/core/application/mappers/InventoryLedgerMapper";
+import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
+import {
+  mapPaginatedResult,
+  parsePaginatedResponse,
+} from "../api/parsePaginatedResponse";
 
 function toApiDecimalString(value: unknown): string {
   if (typeof value === "number" && Number.isFinite(value)) return String(value);
@@ -72,19 +77,18 @@ function normalizeWriteOff(
 export class ApiInventoryLedgerRepository implements IInventoryLedgerRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getAll(params?: GetInventoryLedgerParams): Promise<InventoryLedgerEntry[]> {
-    const query = {
-      page: params?.page ?? 1,
-      limit: params?.limit ?? 10,
-    };
-    const res = await this.httpClient.get<
-      InventoryLedgerDto[] | { data?: InventoryLedgerDto[] }
-    >(API_ENDPOINTS.INVENTORY_LEDGER.LIST, { params: query });
-    const list = Array.isArray(res) ? res : res?.data ?? [];
-    const dtos = Array.isArray(list) ? list : [];
-    return dtos
-      .filter((d): d is InventoryLedgerDto & { id: string } => !!d?.id)
-      .map((d) => toInventoryLedgerEntry(d as InventoryLedgerDto & { id: string }));
+  async getAll(params?: GetInventoryLedgerParams): Promise<PaginatedResult<InventoryLedgerEntry>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(API_ENDPOINTS.INVENTORY_LEDGER.LIST, {
+      params: { page, limit },
+    });
+    const parsed = parsePaginatedResponse<InventoryLedgerDto>({ data, meta }, { page, limit });
+    return mapPaginatedResult(
+      parsed,
+      (dto) => toInventoryLedgerEntry(dto as InventoryLedgerDto & { id: string }),
+      (dto) => !!dto?.id,
+    );
   }
 
   async getExpiring(
