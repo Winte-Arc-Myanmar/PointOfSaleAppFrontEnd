@@ -257,6 +257,20 @@ export const API_ENDPOINTS = {
       DELETE: (id: string) => `/v1/bank-statements/${bankStatementId}/lines/${id}`,
     }),
   },
+  RECONCILIATION_MATCHES: {
+    LIST: "/v1/reconciliation-matches",
+    BY_ID: (id: string) => `/v1/reconciliation-matches/${id}`,
+    CREATE: "/v1/reconciliation-matches",
+    UPDATE: (id: string) => `/v1/reconciliation-matches/${id}`,
+    DELETE: (id: string) => `/v1/reconciliation-matches/${id}`,
+  },
+  FIXED_ASSETS: {
+    LIST: "/v1/fixed-assets",
+    BY_ID: (id: string) => `/v1/fixed-assets/${id}`,
+    CREATE: "/v1/fixed-assets",
+    UPDATE: (id: string) => `/v1/fixed-assets/${id}`,
+    DELETE: (id: string) => `/v1/fixed-assets/${id}`,
+  },
   CHECKOUT: {
     PROCESS: "/v1/checkout",
     VOID: (id: string) => `/v1/checkout/${id}/void`,

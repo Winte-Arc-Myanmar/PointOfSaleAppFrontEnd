@@ -37,6 +37,8 @@ const routeTitles: Record<string, string> = {
   "/journal-lines": "Journal Lines",
   "/bank-statements": "Bank Statements",
   "/bank-statement-lines": "Bank Statement Lines",
+  "/reconciliation-matches": "Reconciliation Matches",
+  "/fixed-assets": "Fixed Assets",
 };
 
 function getTitle(pathname: string): string {
@@ -94,6 +96,12 @@ function getTitle(pathname: string): string {
     return "Edit bank statement line";
   if (pathname.match(/^\/bank-statement-lines\/[^/]+\/[^/]+$/)) return "Bank statement line";
   if (pathname.startsWith("/bank-statement-lines/")) return "Bank statement lines";
+  if (pathname.startsWith("/reconciliation-matches/") && pathname.endsWith("/edit"))
+    return "Edit reconciliation match";
+  if (pathname.startsWith("/reconciliation-matches/")) return "Reconciliation match";
+  if (pathname.startsWith("/fixed-assets/") && pathname.endsWith("/edit"))
+    return "Edit fixed asset";
+  if (pathname.startsWith("/fixed-assets/")) return "Fixed asset";
   return routeTitles[pathname] ?? "";
 }
 
@@ -137,6 +145,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/journal-lines", labelKey: "nav.journalLines" },
   { href: "/bank-statements", labelKey: "nav.bankStatements" },
   { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
+  { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
+  { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },
