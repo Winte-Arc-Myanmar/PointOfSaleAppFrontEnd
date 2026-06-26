@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Info } from "lucide-react";
+import { Building2, Info, CalendarClock } from "lucide-react";
 import { useFixedAsset } from "@/presentation/hooks/useFixedAssets";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -68,6 +68,15 @@ export function FixedAssetDetail({ fixedAssetId }: { fixedAssetId: string }) {
         title={safeText(asset.assetName)}
         editHref={`/fixed-assets/${asset.id}/edit`}
       />
+
+      <div className="flex flex-wrap gap-2">
+        <Link href={`/depreciation-schedules/${asset.id}`}>
+          <Button variant="outline" size="sm" className="gap-2">
+            <CalendarClock className="h-4 w-4" />
+            View depreciation schedules
+          </Button>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Building2}>

@@ -39,6 +39,7 @@ const routeTitles: Record<string, string> = {
   "/bank-statement-lines": "Bank Statement Lines",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
+  "/depreciation-schedules": "Depreciation Schedules",
 };
 
 function getTitle(pathname: string): string {
@@ -102,6 +103,14 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/fixed-assets/") && pathname.endsWith("/edit"))
     return "Edit fixed asset";
   if (pathname.startsWith("/fixed-assets/")) return "Fixed asset";
+  if (
+    pathname.startsWith("/depreciation-schedules/") &&
+    pathname.endsWith("/edit")
+  )
+    return "Edit depreciation schedule";
+  if (pathname.match(/^\/depreciation-schedules\/[^/]+\/[^/]+$/))
+    return "Depreciation schedule";
+  if (pathname.startsWith("/depreciation-schedules/")) return "Depreciation schedules";
   return routeTitles[pathname] ?? "";
 }
 
@@ -147,6 +156,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
+  { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

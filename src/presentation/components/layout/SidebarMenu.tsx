@@ -41,6 +41,7 @@ import {
   Landmark,
   GitCompareArrows,
   Building,
+  CalendarClock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -174,6 +175,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.fixedAssets",
     icon: Building,
     permissions: ["fixed-assets:read"],
+  },
+  {
+    href: "/depreciation-schedules",
+    labelKey: "nav.depreciationSchedules",
+    icon: CalendarClock,
+    permissions: ["depreciation-schedules:read"],
   },
   {
     href: "/checkout",

@@ -270,6 +270,13 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/fixed-assets",
     UPDATE: (id: string) => `/v1/fixed-assets/${id}`,
     DELETE: (id: string) => `/v1/fixed-assets/${id}`,
+    SCHEDULES: (fixedAssetId: string) => ({
+      LIST: `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules`,
+      BY_ID: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+      CREATE: `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules`,
+      UPDATE: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+      DELETE: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+    }),
   },
   CHECKOUT: {
     PROCESS: "/v1/checkout",

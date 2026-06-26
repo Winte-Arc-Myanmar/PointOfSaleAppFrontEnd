@@ -76,6 +76,8 @@ import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliat
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
 import { FixedAssetService } from "@/core/application/services/FixedAssetService";
+import { ApiDepreciationScheduleRepository } from "../repositories/ApiDepreciationScheduleRepository";
+import { DepreciationScheduleService } from "@/core/application/services/DepreciationScheduleService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -154,6 +156,8 @@ import type { IReconciliationMatchRepository } from "@/core/domain/repositories/
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
 import type { IFixedAssetService } from "@/core/domain/services/IFixedAssetService";
+import type { IDepreciationScheduleRepository } from "@/core/domain/repositories/IDepreciationScheduleRepository";
+import type { IDepreciationScheduleService } from "@/core/domain/services/IDepreciationScheduleService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -252,6 +256,10 @@ class Container {
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
     const fixedAssetService = new FixedAssetService(fixedAssetRepository);
+    const depreciationScheduleRepository = new ApiDepreciationScheduleRepository(httpClient);
+    const depreciationScheduleService = new DepreciationScheduleService(
+      depreciationScheduleRepository
+    );
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -419,6 +427,14 @@ class Container {
     );
     this.register<IFixedAssetRepository>("fixedAssetRepository", fixedAssetRepository);
     this.register<IFixedAssetService>("fixedAssetService", fixedAssetService);
+    this.register<IDepreciationScheduleRepository>(
+      "depreciationScheduleRepository",
+      depreciationScheduleRepository
+    );
+    this.register<IDepreciationScheduleService>(
+      "depreciationScheduleService",
+      depreciationScheduleService
+    );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
     this.register<IReceiptRepository>("receiptRepository", receiptRepository);
