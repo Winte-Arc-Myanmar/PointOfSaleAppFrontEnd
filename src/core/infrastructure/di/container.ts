@@ -72,6 +72,10 @@ import { ApiBankStatementRepository } from "../repositories/ApiBankStatementRepo
 import { BankStatementService } from "@/core/application/services/BankStatementService";
 import { ApiBankStatementLineRepository } from "../repositories/ApiBankStatementLineRepository";
 import { BankStatementLineService } from "@/core/application/services/BankStatementLineService";
+import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliationMatchRepository";
+import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
+import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
+import { FixedAssetService } from "@/core/application/services/FixedAssetService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -146,6 +150,10 @@ import type { IBankStatementRepository } from "@/core/domain/repositories/IBankS
 import type { IBankStatementService } from "@/core/domain/services/IBankStatementService";
 import type { IBankStatementLineRepository } from "@/core/domain/repositories/IBankStatementLineRepository";
 import type { IBankStatementLineService } from "@/core/domain/services/IBankStatementLineService";
+import type { IReconciliationMatchRepository } from "@/core/domain/repositories/IReconciliationMatchRepository";
+import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
+import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
+import type { IFixedAssetService } from "@/core/domain/services/IFixedAssetService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -240,6 +248,10 @@ class Container {
     const bankStatementService = new BankStatementService(bankStatementRepository);
     const bankStatementLineRepository = new ApiBankStatementLineRepository(httpClient);
     const bankStatementLineService = new BankStatementLineService(bankStatementLineRepository);
+    const reconciliationMatchRepository = new ApiReconciliationMatchRepository(httpClient);
+    const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
+    const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
+    const fixedAssetService = new FixedAssetService(fixedAssetRepository);
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -397,6 +409,16 @@ class Container {
       "bankStatementLineService",
       bankStatementLineService
     );
+    this.register<IReconciliationMatchRepository>(
+      "reconciliationMatchRepository",
+      reconciliationMatchRepository
+    );
+    this.register<IReconciliationMatchService>(
+      "reconciliationMatchService",
+      reconciliationMatchService
+    );
+    this.register<IFixedAssetRepository>("fixedAssetRepository", fixedAssetRepository);
+    this.register<IFixedAssetService>("fixedAssetService", fixedAssetService);
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
     this.register<IReceiptRepository>("receiptRepository", receiptRepository);

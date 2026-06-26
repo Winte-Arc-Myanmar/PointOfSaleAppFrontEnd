@@ -39,6 +39,8 @@ import {
   NotebookPen,
   ListTree,
   Landmark,
+  GitCompareArrows,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -160,6 +162,18 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.bankStatementLines",
     icon: ListTree,
     permissions: ["bank-statement-lines:read"],
+  },
+  {
+    href: "/reconciliation-matches",
+    labelKey: "nav.reconciliationMatches",
+    icon: GitCompareArrows,
+    permissions: ["reconciliation-matches:read"],
+  },
+  {
+    href: "/fixed-assets",
+    labelKey: "nav.fixedAssets",
+    icon: Building,
+    permissions: ["fixed-assets:read"],
   },
   {
     href: "/checkout",
