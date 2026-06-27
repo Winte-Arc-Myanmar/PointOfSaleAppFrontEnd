@@ -15,6 +15,8 @@ import {
   FolderTree,
   MapPin,
   Warehouse,
+  UtensilsCrossed,
+  LayoutGrid,
   ScrollText,
   Truck,
   UserRound,
@@ -82,6 +84,18 @@ const allMenuItems: MenuItem[] = [
   { href: "/categories", labelKey: "nav.categories", icon: FolderTree, permissions: ["categories:read"] },
   { href: "/branches", labelKey: "nav.branches", icon: MapPin, permissions: ["branches:read"] },
   { href: "/locations", labelKey: "nav.locations", icon: Warehouse, permissions: ["locations:read"] },
+  {
+    href: "/dining-zones",
+    labelKey: "nav.diningZones",
+    icon: UtensilsCrossed,
+    permissions: ["dining-zones:read"],
+  },
+  {
+    href: "/dining-tables",
+    labelKey: "nav.diningTables",
+    icon: LayoutGrid,
+    permissions: ["dining-tables:read"],
+  },
   {
     href: "/inventory-ledger",
     labelKey: "nav.inventoryLedger",
