@@ -47,6 +47,7 @@ import {
   Layers3,
   Printer,
   ClipboardList,
+  TvMinimal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -116,6 +117,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.tableSessions",
     icon: ClipboardList,
     permissions: ["table-sessions:read"],
+  },
+  {
+    href: "/kds-stations",
+    labelKey: "nav.kdsStations",
+    icon: TvMinimal,
+    permissions: ["kds-stations:read"],
   },
   {
     href: "/inventory-ledger",

@@ -173,6 +173,13 @@ export const API_ENDPOINTS = {
       `/v1/table-sessions/${id}/seats/${allocationId}`,
     CHECKOUT: (id: string) => `/v1/table-sessions/${id}/checkout`,
   },
+  KDS_STATIONS: {
+    LIST: "/v1/kds/stations",
+    BY_ID: (id: string) => `/v1/kds/stations/${id}`,
+    CREATE: "/v1/kds/stations",
+    UPDATE: (id: string) => `/v1/kds/stations/${id}`,
+    DELETE: (id: string) => `/v1/kds/stations/${id}`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",

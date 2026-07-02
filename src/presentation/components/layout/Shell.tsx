@@ -26,6 +26,7 @@ const routeTitles: Record<string, string> = {
   "/sections": "Sections",
   "/kitchen-printers": "Kitchen Printers",
   "/table-sessions": "Table Sessions",
+  "/kds-stations": "KDS Stations",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -75,6 +76,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/table-sessions/") && pathname.endsWith("/edit"))
     return "Edit table session";
   if (pathname.startsWith("/table-sessions/")) return "Table session";
+  if (pathname.startsWith("/kds-stations/") && pathname.endsWith("/edit"))
+    return "Edit KDS station";
+  if (pathname.startsWith("/kds-stations/")) return "KDS station";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -162,6 +166,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/sections", labelKey: "nav.sections" },
   { href: "/kitchen-printers", labelKey: "nav.kitchenPrinters" },
   { href: "/table-sessions", labelKey: "nav.tableSessions" },
+  { href: "/kds-stations", labelKey: "nav.kdsStations" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },
