@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutGrid, List, Move, Plus } from "lucide-react";
+import { LayoutGrid, List, Move, Plus, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/presentation/components/ui/input";
 import { Button } from "@/presentation/components/ui/button";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
@@ -28,6 +28,7 @@ import { TableStatusTabs } from "@/features/dining/shared/TableStatusTabs";
 import { FloorPlanCanvas } from "@/features/dining/shared/FloorPlanCanvas";
 import { DiningTableTile } from "@/features/dining/shared/DiningTableTile";
 import { countTablesByStatus } from "@/features/dining/shared/dining-ui";
+import { DiningEmptyState } from "@/features/dining/shared/DiningEmptyState";
 import { AppLoader } from "@/presentation/components/loader";
 
 const CREATE_FORM_ID = "create-dining-table-form";
@@ -47,7 +48,7 @@ export function DiningTableList() {
   const updateTable = useUpdateDiningTable();
   const updateStatus = useUpdateDiningTableStatus();
 
-  const { data: zonesData } = useDiningZones({
+  const { data: zonesData, isLoading: zonesLoading } = useDiningZones({
     page: 1,
     limit: LIST_LIMIT,
     sortBy: "sortOrder",
@@ -184,6 +185,18 @@ export function DiningTableList() {
     );
   };
 
+  const emptyTableTitle = search
+    ? "No tables match your search"
+    : statusFilter !== "ALL"
+      ? `No ${statusFilter.toLowerCase()} tables on this floor`
+      : "No tables on this floor yet";
+
+  const emptyTableDescription = search
+    ? "Try a different table number or clear the search."
+    : statusFilter !== "ALL"
+      ? "Change the status filter or add a new table to this zone."
+      : "Add tables to build your floor plan and start seating guests.";
+
   const createModal = (
     <FormModal
       isOpen={createOpen}
@@ -208,6 +221,19 @@ export function DiningTableList() {
 
   return (
     <div className="space-y-5">
+      {zonesLoading ? (
+        <AppLoader fullScreen={false} size="sm" message="Loading dining zones..." />
+      ) : zones.length === 0 ? (
+        <div className="panel rounded-xl bg-background/80">
+          <DiningEmptyState
+            icon={UtensilsCrossed}
+            title="No dining zones yet"
+            description="Create a dining zone first, then add tables to its floor plan."
+            linkAction={{ label: "Create dining zone", href: "/dining-zones" }}
+          />
+        </div>
+      ) : (
+        <>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <ZoneTabs zones={zones} value={selectedZoneId} onChange={setSelectedZoneId} />
         <div className="flex items-center gap-2 shrink-0">
@@ -307,6 +333,13 @@ export function DiningTableList() {
                 editable={arrangeMode}
                 onTablePositionChange={handleTablePositionChange}
                 onTableClick={arrangeMode ? undefined : (t) => router.push(`/dining-tables/${t.id}`)}
+                emptyTitle={emptyTableTitle}
+                emptyDescription={emptyTableDescription}
+                emptyAction={
+                  !search && statusFilter === "ALL"
+                    ? { label: "Add table", onClick: () => setCreateOpen(true) }
+                    : undefined
+                }
               />
               {floorTables.length > 0 && !arrangeMode && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -353,7 +386,8 @@ export function DiningTableList() {
           actions={actions}
           isLoading={listQuery.isLoading}
           loadingText="Loading tables..."
-          emptyText={search ? "No tables match your search." : "No tables on this floor yet."}
+          emptyText={emptyTableTitle}
+          emptyAction={{ label: "Add table", onClick: () => setCreateOpen(true) }}
           error={
             listQuery.error
               ? { message: "Failed to load tables.", onRetry: () => listQuery.refetch() }
@@ -380,6 +414,8 @@ export function DiningTableList() {
       )}
 
       {viewMode === "list" && createModal}
+        </>
+      )}
     </div>
   );
 }

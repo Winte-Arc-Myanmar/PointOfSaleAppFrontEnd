@@ -26,6 +26,8 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   isLoading: boolean;
   loadingText: string;
   emptyText: string;
+  /** Overrides the default create-button empty CTA when set. */
+  emptyAction?: { label: string; onClick: () => void };
   error?: { message: string; onRetry?: () => void };
   pageSize?: number;
   /** Server-side pagination (optional). When provided, pagination controls will request pages from the parent. */
@@ -80,6 +82,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   isLoading,
   loadingText,
   emptyText,
+  emptyAction: emptyActionOverride,
   error,
   pageSize = 10,
   currentPage,
@@ -182,12 +185,13 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
       loadingText={loadingText}
       emptyText={emptyText}
       emptyAction={
-        createEnabled
+        emptyActionOverride ??
+        (createEnabled
           ? {
               label: addLabel,
               onClick: openCreate,
             }
-          : undefined
+          : undefined)
       }
       error={error}
       pageSize={pageSize}
