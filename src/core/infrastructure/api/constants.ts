@@ -132,6 +132,23 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/v1/dining-tables/${id}`,
     UPDATE_STATUS: (id: string) => `/v1/dining-tables/${id}/status`,
   },
+  SECTIONS: {
+    LIST: "/v1/sections",
+    BY_ID: (id: string) => `/v1/sections/${id}`,
+    CREATE: "/v1/sections",
+    UPDATE: (id: string) => `/v1/sections/${id}`,
+    DELETE: (id: string) => `/v1/sections/${id}`,
+    TABLES: {
+      ATTACH: (id: string) => `/v1/sections/${id}/tables`,
+      DETACH: (id: string, tableId: string) => `/v1/sections/${id}/tables/${tableId}`,
+    },
+    ASSIGNMENTS: {
+      LIST: (id: string) => `/v1/sections/${id}/assignments`,
+      CREATE: (id: string) => `/v1/sections/${id}/assignments`,
+      UPDATE: (assignmentId: string) => `/v1/sections/assignments/${assignmentId}`,
+      END: (assignmentId: string) => `/v1/sections/assignments/${assignmentId}/end`,
+    },
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",

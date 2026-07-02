@@ -16,6 +16,7 @@ import { ApiBranchRepository } from "../repositories/ApiBranchRepository";
 import { ApiLocationRepository } from "../repositories/ApiLocationRepository";
 import { ApiDiningZoneRepository } from "../repositories/ApiDiningZoneRepository";
 import { ApiDiningTableRepository } from "../repositories/ApiDiningTableRepository";
+import { ApiSectionRepository } from "../repositories/ApiSectionRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
@@ -36,6 +37,7 @@ import { BranchService } from "@/core/application/services/BranchService";
 import { LocationService } from "@/core/application/services/LocationService";
 import { DiningZoneService } from "@/core/application/services/DiningZoneService";
 import { DiningTableService } from "@/core/application/services/DiningTableService";
+import { SectionService } from "@/core/application/services/SectionService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
@@ -120,6 +122,8 @@ import type { IDiningZoneRepository } from "@/core/domain/repositories/IDiningZo
 import type { IDiningZoneService } from "@/core/domain/services/IDiningZoneService";
 import type { IDiningTableRepository } from "@/core/domain/repositories/IDiningTableRepository";
 import type { IDiningTableService } from "@/core/domain/services/IDiningTableService";
+import type { ISectionRepository } from "@/core/domain/repositories/ISectionRepository";
+import type { ISectionService } from "@/core/domain/services/ISectionService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
@@ -206,6 +210,8 @@ class Container {
     const diningZoneService = new DiningZoneService(diningZoneRepository);
     const diningTableRepository = new ApiDiningTableRepository(httpClient);
     const diningTableService = new DiningTableService(diningTableRepository);
+    const sectionRepository = new ApiSectionRepository(httpClient);
+    const sectionService = new SectionService(sectionRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
       httpClient
     );
@@ -316,6 +322,8 @@ class Container {
     this.register<IDiningZoneService>("diningZoneService", diningZoneService);
     this.register<IDiningTableRepository>("diningTableRepository", diningTableRepository);
     this.register<IDiningTableService>("diningTableService", diningTableService);
+    this.register<ISectionRepository>("sectionRepository", sectionRepository);
+    this.register<ISectionService>("sectionService", sectionService);
     this.register<IInventoryLedgerRepository>(
       "inventoryLedgerRepository",
       inventoryLedgerRepository

@@ -44,6 +44,7 @@ import {
   GitCompareArrows,
   Building,
   CalendarClock,
+  Layers3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -95,6 +96,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.diningTables",
     icon: LayoutGrid,
     permissions: ["dining-tables:read"],
+  },
+  {
+    href: "/sections",
+    labelKey: "nav.sections",
+    icon: Layers3,
+    permissions: ["sections:read"],
   },
   {
     href: "/inventory-ledger",
