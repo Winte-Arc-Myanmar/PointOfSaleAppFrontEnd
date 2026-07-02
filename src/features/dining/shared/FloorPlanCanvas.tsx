@@ -4,7 +4,9 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { DiningZone } from "@/core/domain/entities/DiningZone";
 import type { DiningTable } from "@/core/domain/entities/DiningTable";
 import { cn } from "@/lib/utils";
+import { LayoutGrid } from "lucide-react";
 import { DiningTableTile } from "./DiningTableTile";
+import { DiningEmptyState } from "./DiningEmptyState";
 import { FLOOR_PLAN_HEIGHT, FLOOR_PLAN_WIDTH } from "./dining-ui";
 import { clientToFloorCoords, resolveTablePositions } from "./floor-plan-utils";
 
@@ -14,6 +16,10 @@ interface FloorPlanCanvasProps {
   onTableClick?: (table: DiningTable) => void;
   editable?: boolean;
   onTablePositionChange?: (table: DiningTable, x: number, y: number) => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  emptyAction?: { label: string; onClick: () => void };
+  emptyLinkAction?: { label: string; href: string };
   className?: string;
 }
 
@@ -23,6 +29,10 @@ export function FloorPlanCanvas({
   onTableClick,
   editable = false,
   onTablePositionChange,
+  emptyTitle = "No tables on this floor yet",
+  emptyDescription = "Add tables to build your floor plan and start seating guests.",
+  emptyAction,
+  emptyLinkAction,
   className,
 }: FloorPlanCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -108,8 +118,15 @@ export function FloorPlanCanvas({
         )}
 
         {positioned.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-muted">
-            No tables on this floor yet.
+          <div className="absolute inset-0 flex items-center justify-center">
+            <DiningEmptyState
+              icon={LayoutGrid}
+              title={emptyTitle}
+              description={emptyDescription}
+              action={emptyAction}
+              linkAction={emptyLinkAction}
+              compact
+            />
           </div>
         ) : (
           positioned.map(({ table, x, y }) => {

@@ -111,6 +111,17 @@ export function DiningZoneDetail({ diningZoneId }: { diningZoneId: string }) {
             zone={zone}
             tables={tables}
             onTableClick={(t) => router.push(`/dining-tables/${t.id}`)}
+            emptyTitle={
+              statusFilter !== "ALL"
+                ? `No ${statusFilter.toLowerCase()} tables on this floor`
+                : "No tables on this floor yet"
+            }
+            emptyDescription="Add tables from the floor view to start using this zone."
+            emptyLinkAction={
+              statusFilter === "ALL"
+                ? { label: "Manage tables", href: `/dining-tables?zoneId=${zone.id}` }
+                : undefined
+            }
           />
         )}
       </DetailSection>

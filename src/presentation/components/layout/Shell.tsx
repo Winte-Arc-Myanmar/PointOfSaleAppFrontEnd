@@ -23,6 +23,10 @@ const routeTitles: Record<string, string> = {
   "/locations": "Locations",
   "/dining-zones": "Dining Zones",
   "/dining-tables": "Dining Tables",
+  "/sections": "Sections",
+  "/kitchen-printers": "Kitchen Printers",
+  "/table-sessions": "Table Sessions",
+  "/kds-stations": "KDS Stations",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -63,6 +67,18 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/dining-tables/") && pathname.endsWith("/edit"))
     return "Edit dining table";
   if (pathname.startsWith("/dining-tables/")) return "Dining table";
+  if (pathname.startsWith("/sections/") && pathname.endsWith("/edit"))
+    return "Edit section";
+  if (pathname.startsWith("/sections/")) return "Section";
+  if (pathname.startsWith("/kitchen-printers/") && pathname.endsWith("/edit"))
+    return "Edit kitchen printer";
+  if (pathname.startsWith("/kitchen-printers/")) return "Kitchen printer";
+  if (pathname.startsWith("/table-sessions/") && pathname.endsWith("/edit"))
+    return "Edit table session";
+  if (pathname.startsWith("/table-sessions/")) return "Table session";
+  if (pathname.startsWith("/kds-stations/") && pathname.endsWith("/edit"))
+    return "Edit KDS station";
+  if (pathname.startsWith("/kds-stations/")) return "KDS station";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -147,6 +163,10 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/locations", labelKey: "nav.locations" },
   { href: "/dining-zones", labelKey: "nav.diningZones" },
   { href: "/dining-tables", labelKey: "nav.diningTables" },
+  { href: "/sections", labelKey: "nav.sections" },
+  { href: "/kitchen-printers", labelKey: "nav.kitchenPrinters" },
+  { href: "/table-sessions", labelKey: "nav.tableSessions" },
+  { href: "/kds-stations", labelKey: "nav.kdsStations" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },

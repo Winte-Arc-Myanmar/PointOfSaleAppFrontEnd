@@ -132,6 +132,54 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/v1/dining-tables/${id}`,
     UPDATE_STATUS: (id: string) => `/v1/dining-tables/${id}/status`,
   },
+  SECTIONS: {
+    LIST: "/v1/sections",
+    BY_ID: (id: string) => `/v1/sections/${id}`,
+    CREATE: "/v1/sections",
+    UPDATE: (id: string) => `/v1/sections/${id}`,
+    DELETE: (id: string) => `/v1/sections/${id}`,
+    TABLES: {
+      ATTACH: (id: string) => `/v1/sections/${id}/tables`,
+      DETACH: (id: string, tableId: string) => `/v1/sections/${id}/tables/${tableId}`,
+    },
+    ASSIGNMENTS: {
+      LIST: (id: string) => `/v1/sections/${id}/assignments`,
+      CREATE: (id: string) => `/v1/sections/${id}/assignments`,
+      UPDATE: (assignmentId: string) => `/v1/sections/assignments/${assignmentId}`,
+      END: (assignmentId: string) => `/v1/sections/assignments/${assignmentId}/end`,
+    },
+  },
+  KITCHEN_PRINTERS: {
+    LIST: "/v1/kitchen-printers",
+    BY_ID: (id: string) => `/v1/kitchen-printers/${id}`,
+    CREATE: "/v1/kitchen-printers",
+    UPDATE: (id: string) => `/v1/kitchen-printers/${id}`,
+    DELETE: (id: string) => `/v1/kitchen-printers/${id}`,
+    CATEGORIES: {
+      ATTACH: (id: string) => `/v1/kitchen-printers/${id}/categories`,
+      DETACH: (id: string, categoryId: string) =>
+        `/v1/kitchen-printers/${id}/categories/${categoryId}`,
+    },
+  },
+  TABLE_SESSIONS: {
+    LIST: "/v1/table-sessions",
+    BY_ID: (id: string) => `/v1/table-sessions/${id}`,
+    CREATE: "/v1/table-sessions",
+    UPDATE: (id: string) => `/v1/table-sessions/${id}`,
+    STATE: (id: string) => `/v1/table-sessions/${id}/state`,
+    LINES: (id: string) => `/v1/table-sessions/${id}/lines`,
+    SEATS: (id: string) => `/v1/table-sessions/${id}/seats`,
+    SEATS_BY_ID: (id: string, allocationId: string) =>
+      `/v1/table-sessions/${id}/seats/${allocationId}`,
+    CHECKOUT: (id: string) => `/v1/table-sessions/${id}/checkout`,
+  },
+  KDS_STATIONS: {
+    LIST: "/v1/kds/stations",
+    BY_ID: (id: string) => `/v1/kds/stations/${id}`,
+    CREATE: "/v1/kds/stations",
+    UPDATE: (id: string) => `/v1/kds/stations/${id}`,
+    DELETE: (id: string) => `/v1/kds/stations/${id}`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
