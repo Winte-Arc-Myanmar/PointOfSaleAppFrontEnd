@@ -21,6 +21,8 @@ const routeTitles: Record<string, string> = {
   "/categories": "Categories",
   "/branches": "Branches",
   "/locations": "Locations",
+  "/dining-zones": "Dining Zones",
+  "/dining-tables": "Dining Tables",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -39,6 +41,7 @@ const routeTitles: Record<string, string> = {
   "/bank-statement-lines": "Bank Statement Lines",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
+  "/depreciation-schedules": "Depreciation Schedules",
 };
 
 function getTitle(pathname: string): string {
@@ -54,6 +57,12 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/locations/") && pathname.endsWith("/edit"))
     return "Edit location";
   if (pathname.startsWith("/locations/")) return "Location";
+  if (pathname.startsWith("/dining-zones/") && pathname.endsWith("/edit"))
+    return "Edit dining zone";
+  if (pathname.startsWith("/dining-zones/")) return "Dining zone";
+  if (pathname.startsWith("/dining-tables/") && pathname.endsWith("/edit"))
+    return "Edit dining table";
+  if (pathname.startsWith("/dining-tables/")) return "Dining table";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -102,6 +111,14 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/fixed-assets/") && pathname.endsWith("/edit"))
     return "Edit fixed asset";
   if (pathname.startsWith("/fixed-assets/")) return "Fixed asset";
+  if (
+    pathname.startsWith("/depreciation-schedules/") &&
+    pathname.endsWith("/edit")
+  )
+    return "Edit depreciation schedule";
+  if (pathname.match(/^\/depreciation-schedules\/[^/]+\/[^/]+$/))
+    return "Depreciation schedule";
+  if (pathname.startsWith("/depreciation-schedules/")) return "Depreciation schedules";
   return routeTitles[pathname] ?? "";
 }
 
@@ -128,6 +145,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/categories", labelKey: "nav.categories" },
   { href: "/branches", labelKey: "nav.branches" },
   { href: "/locations", labelKey: "nav.locations" },
+  { href: "/dining-zones", labelKey: "nav.diningZones" },
+  { href: "/dining-tables", labelKey: "nav.diningTables" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },
@@ -147,6 +166,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
+  { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },
   { href: "/checkout", labelKey: "nav.checkout" },
   { href: "/refunds", labelKey: "nav.refunds" },
   { href: "/admin/onboard", labelKey: "nav.onboardTenant" },

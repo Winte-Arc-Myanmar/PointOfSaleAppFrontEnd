@@ -14,6 +14,8 @@ import { ApiUomRepository } from "../repositories/ApiUomRepository";
 import { ApiCategoryRepository } from "../repositories/ApiCategoryRepository";
 import { ApiBranchRepository } from "../repositories/ApiBranchRepository";
 import { ApiLocationRepository } from "../repositories/ApiLocationRepository";
+import { ApiDiningZoneRepository } from "../repositories/ApiDiningZoneRepository";
+import { ApiDiningTableRepository } from "../repositories/ApiDiningTableRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
@@ -32,6 +34,8 @@ import { UomService } from "@/core/application/services/UomService";
 import { CategoryService } from "@/core/application/services/CategoryService";
 import { BranchService } from "@/core/application/services/BranchService";
 import { LocationService } from "@/core/application/services/LocationService";
+import { DiningZoneService } from "@/core/application/services/DiningZoneService";
+import { DiningTableService } from "@/core/application/services/DiningTableService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
@@ -76,6 +80,8 @@ import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliat
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
 import { FixedAssetService } from "@/core/application/services/FixedAssetService";
+import { ApiDepreciationScheduleRepository } from "../repositories/ApiDepreciationScheduleRepository";
+import { DepreciationScheduleService } from "@/core/application/services/DepreciationScheduleService";
 import { ApiCheckoutRepository } from "../repositories/ApiCheckoutRepository";
 import { ApiReceiptRepository } from "../repositories/ApiReceiptRepository";
 import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
@@ -110,6 +116,10 @@ import type { IUomService } from "@/core/domain/services/IUomService";
 import type { ICategoryService } from "@/core/domain/services/ICategoryService";
 import type { IBranchService } from "@/core/domain/services/IBranchService";
 import type { ILocationService } from "@/core/domain/services/ILocationService";
+import type { IDiningZoneRepository } from "@/core/domain/repositories/IDiningZoneRepository";
+import type { IDiningZoneService } from "@/core/domain/services/IDiningZoneService";
+import type { IDiningTableRepository } from "@/core/domain/repositories/IDiningTableRepository";
+import type { IDiningTableService } from "@/core/domain/services/IDiningTableService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
@@ -154,6 +164,8 @@ import type { IReconciliationMatchRepository } from "@/core/domain/repositories/
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
 import type { IFixedAssetService } from "@/core/domain/services/IFixedAssetService";
+import type { IDepreciationScheduleRepository } from "@/core/domain/repositories/IDepreciationScheduleRepository";
+import type { IDepreciationScheduleService } from "@/core/domain/services/IDepreciationScheduleService";
 import type { ICheckoutRepository } from "@/core/domain/repositories/ICheckoutRepository";
 import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepository";
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
@@ -190,6 +202,10 @@ class Container {
     const branchService = new BranchService(branchRepository);
     const locationRepository = new ApiLocationRepository(httpClient);
     const locationService = new LocationService(locationRepository);
+    const diningZoneRepository = new ApiDiningZoneRepository(httpClient);
+    const diningZoneService = new DiningZoneService(diningZoneRepository);
+    const diningTableRepository = new ApiDiningTableRepository(httpClient);
+    const diningTableService = new DiningTableService(diningTableRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
       httpClient
     );
@@ -252,6 +268,10 @@ class Container {
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
     const fixedAssetService = new FixedAssetService(fixedAssetRepository);
+    const depreciationScheduleRepository = new ApiDepreciationScheduleRepository(httpClient);
+    const depreciationScheduleService = new DepreciationScheduleService(
+      depreciationScheduleRepository
+    );
     const checkoutRepository = new ApiCheckoutRepository(httpClient);
     const checkoutService = new CheckoutService(checkoutRepository);
     const receiptRepository = new ApiReceiptRepository(httpClient);
@@ -292,6 +312,10 @@ class Container {
     this.register<IBranchService>("branchService", branchService);
     this.register<ILocationRepository>("locationRepository", locationRepository);
     this.register<ILocationService>("locationService", locationService);
+    this.register<IDiningZoneRepository>("diningZoneRepository", diningZoneRepository);
+    this.register<IDiningZoneService>("diningZoneService", diningZoneService);
+    this.register<IDiningTableRepository>("diningTableRepository", diningTableRepository);
+    this.register<IDiningTableService>("diningTableService", diningTableService);
     this.register<IInventoryLedgerRepository>(
       "inventoryLedgerRepository",
       inventoryLedgerRepository
@@ -419,6 +443,14 @@ class Container {
     );
     this.register<IFixedAssetRepository>("fixedAssetRepository", fixedAssetRepository);
     this.register<IFixedAssetService>("fixedAssetService", fixedAssetService);
+    this.register<IDepreciationScheduleRepository>(
+      "depreciationScheduleRepository",
+      depreciationScheduleRepository
+    );
+    this.register<IDepreciationScheduleService>(
+      "depreciationScheduleService",
+      depreciationScheduleService
+    );
     this.register<ICheckoutRepository>("checkoutRepository", checkoutRepository);
     this.register<ICheckoutService>("checkoutService", checkoutService);
     this.register<IReceiptRepository>("receiptRepository", receiptRepository);

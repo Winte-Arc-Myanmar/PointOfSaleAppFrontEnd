@@ -117,6 +117,21 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/locations/${id}`,
     DELETE: (id: string) => `/v1/locations/${id}`,
   },
+  DINING_ZONES: {
+    LIST: "/v1/dining-zones",
+    BY_ID: (id: string) => `/v1/dining-zones/${id}`,
+    CREATE: "/v1/dining-zones",
+    UPDATE: (id: string) => `/v1/dining-zones/${id}`,
+    DELETE: (id: string) => `/v1/dining-zones/${id}`,
+  },
+  DINING_TABLES: {
+    LIST: "/v1/dining-tables",
+    BY_ID: (id: string) => `/v1/dining-tables/${id}`,
+    CREATE: "/v1/dining-tables",
+    UPDATE: (id: string) => `/v1/dining-tables/${id}`,
+    DELETE: (id: string) => `/v1/dining-tables/${id}`,
+    UPDATE_STATUS: (id: string) => `/v1/dining-tables/${id}/status`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
@@ -270,6 +285,13 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/fixed-assets",
     UPDATE: (id: string) => `/v1/fixed-assets/${id}`,
     DELETE: (id: string) => `/v1/fixed-assets/${id}`,
+    SCHEDULES: (fixedAssetId: string) => ({
+      LIST: `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules`,
+      BY_ID: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+      CREATE: `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules`,
+      UPDATE: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+      DELETE: (id: string) => `/v1/fixed-assets/${fixedAssetId}/depreciation-schedules/${id}`,
+    }),
   },
   CHECKOUT: {
     PROCESS: "/v1/checkout",
