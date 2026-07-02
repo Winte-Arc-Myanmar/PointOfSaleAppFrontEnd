@@ -161,6 +161,18 @@ export const API_ENDPOINTS = {
         `/v1/kitchen-printers/${id}/categories/${categoryId}`,
     },
   },
+  TABLE_SESSIONS: {
+    LIST: "/v1/table-sessions",
+    BY_ID: (id: string) => `/v1/table-sessions/${id}`,
+    CREATE: "/v1/table-sessions",
+    UPDATE: (id: string) => `/v1/table-sessions/${id}`,
+    STATE: (id: string) => `/v1/table-sessions/${id}/state`,
+    LINES: (id: string) => `/v1/table-sessions/${id}/lines`,
+    SEATS: (id: string) => `/v1/table-sessions/${id}/seats`,
+    SEATS_BY_ID: (id: string, allocationId: string) =>
+      `/v1/table-sessions/${id}/seats/${allocationId}`,
+    CHECKOUT: (id: string) => `/v1/table-sessions/${id}/checkout`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",

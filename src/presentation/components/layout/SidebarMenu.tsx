@@ -46,6 +46,7 @@ import {
   CalendarClock,
   Layers3,
   Printer,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -109,6 +110,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.kitchenPrinters",
     icon: Printer,
     permissions: ["kitchen-printers:read"],
+  },
+  {
+    href: "/table-sessions",
+    labelKey: "nav.tableSessions",
+    icon: ClipboardList,
+    permissions: ["table-sessions:read"],
   },
   {
     href: "/inventory-ledger",
