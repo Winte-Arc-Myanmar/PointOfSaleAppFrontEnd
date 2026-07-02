@@ -149,6 +149,18 @@ export const API_ENDPOINTS = {
       END: (assignmentId: string) => `/v1/sections/assignments/${assignmentId}/end`,
     },
   },
+  KITCHEN_PRINTERS: {
+    LIST: "/v1/kitchen-printers",
+    BY_ID: (id: string) => `/v1/kitchen-printers/${id}`,
+    CREATE: "/v1/kitchen-printers",
+    UPDATE: (id: string) => `/v1/kitchen-printers/${id}`,
+    DELETE: (id: string) => `/v1/kitchen-printers/${id}`,
+    CATEGORIES: {
+      ATTACH: (id: string) => `/v1/kitchen-printers/${id}/categories`,
+      DETACH: (id: string, categoryId: string) =>
+        `/v1/kitchen-printers/${id}/categories/${categoryId}`,
+    },
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",

@@ -45,6 +45,7 @@ import {
   Building,
   CalendarClock,
   Layers3,
+  Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -102,6 +103,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.sections",
     icon: Layers3,
     permissions: ["sections:read"],
+  },
+  {
+    href: "/kitchen-printers",
+    labelKey: "nav.kitchenPrinters",
+    icon: Printer,
+    permissions: ["kitchen-printers:read"],
   },
   {
     href: "/inventory-ledger",

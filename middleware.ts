@@ -31,6 +31,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/dining-zones", permissions: ["dining-zones:read"] },
   { prefix: "/dining-tables", permissions: ["dining-tables:read"] },
   { prefix: "/sections", permissions: ["sections:read"] },
+  { prefix: "/kitchen-printers", permissions: ["kitchen-printers:read"] },
   { prefix: "/inventory-ledger", permissions: ["inventory-ledger:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },
