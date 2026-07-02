@@ -180,6 +180,18 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/kds/stations/${id}`,
     DELETE: (id: string) => `/v1/kds/stations/${id}`,
   },
+  KDS: {
+    FIRE: "/v1/kds/fire",
+    TICKETS: {
+      LIST: "/v1/kds/tickets",
+      BY_ID: (id: string) => `/v1/kds/tickets/${id}`,
+      START: (id: string) => `/v1/kds/tickets/${id}/start`,
+      READY: (id: string) => `/v1/kds/tickets/${id}/ready`,
+      RECALL: (id: string) => `/v1/kds/tickets/${id}/recall`,
+      EXPEDITE: (id: string) => `/v1/kds/tickets/${id}/expedite`,
+      LINE_READY: (lineId: string) => `/v1/kds/tickets/lines/${lineId}/ready`,
+    },
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
