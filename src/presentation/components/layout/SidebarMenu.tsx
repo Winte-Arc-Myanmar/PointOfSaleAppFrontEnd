@@ -53,6 +53,7 @@ import {
   Hourglass,
   HandCoins,
   ShoppingBag,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -169,6 +170,12 @@ const allMenuItems: MenuItem[] = [
   { href: "/uoms", labelKey: "nav.uoms", icon: Ruler, permissions: ["uom:read"] },
   { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },
   { href: "/sales-orders", labelKey: "nav.salesOrders", icon: Receipt, permissions: ["sales-orders:read"] },
+  {
+    href: "/reports",
+    labelKey: "nav.reports",
+    icon: BarChart3,
+    permissions: ["reports:read"],
+  },
   {
     href: "/promotion-rules",
     labelKey: "nav.promotionRules",

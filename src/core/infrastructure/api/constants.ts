@@ -407,4 +407,12 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/v1/refunds/${id}`,
     BY_ORDER_ID: (salesOrderId: string) => `/v1/refunds/order/${salesOrderId}`,
   },
+  REPORTS: {
+    DAILY_SALES: "/v1/reports/daily-sales",
+    SALES_BY_CATEGORY: "/v1/reports/sales-by-category",
+    SALES_BY_ITEM: "/v1/reports/sales-by-item",
+    SALES_BY_HOUR: "/v1/reports/sales-by-hour",
+    SERVER_PERFORMANCE: "/v1/reports/server-performance",
+    Z_REPORT: "/v1/reports/z-report",
+  },
 } as const;

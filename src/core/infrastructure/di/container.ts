@@ -24,6 +24,7 @@ import { ApiKdsTicketRepository } from "../repositories/ApiKdsTicketRepository";
 import { ApiReservationRepository } from "../repositories/ApiReservationRepository";
 import { ApiWaitlistRepository } from "../repositories/ApiWaitlistRepository";
 import { ApiTipPoolRepository } from "../repositories/ApiTipPoolRepository";
+import { ApiReportRepository } from "../repositories/ApiReportRepository";
 import { ApiCounterOrderRepository } from "../repositories/ApiCounterOrderRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
@@ -53,6 +54,7 @@ import { KdsTicketService } from "@/core/application/services/KdsTicketService";
 import { ReservationService } from "@/core/application/services/ReservationService";
 import { WaitlistService } from "@/core/application/services/WaitlistService";
 import { TipPoolService } from "@/core/application/services/TipPoolService";
+import { ReportService } from "@/core/application/services/ReportService";
 import { CounterOrderService } from "@/core/application/services/CounterOrderService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
@@ -208,6 +210,8 @@ import type { IRefundRepository } from "@/core/domain/repositories/IRefundReposi
 import type { ICheckoutService } from "@/core/domain/services/ICheckoutService";
 import type { IReceiptService } from "@/core/domain/services/IReceiptService";
 import type { IRefundService } from "@/core/domain/services/IRefundService";
+import type { IReportRepository } from "@/core/domain/repositories/IReportRepository";
+import type { IReportService } from "@/core/domain/services/IReportService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -332,6 +336,8 @@ class Container {
     const receiptService = new ReceiptService(receiptRepository);
     const refundRepository = new ApiRefundRepository(httpClient);
     const refundService = new RefundService(refundRepository);
+    const reportRepository = new ApiReportRepository(httpClient);
+    const reportService = new ReportService(reportRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -529,6 +535,8 @@ class Container {
     this.register<IReceiptService>("receiptService", receiptService);
     this.register<IRefundRepository>("refundRepository", refundRepository);
     this.register<IRefundService>("refundService", refundService);
+    this.register<IReportRepository>("reportRepository", reportRepository);
+    this.register<IReportService>("reportService", reportService);
   }
 
   register<T>(key: string, instance: T): void {
