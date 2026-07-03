@@ -51,6 +51,7 @@ import {
   Ticket,
   CalendarDays,
   Hourglass,
+  HandCoins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -144,6 +145,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.waitlist",
     icon: Hourglass,
     permissions: ["waitlist:read"],
+  },
+  {
+    href: "/tip-pools",
+    labelKey: "nav.tipPools",
+    icon: HandCoins,
+    permissions: ["tip-pools:read"],
   },
   {
     href: "/inventory-ledger",

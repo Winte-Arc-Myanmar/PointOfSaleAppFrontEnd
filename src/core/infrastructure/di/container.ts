@@ -23,6 +23,7 @@ import { ApiKdsStationRepository } from "../repositories/ApiKdsStationRepository
 import { ApiKdsTicketRepository } from "../repositories/ApiKdsTicketRepository";
 import { ApiReservationRepository } from "../repositories/ApiReservationRepository";
 import { ApiWaitlistRepository } from "../repositories/ApiWaitlistRepository";
+import { ApiTipPoolRepository } from "../repositories/ApiTipPoolRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
@@ -50,6 +51,7 @@ import { KdsStationService } from "@/core/application/services/KdsStationService
 import { KdsTicketService } from "@/core/application/services/KdsTicketService";
 import { ReservationService } from "@/core/application/services/ReservationService";
 import { WaitlistService } from "@/core/application/services/WaitlistService";
+import { TipPoolService } from "@/core/application/services/TipPoolService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
@@ -148,6 +150,8 @@ import type { IReservationRepository } from "@/core/domain/repositories/IReserva
 import type { IReservationService } from "@/core/domain/services/IReservationService";
 import type { IWaitlistRepository } from "@/core/domain/repositories/IWaitlistRepository";
 import type { IWaitlistService } from "@/core/domain/services/IWaitlistService";
+import type { ITipPoolRepository } from "@/core/domain/repositories/ITipPoolRepository";
+import type { ITipPoolService } from "@/core/domain/services/ITipPoolService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
@@ -248,6 +252,8 @@ class Container {
     const reservationService = new ReservationService(reservationRepository);
     const waitlistRepository = new ApiWaitlistRepository(httpClient);
     const waitlistService = new WaitlistService(waitlistRepository);
+    const tipPoolRepository = new ApiTipPoolRepository(httpClient);
+    const tipPoolService = new TipPoolService(tipPoolRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
       httpClient
     );
@@ -372,6 +378,8 @@ class Container {
     this.register<IReservationService>("reservationService", reservationService);
     this.register<IWaitlistRepository>("waitlistRepository", waitlistRepository);
     this.register<IWaitlistService>("waitlistService", waitlistService);
+    this.register<ITipPoolRepository>("tipPoolRepository", tipPoolRepository);
+    this.register<ITipPoolService>("tipPoolService", tipPoolService);
     this.register<IInventoryLedgerRepository>(
       "inventoryLedgerRepository",
       inventoryLedgerRepository

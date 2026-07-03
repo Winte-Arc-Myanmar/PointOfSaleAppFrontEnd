@@ -30,6 +30,7 @@ const routeTitles: Record<string, string> = {
   "/kds-tickets": "KDS Tickets",
   "/reservations": "Reservations",
   "/waitlist": "Waitlist",
+  "/tip-pools": "Tip Pools",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -89,6 +90,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/waitlist/") && pathname.endsWith("/edit"))
     return "Edit waitlist entry";
   if (pathname.startsWith("/waitlist/")) return "Waitlist entry";
+  if (pathname.startsWith("/tip-pools/") && pathname.endsWith("/edit"))
+    return "Edit tip pool";
+  if (pathname.startsWith("/tip-pools/")) return "Tip pool";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -180,6 +184,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/kds-tickets", labelKey: "nav.kdsTickets" },
   { href: "/reservations", labelKey: "nav.reservations" },
   { href: "/waitlist", labelKey: "nav.waitlist" },
+  { href: "/tip-pools", labelKey: "nav.tipPools" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },

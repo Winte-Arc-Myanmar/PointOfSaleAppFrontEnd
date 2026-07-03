@@ -213,6 +213,23 @@ export const API_ENDPOINTS = {
     CANCEL: (id: string) => `/v1/waitlist/${id}/cancel`,
     NO_SHOW: (id: string) => `/v1/waitlist/${id}/no-show`,
   },
+  TIP_POOLS: {
+    LIST: "/v1/tip-pools",
+    BY_ID: (id: string) => `/v1/tip-pools/${id}`,
+    CREATE: "/v1/tip-pools",
+    UPDATE: (id: string) => `/v1/tip-pools/${id}`,
+    DELETE: (id: string) => `/v1/tip-pools/${id}`,
+    DISTRIBUTE: (id: string) => `/v1/tip-pools/${id}/distribute`,
+    SETTLE: (id: string) => `/v1/tip-pools/${id}/settle`,
+    ALLOCATIONS: {
+      LIST: (id: string) => `/v1/tip-pools/${id}/allocations`,
+      CREATE: (id: string) => `/v1/tip-pools/${id}/allocations`,
+      UPDATE: (id: string, allocationId: string) =>
+        `/v1/tip-pools/${id}/allocations/${allocationId}`,
+      DELETE: (id: string, allocationId: string) =>
+        `/v1/tip-pools/${id}/allocations/${allocationId}`,
+    },
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
