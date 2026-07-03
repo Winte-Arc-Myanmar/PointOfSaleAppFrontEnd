@@ -52,6 +52,7 @@ import {
   CalendarDays,
   Hourglass,
   HandCoins,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -151,6 +152,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.tipPools",
     icon: HandCoins,
     permissions: ["tip-pools:read"],
+  },
+  {
+    href: "/counter-orders",
+    labelKey: "nav.counterOrders",
+    icon: ShoppingBag,
+    permissions: ["counter-orders:read"],
   },
   {
     href: "/inventory-ledger",

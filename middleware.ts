@@ -38,6 +38,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/reservations", permissions: ["reservations:read"] },
   { prefix: "/waitlist", permissions: ["waitlist:read"] },
   { prefix: "/tip-pools", permissions: ["tip-pools:read"] },
+  { prefix: "/counter-orders", permissions: ["counter-orders:read"] },
   { prefix: "/inventory-ledger", permissions: ["inventory-ledger:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },

@@ -31,6 +31,7 @@ const routeTitles: Record<string, string> = {
   "/reservations": "Reservations",
   "/waitlist": "Waitlist",
   "/tip-pools": "Tip Pools",
+  "/counter-orders": "Counter Orders",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -93,6 +94,7 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/tip-pools/") && pathname.endsWith("/edit"))
     return "Edit tip pool";
   if (pathname.startsWith("/tip-pools/")) return "Tip pool";
+  if (pathname.startsWith("/counter-orders/")) return "Counter order";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";

@@ -230,6 +230,10 @@ export const API_ENDPOINTS = {
         `/v1/tip-pools/${id}/allocations/${allocationId}`,
     },
   },
+  COUNTER_ORDERS: {
+    BY_ID: (id: string) => `/v1/counter-orders/${id}`,
+    PICKUP: (id: string) => `/v1/counter-orders/${id}/pickup`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
