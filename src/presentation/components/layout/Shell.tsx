@@ -28,6 +28,7 @@ const routeTitles: Record<string, string> = {
   "/table-sessions": "Table Sessions",
   "/kds-stations": "KDS Stations",
   "/kds-tickets": "KDS Tickets",
+  "/reservations": "Reservations",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -81,6 +82,9 @@ function getTitle(pathname: string): string {
     return "Edit KDS station";
   if (pathname.startsWith("/kds-stations/")) return "KDS station";
   if (pathname.startsWith("/kds-tickets/")) return "KDS ticket";
+  if (pathname.startsWith("/reservations/") && pathname.endsWith("/edit"))
+    return "Edit reservation";
+  if (pathname.startsWith("/reservations/")) return "Reservation";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -170,6 +174,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/table-sessions", labelKey: "nav.tableSessions" },
   { href: "/kds-stations", labelKey: "nav.kdsStations" },
   { href: "/kds-tickets", labelKey: "nav.kdsTickets" },
+  { href: "/reservations", labelKey: "nav.reservations" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },

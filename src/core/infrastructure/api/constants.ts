@@ -192,6 +192,17 @@ export const API_ENDPOINTS = {
       LINE_READY: (lineId: string) => `/v1/kds/tickets/lines/${lineId}/ready`,
     },
   },
+  RESERVATIONS: {
+    LIST: "/v1/reservations",
+    BY_ID: (id: string) => `/v1/reservations/${id}`,
+    CREATE: "/v1/reservations",
+    UPDATE: (id: string) => `/v1/reservations/${id}`,
+    DELETE: (id: string) => `/v1/reservations/${id}`,
+    CONFIRM: (id: string) => `/v1/reservations/${id}/confirm`,
+    SEAT: (id: string) => `/v1/reservations/${id}/seat`,
+    CANCEL: (id: string) => `/v1/reservations/${id}/cancel`,
+    NO_SHOW: (id: string) => `/v1/reservations/${id}/no-show`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",

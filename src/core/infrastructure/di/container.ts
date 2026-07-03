@@ -21,6 +21,7 @@ import { ApiKitchenPrinterRepository } from "../repositories/ApiKitchenPrinterRe
 import { ApiTableSessionRepository } from "../repositories/ApiTableSessionRepository";
 import { ApiKdsStationRepository } from "../repositories/ApiKdsStationRepository";
 import { ApiKdsTicketRepository } from "../repositories/ApiKdsTicketRepository";
+import { ApiReservationRepository } from "../repositories/ApiReservationRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
@@ -46,6 +47,7 @@ import { KitchenPrinterService } from "@/core/application/services/KitchenPrinte
 import { TableSessionService } from "@/core/application/services/TableSessionService";
 import { KdsStationService } from "@/core/application/services/KdsStationService";
 import { KdsTicketService } from "@/core/application/services/KdsTicketService";
+import { ReservationService } from "@/core/application/services/ReservationService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
@@ -140,6 +142,8 @@ import type { IKdsStationRepository } from "@/core/domain/repositories/IKdsStati
 import type { IKdsStationService } from "@/core/domain/services/IKdsStationService";
 import type { IKdsTicketRepository } from "@/core/domain/repositories/IKdsTicketRepository";
 import type { IKdsTicketService } from "@/core/domain/services/IKdsTicketService";
+import type { IReservationRepository } from "@/core/domain/repositories/IReservationRepository";
+import type { IReservationService } from "@/core/domain/services/IReservationService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
@@ -236,6 +240,8 @@ class Container {
     const kdsStationService = new KdsStationService(kdsStationRepository);
     const kdsTicketRepository = new ApiKdsTicketRepository(httpClient);
     const kdsTicketService = new KdsTicketService(kdsTicketRepository);
+    const reservationRepository = new ApiReservationRepository(httpClient);
+    const reservationService = new ReservationService(reservationRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
       httpClient
     );
@@ -356,6 +362,8 @@ class Container {
     this.register<IKdsStationService>("kdsStationService", kdsStationService);
     this.register<IKdsTicketRepository>("kdsTicketRepository", kdsTicketRepository);
     this.register<IKdsTicketService>("kdsTicketService", kdsTicketService);
+    this.register<IReservationRepository>("reservationRepository", reservationRepository);
+    this.register<IReservationService>("reservationService", reservationService);
     this.register<IInventoryLedgerRepository>(
       "inventoryLedgerRepository",
       inventoryLedgerRepository

@@ -49,6 +49,7 @@ import {
   ClipboardList,
   TvMinimal,
   Ticket,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -130,6 +131,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.kdsTickets",
     icon: Ticket,
     permissions: ["kds-tickets:read"],
+  },
+  {
+    href: "/reservations",
+    labelKey: "nav.reservations",
+    icon: CalendarDays,
+    permissions: ["reservations:read"],
   },
   {
     href: "/inventory-ledger",

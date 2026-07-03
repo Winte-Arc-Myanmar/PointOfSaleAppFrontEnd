@@ -35,6 +35,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/table-sessions", permissions: ["table-sessions:read"] },
   { prefix: "/kds-stations", permissions: ["kds-stations:read"] },
   { prefix: "/kds-tickets", permissions: ["kds-tickets:read"] },
+  { prefix: "/reservations", permissions: ["reservations:read"] },
   { prefix: "/inventory-ledger", permissions: ["inventory-ledger:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },
