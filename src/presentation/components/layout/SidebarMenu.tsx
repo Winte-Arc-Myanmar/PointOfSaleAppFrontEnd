@@ -50,6 +50,7 @@ import {
   TvMinimal,
   Ticket,
   CalendarDays,
+  Hourglass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -137,6 +138,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.reservations",
     icon: CalendarDays,
     permissions: ["reservations:read"],
+  },
+  {
+    href: "/waitlist",
+    labelKey: "nav.waitlist",
+    icon: Hourglass,
+    permissions: ["waitlist:read"],
   },
   {
     href: "/inventory-ledger",

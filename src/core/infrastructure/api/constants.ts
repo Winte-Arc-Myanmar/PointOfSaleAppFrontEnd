@@ -203,6 +203,16 @@ export const API_ENDPOINTS = {
     CANCEL: (id: string) => `/v1/reservations/${id}/cancel`,
     NO_SHOW: (id: string) => `/v1/reservations/${id}/no-show`,
   },
+  WAITLIST: {
+    LIST: "/v1/waitlist",
+    BY_ID: (id: string) => `/v1/waitlist/${id}`,
+    CREATE: "/v1/waitlist",
+    UPDATE: (id: string) => `/v1/waitlist/${id}`,
+    NOTIFY: (id: string) => `/v1/waitlist/${id}/notify`,
+    SEAT: (id: string) => `/v1/waitlist/${id}/seat`,
+    CANCEL: (id: string) => `/v1/waitlist/${id}/cancel`,
+    NO_SHOW: (id: string) => `/v1/waitlist/${id}/no-show`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
