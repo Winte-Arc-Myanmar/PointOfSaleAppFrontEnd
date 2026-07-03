@@ -48,6 +48,7 @@ import {
   Printer,
   ClipboardList,
   TvMinimal,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -123,6 +124,12 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.kdsStations",
     icon: TvMinimal,
     permissions: ["kds-stations:read"],
+  },
+  {
+    href: "/kds-tickets",
+    labelKey: "nav.kdsTickets",
+    icon: Ticket,
+    permissions: ["kds-tickets:read"],
   },
   {
     href: "/inventory-ledger",
