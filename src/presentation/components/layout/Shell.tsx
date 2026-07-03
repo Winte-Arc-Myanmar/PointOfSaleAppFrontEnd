@@ -187,6 +187,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/reservations", labelKey: "nav.reservations" },
   { href: "/waitlist", labelKey: "nav.waitlist" },
   { href: "/tip-pools", labelKey: "nav.tipPools" },
+  { href: "/counter-orders", labelKey: "nav.counterOrders" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },
