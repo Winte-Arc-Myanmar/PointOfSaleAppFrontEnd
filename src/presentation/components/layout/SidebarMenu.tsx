@@ -54,6 +54,8 @@ import {
   HandCoins,
   ShoppingBag,
   BarChart3,
+  Tag,
+  Ban,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -181,6 +183,18 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.promotionRules",
     icon: Percent,
     permissions: ["promotion-rules:read"],
+  },
+  {
+    href: "/discount-reasons",
+    labelKey: "nav.discountReasons",
+    icon: Tag,
+    permissions: ["discount-reasons:read"],
+  },
+  {
+    href: "/void-reasons",
+    labelKey: "nav.voidReasons",
+    icon: Ban,
+    permissions: ["void-reasons:read"],
   },
   {
     href: "/pos-registers",

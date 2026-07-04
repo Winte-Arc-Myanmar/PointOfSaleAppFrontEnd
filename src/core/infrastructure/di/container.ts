@@ -87,7 +87,11 @@ import { AccountingPeriodService } from "@/core/application/services/AccountingP
 import { ApiExchangeRateRepository } from "../repositories/ApiExchangeRateRepository";
 import { ExchangeRateService } from "@/core/application/services/ExchangeRateService";
 import { ApiTaxRateRepository } from "../repositories/ApiTaxRateRepository";
+import { ApiDiscountReasonRepository } from "../repositories/ApiDiscountReasonRepository";
+import { ApiVoidReasonRepository } from "../repositories/ApiVoidReasonRepository";
 import { TaxRateService } from "@/core/application/services/TaxRateService";
+import { DiscountReasonService } from "@/core/application/services/DiscountReasonService";
+import { VoidReasonService } from "@/core/application/services/VoidReasonService";
 import { ApiJournalEntryRepository } from "../repositories/ApiJournalEntryRepository";
 import { JournalEntryService } from "@/core/application/services/JournalEntryService";
 import { ApiJournalLineRepository } from "../repositories/ApiJournalLineRepository";
@@ -190,6 +194,10 @@ import type { IExchangeRateRepository } from "@/core/domain/repositories/IExchan
 import type { IExchangeRateService } from "@/core/domain/services/IExchangeRateService";
 import type { ITaxRateRepository } from "@/core/domain/repositories/ITaxRateRepository";
 import type { ITaxRateService } from "@/core/domain/services/ITaxRateService";
+import type { IDiscountReasonRepository } from "@/core/domain/repositories/IDiscountReasonRepository";
+import type { IDiscountReasonService } from "@/core/domain/services/IDiscountReasonService";
+import type { IVoidReasonRepository } from "@/core/domain/repositories/IVoidReasonRepository";
+import type { IVoidReasonService } from "@/core/domain/services/IVoidReasonService";
 import type { IJournalEntryRepository } from "@/core/domain/repositories/IJournalEntryRepository";
 import type { IJournalEntryService } from "@/core/domain/services/IJournalEntryService";
 import type { IJournalLineRepository } from "@/core/domain/repositories/IJournalLineRepository";
@@ -314,6 +322,10 @@ class Container {
     const exchangeRateService = new ExchangeRateService(exchangeRateRepository);
     const taxRateRepository = new ApiTaxRateRepository(httpClient);
     const taxRateService = new TaxRateService(taxRateRepository);
+    const discountReasonRepository = new ApiDiscountReasonRepository(httpClient);
+    const discountReasonService = new DiscountReasonService(discountReasonRepository);
+    const voidReasonRepository = new ApiVoidReasonRepository(httpClient);
+    const voidReasonService = new VoidReasonService(voidReasonRepository);
     const journalEntryRepository = new ApiJournalEntryRepository(httpClient);
     const journalEntryService = new JournalEntryService(journalEntryRepository);
     const journalLineRepository = new ApiJournalLineRepository(httpClient);
@@ -491,6 +503,13 @@ class Container {
     );
     this.register<ITaxRateRepository>("taxRateRepository", taxRateRepository);
     this.register<ITaxRateService>("taxRateService", taxRateService);
+    this.register<IDiscountReasonRepository>(
+      "discountReasonRepository",
+      discountReasonRepository,
+    );
+    this.register<IDiscountReasonService>("discountReasonService", discountReasonService);
+    this.register<IVoidReasonRepository>("voidReasonRepository", voidReasonRepository);
+    this.register<IVoidReasonService>("voidReasonService", voidReasonService);
     this.register<IJournalEntryRepository>(
       "journalEntryRepository",
       journalEntryRepository

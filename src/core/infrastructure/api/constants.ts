@@ -415,4 +415,18 @@ export const API_ENDPOINTS = {
     SERVER_PERFORMANCE: "/v1/reports/server-performance",
     Z_REPORT: "/v1/reports/z-report",
   },
+  DISCOUNT_REASONS: {
+    LIST: "/v1/discount-reasons",
+    BY_ID: (id: string) => `/v1/discount-reasons/${id}`,
+    CREATE: "/v1/discount-reasons",
+    UPDATE: (id: string) => `/v1/discount-reasons/${id}`,
+    DELETE: (id: string) => `/v1/discount-reasons/${id}`,
+  },
+  VOID_REASONS: {
+    LIST: "/v1/void-reasons",
+    BY_ID: (id: string) => `/v1/void-reasons/${id}`,
+    CREATE: "/v1/void-reasons",
+    UPDATE: (id: string) => `/v1/void-reasons/${id}`,
+    DELETE: (id: string) => `/v1/void-reasons/${id}`,
+  },
 } as const;
