@@ -33,6 +33,9 @@ const routeTitles: Record<string, string> = {
   "/waitlist": "Waitlist",
   "/tip-pools": "Tip Pools",
   "/counter-orders": "Counter Orders",
+  "/reports": "Reports",
+  "/discount-reasons": "Discount Reasons",
+  "/void-reasons": "Void Reasons",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -115,6 +118,12 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/modifier-groups/") && pathname.endsWith("/edit"))
     return "Edit modifier group";
   if (pathname.startsWith("/modifier-groups/")) return "Modifier group";
+  if (pathname.startsWith("/discount-reasons/") && pathname.endsWith("/edit"))
+    return "Edit discount reason";
+  if (pathname.startsWith("/discount-reasons/")) return "Discount reason";
+  if (pathname.startsWith("/void-reasons/") && pathname.endsWith("/edit"))
+    return "Edit void reason";
+  if (pathname.startsWith("/void-reasons/")) return "Void reason";
   if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
     return "Edit chart account";
   if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
@@ -198,7 +207,10 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/uoms", labelKey: "nav.uoms" },
   { href: "/uploads", labelKey: "nav.uploads" },
   { href: "/sales-orders", labelKey: "nav.salesOrders" },
+  { href: "/reports", labelKey: "nav.reports" },
   { href: "/promotion-rules", labelKey: "nav.promotionRules" },
+  { href: "/discount-reasons", labelKey: "nav.discountReasons" },
+  { href: "/void-reasons", labelKey: "nav.voidReasons" },
   { href: "/pos-registers", labelKey: "nav.posRegisters" },
   { href: "/pos-sessions", labelKey: "nav.posSessions" },
   { href: "/payment-methods", labelKey: "nav.paymentMethods" },
