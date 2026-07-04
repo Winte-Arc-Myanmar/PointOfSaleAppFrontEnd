@@ -238,6 +238,20 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/recipes/${id}`,
     DELETE: (id: string) => `/v1/recipes/${id}`,
   },
+  BUNDLES: {
+    LIST: "/v1/bundles",
+    BY_ID: (id: string) => `/v1/bundles/${id}`,
+    CREATE: "/v1/bundles",
+    UPDATE: (id: string) => `/v1/bundles/${id}`,
+    DELETE: (id: string) => `/v1/bundles/${id}`,
+  },
+  PRICING_SCHEDULES: {
+    LIST: "/v1/pricing-schedules",
+    BY_ID: (id: string) => `/v1/pricing-schedules/${id}`,
+    CREATE: "/v1/pricing-schedules",
+    UPDATE: (id: string) => `/v1/pricing-schedules/${id}`,
+    DELETE: (id: string) => `/v1/pricing-schedules/${id}`,
+  },
   MODIFIER_GROUPS: {
     LIST: "/v1/modifier-groups",
     BY_ID: (id: string) => `/v1/modifier-groups/${id}`,

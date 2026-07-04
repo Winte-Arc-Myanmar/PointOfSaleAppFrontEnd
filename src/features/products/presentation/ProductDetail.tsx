@@ -13,10 +13,14 @@ import {
   Tag,
   Warehouse,
   FlaskConical,
+  Layers,
+  CalendarClock,
 } from "lucide-react";
 import { useProduct } from "@/presentation/hooks/useProducts";
 import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
 import { useRecipes } from "@/presentation/hooks/useRecipes";
+import { useBundles } from "@/presentation/hooks/useBundles";
+import { usePricingSchedules } from "@/presentation/hooks/usePricingSchedules";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { Button } from "@/presentation/components/ui/button";
@@ -47,9 +51,13 @@ export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
   const { data: modifierGroupsResult } = useModifierGroups({ page: 1, limit: 200 });
   const { data: recipesResult } = useRecipes({ page: 1, limit: 500 });
+  const { data: bundlesResult } = useBundles({ page: 1, limit: 500 });
+  const { data: pricingSchedulesResult } = usePricingSchedules({ page: 1, limit: 500 });
   const { data: productVariantsResult } = useProductVariants(productId, { page: 1, limit: 200 });
   const modifierGroups = getPaginatedItems(modifierGroupsResult);
   const recipes = getPaginatedItems(recipesResult);
+  const bundles = getPaginatedItems(bundlesResult);
+  const pricingSchedules = getPaginatedItems(pricingSchedulesResult);
   const productVariants = getPaginatedItems(productVariantsResult);
   const [activeTab, setActiveTab] = useState<DetailTabKey>("overview");
 
@@ -64,6 +72,21 @@ export function ProductDetail({ productId }: { productId: string }) {
     const variantIds = new Set(productVariants.map((variant) => variant.id));
     return recipes.filter((recipe) => variantIds.has(recipe.variantId)).length;
   }, [productVariants, recipes]);
+  const relatedBundleCount = useMemo(
+    () => bundles.filter((bundle) => bundle.productId === productId).length,
+    [bundles, productId],
+  );
+  const relatedPricingScheduleCount = useMemo(() => {
+    if (!product) return 0;
+    const variantIds = new Set(productVariants.map((variant) => variant.id));
+    return pricingSchedules.filter((schedule) =>
+      schedule.rules?.some(
+        (rule) =>
+          (rule.variantId && variantIds.has(rule.variantId)) ||
+          (rule.categoryId && rule.categoryId === product.categoryId),
+      ),
+    ).length;
+  }, [pricingSchedules, product, productVariants]);
 
   const overviewRows = product
     ? [
@@ -293,6 +316,28 @@ export function ProductDetail({ productId }: { productId: string }) {
               <p className="mt-2 text-2xl font-semibold">{relatedRecipeCount}</p>
               <Link href="/recipes" className="text-sm text-mint hover:underline">
                 Manage recipes
+              </Link>
+            </div>
+          </DetailSection>
+          <DetailSection title="Bundles" icon={Layers}>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-sm text-muted">
+                Combo bundles where this product is the bundle item.
+              </p>
+              <p className="mt-2 text-2xl font-semibold">{relatedBundleCount}</p>
+              <Link href="/bundles" className="text-sm text-mint hover:underline">
+                Manage bundles
+              </Link>
+            </div>
+          </DetailSection>
+          <DetailSection title="Pricing schedules" icon={CalendarClock}>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-sm text-muted">
+                Schedules with rules targeting this product&apos;s variants or category.
+              </p>
+              <p className="mt-2 text-2xl font-semibold">{relatedPricingScheduleCount}</p>
+              <Link href="/pricing-schedules" className="text-sm text-mint hover:underline">
+                Manage pricing schedules
               </Link>
             </div>
           </DetailSection>

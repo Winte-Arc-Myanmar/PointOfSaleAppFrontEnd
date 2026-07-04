@@ -25,6 +25,8 @@ import { ApiReservationRepository } from "../repositories/ApiReservationReposito
 import { ApiWaitlistRepository } from "../repositories/ApiWaitlistRepository";
 import { ApiTipPoolRepository } from "../repositories/ApiTipPoolRepository";
 import { ApiRecipeRepository } from "../repositories/ApiRecipeRepository";
+import { ApiBundleRepository } from "../repositories/ApiBundleRepository";
+import { ApiPricingScheduleRepository } from "../repositories/ApiPricingScheduleRepository";
 import { ApiModifierGroupRepository } from "../repositories/ApiModifierGroupRepository";
 import { ApiReportRepository } from "../repositories/ApiReportRepository";
 import { ApiCounterOrderRepository } from "../repositories/ApiCounterOrderRepository";
@@ -57,6 +59,8 @@ import { ReservationService } from "@/core/application/services/ReservationServi
 import { WaitlistService } from "@/core/application/services/WaitlistService";
 import { TipPoolService } from "@/core/application/services/TipPoolService";
 import { RecipeService } from "@/core/application/services/RecipeService";
+import { BundleService } from "@/core/application/services/BundleService";
+import { PricingScheduleService } from "@/core/application/services/PricingScheduleService";
 import { ModifierGroupService } from "@/core/application/services/ModifierGroupService";
 import { ReportService } from "@/core/application/services/ReportService";
 import { CounterOrderService } from "@/core/application/services/CounterOrderService";
@@ -166,6 +170,10 @@ import type { ITipPoolRepository } from "@/core/domain/repositories/ITipPoolRepo
 import type { ITipPoolService } from "@/core/domain/services/ITipPoolService";
 import type { IRecipeRepository } from "@/core/domain/repositories/IRecipeRepository";
 import type { IRecipeService } from "@/core/domain/services/IRecipeService";
+import type { IBundleRepository } from "@/core/domain/repositories/IBundleRepository";
+import type { IBundleService } from "@/core/domain/services/IBundleService";
+import type { IPricingScheduleRepository } from "@/core/domain/repositories/IPricingScheduleRepository";
+import type { IPricingScheduleService } from "@/core/domain/services/IPricingScheduleService";
 import type { IModifierGroupRepository } from "@/core/domain/repositories/IModifierGroupRepository";
 import type { IModifierGroupService } from "@/core/domain/services/IModifierGroupService";
 import type { ICounterOrderRepository } from "@/core/domain/repositories/ICounterOrderRepository";
@@ -280,6 +288,10 @@ class Container {
     const tipPoolService = new TipPoolService(tipPoolRepository);
     const recipeRepository = new ApiRecipeRepository(httpClient);
     const recipeService = new RecipeService(recipeRepository);
+    const bundleRepository = new ApiBundleRepository(httpClient);
+    const bundleService = new BundleService(bundleRepository);
+    const pricingScheduleRepository = new ApiPricingScheduleRepository(httpClient);
+    const pricingScheduleService = new PricingScheduleService(pricingScheduleRepository);
     const modifierGroupRepository = new ApiModifierGroupRepository(httpClient);
     const modifierGroupService = new ModifierGroupService(modifierGroupRepository);
     const counterOrderRepository = new ApiCounterOrderRepository(httpClient);
@@ -418,6 +430,13 @@ class Container {
     this.register<ITipPoolService>("tipPoolService", tipPoolService);
     this.register<IRecipeRepository>("recipeRepository", recipeRepository);
     this.register<IRecipeService>("recipeService", recipeService);
+    this.register<IBundleRepository>("bundleRepository", bundleRepository);
+    this.register<IBundleService>("bundleService", bundleService);
+    this.register<IPricingScheduleRepository>(
+      "pricingScheduleRepository",
+      pricingScheduleRepository,
+    );
+    this.register<IPricingScheduleService>("pricingScheduleService", pricingScheduleService);
     this.register<IModifierGroupRepository>("modifierGroupRepository", modifierGroupRepository);
     this.register<IModifierGroupService>("modifierGroupService", modifierGroupService);
     this.register<ICounterOrderRepository>("counterOrderRepository", counterOrderRepository);
