@@ -57,6 +57,7 @@ import {
   Tag,
   Ban,
   SlidersHorizontal,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -91,6 +92,12 @@ const allMenuItems: MenuItem[] = [
   },
   { href: "/vendors", labelKey: "nav.vendors", icon: Truck, permissions: ["vendors:read"] },
   { href: "/products", labelKey: "nav.products", icon: Package, permissions: ["products:read"] },
+  {
+    href: "/recipes",
+    labelKey: "nav.recipes",
+    icon: FlaskConical,
+    permissions: ["recipes:read"],
+  },
   {
     href: "/modifier-groups",
     labelKey: "nav.modifierGroups",

@@ -230,6 +230,14 @@ export const API_ENDPOINTS = {
         `/v1/tip-pools/${id}/allocations/${allocationId}`,
     },
   },
+  RECIPES: {
+    LIST: "/v1/recipes",
+    BY_ID: (id: string) => `/v1/recipes/${id}`,
+    BY_VARIANT: (variantId: string) => `/v1/recipes/by-variant/${variantId}`,
+    CREATE: "/v1/recipes",
+    UPDATE: (id: string) => `/v1/recipes/${id}`,
+    DELETE: (id: string) => `/v1/recipes/${id}`,
+  },
   MODIFIER_GROUPS: {
     LIST: "/v1/modifier-groups",
     BY_ID: (id: string) => `/v1/modifier-groups/${id}`,

@@ -43,6 +43,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/inventory-ledger", permissions: ["inventory-ledger:read"] },
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },
+  { prefix: "/recipes", permissions: ["recipes:read"] },
   { prefix: "/uploads", permissions: ["uploads:read"] },
   { prefix: "/sales-orders", permissions: ["sales-orders:read"] },
   { prefix: "/reports", permissions: ["reports:read"] },

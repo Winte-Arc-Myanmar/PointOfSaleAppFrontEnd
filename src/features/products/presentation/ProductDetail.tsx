@@ -12,9 +12,12 @@ import {
   Receipt,
   Tag,
   Warehouse,
+  FlaskConical,
 } from "lucide-react";
 import { useProduct } from "@/presentation/hooks/useProducts";
 import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
+import { useRecipes } from "@/presentation/hooks/useRecipes";
+import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { Button } from "@/presentation/components/ui/button";
 import { ProductVariantSection } from "./ProductVariantSection";
@@ -43,7 +46,11 @@ type DetailTabKey = (typeof DETAIL_TABS)[number]["key"];
 export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
   const { data: modifierGroupsResult } = useModifierGroups({ page: 1, limit: 200 });
+  const { data: recipesResult } = useRecipes({ page: 1, limit: 500 });
+  const { data: productVariantsResult } = useProductVariants(productId, { page: 1, limit: 200 });
   const modifierGroups = getPaginatedItems(modifierGroupsResult);
+  const recipes = getPaginatedItems(recipesResult);
+  const productVariants = getPaginatedItems(productVariantsResult);
   const [activeTab, setActiveTab] = useState<DetailTabKey>("overview");
 
   const relatedModifierGroups = useMemo(
@@ -53,6 +60,10 @@ export function ProductDetail({ productId }: { productId: string }) {
         : [],
     [modifierGroups, product],
   );
+  const relatedRecipeCount = useMemo(() => {
+    const variantIds = new Set(productVariants.map((variant) => variant.id));
+    return recipes.filter((recipe) => variantIds.has(recipe.variantId)).length;
+  }, [productVariants, recipes]);
 
   const overviewRows = product
     ? [
@@ -271,6 +282,17 @@ export function ProductDetail({ productId }: { productId: string }) {
               <p className="mt-2 text-2xl font-semibold">{relatedModifierGroups.length}</p>
               <Link href="/modifier-groups" className="text-sm text-mint hover:underline">
                 View modifier groups
+              </Link>
+            </div>
+          </DetailSection>
+          <DetailSection title="Recipes" icon={FlaskConical}>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-sm text-muted">
+                Recipes linked to this product&apos;s variants.
+              </p>
+              <p className="mt-2 text-2xl font-semibold">{relatedRecipeCount}</p>
+              <Link href="/recipes" className="text-sm text-mint hover:underline">
+                Manage recipes
               </Link>
             </div>
           </DetailSection>
