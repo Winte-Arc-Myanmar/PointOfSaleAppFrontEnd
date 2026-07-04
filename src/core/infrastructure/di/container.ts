@@ -24,6 +24,7 @@ import { ApiKdsTicketRepository } from "../repositories/ApiKdsTicketRepository";
 import { ApiReservationRepository } from "../repositories/ApiReservationRepository";
 import { ApiWaitlistRepository } from "../repositories/ApiWaitlistRepository";
 import { ApiTipPoolRepository } from "../repositories/ApiTipPoolRepository";
+import { ApiModifierGroupRepository } from "../repositories/ApiModifierGroupRepository";
 import { ApiReportRepository } from "../repositories/ApiReportRepository";
 import { ApiCounterOrderRepository } from "../repositories/ApiCounterOrderRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
@@ -54,6 +55,7 @@ import { KdsTicketService } from "@/core/application/services/KdsTicketService";
 import { ReservationService } from "@/core/application/services/ReservationService";
 import { WaitlistService } from "@/core/application/services/WaitlistService";
 import { TipPoolService } from "@/core/application/services/TipPoolService";
+import { ModifierGroupService } from "@/core/application/services/ModifierGroupService";
 import { ReportService } from "@/core/application/services/ReportService";
 import { CounterOrderService } from "@/core/application/services/CounterOrderService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
@@ -160,6 +162,8 @@ import type { IWaitlistRepository } from "@/core/domain/repositories/IWaitlistRe
 import type { IWaitlistService } from "@/core/domain/services/IWaitlistService";
 import type { ITipPoolRepository } from "@/core/domain/repositories/ITipPoolRepository";
 import type { ITipPoolService } from "@/core/domain/services/ITipPoolService";
+import type { IModifierGroupRepository } from "@/core/domain/repositories/IModifierGroupRepository";
+import type { IModifierGroupService } from "@/core/domain/services/IModifierGroupService";
 import type { ICounterOrderRepository } from "@/core/domain/repositories/ICounterOrderRepository";
 import type { ICounterOrderService } from "@/core/domain/services/ICounterOrderService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
@@ -270,6 +274,8 @@ class Container {
     const waitlistService = new WaitlistService(waitlistRepository);
     const tipPoolRepository = new ApiTipPoolRepository(httpClient);
     const tipPoolService = new TipPoolService(tipPoolRepository);
+    const modifierGroupRepository = new ApiModifierGroupRepository(httpClient);
+    const modifierGroupService = new ModifierGroupService(modifierGroupRepository);
     const counterOrderRepository = new ApiCounterOrderRepository(httpClient);
     const counterOrderService = new CounterOrderService(counterOrderRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
@@ -404,6 +410,8 @@ class Container {
     this.register<IWaitlistService>("waitlistService", waitlistService);
     this.register<ITipPoolRepository>("tipPoolRepository", tipPoolRepository);
     this.register<ITipPoolService>("tipPoolService", tipPoolService);
+    this.register<IModifierGroupRepository>("modifierGroupRepository", modifierGroupRepository);
+    this.register<IModifierGroupService>("modifierGroupService", modifierGroupService);
     this.register<ICounterOrderRepository>("counterOrderRepository", counterOrderRepository);
     this.register<ICounterOrderService>("counterOrderService", counterOrderService);
     this.register<IInventoryLedgerRepository>(

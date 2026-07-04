@@ -56,6 +56,7 @@ import {
   BarChart3,
   Tag,
   Ban,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -90,6 +91,12 @@ const allMenuItems: MenuItem[] = [
   },
   { href: "/vendors", labelKey: "nav.vendors", icon: Truck, permissions: ["vendors:read"] },
   { href: "/products", labelKey: "nav.products", icon: Package, permissions: ["products:read"] },
+  {
+    href: "/modifier-groups",
+    labelKey: "nav.modifierGroups",
+    icon: SlidersHorizontal,
+    permissions: ["modifier-groups:read"],
+  },
   { href: "/tenants", labelKey: "nav.tenants", icon: Building2, permissions: ["tenants:read"] },
   { href: "/users", labelKey: "nav.users", icon: Users, permissions: ["users:read"] },
   { href: "/roles", labelKey: "nav.roles", icon: Shield, permissions: ["roles:read"] },

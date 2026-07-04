@@ -230,6 +230,26 @@ export const API_ENDPOINTS = {
         `/v1/tip-pools/${id}/allocations/${allocationId}`,
     },
   },
+  MODIFIER_GROUPS: {
+    LIST: "/v1/modifier-groups",
+    BY_ID: (id: string) => `/v1/modifier-groups/${id}`,
+    CREATE: "/v1/modifier-groups",
+    UPDATE: (id: string) => `/v1/modifier-groups/${id}`,
+    DELETE: (id: string) => `/v1/modifier-groups/${id}`,
+    ATTACH_PRODUCT: (id: string) => `/v1/modifier-groups/${id}/products`,
+    DETACH_PRODUCT: (id: string, productId: string) =>
+      `/v1/modifier-groups/${id}/products/${productId}`,
+    MODIFIERS: {
+      LIST: (groupId: string) => `/v1/modifier-groups/${groupId}/modifiers`,
+      BY_ID: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+      CREATE: (groupId: string) => `/v1/modifier-groups/${groupId}/modifiers`,
+      UPDATE: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+      DELETE: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+    },
+  },
   COUNTER_ORDERS: {
     BY_ID: (id: string) => `/v1/counter-orders/${id}`,
     PICKUP: (id: string) => `/v1/counter-orders/${id}/pickup`,

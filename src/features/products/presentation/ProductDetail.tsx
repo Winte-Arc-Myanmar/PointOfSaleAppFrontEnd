@@ -14,6 +14,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { useProduct } from "@/presentation/hooks/useProducts";
+import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { Button } from "@/presentation/components/ui/button";
 import { ProductVariantSection } from "./ProductVariantSection";
@@ -27,6 +28,7 @@ import {
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
@@ -40,7 +42,17 @@ type DetailTabKey = (typeof DETAIL_TABS)[number]["key"];
 
 export function ProductDetail({ productId }: { productId: string }) {
   const { data: product, isLoading, error } = useProduct(productId);
+  const { data: modifierGroupsResult } = useModifierGroups({ page: 1, limit: 200 });
+  const modifierGroups = getPaginatedItems(modifierGroupsResult);
   const [activeTab, setActiveTab] = useState<DetailTabKey>("overview");
+
+  const relatedModifierGroups = useMemo(
+    () =>
+      product
+        ? modifierGroups.filter((group) => group.tenantId === product.tenantId)
+        : [],
+    [modifierGroups, product],
+  );
 
   const overviewRows = product
     ? [
@@ -251,6 +263,17 @@ export function ProductDetail({ productId }: { productId: string }) {
                 </DetailSection>
               )}
           </div>
+          <DetailSection title="Modifier groups" icon={Tag}>
+            <div className="rounded-md border border-border p-3">
+              <p className="text-sm text-muted">
+                Tenant-level groups that can be attached to this product.
+              </p>
+              <p className="mt-2 text-2xl font-semibold">{relatedModifierGroups.length}</p>
+              <Link href="/modifier-groups" className="text-sm text-mint hover:underline">
+                View modifier groups
+              </Link>
+            </div>
+          </DetailSection>
         </div>
       )}
 

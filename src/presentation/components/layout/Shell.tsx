@@ -16,6 +16,7 @@ import type { TranslationKey } from "@/presentation/i18n/translations";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
+  "/modifier-groups": "Modifier Groups",
   "/tenants": "Tenants",
   "/users": "Users",
   "/categories": "Categories",
@@ -111,6 +112,9 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
     return "Edit product";
   if (pathname.startsWith("/products/")) return "Product";
+  if (pathname.startsWith("/modifier-groups/") && pathname.endsWith("/edit"))
+    return "Edit modifier group";
+  if (pathname.startsWith("/modifier-groups/")) return "Modifier group";
   if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
     return "Edit chart account";
   if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
@@ -171,6 +175,7 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/loyalty-ledger", labelKey: "nav.loyaltyLedger" },
   { href: "/vendors", labelKey: "nav.vendors" },
   { href: "/products", labelKey: "nav.products" },
+  { href: "/modifier-groups", labelKey: "nav.modifierGroups" },
   { href: "/tenants", labelKey: "nav.tenants" },
   { href: "/users", labelKey: "nav.users" },
   { href: "/roles", labelKey: "nav.roles" },
