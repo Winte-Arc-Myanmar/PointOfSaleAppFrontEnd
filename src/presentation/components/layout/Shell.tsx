@@ -16,6 +16,8 @@ import type { TranslationKey } from "@/presentation/i18n/translations";
 
 const routeTitles: Record<string, string> = {
   "/products": "Products",
+  "/recipes": "Recipes",
+  "/modifier-groups": "Modifier Groups",
   "/tenants": "Tenants",
   "/users": "Users",
   "/categories": "Categories",
@@ -28,6 +30,13 @@ const routeTitles: Record<string, string> = {
   "/table-sessions": "Table Sessions",
   "/kds-stations": "KDS Stations",
   "/kds-tickets": "KDS Tickets",
+  "/reservations": "Reservations",
+  "/waitlist": "Waitlist",
+  "/tip-pools": "Tip Pools",
+  "/counter-orders": "Counter Orders",
+  "/reports": "Reports",
+  "/discount-reasons": "Discount Reasons",
+  "/void-reasons": "Void Reasons",
   "/inventory-ledger": "Inventory ledger",
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
@@ -81,6 +90,16 @@ function getTitle(pathname: string): string {
     return "Edit KDS station";
   if (pathname.startsWith("/kds-stations/")) return "KDS station";
   if (pathname.startsWith("/kds-tickets/")) return "KDS ticket";
+  if (pathname.startsWith("/reservations/") && pathname.endsWith("/edit"))
+    return "Edit reservation";
+  if (pathname.startsWith("/reservations/")) return "Reservation";
+  if (pathname.startsWith("/waitlist/") && pathname.endsWith("/edit"))
+    return "Edit waitlist entry";
+  if (pathname.startsWith("/waitlist/")) return "Waitlist entry";
+  if (pathname.startsWith("/tip-pools/") && pathname.endsWith("/edit"))
+    return "Edit tip pool";
+  if (pathname.startsWith("/tip-pools/")) return "Tip pool";
+  if (pathname.startsWith("/counter-orders/")) return "Counter order";
   if (pathname.startsWith("/inventory-ledger/")) return "Ledger entry";
   if (pathname.startsWith("/uom-classes/") && pathname.endsWith("/edit"))
     return "Edit UOM class";
@@ -97,6 +116,18 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/products/") && pathname.endsWith("/edit"))
     return "Edit product";
   if (pathname.startsWith("/products/")) return "Product";
+  if (pathname.startsWith("/recipes/") && pathname.endsWith("/edit"))
+    return "Edit recipe";
+  if (pathname.startsWith("/recipes/")) return "Recipe";
+  if (pathname.startsWith("/modifier-groups/") && pathname.endsWith("/edit"))
+    return "Edit modifier group";
+  if (pathname.startsWith("/modifier-groups/")) return "Modifier group";
+  if (pathname.startsWith("/discount-reasons/") && pathname.endsWith("/edit"))
+    return "Edit discount reason";
+  if (pathname.startsWith("/discount-reasons/")) return "Discount reason";
+  if (pathname.startsWith("/void-reasons/") && pathname.endsWith("/edit"))
+    return "Edit void reason";
+  if (pathname.startsWith("/void-reasons/")) return "Void reason";
   if (pathname.startsWith("/chart-of-accounts/") && pathname.endsWith("/edit"))
     return "Edit chart account";
   if (pathname.startsWith("/chart-of-accounts/")) return "Chart account";
@@ -157,6 +188,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/loyalty-ledger", labelKey: "nav.loyaltyLedger" },
   { href: "/vendors", labelKey: "nav.vendors" },
   { href: "/products", labelKey: "nav.products" },
+  { href: "/recipes", labelKey: "nav.recipes" },
+  { href: "/modifier-groups", labelKey: "nav.modifierGroups" },
   { href: "/tenants", labelKey: "nav.tenants" },
   { href: "/users", labelKey: "nav.users" },
   { href: "/roles", labelKey: "nav.roles" },
@@ -170,12 +203,19 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/table-sessions", labelKey: "nav.tableSessions" },
   { href: "/kds-stations", labelKey: "nav.kdsStations" },
   { href: "/kds-tickets", labelKey: "nav.kdsTickets" },
+  { href: "/reservations", labelKey: "nav.reservations" },
+  { href: "/waitlist", labelKey: "nav.waitlist" },
+  { href: "/tip-pools", labelKey: "nav.tipPools" },
+  { href: "/counter-orders", labelKey: "nav.counterOrders" },
   { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
   { href: "/uom-classes", labelKey: "nav.uomClasses" },
   { href: "/uoms", labelKey: "nav.uoms" },
   { href: "/uploads", labelKey: "nav.uploads" },
   { href: "/sales-orders", labelKey: "nav.salesOrders" },
+  { href: "/reports", labelKey: "nav.reports" },
   { href: "/promotion-rules", labelKey: "nav.promotionRules" },
+  { href: "/discount-reasons", labelKey: "nav.discountReasons" },
+  { href: "/void-reasons", labelKey: "nav.voidReasons" },
   { href: "/pos-registers", labelKey: "nav.posRegisters" },
   { href: "/pos-sessions", labelKey: "nav.posSessions" },
   { href: "/payment-methods", labelKey: "nav.paymentMethods" },

@@ -192,6 +192,76 @@ export const API_ENDPOINTS = {
       LINE_READY: (lineId: string) => `/v1/kds/tickets/lines/${lineId}/ready`,
     },
   },
+  RESERVATIONS: {
+    LIST: "/v1/reservations",
+    BY_ID: (id: string) => `/v1/reservations/${id}`,
+    CREATE: "/v1/reservations",
+    UPDATE: (id: string) => `/v1/reservations/${id}`,
+    DELETE: (id: string) => `/v1/reservations/${id}`,
+    CONFIRM: (id: string) => `/v1/reservations/${id}/confirm`,
+    SEAT: (id: string) => `/v1/reservations/${id}/seat`,
+    CANCEL: (id: string) => `/v1/reservations/${id}/cancel`,
+    NO_SHOW: (id: string) => `/v1/reservations/${id}/no-show`,
+  },
+  WAITLIST: {
+    LIST: "/v1/waitlist",
+    BY_ID: (id: string) => `/v1/waitlist/${id}`,
+    CREATE: "/v1/waitlist",
+    UPDATE: (id: string) => `/v1/waitlist/${id}`,
+    NOTIFY: (id: string) => `/v1/waitlist/${id}/notify`,
+    SEAT: (id: string) => `/v1/waitlist/${id}/seat`,
+    CANCEL: (id: string) => `/v1/waitlist/${id}/cancel`,
+    NO_SHOW: (id: string) => `/v1/waitlist/${id}/no-show`,
+  },
+  TIP_POOLS: {
+    LIST: "/v1/tip-pools",
+    BY_ID: (id: string) => `/v1/tip-pools/${id}`,
+    CREATE: "/v1/tip-pools",
+    UPDATE: (id: string) => `/v1/tip-pools/${id}`,
+    DELETE: (id: string) => `/v1/tip-pools/${id}`,
+    DISTRIBUTE: (id: string) => `/v1/tip-pools/${id}/distribute`,
+    SETTLE: (id: string) => `/v1/tip-pools/${id}/settle`,
+    ALLOCATIONS: {
+      LIST: (id: string) => `/v1/tip-pools/${id}/allocations`,
+      CREATE: (id: string) => `/v1/tip-pools/${id}/allocations`,
+      UPDATE: (id: string, allocationId: string) =>
+        `/v1/tip-pools/${id}/allocations/${allocationId}`,
+      DELETE: (id: string, allocationId: string) =>
+        `/v1/tip-pools/${id}/allocations/${allocationId}`,
+    },
+  },
+  RECIPES: {
+    LIST: "/v1/recipes",
+    BY_ID: (id: string) => `/v1/recipes/${id}`,
+    BY_VARIANT: (variantId: string) => `/v1/recipes/by-variant/${variantId}`,
+    CREATE: "/v1/recipes",
+    UPDATE: (id: string) => `/v1/recipes/${id}`,
+    DELETE: (id: string) => `/v1/recipes/${id}`,
+  },
+  MODIFIER_GROUPS: {
+    LIST: "/v1/modifier-groups",
+    BY_ID: (id: string) => `/v1/modifier-groups/${id}`,
+    CREATE: "/v1/modifier-groups",
+    UPDATE: (id: string) => `/v1/modifier-groups/${id}`,
+    DELETE: (id: string) => `/v1/modifier-groups/${id}`,
+    ATTACH_PRODUCT: (id: string) => `/v1/modifier-groups/${id}/products`,
+    DETACH_PRODUCT: (id: string, productId: string) =>
+      `/v1/modifier-groups/${id}/products/${productId}`,
+    MODIFIERS: {
+      LIST: (groupId: string) => `/v1/modifier-groups/${groupId}/modifiers`,
+      BY_ID: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+      CREATE: (groupId: string) => `/v1/modifier-groups/${groupId}/modifiers`,
+      UPDATE: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+      DELETE: (groupId: string, id: string) =>
+        `/v1/modifier-groups/${groupId}/modifiers/${id}`,
+    },
+  },
+  COUNTER_ORDERS: {
+    BY_ID: (id: string) => `/v1/counter-orders/${id}`,
+    PICKUP: (id: string) => `/v1/counter-orders/${id}/pickup`,
+  },
   INVENTORY_LEDGER: {
     LIST: "/v1/inventory-ledger",
     EXPIRING: "/v1/inventory-ledger/expiring",
@@ -364,5 +434,27 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/refunds",
     BY_ID: (id: string) => `/v1/refunds/${id}`,
     BY_ORDER_ID: (salesOrderId: string) => `/v1/refunds/order/${salesOrderId}`,
+  },
+  REPORTS: {
+    DAILY_SALES: "/v1/reports/daily-sales",
+    SALES_BY_CATEGORY: "/v1/reports/sales-by-category",
+    SALES_BY_ITEM: "/v1/reports/sales-by-item",
+    SALES_BY_HOUR: "/v1/reports/sales-by-hour",
+    SERVER_PERFORMANCE: "/v1/reports/server-performance",
+    Z_REPORT: "/v1/reports/z-report",
+  },
+  DISCOUNT_REASONS: {
+    LIST: "/v1/discount-reasons",
+    BY_ID: (id: string) => `/v1/discount-reasons/${id}`,
+    CREATE: "/v1/discount-reasons",
+    UPDATE: (id: string) => `/v1/discount-reasons/${id}`,
+    DELETE: (id: string) => `/v1/discount-reasons/${id}`,
+  },
+  VOID_REASONS: {
+    LIST: "/v1/void-reasons",
+    BY_ID: (id: string) => `/v1/void-reasons/${id}`,
+    CREATE: "/v1/void-reasons",
+    UPDATE: (id: string) => `/v1/void-reasons/${id}`,
+    DELETE: (id: string) => `/v1/void-reasons/${id}`,
   },
 } as const;

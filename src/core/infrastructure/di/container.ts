@@ -21,6 +21,13 @@ import { ApiKitchenPrinterRepository } from "../repositories/ApiKitchenPrinterRe
 import { ApiTableSessionRepository } from "../repositories/ApiTableSessionRepository";
 import { ApiKdsStationRepository } from "../repositories/ApiKdsStationRepository";
 import { ApiKdsTicketRepository } from "../repositories/ApiKdsTicketRepository";
+import { ApiReservationRepository } from "../repositories/ApiReservationRepository";
+import { ApiWaitlistRepository } from "../repositories/ApiWaitlistRepository";
+import { ApiTipPoolRepository } from "../repositories/ApiTipPoolRepository";
+import { ApiRecipeRepository } from "../repositories/ApiRecipeRepository";
+import { ApiModifierGroupRepository } from "../repositories/ApiModifierGroupRepository";
+import { ApiReportRepository } from "../repositories/ApiReportRepository";
+import { ApiCounterOrderRepository } from "../repositories/ApiCounterOrderRepository";
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
@@ -46,6 +53,13 @@ import { KitchenPrinterService } from "@/core/application/services/KitchenPrinte
 import { TableSessionService } from "@/core/application/services/TableSessionService";
 import { KdsStationService } from "@/core/application/services/KdsStationService";
 import { KdsTicketService } from "@/core/application/services/KdsTicketService";
+import { ReservationService } from "@/core/application/services/ReservationService";
+import { WaitlistService } from "@/core/application/services/WaitlistService";
+import { TipPoolService } from "@/core/application/services/TipPoolService";
+import { RecipeService } from "@/core/application/services/RecipeService";
+import { ModifierGroupService } from "@/core/application/services/ModifierGroupService";
+import { ReportService } from "@/core/application/services/ReportService";
+import { CounterOrderService } from "@/core/application/services/CounterOrderService";
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
@@ -77,7 +91,11 @@ import { AccountingPeriodService } from "@/core/application/services/AccountingP
 import { ApiExchangeRateRepository } from "../repositories/ApiExchangeRateRepository";
 import { ExchangeRateService } from "@/core/application/services/ExchangeRateService";
 import { ApiTaxRateRepository } from "../repositories/ApiTaxRateRepository";
+import { ApiDiscountReasonRepository } from "../repositories/ApiDiscountReasonRepository";
+import { ApiVoidReasonRepository } from "../repositories/ApiVoidReasonRepository";
 import { TaxRateService } from "@/core/application/services/TaxRateService";
+import { DiscountReasonService } from "@/core/application/services/DiscountReasonService";
+import { VoidReasonService } from "@/core/application/services/VoidReasonService";
 import { ApiJournalEntryRepository } from "../repositories/ApiJournalEntryRepository";
 import { JournalEntryService } from "@/core/application/services/JournalEntryService";
 import { ApiJournalLineRepository } from "../repositories/ApiJournalLineRepository";
@@ -140,6 +158,18 @@ import type { IKdsStationRepository } from "@/core/domain/repositories/IKdsStati
 import type { IKdsStationService } from "@/core/domain/services/IKdsStationService";
 import type { IKdsTicketRepository } from "@/core/domain/repositories/IKdsTicketRepository";
 import type { IKdsTicketService } from "@/core/domain/services/IKdsTicketService";
+import type { IReservationRepository } from "@/core/domain/repositories/IReservationRepository";
+import type { IReservationService } from "@/core/domain/services/IReservationService";
+import type { IWaitlistRepository } from "@/core/domain/repositories/IWaitlistRepository";
+import type { IWaitlistService } from "@/core/domain/services/IWaitlistService";
+import type { ITipPoolRepository } from "@/core/domain/repositories/ITipPoolRepository";
+import type { ITipPoolService } from "@/core/domain/services/ITipPoolService";
+import type { IRecipeRepository } from "@/core/domain/repositories/IRecipeRepository";
+import type { IRecipeService } from "@/core/domain/services/IRecipeService";
+import type { IModifierGroupRepository } from "@/core/domain/repositories/IModifierGroupRepository";
+import type { IModifierGroupService } from "@/core/domain/services/IModifierGroupService";
+import type { ICounterOrderRepository } from "@/core/domain/repositories/ICounterOrderRepository";
+import type { ICounterOrderService } from "@/core/domain/services/ICounterOrderService";
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
@@ -172,6 +202,10 @@ import type { IExchangeRateRepository } from "@/core/domain/repositories/IExchan
 import type { IExchangeRateService } from "@/core/domain/services/IExchangeRateService";
 import type { ITaxRateRepository } from "@/core/domain/repositories/ITaxRateRepository";
 import type { ITaxRateService } from "@/core/domain/services/ITaxRateService";
+import type { IDiscountReasonRepository } from "@/core/domain/repositories/IDiscountReasonRepository";
+import type { IDiscountReasonService } from "@/core/domain/services/IDiscountReasonService";
+import type { IVoidReasonRepository } from "@/core/domain/repositories/IVoidReasonRepository";
+import type { IVoidReasonService } from "@/core/domain/services/IVoidReasonService";
 import type { IJournalEntryRepository } from "@/core/domain/repositories/IJournalEntryRepository";
 import type { IJournalEntryService } from "@/core/domain/services/IJournalEntryService";
 import type { IJournalLineRepository } from "@/core/domain/repositories/IJournalLineRepository";
@@ -192,6 +226,8 @@ import type { IRefundRepository } from "@/core/domain/repositories/IRefundReposi
 import type { ICheckoutService } from "@/core/domain/services/ICheckoutService";
 import type { IReceiptService } from "@/core/domain/services/IReceiptService";
 import type { IRefundService } from "@/core/domain/services/IRefundService";
+import type { IReportRepository } from "@/core/domain/repositories/IReportRepository";
+import type { IReportService } from "@/core/domain/services/IReportService";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -236,6 +272,18 @@ class Container {
     const kdsStationService = new KdsStationService(kdsStationRepository);
     const kdsTicketRepository = new ApiKdsTicketRepository(httpClient);
     const kdsTicketService = new KdsTicketService(kdsTicketRepository);
+    const reservationRepository = new ApiReservationRepository(httpClient);
+    const reservationService = new ReservationService(reservationRepository);
+    const waitlistRepository = new ApiWaitlistRepository(httpClient);
+    const waitlistService = new WaitlistService(waitlistRepository);
+    const tipPoolRepository = new ApiTipPoolRepository(httpClient);
+    const tipPoolService = new TipPoolService(tipPoolRepository);
+    const recipeRepository = new ApiRecipeRepository(httpClient);
+    const recipeService = new RecipeService(recipeRepository);
+    const modifierGroupRepository = new ApiModifierGroupRepository(httpClient);
+    const modifierGroupService = new ModifierGroupService(modifierGroupRepository);
+    const counterOrderRepository = new ApiCounterOrderRepository(httpClient);
+    const counterOrderService = new CounterOrderService(counterOrderRepository);
     const inventoryLedgerRepository = new ApiInventoryLedgerRepository(
       httpClient
     );
@@ -286,6 +334,10 @@ class Container {
     const exchangeRateService = new ExchangeRateService(exchangeRateRepository);
     const taxRateRepository = new ApiTaxRateRepository(httpClient);
     const taxRateService = new TaxRateService(taxRateRepository);
+    const discountReasonRepository = new ApiDiscountReasonRepository(httpClient);
+    const discountReasonService = new DiscountReasonService(discountReasonRepository);
+    const voidReasonRepository = new ApiVoidReasonRepository(httpClient);
+    const voidReasonService = new VoidReasonService(voidReasonRepository);
     const journalEntryRepository = new ApiJournalEntryRepository(httpClient);
     const journalEntryService = new JournalEntryService(journalEntryRepository);
     const journalLineRepository = new ApiJournalLineRepository(httpClient);
@@ -308,6 +360,8 @@ class Container {
     const receiptService = new ReceiptService(receiptRepository);
     const refundRepository = new ApiRefundRepository(httpClient);
     const refundService = new RefundService(refundRepository);
+    const reportRepository = new ApiReportRepository(httpClient);
+    const reportService = new ReportService(reportRepository);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -356,6 +410,18 @@ class Container {
     this.register<IKdsStationService>("kdsStationService", kdsStationService);
     this.register<IKdsTicketRepository>("kdsTicketRepository", kdsTicketRepository);
     this.register<IKdsTicketService>("kdsTicketService", kdsTicketService);
+    this.register<IReservationRepository>("reservationRepository", reservationRepository);
+    this.register<IReservationService>("reservationService", reservationService);
+    this.register<IWaitlistRepository>("waitlistRepository", waitlistRepository);
+    this.register<IWaitlistService>("waitlistService", waitlistService);
+    this.register<ITipPoolRepository>("tipPoolRepository", tipPoolRepository);
+    this.register<ITipPoolService>("tipPoolService", tipPoolService);
+    this.register<IRecipeRepository>("recipeRepository", recipeRepository);
+    this.register<IRecipeService>("recipeService", recipeService);
+    this.register<IModifierGroupRepository>("modifierGroupRepository", modifierGroupRepository);
+    this.register<IModifierGroupService>("modifierGroupService", modifierGroupService);
+    this.register<ICounterOrderRepository>("counterOrderRepository", counterOrderRepository);
+    this.register<ICounterOrderService>("counterOrderService", counterOrderService);
     this.register<IInventoryLedgerRepository>(
       "inventoryLedgerRepository",
       inventoryLedgerRepository
@@ -453,6 +519,13 @@ class Container {
     );
     this.register<ITaxRateRepository>("taxRateRepository", taxRateRepository);
     this.register<ITaxRateService>("taxRateService", taxRateService);
+    this.register<IDiscountReasonRepository>(
+      "discountReasonRepository",
+      discountReasonRepository,
+    );
+    this.register<IDiscountReasonService>("discountReasonService", discountReasonService);
+    this.register<IVoidReasonRepository>("voidReasonRepository", voidReasonRepository);
+    this.register<IVoidReasonService>("voidReasonService", voidReasonService);
     this.register<IJournalEntryRepository>(
       "journalEntryRepository",
       journalEntryRepository
@@ -497,6 +570,8 @@ class Container {
     this.register<IReceiptService>("receiptService", receiptService);
     this.register<IRefundRepository>("refundRepository", refundRepository);
     this.register<IRefundService>("refundService", refundService);
+    this.register<IReportRepository>("reportRepository", reportRepository);
+    this.register<IReportService>("reportService", reportService);
   }
 
   register<T>(key: string, instance: T): void {

@@ -49,6 +49,15 @@ import {
   ClipboardList,
   TvMinimal,
   Ticket,
+  CalendarDays,
+  Hourglass,
+  HandCoins,
+  ShoppingBag,
+  BarChart3,
+  Tag,
+  Ban,
+  SlidersHorizontal,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
@@ -83,6 +92,18 @@ const allMenuItems: MenuItem[] = [
   },
   { href: "/vendors", labelKey: "nav.vendors", icon: Truck, permissions: ["vendors:read"] },
   { href: "/products", labelKey: "nav.products", icon: Package, permissions: ["products:read"] },
+  {
+    href: "/recipes",
+    labelKey: "nav.recipes",
+    icon: FlaskConical,
+    permissions: ["recipes:read"],
+  },
+  {
+    href: "/modifier-groups",
+    labelKey: "nav.modifierGroups",
+    icon: SlidersHorizontal,
+    permissions: ["modifier-groups:read"],
+  },
   { href: "/tenants", labelKey: "nav.tenants", icon: Building2, permissions: ["tenants:read"] },
   { href: "/users", labelKey: "nav.users", icon: Users, permissions: ["users:read"] },
   { href: "/roles", labelKey: "nav.roles", icon: Shield, permissions: ["roles:read"] },
@@ -132,6 +153,30 @@ const allMenuItems: MenuItem[] = [
     permissions: ["kds-tickets:read"],
   },
   {
+    href: "/reservations",
+    labelKey: "nav.reservations",
+    icon: CalendarDays,
+    permissions: ["reservations:read"],
+  },
+  {
+    href: "/waitlist",
+    labelKey: "nav.waitlist",
+    icon: Hourglass,
+    permissions: ["waitlist:read"],
+  },
+  {
+    href: "/tip-pools",
+    labelKey: "nav.tipPools",
+    icon: HandCoins,
+    permissions: ["tip-pools:read"],
+  },
+  {
+    href: "/counter-orders",
+    labelKey: "nav.counterOrders",
+    icon: ShoppingBag,
+    permissions: ["counter-orders:read"],
+  },
+  {
     href: "/inventory-ledger",
     labelKey: "nav.inventoryLedger",
     icon: ScrollText,
@@ -142,10 +187,28 @@ const allMenuItems: MenuItem[] = [
   { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },
   { href: "/sales-orders", labelKey: "nav.salesOrders", icon: Receipt, permissions: ["sales-orders:read"] },
   {
+    href: "/reports",
+    labelKey: "nav.reports",
+    icon: BarChart3,
+    permissions: ["reports:read"],
+  },
+  {
     href: "/promotion-rules",
     labelKey: "nav.promotionRules",
     icon: Percent,
     permissions: ["promotion-rules:read"],
+  },
+  {
+    href: "/discount-reasons",
+    labelKey: "nav.discountReasons",
+    icon: Tag,
+    permissions: ["discount-reasons:read"],
+  },
+  {
+    href: "/void-reasons",
+    labelKey: "nav.voidReasons",
+    icon: Ban,
+    permissions: ["void-reasons:read"],
   },
   {
     href: "/pos-registers",
