@@ -17,6 +17,8 @@ import type { TranslationKey } from "@/presentation/i18n/translations";
 const routeTitles: Record<string, string> = {
   "/products": "Products",
   "/recipes": "Recipes",
+  "/bundles": "Bundles",
+  "/pricing-schedules": "Pricing Schedules",
   "/modifier-groups": "Modifier Groups",
   "/tenants": "Tenants",
   "/users": "Users",
@@ -119,6 +121,12 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/recipes/") && pathname.endsWith("/edit"))
     return "Edit recipe";
   if (pathname.startsWith("/recipes/")) return "Recipe";
+  if (pathname.startsWith("/bundles/") && pathname.endsWith("/edit"))
+    return "Edit bundle";
+  if (pathname.startsWith("/bundles/")) return "Bundle";
+  if (pathname.startsWith("/pricing-schedules/") && pathname.endsWith("/edit"))
+    return "Edit pricing schedule";
+  if (pathname.startsWith("/pricing-schedules/")) return "Pricing schedule";
   if (pathname.startsWith("/modifier-groups/") && pathname.endsWith("/edit"))
     return "Edit modifier group";
   if (pathname.startsWith("/modifier-groups/")) return "Modifier group";
@@ -189,6 +197,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/vendors", labelKey: "nav.vendors" },
   { href: "/products", labelKey: "nav.products" },
   { href: "/recipes", labelKey: "nav.recipes" },
+  { href: "/bundles", labelKey: "nav.bundles" },
+  { href: "/pricing-schedules", labelKey: "nav.pricingSchedules" },
   { href: "/modifier-groups", labelKey: "nav.modifierGroups" },
   { href: "/tenants", labelKey: "nav.tenants" },
   { href: "/users", labelKey: "nav.users" },

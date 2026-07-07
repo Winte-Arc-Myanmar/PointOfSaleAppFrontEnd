@@ -57,6 +57,7 @@ import {
   Tag,
   Ban,
   SlidersHorizontal,
+  Layers,
   FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -97,6 +98,18 @@ const allMenuItems: MenuItem[] = [
     labelKey: "nav.recipes",
     icon: FlaskConical,
     permissions: ["recipes:read"],
+  },
+  {
+    href: "/bundles",
+    labelKey: "nav.bundles",
+    icon: Layers,
+    permissions: ["bundles:read"],
+  },
+  {
+    href: "/pricing-schedules",
+    labelKey: "nav.pricingSchedules",
+    icon: CalendarClock,
+    permissions: ["pricing-schedules:read"],
   },
   {
     href: "/modifier-groups",

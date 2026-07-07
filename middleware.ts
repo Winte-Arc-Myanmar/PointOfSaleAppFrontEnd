@@ -44,6 +44,8 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/uom", permissions: ["uom:read"] },
   { prefix: "/products", permissions: ["products:read"] },
   { prefix: "/recipes", permissions: ["recipes:read"] },
+  { prefix: "/bundles", permissions: ["bundles:read"] },
+  { prefix: "/pricing-schedules", permissions: ["pricing-schedules:read"] },
   { prefix: "/uploads", permissions: ["uploads:read"] },
   { prefix: "/sales-orders", permissions: ["sales-orders:read"] },
   { prefix: "/reports", permissions: ["reports:read"] },
