@@ -34,7 +34,7 @@ export function Navbar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-gray-300 bg-white/95 px-4 backdrop-blur-sm dark:border-border dark:bg-background/95 lg:px-6",
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-gray-300 bg-white/95 px-4 shadow-[var(--shadow-panel)] backdrop-blur-sm dark:border-border dark:bg-background/95 lg:px-6",
         className
       )}
     >

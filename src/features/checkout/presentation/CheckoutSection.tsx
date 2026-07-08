@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -15,6 +15,9 @@ import {
   CreditCard,
   RefreshCw,
   Package,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -38,6 +41,7 @@ import { useLocations } from "@/presentation/hooks/useLocations";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
+import { useCategories } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
@@ -46,7 +50,9 @@ import {
   calcLineTotals,
   calcTax,
 } from "@/core/application/business-rules/checkout/checkoutCalculations";
+import { PosCartItem } from "./PosCartItem";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
+import type { Category } from "@/core/domain/entities/Category";
 import type { Product } from "@/core/domain/entities/Product";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 
@@ -125,6 +131,7 @@ export function CheckoutSection() {
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+  const { data: categoriesResult } = useCategories({ page: 1, limit: 200 });
   const { data: productsResult, isLoading: productsLoading } = useProducts({
     page: 1,
     limit: 200,
@@ -134,6 +141,7 @@ export function CheckoutSection() {
   const allSessions = getPaginatedItems(allSessionsResult);
   const allCustomers = getPaginatedItems(allCustomersResult);
   const allPaymentMethods = getPaginatedItems(allPaymentMethodsResult);
+  const allCategories = getPaginatedItems(categoriesResult);
   const products = getPaginatedItems(productsResult);
 
   const form = useForm<FormValues>({
@@ -220,6 +228,17 @@ export function CheckoutSection() {
         : allPaymentMethods,
     [allPaymentMethods, selectedTenantId],
   );
+  const categories = useMemo(
+    () =>
+      (selectedTenantId
+        ? allCategories.filter(
+            (category) =>
+              String(category.tenantId) === String(selectedTenantId),
+          )
+        : allCategories
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [allCategories, selectedTenantId],
+  );
 
   useEffect(() => {
     if (
@@ -255,6 +274,18 @@ export function CheckoutSection() {
   const [activeLineIndex, setActiveLineIndex] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
+
+  useEffect(() => {
+    if (
+      selectedCategoryId !== "__all__" &&
+      !categories.some(
+        (category) => String(category.id) === String(selectedCategoryId),
+      )
+    ) {
+      setSelectedCategoryId("__all__");
+    }
+  }, [categories, selectedCategoryId]);
 
   const [variantPickerProductId, setVariantPickerProductId] = useState<
     string | null
@@ -284,12 +315,18 @@ export function CheckoutSection() {
     const byTenant = selectedTenantId
       ? base.filter((p) => String(p.tenantId) === String(selectedTenantId))
       : base;
-    if (!s) return byTenant;
-    return byTenant.filter((p) => {
+    const byCategory =
+      selectedCategoryId === "__all__"
+        ? byTenant
+        : byTenant.filter(
+            (p) => String(p.categoryId) === String(selectedCategoryId),
+          );
+    if (!s) return byCategory;
+    return byCategory.filter((p) => {
       const hay = `${p.name} ${p.baseSku}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [products, productSearch, selectedTenantId]);
+  }, [products, productSearch, selectedCategoryId, selectedTenantId]);
 
   const subtotal = useMemo(() => {
     return watchedItems.reduce((sum, it, i) => {
@@ -471,10 +508,15 @@ export function CheckoutSection() {
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
       />
+      <CategoryChooser
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={setSelectedCategoryId}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="lg:col-span-7 xl:col-span-7 space-y-4">
-          <div className="rounded-xl border border-border bg-background">
+        <div className="lg:col-span-6 xl:col-span-5 space-y-4">
+          <div className="rounded-xl border border-border bg-background shadow-[var(--shadow-panel)]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="section-label flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-mint" />
@@ -519,13 +561,13 @@ export function CheckoutSection() {
                         key={f.id}
                         onClick={() => setActiveLineIndex(idx)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors",
+                          "flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors",
                           isActive
                             ? "bg-mint/10 border-l-2 border-l-mint"
                             : "hover:bg-mint/5 border-l-2 border-l-transparent",
                         )}
                       >
-                        <div className="relative h-12 w-12 shrink-0 rounded-md overflow-hidden bg-muted/30 border border-border">
+                        <div className="relative h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted/20 border border-border">
                           {meta?.productImage ? (
                             <Image
                               src={resolveProductImageSrc(meta.productImage)}
@@ -542,19 +584,19 @@ export function CheckoutSection() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium truncate">
+                          <div className="font-semibold truncate text-foreground">
                             {meta?.productName ?? "Item"}
                           </div>
                           <div className="text-xs text-muted truncate">
                             {meta?.variantSku ?? variantId} · {money(unitPrice)}
                           </div>
                         </div>
-                        <div className="shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-1.5 py-1">
+                        <div className="shrink-0 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 dark:bg-white/10">
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                             onClick={(e) => {
                               e.stopPropagation();
                               decrementItem(idx);
@@ -563,14 +605,14 @@ export function CheckoutSection() {
                           >
                             <Minus className="h-3.5 w-3.5" />
                           </Button>
-                          <span className="w-8 text-center font-mono text-sm font-medium">
+                          <span className="w-8 text-center text-sm font-semibold tabular-nums text-foreground">
                             {qty}
                           </span>
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                             onClick={(e) => {
                               e.stopPropagation();
                               incrementItem(idx);
@@ -580,13 +622,14 @@ export function CheckoutSection() {
                             <Plus className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                        <div className="w-24 text-right shrink-0 font-medium">
+                        <div className="min-w-[96px] text-right text-base font-bold tabular-nums text-foreground">
                           {money(lineTotal)}
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-9 w-9 rounded-full text-muted hover:text-red-600 dark:hover:text-red-400"
                           onClick={(e) => {
                             e.stopPropagation();
                             items.remove(idx);
@@ -604,7 +647,7 @@ export function CheckoutSection() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-background p-5 space-y-4">
+          <div className="rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-panel)] space-y-4">
               <h3 className="section-label">Totals</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
@@ -755,8 +798,8 @@ export function CheckoutSection() {
 
         </div>
 
-        <div className="lg:col-span-5 xl:col-span-5">
-          <div className="rounded-xl border border-border bg-background p-4 space-y-4 sticky top-4">
+        <div className="lg:col-span-6 xl:col-span-7">
+          <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
@@ -778,11 +821,13 @@ export function CheckoutSection() {
             ) : filteredProducts.length === 0 ? (
               <p className="text-sm text-muted text-center py-8">
                 {selectedTenantId
-                  ? "No products for this tenant."
+                  ? selectedCategoryId === "__all__"
+                    ? "No products for this tenant."
+                    : "No products in this category."
                   : "Select a tenant to load products."}
               </p>
             ) : (
-              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[70vh] overflow-y-auto">
                 {filteredProducts.map((p) => (
                   <button
                     key={String(p.id)}
@@ -797,7 +842,7 @@ export function CheckoutSection() {
                           alt={p.name}
                           fill
                           className="object-cover"
-                          sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, 50vw"
+                          sizes="(min-width: 1536px) 18vw, (min-width: 1280px) 20vw, (min-width: 1024px) 24vw, (min-width: 768px) 30vw, 50vw"
                           unoptimized
                         />
                       ) : (
@@ -849,6 +894,114 @@ export function CheckoutSection() {
           if (selectedProduct) addVariantToCart(selectedProduct, v);
         }}
       />
+    </div>
+  );
+}
+
+function CategoryChooser({
+  categories,
+  selectedCategoryId,
+  onSelectCategory,
+}: {
+  categories: Category[];
+  selectedCategoryId: string;
+  onSelectCategory: (value: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const updateScrollState = () => {
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+      setCanScrollLeft(el.scrollLeft > 4);
+      setCanScrollRight(maxScrollLeft - el.scrollLeft > 4);
+    };
+
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [categories]);
+
+  function scrollByAmount(direction: "left" | "right") {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const amount = Math.max(220, Math.floor(el.clientWidth * 0.6));
+    el.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="h-4 w-4 text-mint" />
+          <h3 className="section-label">Category</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => scrollByAmount("left")}
+            disabled={!canScrollLeft}
+            aria-label="Scroll categories left"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => scrollByAmount("right")}
+            disabled={!canScrollRight}
+            aria-label="Scroll categories right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="hide-scrollbar flex gap-2 overflow-x-auto overflow-y-hidden pb-1 touch-pan-x"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <Button
+          type="button"
+          variant={selectedCategoryId === "__all__" ? "default" : "outline"}
+          className="h-14 shrink-0 px-5"
+          onClick={() => onSelectCategory("__all__")}
+        >
+          All
+        </Button>
+        {categories.map((category) => {
+          const isActive = String(category.id) === String(selectedCategoryId);
+          return (
+            <Button
+              key={String(category.id)}
+              type="button"
+              variant={isActive ? "default" : "outline"}
+              className="h-14 shrink-0 px-5"
+              onClick={() => onSelectCategory(String(category.id))}
+            >
+              {category.name}
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 }
