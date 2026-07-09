@@ -5,10 +5,7 @@ export default function KitchenPrintersPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Configure kitchen printers by location, network address, and category routing for order
-          tickets.
-        </p>
+        <p className="page-description">Manage kitchen printers.</p>
         <section>
           <h2 className="section-label mb-4">Kitchen Printers</h2>
           <KitchenPrinterList />

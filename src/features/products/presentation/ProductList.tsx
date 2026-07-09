@@ -46,6 +46,7 @@ export function ProductList() {
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
+
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
     const searchedProducts = !q
@@ -152,7 +153,7 @@ export function ProductList() {
             : "No products yet."
       }
       topContent={
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
   ShoppingCart,
@@ -18,6 +19,7 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -45,16 +47,21 @@ import { useCategories } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
+import { usePromotionRules } from "@/presentation/hooks/usePromotionRules";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   calcLineTotals,
   calcTax,
 } from "@/core/application/business-rules/checkout/checkoutCalculations";
-import { PosCartItem } from "./PosCartItem";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
 import type { Category } from "@/core/domain/entities/Category";
 import type { Product } from "@/core/domain/entities/Product";
+import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
+import {
+  PosRightSidebarCart,
+  type PosOrderType,
+} from "./PosRightSidebarCart";
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -97,12 +104,39 @@ function errorMessage(err: unknown): string {
   return "Checkout failed.";
 }
 
+function formatLoginTime(value: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function resolveStoredLoginTime(storageKey: string): Date {
+  if (typeof window === "undefined") return new Date();
+
+  try {
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = new Date(stored);
+      if (Number.isFinite(parsed.getTime())) return parsed;
+    }
+
+    const now = new Date();
+    window.sessionStorage.setItem(storageKey, now.toISOString());
+    return now;
+  } catch {
+    return new Date();
+  }
+}
+
 type FormValues = CheckoutRequestDto;
 
 interface LineMeta {
   productName: string;
   productImage?: string | null;
   variantSku: string;
+  categoryName?: string;
+  modifierLabel?: string;
   unitPrice: number;
   isTaxable: boolean;
   taxRate: number;
@@ -113,6 +147,7 @@ export function CheckoutSection() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  const { data: session } = useSession();
   const { tenantId } = usePermissions();
   const checkout = useCheckoutProcess();
 
@@ -136,6 +171,12 @@ export function CheckoutSection() {
     page: 1,
     limit: 200,
   });
+  const { data: promotionRulesResult } = usePromotionRules({
+    page: 1,
+    limit: 200,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
   const tenants = getPaginatedItems(tenantsResult);
   const allLocations = getPaginatedItems(allLocationsResult);
   const allSessions = getPaginatedItems(allSessionsResult);
@@ -143,6 +184,7 @@ export function CheckoutSection() {
   const allPaymentMethods = getPaginatedItems(allPaymentMethodsResult);
   const allCategories = getPaginatedItems(categoriesResult);
   const products = getPaginatedItems(productsResult);
+  const allPromotionRules = getPaginatedItems(promotionRulesResult);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -275,6 +317,14 @@ export function CheckoutSection() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
+  const [orderType, setOrderType] = useState<PosOrderType>("dine-in");
+  const [tableNumber, setTableNumber] = useState("Table #1");
+  const [giftCode, setGiftCode] = useState("");
+  const [promotionCode, setPromotionCode] = useState("");
+  const [selectedPromotionRuleId, setSelectedPromotionRuleId] = useState<
+    string | null
+  >(null);
+  const [loginTime, setLoginTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (
@@ -286,6 +336,64 @@ export function CheckoutSection() {
       setSelectedCategoryId("__all__");
     }
   }, [categories, selectedCategoryId]);
+
+  useEffect(() => {
+    if (orderType === "dine-in") {
+      setTableNumber((current) => current || "Table #1");
+      return;
+    }
+    setTableNumber("");
+  }, [orderType]);
+
+  const activePromotionRules = useMemo(() => {
+    const now = Date.now();
+    return (selectedTenantId
+      ? allPromotionRules.filter(
+          (rule) => String(rule.tenantId) === String(selectedTenantId),
+        )
+      : allPromotionRules
+    ).filter((rule) => {
+      const start = Date.parse(rule.startDate);
+      const end = Date.parse(rule.endDate);
+      if (!Number.isFinite(start) || !Number.isFinite(end)) return true;
+      return start <= now && now <= end;
+    });
+  }, [allPromotionRules, selectedTenantId]);
+
+  const selectedPromotionRule = useMemo(() => {
+    if (!selectedPromotionRuleId) return null;
+    return (
+      activePromotionRules.find(
+        (rule) => String(rule.id) === String(selectedPromotionRuleId),
+      ) ?? null
+    );
+  }, [activePromotionRules, selectedPromotionRuleId]);
+
+  useEffect(() => {
+    if (
+      selectedPromotionRuleId &&
+      !activePromotionRules.some(
+        (rule) => String(rule.id) === String(selectedPromotionRuleId),
+      )
+    ) {
+      setSelectedPromotionRuleId(null);
+      setPromotionCode("");
+    }
+  }, [activePromotionRules, selectedPromotionRuleId]);
+
+  function handlePromotionCodeChange(value: string) {
+    setPromotionCode(value);
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      setSelectedPromotionRuleId(null);
+      return;
+    }
+
+    const matchedRule = activePromotionRules.find(
+      (rule) => rule.name.trim().toLowerCase() === normalized,
+    );
+    setSelectedPromotionRuleId(matchedRule ? String(matchedRule.id) : null);
+  }
 
   const [variantPickerProductId, setVariantPickerProductId] = useState<
     string | null
@@ -395,6 +503,8 @@ export function CheckoutSection() {
           productName: product.name,
           productImage: product.imageUrl ?? null,
           variantSku: variant.variantSku,
+          categoryName: product.categoryName ?? "Menu item",
+          modifierLabel: variant.variantSku,
           unitPrice,
           isTaxable,
           taxRate,
@@ -497,8 +607,120 @@ export function CheckoutSection() {
     });
   }
 
+  const sessionUser = session?.user as
+    | { name?: string | null; email?: string | null; image?: string | null }
+    | undefined;
+  const sessionAccessToken =
+    typeof session?.accessToken === "string" ? session.accessToken : "";
+  const profileName = sessionUser?.name ?? sessionUser?.email ?? "Current user";
+  const profileInitial = profileName.trim().charAt(0).toUpperCase() || "U";
+  const loginStorageKey = useMemo(() => {
+    const identity = sessionUser?.email?.trim() || profileName.trim() || "guest";
+    const sessionScope = sessionAccessToken.trim() || "anonymous-session";
+    return `pos-login-time:${identity.toLowerCase()}:${sessionScope}`;
+  }, [profileName, sessionAccessToken, sessionUser?.email]);
+
+  useEffect(() => {
+    setLoginTime(resolveStoredLoginTime(loginStorageKey));
+  }, [loginStorageKey]);
+
+  const loginTimeLabel = loginTime ? formatLoginTime(loginTime) : "";
+  const orderNumber = form
+    .getValues("idempotencyKey")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-4)
+    .toUpperCase()
+    .padStart(4, "0");
+  const availableTables = [
+    "Table #1",
+    "Table #2",
+    "Table #3",
+    "Table #4",
+    "Table #5",
+    "Patio #1",
+    "VIP #1",
+  ];
+  const sidebarItems = watchedItems.map((it, idx) => {
+    const variantId = String(it?.variantId ?? "");
+    const meta = lineMeta[variantId + ":" + idx];
+    const quantity = Number(it?.quantity) || 0;
+    const discount = Number(it?.lineDiscount) || 0;
+    const lineTotal = (meta?.unitPrice ?? 0) * quantity - discount;
+    return {
+      id: `${variantId}:${idx}`,
+      category: meta?.categoryName ?? "Menu item",
+      name: meta?.productName ?? "Item",
+      modifier:
+        meta?.modifierLabel && meta.modifierLabel !== meta.productName
+          ? meta.modifierLabel
+          : undefined,
+      quantity,
+      price: lineTotal,
+    };
+  });
+
+  function formatPromotionRuleMeta(rule: PromotionRule | null): string | null {
+    if (!rule) return null;
+    const rewardType = rule.rewardAction?.type ?? "";
+    const rewardValue = Number(rule.rewardAction?.value ?? 0);
+    if (rewardType === "PERCENTAGE_DISCOUNT") {
+      return `${rewardValue}% off from Promotion Rules`;
+    }
+    if (rewardType === "FIXED_AMOUNT_DISCOUNT") {
+      return `${money(rewardValue)} off from Promotion Rules`;
+    }
+    if (rewardType === "FIXED_PRICE") {
+      return `Fixed price ${money(rewardValue)} from Promotion Rules`;
+    }
+    return rewardType
+      ? `${rewardType} from Promotion Rules`
+      : "Bound to Promotion Rules";
+  }
+
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]">
+        <div>
+          <p className="section-label">Checkout profile</p>
+          <p className="text-sm text-muted">
+            Active cashier for this checkout screen.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-mint/5 px-3 py-2">
+          <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-mint/15 text-sm font-semibold text-mint">
+            {sessionUser?.image ? (
+              <Image
+                src={sessionUser.image}
+                alt={profileName}
+                fill
+                className="object-cover"
+                sizes="44px"
+                unoptimized
+              />
+            ) : (
+              profileInitial
+            )}
+          </div>
+          <div className="min-w-0 space-y-0.5">
+            <p className="max-w-44 truncate text-sm font-medium text-foreground">
+              {profileName}
+            </p>
+            <p className="flex items-center gap-1 text-xs text-muted">
+              <User className="h-3.5 w-3.5" />
+              Cashier profile
+            </p>
+            {loginTimeLabel ? (
+              <p
+                className="text-xs text-gray-400 dark:text-muted"
+                title={`Logged in: ${loginTimeLabel}`}
+              >
+                Logged in: {loginTimeLabel}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <SettingsStrip
         form={form}
         tenants={tenants}
@@ -514,8 +736,47 @@ export function CheckoutSection() {
         onSelectCategory={setSelectedCategoryId}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="lg:col-span-6 xl:col-span-5 space-y-4">
+      <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
+        <div className="order-1 min-h-0 space-y-4 lg:col-span-5 xl:col-span-4">
+          <PosRightSidebarCart
+            orderNumber={orderNumber}
+            tableNumber={tableNumber}
+            staffName={profileName}
+            orderType={orderType}
+            tableOptions={availableTables}
+            items={sidebarItems}
+            giftCode={giftCode}
+            promotionCode={promotionCode}
+            promotionOptions={activePromotionRules.map((rule) => ({
+              id: String(rule.id),
+              label: rule.name,
+            }))}
+            promotionMeta={formatPromotionRuleMeta(selectedPromotionRule)}
+            summary={{
+              subtotal: netSubtotal,
+              discount: 0,
+              serviceCharge: 0,
+              tax: taxTotal,
+              total: subtotal,
+            }}
+            onOrderTypeChange={setOrderType}
+            onTableNumberChange={setTableNumber}
+            onGiftCodeChange={setGiftCode}
+            onPromotionCodeChange={handlePromotionCodeChange}
+            onPrint={() => {
+              if (typeof window !== "undefined") {
+                window.print();
+              }
+            }}
+            onPrimaryAction={form.handleSubmit(onSubmit)}
+            primaryActionDisabled={checkout.isPending || items.fields.length === 0}
+            primaryActionLabel={
+              checkout.isPending ? "Processing..." : `Pay Now ${money(subtotal)}`
+            }
+            printDisabled={items.fields.length === 0}
+          />
+          {false ? (
+            <>
           <div className="rounded-xl border border-border bg-background shadow-[var(--shadow-panel)]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="section-label flex items-center gap-2">
@@ -708,6 +969,9 @@ export function CheckoutSection() {
               </div>
           </div>
 
+            </>
+          ) : null}
+
           <div className="rounded-xl border border-border bg-background p-4 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="section-label flex items-center gap-2">
@@ -798,7 +1062,7 @@ export function CheckoutSection() {
 
         </div>
 
-        <div className="lg:col-span-6 xl:col-span-7">
+        <div className="order-2 lg:col-span-7 xl:col-span-8">
           <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -810,6 +1074,15 @@ export function CheckoutSection() {
                   className="pl-9"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold tracking-tight">
+                Special Menu for you
+              </h3>
+              <p className="text-sm text-muted">
+                Pick an item to add it to the current order.
+              </p>
             </div>
 
             {productsLoading ? (
@@ -827,52 +1100,58 @@ export function CheckoutSection() {
                   : "Select a tenant to load products."}
               </p>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[70vh] overflow-y-auto">
+              <div
+                className="visible-scrollbar grid max-h-[70vh] grid-cols-2 gap-4 overflow-y-auto pr-2 touch-pan-y md:grid-cols-3 xl:grid-cols-4"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {filteredProducts.map((p) => (
                   <button
                     key={String(p.id)}
                     type="button"
                     onClick={() => onProductClick(p)}
-                    className="rounded-xl border border-border hover:border-mint/40 hover:bg-mint/5 transition-colors overflow-hidden text-left flex flex-col"
+                    className="group flex flex-col rounded-[28px] border border-gray-200 bg-white px-4 pb-4 pt-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-mint/50 hover:shadow-md dark:border-border dark:bg-background"
                   >
-                    <div className="relative aspect-4/3 bg-muted/30 overflow-hidden">
+                    <div className="relative mx-auto mb-4 flex h-24 w-full max-w-[112px] items-center justify-center overflow-hidden rounded-2xl bg-transparent">
                       {p.imageUrl ? (
                         <Image
                           src={resolveProductImageSrc(p.imageUrl)}
                           alt={p.name}
                           fill
-                          className="object-cover"
-                          sizes="(min-width: 1536px) 18vw, (min-width: 1280px) 20vw, (min-width: 1024px) 24vw, (min-width: 768px) 30vw, 50vw"
+                          className="object-contain transition-transform duration-200 group-hover:scale-105"
+                          sizes="112px"
                           unoptimized
                         />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-xs text-muted">
+                        <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted/10 text-xs text-muted">
                           No image
                         </div>
                       )}
                     </div>
-                    <div className="p-2.5 flex-1 flex flex-col gap-1">
-                      <div className="font-medium leading-tight line-clamp-2 text-sm">
+                    <div className="flex flex-1 flex-col">
+                      <div className="min-h-[2.75rem] text-sm font-semibold leading-snug text-foreground line-clamp-2">
                         {p.name}
                       </div>
-                      <div className="mt-auto flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-muted truncate">
-                          {p.baseSku}
+                      <div className="mt-2 text-sm font-medium text-muted">
+                        {money(
+                          (() => {
+                            const unit = Number(p.basePrice) || 0;
+                            const taxable = Boolean(p.isTaxable);
+                            const rate = p.taxRateRatePercentage ?? 0;
+                            const inclusive = Boolean(
+                              p.taxRateIsPriceInclusive,
+                            );
+                            if (!taxable) return unit;
+                            if (inclusive) return unit;
+                            return unit + calcTax(unit, rate, false);
+                          })(),
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center rounded-full bg-mint px-2 py-1.5 text-white shadow-sm dark:text-gloss-black">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                          <Plus className="h-4 w-4" />
                         </span>
-                        <span className="text-sm font-semibold text-mint">
-                          {money(
-                            (() => {
-                              const unit = Number(p.basePrice) || 0;
-                              const taxable = Boolean(p.isTaxable);
-                              const rate = p.taxRateRatePercentage ?? 0;
-                              const inclusive = Boolean(
-                                p.taxRateIsPriceInclusive,
-                              );
-                              if (!taxable) return unit;
-                              if (inclusive) return unit;
-                              return unit + calcTax(unit, rate, false);
-                            })(),
-                          )}
+                        <span className="flex-1 text-center text-sm font-semibold tracking-wide">
+                          ADD
                         </span>
                       </div>
                     </div>

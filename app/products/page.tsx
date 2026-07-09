@@ -10,9 +10,7 @@ export default function ProductsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Manage your product catalog.
-        </p>
+        <p className="page-description">Manage products.</p>
         <section>
           <h2 className="section-label mb-4">
             Product List

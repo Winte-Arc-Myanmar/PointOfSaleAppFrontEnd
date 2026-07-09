@@ -386,7 +386,7 @@ export function SidebarMenu({
         initial={false}
         animate={{
           x: isDesktop ? 0 : isOpen ? 0 : "-100%",
-          width: isCollapsed ? 64 : 288,
+          width: isCollapsed ? 64 : 264,
         }}
         transition={{
           type: "spring",

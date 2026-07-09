@@ -5,10 +5,7 @@ export default function InventoryLedgerPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Stock movements, expiring lines, balance lookup, and write-offs — tied to variants and
-          locations.
-        </p>
+        <p className="page-description">Manage inventory ledger.</p>
         <section>
           <h2 className="section-label mb-4">Ledger entries</h2>
           <InventoryLedgerList />

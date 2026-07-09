@@ -64,6 +64,34 @@ summary {
   height: 0;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.visible-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.9) transparent;
+}
+.visible-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.visible-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.visible-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(148 163 184 / 0.9);
+}
+.visible-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139 / 0.95);
+}
+
 /* ——— Futuristic system: consistent section & page styles (colors unchanged) ——— */
 .section-label {
   font-size: 0.6875rem;

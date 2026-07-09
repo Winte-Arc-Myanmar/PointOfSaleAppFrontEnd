@@ -5,9 +5,7 @@ export default function VoidReasonsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Configure void reasons for order cancellations and line-item voids at the POS.
-        </p>
+        <p className="page-description">Manage void reasons.</p>
         <section>
           <h2 className="section-label mb-4">Void reasons</h2>
           <VoidReasonList />

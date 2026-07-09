@@ -140,9 +140,7 @@ export function CategoryTree({
                 Category Tree
               </h2>
             </button>
-            <p className="mt-1 text-sm text-muted">
-              Browse or focus one category at a time.
-            </p>
+            <p className="mt-1 text-sm text-muted">Manage categories.</p>
           </div>
         </div>
 

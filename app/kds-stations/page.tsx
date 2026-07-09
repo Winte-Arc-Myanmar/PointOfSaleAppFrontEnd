@@ -5,10 +5,7 @@ export default function KdsStationsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Configure kitchen display stations by location, display color, and menu category routing
-          for dine-in order flow.
-        </p>
+        <p className="page-description">Manage KDS stations.</p>
         <section>
           <h2 className="section-label mb-4">KDS Stations</h2>
           <KdsStationList />

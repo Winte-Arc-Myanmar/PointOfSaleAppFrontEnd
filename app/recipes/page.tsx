@@ -5,9 +5,7 @@ export default function RecipesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Define recipes per product variant and maintain ingredient quantities for production.
-        </p>
+        <p className="page-description">Manage recipes.</p>
         <section>
           <h2 className="section-label mb-4">Recipes</h2>
           <RecipeList />

@@ -185,8 +185,7 @@ export function CategoryList() {
               Categories Management
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-muted">
-              Organize your catalog with a cleaner category structure, faster
-              browsing, and clearer actions for your team.
+              Manage categories.
             </p>
           </div>
 

@@ -47,6 +47,7 @@ export class HttpClient {
   constructor(baseUrl?: string) {
     this.client = axios.create({
       baseURL: baseUrl ?? API_CONFIG.BASE_URL,
+      timeout: 10000,
       headers: { "Content-Type": "application/json" },
     });
 
