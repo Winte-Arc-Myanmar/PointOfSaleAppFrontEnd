@@ -4,7 +4,6 @@
 
 import { Shell } from "@/presentation/components/layout/Shell";
 import { ProductList } from "@/features/products/presentation/ProductList";
-import { AppLoader } from "@/presentation/components/loader";
 
 export default function ProductsPage() {
   return (

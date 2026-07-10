@@ -170,6 +170,7 @@ export interface DataTableProps<T extends { id: string | number }> {
   onDelete?: (item: T) => void;
   /** Enables table/grid toggle. Requires renderGridItem to render cards. */
   enableGridView?: boolean;
+  showViewModeToggle?: boolean;
   defaultViewMode?: DataTableViewMode;
   renderGridItem?: (item: T) => React.ReactNode;
   gridClassName?: string;
@@ -202,6 +203,7 @@ export function DataTable<T extends { id: string | number }>({
   onEdit,
   onDelete,
   enableGridView = false,
+  showViewModeToggle = true,
   defaultViewMode = "table",
   renderGridItem,
   gridClassName,
@@ -354,7 +356,7 @@ export function DataTable<T extends { id: string | number }>({
 
   return (
     <div className="w-full space-y-4 overflow-x-hidden">
-      {canUseGrid && (
+      {canUseGrid && showViewModeToggle && (
         <div className="flex items-center justify-end gap-2">
           <Button
             type="button"
