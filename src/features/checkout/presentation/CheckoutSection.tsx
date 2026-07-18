@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -34,8 +34,9 @@ import {
 import { Modal } from "@/presentation/components/modal/Modal";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
-import { resolveMediaUrl } from "@/lib/media-url";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
@@ -62,22 +63,6 @@ import {
   PosRightSidebarCart,
   type PosOrderType,
 } from "./PosRightSidebarCart";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
-
-function money4(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(4) : "—";
-}
-
-function resolveProductImageSrc(url: string): string {
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed))
-    return trimmed;
-  return resolveMediaUrl(trimmed);
-}
 
 function newIdempotencyKey(): string {
   try {
@@ -147,6 +132,7 @@ export function CheckoutSection() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
   const { data: session } = useSession();
   const { tenantId } = usePermissions();
   const checkout = useCheckoutProcess();
@@ -211,6 +197,13 @@ export function CheckoutSection() {
     control: form.control,
     name: "tenantId",
   });
+  const selectedTenantCurrency =
+    tenants.find((tenant) => String(tenant.id) === String(selectedTenantId))
+      ?.baseCurrency ?? "MMK";
+  const formatPrice = useCallback(
+    (value: number) => formatCurrencyPrice(value, selectedTenantCurrency),
+    [formatCurrencyPrice, selectedTenantCurrency],
+  );
   const selectedLocationId = useWatch({
     control: form.control,
     name: "locationId",
@@ -594,7 +587,7 @@ export function CheckoutSection() {
     }
     if (!(totalPaid + 1e-9 >= subtotal)) {
       return toast.error(
-        `Insufficient payment: required ${money4(subtotal)}, received ${money4(totalPaid)}.`,
+        `Insufficient payment: required ${formatPrice(subtotal)}, received ${formatPrice(totalPaid)}.`,
       );
     }
 
@@ -667,10 +660,10 @@ export function CheckoutSection() {
       return `${rewardValue}% off from Promotion Rules`;
     }
     if (rewardType === "FIXED_AMOUNT_DISCOUNT") {
-      return `${money(rewardValue)} off from Promotion Rules`;
+      return `${formatPrice(rewardValue)} off from Promotion Rules`;
     }
     if (rewardType === "FIXED_PRICE") {
-      return `Fixed price ${money(rewardValue)} from Promotion Rules`;
+      return `Fixed price ${formatPrice(rewardValue)} from Promotion Rules`;
     }
     return rewardType
       ? `${rewardType} from Promotion Rules`
@@ -730,15 +723,10 @@ export function CheckoutSection() {
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
       />
-      <CategoryChooser
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelectCategory={setSelectedCategoryId}
-      />
-
       <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
         <div className="order-1 min-h-0 space-y-4 lg:col-span-5 xl:col-span-4">
           <PosRightSidebarCart
+            currency={selectedTenantCurrency}
             orderNumber={orderNumber}
             tableNumber={tableNumber}
             staffName={profileName}
@@ -771,7 +759,7 @@ export function CheckoutSection() {
             onPrimaryAction={form.handleSubmit(onSubmit)}
             primaryActionDisabled={checkout.isPending || items.fields.length === 0}
             primaryActionLabel={
-              checkout.isPending ? "Processing..." : `Pay Now ${money(subtotal)}`
+              checkout.isPending ? "Processing..." : "Pay Now"
             }
             printDisabled={items.fields.length === 0}
           />
@@ -829,27 +817,20 @@ export function CheckoutSection() {
                         )}
                       >
                         <div className="relative h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted/20 border border-border">
-                          {meta?.productImage ? (
-                            <Image
-                              src={resolveProductImageSrc(meta.productImage)}
-                              alt={meta?.productName ?? ""}
-                              fill
-                              className="object-cover"
-                              sizes="48px"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-[10px] text-muted">
-                              No image
-                            </div>
-                          )}
+                          <ProductCardImage
+                            src={meta?.productImage}
+                            alt={meta?.productName ?? "Product"}
+                            sizes="48px"
+                            imageClassName="object-cover"
+                            logoClassName="w-7"
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-semibold truncate text-foreground">
                             {meta?.productName ?? "Item"}
                           </div>
                           <div className="text-xs text-muted truncate">
-                            {meta?.variantSku ?? variantId} · {money(unitPrice)}
+                            {meta?.variantSku ?? variantId} · {formatPrice(unitPrice)}
                           </div>
                         </div>
                         <div className="shrink-0 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 dark:bg-white/10">
@@ -884,7 +865,7 @@ export function CheckoutSection() {
                           </Button>
                         </div>
                         <div className="min-w-[96px] text-right text-base font-bold tabular-nums text-foreground">
-                          {money(lineTotal)}
+                          {formatPrice(lineTotal)}
                         </div>
                         <Button
                           type="button"
@@ -913,24 +894,24 @@ export function CheckoutSection() {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Subtotal</span>
-                  <span className="font-medium">{money4(netSubtotal)}</span>
+                  <span className="font-medium">{formatPrice(netSubtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Tax</span>
-                  <span className="font-medium">{money4(taxTotal)}</span>
+                  <span className="font-medium">{formatPrice(taxTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Total paid</span>
-                  <span className="font-medium">{money4(totalPaid)}</span>
+                  <span className="font-medium">{formatPrice(totalPaid)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Change due</span>
-                  <span className="font-medium">{money4(changeDue)}</span>
+                  <span className="font-medium">{formatPrice(changeDue)}</span>
                 </div>
                 <div className="pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Grand total</span>
                   <span className="text-2xl font-bold text-mint">
-                    {money4(subtotal)}
+                    {formatPrice(subtotal)}
                   </span>
                 </div>
               </div>
@@ -964,7 +945,7 @@ export function CheckoutSection() {
                 >
                   {checkout.isPending
                     ? "Processing..."
-                    : `Pay now ${money4(subtotal)}`}
+                    : "Pay now"}
                 </Button>
               </div>
           </div>
@@ -1076,6 +1057,12 @@ export function CheckoutSection() {
               </div>
             </div>
 
+            <CategoryChooser
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={setSelectedCategoryId}
+            />
+
             <div className="space-y-1">
               <h3 className="text-lg font-semibold tracking-tight">
                 Special Menu for you
@@ -1112,27 +1099,21 @@ export function CheckoutSection() {
                     className="group flex flex-col rounded-[28px] border border-gray-200 bg-white px-4 pb-4 pt-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-mint/50 hover:shadow-md dark:border-border dark:bg-background"
                   >
                     <div className="relative mx-auto mb-4 flex h-24 w-full max-w-[112px] items-center justify-center overflow-hidden rounded-2xl bg-transparent">
-                      {p.imageUrl ? (
-                        <Image
-                          src={resolveProductImageSrc(p.imageUrl)}
-                          alt={p.name}
-                          fill
-                          className="object-contain transition-transform duration-200 group-hover:scale-105"
-                          sizes="112px"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted/10 text-xs text-muted">
-                          No image
-                        </div>
-                      )}
+                      <ProductCardImage
+                        src={p.imageUrl}
+                        alt={p.name}
+                        sizes="112px"
+                        className="overflow-hidden rounded-2xl"
+                        imageClassName="transition-transform duration-200 group-hover:scale-105"
+                        logoClassName="w-12"
+                      />
                     </div>
                     <div className="flex flex-1 flex-col">
                       <div className="min-h-[2.75rem] text-sm font-semibold leading-snug text-foreground line-clamp-2">
                         {p.name}
                       </div>
                       <div className="mt-2 text-sm font-medium text-muted">
-                        {money(
+                        {formatPrice(
                           (() => {
                             const unit = Number(p.basePrice) || 0;
                             const taxable = Boolean(p.isTaxable);
@@ -1169,6 +1150,7 @@ export function CheckoutSection() {
         product={selectedProduct}
         variants={variants}
         variantsLoading={variantsLoading}
+        formatPrice={formatPrice}
         onPickVariant={(v) => {
           if (selectedProduct) addVariantToCart(selectedProduct, v);
         }}
@@ -1517,6 +1499,7 @@ function VariantPickerModal({
   product,
   variants,
   variantsLoading,
+  formatPrice,
   onPickVariant,
 }: {
   isOpen: boolean;
@@ -1524,6 +1507,7 @@ function VariantPickerModal({
   product: Product | null;
   variants: ProductVariant[];
   variantsLoading: boolean;
+  formatPrice: (value: number) => string;
   onPickVariant: (v: ProductVariant) => void;
 }) {
   return (
@@ -1587,7 +1571,7 @@ function VariantPickerModal({
                       {opts || "—"}
                     </div>
                   </div>
-                  <div className="text-sm font-medium">{money(price)}</div>
+                  <div className="text-sm font-medium">{formatPrice(price)}</div>
                 </div>
               </button>
             );

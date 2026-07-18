@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/presentation/providers/ThemeProvider";
 import { ToastProvider } from "@/presentation/providers/ToastProvider";
 import { ConfirmProvider } from "@/presentation/hooks/useConfirm";
 import { LanguageProvider } from "@/presentation/providers/LanguageProvider";
+import { CurrencyProvider } from "@/presentation/providers/CurrencyProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,13 +39,15 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <LanguageProvider>
-            <SessionProvider>
-              <QueryProvider>
-                <ToastProvider>
-                  <ConfirmProvider>{children}</ConfirmProvider>
-                </ToastProvider>
-              </QueryProvider>
-            </SessionProvider>
+            <CurrencyProvider>
+              <SessionProvider>
+                <QueryProvider>
+                  <ToastProvider>
+                    <ConfirmProvider>{children}</ConfirmProvider>
+                  </ToastProvider>
+                </QueryProvider>
+              </SessionProvider>
+            </CurrencyProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

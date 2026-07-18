@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Image as ImageIcon } from "lucide-react";
 import {
   useProducts,
   useDeleteProduct,
@@ -19,30 +17,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
-import { useCategories } from "@/presentation/hooks/useCategories";
+import { useCategoryTree } from "@/presentation/hooks/useCategories";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getProductTableColumns } from "./product-table-columns";
 import { CreateProductForm } from "./CreateProductForm";
 import type { Product } from "@/core/domain/entities/Product";
-import { resolveMediaUrl } from "@/lib/media-url";
+import type { Category } from "@/core/domain/entities/Category";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { useTenants } from "@/presentation/hooks/useTenants";
+import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
 const PAGE_SIZE = 16;
 const SEARCH_DEBOUNCE_MS = 300;
 
-function getProductImageSrc(imageUrl: string | null | undefined): string {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("data:") || /^https?:\/\//i.test(imageUrl)) {
-    return imageUrl;
-  }
-  return resolveMediaUrl(imageUrl);
+function flattenCategoryTree(
+  categories: Category[],
+  depth = 0,
+): Array<{ id: string; name: string; depth: number }> {
+  return categories.flatMap((category) => [
+    {
+      id: String(category.id),
+      name: category.name,
+      depth,
+    },
+    ...flattenCategoryTree(category.children ?? [], depth + 1),
+  ]);
 }
 
-function formatPrice(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(value) || 0);
+function buildCategoryFamilyMap(categories: Category[]) {
+  const map = new Map<string, Set<string>>();
+
+  const visit = (category: Category): Set<string> => {
+    const categoryId = String(category.id);
+    const descendantIds = new Set<string>([categoryId]);
+
+    for (const child of category.children ?? []) {
+      const childIds = visit(child);
+      for (const childId of childIds) {
+        descendantIds.add(childId);
+      }
+    }
+
+    map.set(categoryId, descendantIds);
+    return descendantIds;
+  };
+
+  for (const category of categories) {
+    visit(category);
+  }
+
+  return map;
 }
 
 export function ProductList() {
@@ -58,10 +83,28 @@ export function ProductList() {
     error,
     refetch,
   } = useProducts({ page, limit: PAGE_SIZE });
-  const { data: categoriesResult } = useCategories();
+  const { data: categoryTree = [] } = useCategoryTree();
+  const { data: tenantsResult } = useTenants({ page: 1, limit: 200 });
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
+  const { formatPrice } = useCurrency();
+
+  const currencyByTenantId = useMemo(
+    () =>
+      new Map(
+        (tenantsResult?.items ?? []).map((tenant) => [
+          String(tenant.id),
+          tenant.baseCurrency,
+        ]),
+      ),
+    [tenantsResult?.items],
+  );
+
+  const categoryFamilyMap = useMemo(
+    () => buildCategoryFamilyMap(categoryTree),
+    [categoryTree],
+  );
 
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -83,15 +126,21 @@ export function ProductList() {
         );
 
     if (selectedCategoryId === "__all__") return searchedProducts;
-    return searchedProducts.filter((p) => p.categoryId === selectedCategoryId);
-  }, [productsResult?.items, search, selectedCategoryId]);
+
+    const allowedCategoryIds =
+      categoryFamilyMap.get(selectedCategoryId) ?? new Set([selectedCategoryId]);
+
+    return searchedProducts.filter((p) =>
+      allowedCategoryIds.has(String(p.categoryId)),
+    );
+  }, [categoryFamilyMap, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
-    const categories = categoriesResult?.items ?? [];
-    return categories
-      .map((category) => ({ id: String(category.id), name: category.name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [categoriesResult?.items]);
+    return flattenCategoryTree(categoryTree).map((category) => ({
+      ...category,
+      label: `${"  ".repeat(category.depth)}${category.name}`,
+    }));
+  }, [categoryTree]);
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -147,7 +196,7 @@ export function ProductList() {
               <SelectItem value="__all__">All categories</SelectItem>
               {categoryOptions.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  {category.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -179,28 +228,15 @@ export function ProductList() {
       gridClassName="grid-cols-1 justify-items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
       gridCardClassName="w-full max-w-[210px] rounded-xl border border-border bg-background/90 p-0 shadow-sm"
       renderGridItem={(product) => {
-        const imageSrc = getProductImageSrc(product.imageUrl);
-
         return (
           <article className="flex h-full flex-col">
             <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-white">
-              {imageSrc ? (
-                <Image
-                  src={imageSrc}
-                  alt={product.name}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted">
-                  <div className="flex flex-col items-center gap-2 text-sm">
-                    <ImageIcon className="h-6 w-6" />
-                    <span>No image</span>
-                  </div>
-                </div>
-              )}
+              <ProductCardImage
+                src={product.imageUrl}
+                alt={product.name}
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                logoClassName="w-20"
+              />
             </div>
 
             <div className="flex flex-1 flex-col p-2.5">
@@ -215,7 +251,10 @@ export function ProductList() {
                 {product.name}
               </button>
               <p className="mt-1.5 text-sm font-semibold text-foreground">
-                ${formatPrice(product.basePrice)}
+                {formatPrice(
+                  product.basePrice,
+                  currencyByTenantId.get(String(product.tenantId)) ?? "MMK",
+                )}
               </p>
             </div>
           </article>

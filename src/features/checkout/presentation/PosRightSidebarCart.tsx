@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import type { TenantCurrency } from "@/core/domain/entities/Tenant";
 
 export type PosOrderType =
   | "dine-in"
@@ -54,6 +56,7 @@ export interface PromotionOption {
 }
 
 export interface PosRightSidebarCartProps {
+  currency: TenantCurrency;
   orderNumber?: string | null;
   tableNumber: string;
   staffName: string;
@@ -77,11 +80,8 @@ export interface PosRightSidebarCartProps {
   className?: string;
 }
 
-function formatCurrency(value: number): string {
-  return `$${value.toFixed(2)}`;
-}
-
 export function PosRightSidebarCart({
+  currency,
   orderNumber,
   tableNumber,
   staffName,
@@ -104,6 +104,8 @@ export function PosRightSidebarCart({
   printDisabled = false,
   className,
 }: PosRightSidebarCartProps) {
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
+  const formatPrice = (value: number) => formatCurrencyPrice(value, currency);
   const normalizedOrderNumber = orderNumber?.trim();
   const orderDisplayValue = normalizedOrderNumber
     ? `Order #${normalizedOrderNumber}`
@@ -256,7 +258,7 @@ export function PosRightSidebarCart({
                               {item.name}
                             </p>
                             <div className="shrink-0 text-right text-sm font-semibold tabular-nums text-slate-900 dark:text-foreground">
-                              {formatCurrency(item.price)}
+                              {formatPrice(item.price)}
                             </div>
                           </div>
                           {item.modifier ? (
@@ -287,16 +289,16 @@ export function PosRightSidebarCart({
             </span>
             {orderType === "curbside" ? (
               <span className="text-xs font-medium text-slate-400">
-                Service note $0.00
+                Service note {formatPrice(0)}
               </span>
             ) : null}
           </div>
         </div>
         <div className="space-y-2.5 print:rounded-none print:border-t print:border-slate-300 print:pt-3">
-          <SummaryRow label="Sub Total" value={summary.subtotal} />
-          <SummaryRow label="Discount" value={summary.discount} />
-          <SummaryRow label="Service Charge" value={summary.serviceCharge} />
-          <SummaryRow label="Tax" value={summary.tax} />
+          <SummaryRow label="Sub Total" value={summary.subtotal} formatPrice={formatPrice} />
+          <SummaryRow label="Discount" value={summary.discount} formatPrice={formatPrice} />
+          <SummaryRow label="Service Charge" value={summary.serviceCharge} formatPrice={formatPrice} />
+          <SummaryRow label="Tax" value={summary.tax} formatPrice={formatPrice} />
         </div>
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3 print:hidden dark:border-border dark:bg-white/5">
           <div className="mb-3 flex items-start justify-between gap-3">
@@ -352,7 +354,7 @@ export function PosRightSidebarCart({
               Total
             </p>
             <p className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-foreground">
-              {formatCurrency(summary.total)}
+              {formatPrice(summary.total)}
             </p>
           </div>
         </div>
@@ -462,15 +464,17 @@ function InfoTile({
 function SummaryRow({
   label,
   value,
+  formatPrice,
 }: {
   label: string;
   value: number;
+  formatPrice: (value: number) => string;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="text-slate-400 print:text-slate-700">{label}</span>
       <span className="font-medium tabular-nums text-slate-600 print:text-black dark:text-muted">
-        {formatCurrency(value)}
+        {formatPrice(value)}
       </span>
     </div>
   );

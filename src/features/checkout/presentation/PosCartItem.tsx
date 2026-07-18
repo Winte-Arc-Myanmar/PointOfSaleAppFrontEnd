@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 
 export interface PosCartItemData {
   id: string;
@@ -24,19 +25,17 @@ export interface PosCartItemProps {
   onDelete: (item: PosCartItemData) => void;
 }
 
-function defaultFormatPrice(value: number): string {
-  return value.toFixed(2);
-}
-
 export function PosCartItem({
   item,
   className,
   quantityLabel = "Quantity",
-  formatPrice = defaultFormatPrice,
+  formatPrice,
   onIncrement,
   onDecrement,
   onDelete,
 }: PosCartItemProps) {
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
+  const resolvedFormatPrice = formatPrice ?? formatCurrencyPrice;
   const handleDecrement: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     event.stopPropagation();
     onDecrement(item);
@@ -61,20 +60,13 @@ export function PosCartItem({
     >
       <div className="flex min-w-0 items-center gap-3">
         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/20">
-          {item.imageUrl ? (
-            <Image
-              src={item.imageUrl}
-              alt={item.name}
-              fill
-              className="object-cover"
-              sizes="48px"
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-muted">
-              No image
-            </div>
-          )}
+          <ProductCardImage
+            src={item.imageUrl}
+            alt={item.name}
+            sizes="48px"
+            imageClassName="object-cover"
+            logoClassName="w-7"
+          />
         </div>
 
         <div className="min-w-0">
@@ -116,7 +108,7 @@ export function PosCartItem({
         </div>
 
         <div className="min-w-[96px] text-right text-base font-bold tabular-nums text-foreground">
-          {formatPrice(item.totalPrice)}
+          {resolvedFormatPrice(item.totalPrice)}
         </div>
 
         <Button
