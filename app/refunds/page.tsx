@@ -5,9 +5,7 @@ export default function RefundsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Process a return/refund for a completed sale, then view its details.
-        </p>
+        <p className="page-description">Manage refunds.</p>
         <RefundSection />
       </div>
     </Shell>

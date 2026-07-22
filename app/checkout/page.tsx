@@ -5,9 +5,7 @@ export default function CheckoutPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Process a POS checkout (items + split payments) using an idempotency key.
-        </p>
+        <p className="page-description">Manage checkout.</p>
         <CheckoutSection />
       </div>
     </Shell>

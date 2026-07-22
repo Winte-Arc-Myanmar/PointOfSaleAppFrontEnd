@@ -26,6 +26,10 @@ function seed(i: number, salt: number): number {
   return x - Math.floor(x);
 }
 
+function roundTo(value: number, decimals = 3): number {
+  return Number(value.toFixed(decimals));
+}
+
 function buildSnowflakes(count: number): SnowflakeParticle[] {
   return Array.from({ length: count }, (_, i) => {
     const r = seed(i, 1);
@@ -47,14 +51,16 @@ function buildSnowflakes(count: number): SnowflakeParticle[] {
 
     return {
       id: i,
-      left: 4 + r * 92,
-      size,
-      delay: r2 * 3.2,
-      duration: 2.8 + (1 - depth) * 2.4 + r4 * 1.6,
-      opacity: 0.25 + depth * 0.55,
-      blur: variant === "speck" ? 0.4 + r * 1.2 : variant === "flake" ? r * 0.6 : 0,
-      sway: -14 + r2 * 28,
-      rotate: 120 + r3 * 420,
+      left: roundTo(4 + r * 92),
+      size: roundTo(size),
+      delay: roundTo(r2 * 3.2),
+      duration: roundTo(2.8 + (1 - depth) * 2.4 + r4 * 1.6),
+      opacity: roundTo(0.25 + depth * 0.55),
+      blur: roundTo(
+        variant === "speck" ? 0.4 + r * 1.2 : variant === "flake" ? r * 0.6 : 0,
+      ),
+      sway: roundTo(-14 + r2 * 28),
+      rotate: roundTo(120 + r3 * 420),
       variant,
       pattern: r4 > 0.5 ? 2 : 1,
     };

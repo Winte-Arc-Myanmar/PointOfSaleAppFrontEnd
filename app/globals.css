@@ -16,7 +16,7 @@
   --radius-panel: 0.75rem;
   --radius-input: 0.5rem;
   --shadow-panel:
-    0 1px 2px 0 rgb(17 24 39 / 0.06), 0 1px 3px 0 rgb(17 24 39 / 0.1);
+    0 10px 30px -14px rgb(17 24 39 / 0.18), 0 8px 16px -12px rgb(17 24 39 / 0.12);
   --tracking-panel: 0.2em;
 }
 
@@ -34,7 +34,9 @@
   --color-foreground: #fdfbf9;
   --color-muted: #9ca3af;
   --color-border: rgba(173, 255, 195, 0.2);
-  --shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --shadow-panel:
+    0 16px 36px -20px rgb(0 0 0 / 0.55),
+    0 10px 18px -16px rgb(0 0 0 / 0.38);
 }
 
 body {
@@ -60,6 +62,34 @@ summary {
 .hide-scrollbar::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.visible-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.9) transparent;
+}
+.visible-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.visible-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.visible-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(148 163 184 / 0.9);
+}
+.visible-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139 / 0.95);
 }
 
 /* ——— Futuristic system: consistent section & page styles (colors unchanged) ——— */

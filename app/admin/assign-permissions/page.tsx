@@ -5,9 +5,7 @@ export default function AssignPermissionsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Assign permissions to a role.
-        </p>
+        <p className="page-description">Manage role permissions.</p>
         <AssignPermissionsForm />
       </div>
     </Shell>

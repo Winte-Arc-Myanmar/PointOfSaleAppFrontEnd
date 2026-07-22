@@ -256,39 +256,48 @@ function getMenuBase(pathname: string): MenuTabItem | null {
   );
 }
 
+function persistTabs(tabs: MenuTabItem[]) {
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, JSON.stringify(tabs));
+  } catch {
+    // Ignore storage failures in private mode or restricted environments.
+  }
+}
+
 export function Shell({ children }: ShellProps) {
   const router = useRouter();
   const { t } = useLanguage();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [openTabs, setOpenTabs] = useState<MenuTabItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const raw = window.localStorage.getItem(TAB_STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as MenuTabItem[];
-      if (!Array.isArray(parsed)) return [];
-      return parsed.filter(
-        (item) =>
-          typeof item?.href === "string" &&
-          typeof item?.labelKey === "string" &&
-          TAB_MENU_ITEMS.some((m) => m.href === item.href),
-      );
-    } catch {
-      return [];
-    }
-  });
+  const [openTabs, setOpenTabs] = useState<MenuTabItem[]>([]);
+  const [tabsLoaded, setTabsLoaded] = useState(false);
   const title = getTitle(pathname);
   const activeMenu = useMemo(() => getMenuBase(pathname), [pathname]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(TAB_STORAGE_KEY, JSON.stringify(openTabs));
+      const raw = window.localStorage.getItem(TAB_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as MenuTabItem[];
+      if (!Array.isArray(parsed)) return;
+      const nextTabs = parsed.filter(
+        (item) =>
+          typeof item?.href === "string" &&
+          typeof item?.labelKey === "string" &&
+          TAB_MENU_ITEMS.some((m) => m.href === item.href),
+      );
+      setOpenTabs(nextTabs);
     } catch {
       // Ignore storage failures in private mode or restricted environments.
     }
-  }, [openTabs]);
+    setTabsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!tabsLoaded) return;
+    persistTabs(openTabs);
+  }, [openTabs, tabsLoaded]);
 
   const displayedTabs = useMemo(() => {
     if (!activeMenu) return openTabs;
@@ -300,8 +309,13 @@ export function Shell({ children }: ShellProps) {
     const menu = TAB_MENU_ITEMS.find((item) => item.href === href);
     if (!menu) return;
     setOpenTabs((prev) => {
-      if (prev.some((t) => t.href === menu.href)) return prev;
-      return [...prev, menu];
+      if (prev.some((t) => t.href === menu.href)) {
+        persistTabs(prev);
+        return prev;
+      }
+      const nextTabs = [...prev, menu];
+      persistTabs(nextTabs);
+      return nextTabs;
     });
   }
 
@@ -314,6 +328,7 @@ export function Shell({ children }: ShellProps) {
       pathname === href || pathname.startsWith(`${href}/`);
 
     setOpenTabs(nextTabs);
+    persistTabs(nextTabs);
 
     if (isClosingActive) {
       const fallback = nextTabs[idx] ?? nextTabs[idx - 1] ?? null;
@@ -339,7 +354,7 @@ export function Shell({ children }: ShellProps) {
         />
         {displayedTabs.length > 0 && (
           <div className="border-b border-border bg-background/80 px-6 py-3 lg:px-8">
-            <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto">
+            <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {displayedTabs.map((tab) => {
                 const isActive =
                   pathname === tab.href || pathname.startsWith(`${tab.href}/`);
@@ -347,7 +362,7 @@ export function Shell({ children }: ShellProps) {
                   <div
                     key={tab.href}
                     className={cn(
-                      "flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm",
+                      "flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
                       isActive
                         ? "border-mint/40 bg-mint/10 text-foreground"
                         : "border-border bg-background text-muted",
@@ -355,15 +370,16 @@ export function Shell({ children }: ShellProps) {
                   >
                     <button
                       type="button"
-                      className="font-medium hover:text-foreground"
+                      className="min-w-0 flex-1 truncate text-left font-medium hover:text-foreground"
                       onClick={() => router.push(tab.href)}
+                      title={t(tab.labelKey)}
                     >
                       {t(tab.labelKey)}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCloseTab(tab.href)}
-                      className="rounded p-0.5 text-muted hover:bg-muted/20 hover:text-foreground"
+                      className="shrink-0 rounded p-0.5 text-muted hover:bg-muted/20 hover:text-foreground"
                       aria-label={`Close ${t(tab.labelKey)}`}
                     >
                       <X className="h-3.5 w-3.5" />

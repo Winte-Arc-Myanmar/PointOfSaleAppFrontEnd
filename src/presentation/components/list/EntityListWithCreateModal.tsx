@@ -66,6 +66,7 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   splitLayoutClassName?: string;
   /** DataTable grid / shortcut action passthrough */
   enableGridView?: boolean;
+  showViewModeToggle?: boolean;
   defaultViewMode?: DataTableViewMode;
   renderGridItem?: (item: T) => ReactNode;
   gridClassName?: string;
@@ -113,6 +114,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   tablePanelClassName,
   splitLayoutClassName = "grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]",
   enableGridView,
+  showViewModeToggle,
   defaultViewMode,
   renderGridItem,
   gridClassName,
@@ -220,6 +222,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
         });
       }}
       enableGridView={enableGridView}
+      showViewModeToggle={showViewModeToggle}
       defaultViewMode={defaultViewMode}
       renderGridItem={renderGridItem}
       gridClassName={gridClassName}

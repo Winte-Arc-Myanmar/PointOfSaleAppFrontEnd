@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTenant, useUpdateTenant } from "@/presentation/hooks/useTenants";
@@ -11,8 +11,10 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CircleDollarSign, HandCoins } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
+import { cn } from "@/lib/utils";
+import type { TenantCurrency } from "@/core/domain/entities/Tenant";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -28,11 +30,32 @@ const schema = z.object({
   state: z.string(),
   country: z.string().min(1, "Country is required"),
   zipCode: z.string(),
+  baseCurrency: z.enum(["MMK", "USD"]),
 });
 
 type TenantFormData = z.infer<typeof schema>;
 
 const REDIRECT_DELAY_MS = 1500;
+
+const CURRENCY_OPTIONS: Array<{
+  value: TenantCurrency;
+  label: string;
+  example: string;
+  icon: typeof CircleDollarSign;
+}> = [
+  {
+    value: "USD",
+    label: "Dollar (USD)",
+    example: "$2,000.00",
+    icon: CircleDollarSign,
+  },
+  {
+    value: "MMK",
+    label: "Myanmar Kyat (MMK)",
+    example: "2,000.00 MMK",
+    icon: HandCoins,
+  },
+];
 
 export function EditTenantForm({ tenantId }: { tenantId: string }) {
   const router = useRouter();
@@ -56,6 +79,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
       state: "",
       country: "",
       zipCode: "",
+      baseCurrency: "MMK",
     },
   });
 
@@ -75,6 +99,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         state: tenant.state ?? "",
         country: tenant.country,
         zipCode: tenant.zipCode ?? "",
+        baseCurrency: tenant.baseCurrency ?? "MMK",
       });
     }
   }, [tenant, form]);
@@ -98,6 +123,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           state: data.state || "",
           country: data.country,
           zipCode: data.zipCode || "",
+          baseCurrency: data.baseCurrency,
         },
       },
       {
@@ -135,7 +161,11 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         </Link>
         <h1 className="panel-header text-xl tracking-tight">Edit tenant</h1>
       </div>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid w-full max-w-[1060px] items-start gap-6 lg:grid-cols-[minmax(0,672px)_minmax(300px,360px)]"
+      >
+        <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Name</Label>
@@ -227,6 +257,104 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>
+        </div>
+
+        <fieldset className="w-full rounded-xl border border-border bg-background p-4 shadow-sm lg:sticky lg:top-4">
+          <legend className="sr-only">Business settings</legend>
+          <div className="mb-4">
+            <p className="section-label">Business settings</p>
+            <h2 className="mt-2 text-base font-semibold text-foreground">
+              Base currency
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              Choose how this tenant&apos;s prices appear in Products and Checkout.
+            </p>
+          </div>
+
+          <Controller
+            control={form.control}
+            name="baseCurrency"
+            render={({ field }) => (
+              <div
+                className="space-y-2"
+                role="radiogroup"
+                aria-label="Base currency"
+              >
+                {CURRENCY_OPTIONS.map((option) => {
+                  const isSelected = field.value === option.value;
+                  const Icon = option.icon;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => field.onChange(option.value)}
+                      className={cn(
+                        "flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                        isSelected
+                          ? "border-mint bg-mint/10"
+                          : "border-border hover:border-mint/40 hover:bg-mint/5",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                          isSelected
+                            ? "bg-mint/20 text-mint"
+                            : "bg-muted/10 text-muted",
+                        )}
+                      >
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium text-foreground">
+                          {option.label}
+                        </span>
+                        <span className="block text-xs text-muted">
+                          Show prices like {option.example}
+                        </span>
+                      </span>
+
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span
+                          className={cn(
+                            "text-[11px] font-medium",
+                            isSelected ? "text-mint" : "text-muted",
+                          )}
+                        >
+                          {isSelected ? "Enabled" : "Disabled"}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "relative h-6 w-11 rounded-full border transition-colors",
+                            isSelected
+                              ? "border-mint bg-mint"
+                              : "border-border bg-gray-200 dark:bg-background",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "absolute top-0.5 size-4.5 rounded-full bg-white shadow-sm transition-transform duration-200",
+                              isSelected ? "translate-x-5" : "translate-x-0.5",
+                            )}
+                          />
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          />
+
+          <p className="mt-4 rounded-lg bg-muted/10 px-3 py-2 text-xs leading-5 text-muted">
+            Saved with this tenant. Currency conversion is managed separately through Exchange Rates.
+          </p>
+        </fieldset>
       </form>
     </div>
   );

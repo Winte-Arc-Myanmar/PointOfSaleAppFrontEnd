@@ -17,16 +17,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
-import { useCategories } from "@/presentation/hooks/useCategories";
+import { useCategoryTree } from "@/presentation/hooks/useCategories";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
-import { getProductRowActions } from "./product-row-actions";
 import { getProductTableColumns } from "./product-table-columns";
 import { CreateProductForm } from "./CreateProductForm";
 import type { Product } from "@/core/domain/entities/Product";
+import type { Category } from "@/core/domain/entities/Category";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { useTenants } from "@/presentation/hooks/useTenants";
+import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 16;
 const SEARCH_DEBOUNCE_MS = 300;
+
+function flattenCategoryTree(
+  categories: Category[],
+  depth = 0,
+): Array<{ id: string; name: string; depth: number }> {
+  return categories.flatMap((category) => [
+    {
+      id: String(category.id),
+      name: category.name,
+      depth,
+    },
+    ...flattenCategoryTree(category.children ?? [], depth + 1),
+  ]);
+}
+
+function buildCategoryFamilyMap(categories: Category[]) {
+  const map = new Map<string, Set<string>>();
+
+  const visit = (category: Category): Set<string> => {
+    const categoryId = String(category.id);
+    const descendantIds = new Set<string>([categoryId]);
+
+    for (const child of category.children ?? []) {
+      const childIds = visit(child);
+      for (const childId of childIds) {
+        descendantIds.add(childId);
+      }
+    }
+
+    map.set(categoryId, descendantIds);
+    return descendantIds;
+  };
+
+  for (const category of categories) {
+    visit(category);
+  }
+
+  return map;
+}
 
 export function ProductList() {
   const router = useRouter();
@@ -34,20 +76,39 @@ export function ProductList() {
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
   const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const { page, setPage, reset: resetPage, getTotalPages } = pagination;
   const {
     data: productsResult,
     isLoading,
     error,
     refetch,
-  } = useProducts({ page: pagination.page, limit: PAGE_SIZE });
-  const { data: categoriesResult } = useCategories();
-  const products = productsResult?.items ?? [];
-  const categories = categoriesResult?.items ?? [];
+  } = useProducts({ page, limit: PAGE_SIZE });
+  const { data: categoryTree = [] } = useCategoryTree();
+  const { data: tenantsResult } = useTenants({ page: 1, limit: 200 });
   const deleteProduct = useDeleteProduct();
   const toast = useToast();
   const confirm = useConfirm();
+  const { formatPrice } = useCurrency();
+
+  const currencyByTenantId = useMemo(
+    () =>
+      new Map(
+        (tenantsResult?.items ?? []).map((tenant) => [
+          String(tenant.id),
+          tenant.baseCurrency,
+        ]),
+      ),
+    [tenantsResult?.items],
+  );
+
+  const categoryFamilyMap = useMemo(
+    () => buildCategoryFamilyMap(categoryTree),
+    [categoryTree],
+  );
+
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const products = productsResult?.items ?? [];
     const searchedProducts = !q
       ? products
       : products.filter((p) =>
@@ -65,14 +126,21 @@ export function ProductList() {
         );
 
     if (selectedCategoryId === "__all__") return searchedProducts;
-    return searchedProducts.filter((p) => p.categoryId === selectedCategoryId);
-  }, [products, search, selectedCategoryId]);
+
+    const allowedCategoryIds =
+      categoryFamilyMap.get(selectedCategoryId) ?? new Set([selectedCategoryId]);
+
+    return searchedProducts.filter((p) =>
+      allowedCategoryIds.has(String(p.categoryId)),
+    );
+  }, [categoryFamilyMap, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
-    return categories
-      .map((category) => ({ id: String(category.id), name: category.name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [categories]);
+    return flattenCategoryTree(categoryTree).map((category) => ({
+      ...category,
+      label: `${"  ".repeat(category.depth)}${category.name}`,
+    }));
+  }, [categoryTree]);
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -80,35 +148,12 @@ export function ProductList() {
   }, [searchInput]);
 
   useEffect(() => {
-    pagination.reset(1);
-  }, [search, pagination.reset]);
+    resetPage(1);
+  }, [search, resetPage]);
 
   useEffect(() => {
-    pagination.reset(1);
-  }, [selectedCategoryId, pagination.reset]);
-
-  const actions = useMemo(
-    () =>
-      getProductRowActions({
-        onView: (p) => router.push(`/products/${p.id}`),
-        onEdit: (p) => router.push(`/products/${p.id}/edit`),
-        onDelete: async (p) => {
-          const ok = await confirm({
-            title: "Delete product",
-            description: `Delete "${p.name}"? This cannot be undone.`,
-            confirmLabel: "Delete",
-            variant: "destructive",
-          });
-          if (ok) {
-            deleteProduct.mutate(p.id, {
-              onSuccess: () => toast.success("Product deleted."),
-              onError: () => toast.error("Failed to delete product."),
-            });
-          }
-        },
-      }),
-    [router, deleteProduct, toast, confirm],
-  );
+    resetPage(1);
+  }, [selectedCategoryId, resetPage]);
 
   const columns = useMemo(
     () =>
@@ -118,30 +163,11 @@ export function ProductList() {
     [router],
   );
 
-  async function handleDeleteSelected(items: Product[]) {
-    if (items.length === 0) return;
-    const ok = await confirm({
-      title: "Delete products",
-      description: `Delete ${items.length} selected product(s)? This cannot be undone.`,
-      confirmLabel: "Delete",
-      variant: "destructive",
-    });
-    if (!ok) return;
-    try {
-      for (const item of items) {
-        await deleteProduct.mutateAsync(item.id);
-      }
-      toast.success(`${items.length} product(s) deleted.`);
-    } catch {
-      toast.error("Failed to delete some products.");
-    }
-  }
-
   return (
     <EntityListWithCreateModal<Product>
       data={filteredProducts}
       columns={columns}
-      actions={actions}
+      actions={[]}
       isLoading={isLoading}
       loadingText="Loading products..."
       emptyText={
@@ -152,7 +178,7 @@ export function ProductList() {
             : "No products yet."
       }
       topContent={
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -170,7 +196,7 @@ export function ProductList() {
               <SelectItem value="__all__">All categories</SelectItem>
               {categoryOptions.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  {category.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -186,19 +212,69 @@ export function ProductList() {
           : undefined
       }
       pageSize={PAGE_SIZE}
-      currentPage={pagination.page}
-      totalPages={productsResult?.totalPages ?? pagination.getTotalPages(productsResult?.total)}
+      currentPage={page}
+      totalPages={productsResult?.totalPages ?? getTotalPages(productsResult?.total)}
       totalItems={productsResult?.total ?? 0}
-      onPageChange={pagination.setPage}
+      onPageChange={setPage}
       addLabel="Add Product"
       createTitle="Create Product"
       createSubmitText="Create Product"
       createLoadingText="Creating..."
       createFormId={CREATE_PRODUCT_FORM_ID}
       createMaxWidth="2xl"
-      enableRowSelection
-      onEditSelected={(item) => router.push(`/products/${item.id}/edit`)}
-      onDeleteSelected={handleDeleteSelected}
+      enableGridView
+      showViewModeToggle={false}
+      defaultViewMode="grid"
+      gridClassName="grid-cols-1 justify-items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      gridCardClassName="w-full max-w-[210px] rounded-xl border border-border bg-background/90 p-0 shadow-sm"
+      renderGridItem={(product) => {
+        return (
+          <article className="flex h-full flex-col">
+            <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-white">
+              <ProductCardImage
+                src={product.imageUrl}
+                alt={product.name}
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                logoClassName="w-20"
+              />
+            </div>
+
+            <div className="flex flex-1 flex-col p-2.5">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
+                {product.categoryName ?? "Uncategorized"}
+              </p>
+              <button
+                type="button"
+                className="mt-1 line-clamp-2 text-left text-[13px] font-semibold leading-snug text-foreground transition-colors hover:text-mint"
+                onClick={() => router.push(`/products/${product.id}`)}
+              >
+                {product.name}
+              </button>
+              <p className="mt-1.5 text-sm font-semibold text-foreground">
+                {formatPrice(
+                  product.basePrice,
+                  currencyByTenantId.get(String(product.tenantId)) ?? "MMK",
+                )}
+              </p>
+            </div>
+          </article>
+        );
+      }}
+      onView={(item) => router.push(`/products/${item.id}`)}
+      onEdit={(item) => router.push(`/products/${item.id}/edit`)}
+      onDelete={async (item) => {
+        const ok = await confirm({
+          title: "Delete product",
+          description: `Delete "${item.name}"? This cannot be undone.`,
+          confirmLabel: "Delete",
+          variant: "destructive",
+        });
+        if (!ok) return;
+        deleteProduct.mutate(item.id, {
+          onSuccess: () => toast.success("Product deleted."),
+          onError: () => toast.error("Failed to delete product."),
+        });
+      }}
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreateProductForm
           formId={formId}

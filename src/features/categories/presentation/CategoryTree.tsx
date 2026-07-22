@@ -12,6 +12,13 @@ interface CategoryTreeProps {
   onSelectCategory?: (categoryId: string | null) => void;
 }
 
+function getDescendantCount(category: Category): number {
+  return (category.children ?? []).reduce(
+    (count, child) => count + 1 + getDescendantCount(child),
+    0,
+  );
+}
+
 function TreeNode({
   category,
   depth,
@@ -23,7 +30,7 @@ function TreeNode({
   selectedCategoryId?: string | null;
   onSelectCategory?: (id: string | null) => void;
 }) {
-  const childCount = 0;
+  const childCount = getDescendantCount(category);
   const isSelected = selectedCategoryId === String(category.id);
 
   return (
@@ -140,9 +147,7 @@ export function CategoryTree({
                 Category Tree
               </h2>
             </button>
-            <p className="mt-1 text-sm text-muted">
-              Browse or focus one category at a time.
-            </p>
+            <p className="mt-1 text-sm text-muted">Manage categories.</p>
           </div>
         </div>
 

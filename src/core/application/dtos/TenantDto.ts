@@ -3,6 +3,8 @@
  * Application layer - matches backend contract.
  */
 
+import type { TenantCurrency } from "@/core/domain/entities/Tenant";
+
 export interface TenantDto {
   id?: string;
   name: string;
@@ -18,6 +20,7 @@ export interface TenantDto {
   state: string;
   country: string;
   zipCode: string;
+  baseCurrency?: TenantCurrency;
   status?: string;
   deletedAt?: string | null;
   createdAt?: string;

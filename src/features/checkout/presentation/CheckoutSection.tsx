@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
   ShoppingCart,
@@ -15,6 +16,10 @@ import {
   CreditCard,
   RefreshCw,
   Package,
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
+  User,
 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -29,8 +34,9 @@ import {
 import { Modal } from "@/presentation/components/modal/Modal";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
-import { resolveMediaUrl } from "@/lib/media-url";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
@@ -38,33 +44,25 @@ import { useLocations } from "@/presentation/hooks/useLocations";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
+import { useCategories } from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
+import { usePromotionRules } from "@/presentation/hooks/usePromotionRules";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   calcLineTotals,
   calcTax,
 } from "@/core/application/business-rules/checkout/checkoutCalculations";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
+import type { Category } from "@/core/domain/entities/Category";
 import type { Product } from "@/core/domain/entities/Product";
+import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
-
-function money4(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(4) : "—";
-}
-
-function resolveProductImageSrc(url: string): string {
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  if (trimmed.startsWith("data:") || /^https?:\/\//i.test(trimmed))
-    return trimmed;
-  return resolveMediaUrl(trimmed);
-}
+import {
+  PosRightSidebarCart,
+  type PosOrderType,
+} from "./PosRightSidebarCart";
 
 function newIdempotencyKey(): string {
   try {
@@ -91,12 +89,39 @@ function errorMessage(err: unknown): string {
   return "Checkout failed.";
 }
 
+function formatLoginTime(value: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function resolveStoredLoginTime(storageKey: string): Date {
+  if (typeof window === "undefined") return new Date();
+
+  try {
+    const stored = window.sessionStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = new Date(stored);
+      if (Number.isFinite(parsed.getTime())) return parsed;
+    }
+
+    const now = new Date();
+    window.sessionStorage.setItem(storageKey, now.toISOString());
+    return now;
+  } catch {
+    return new Date();
+  }
+}
+
 type FormValues = CheckoutRequestDto;
 
 interface LineMeta {
   productName: string;
   productImage?: string | null;
   variantSku: string;
+  categoryName?: string;
+  modifierLabel?: string;
   unitPrice: number;
   isTaxable: boolean;
   taxRate: number;
@@ -107,6 +132,8 @@ export function CheckoutSection() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  const { formatPrice: formatCurrencyPrice } = useCurrency();
+  const { data: session } = useSession();
   const { tenantId } = usePermissions();
   const checkout = useCheckoutProcess();
 
@@ -125,16 +152,25 @@ export function CheckoutSection() {
     sortBy: "createdAt",
     sortOrder: "desc",
   });
+  const { data: categoriesResult } = useCategories({ page: 1, limit: 200 });
   const { data: productsResult, isLoading: productsLoading } = useProducts({
     page: 1,
     limit: 200,
+  });
+  const { data: promotionRulesResult } = usePromotionRules({
+    page: 1,
+    limit: 200,
+    sortBy: "createdAt",
+    sortOrder: "desc",
   });
   const tenants = getPaginatedItems(tenantsResult);
   const allLocations = getPaginatedItems(allLocationsResult);
   const allSessions = getPaginatedItems(allSessionsResult);
   const allCustomers = getPaginatedItems(allCustomersResult);
   const allPaymentMethods = getPaginatedItems(allPaymentMethodsResult);
+  const allCategories = getPaginatedItems(categoriesResult);
   const products = getPaginatedItems(productsResult);
+  const allPromotionRules = getPaginatedItems(promotionRulesResult);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -161,6 +197,13 @@ export function CheckoutSection() {
     control: form.control,
     name: "tenantId",
   });
+  const selectedTenantCurrency =
+    tenants.find((tenant) => String(tenant.id) === String(selectedTenantId))
+      ?.baseCurrency ?? "MMK";
+  const formatPrice = useCallback(
+    (value: number) => formatCurrencyPrice(value, selectedTenantCurrency),
+    [formatCurrencyPrice, selectedTenantCurrency],
+  );
   const selectedLocationId = useWatch({
     control: form.control,
     name: "locationId",
@@ -220,6 +263,17 @@ export function CheckoutSection() {
         : allPaymentMethods,
     [allPaymentMethods, selectedTenantId],
   );
+  const categories = useMemo(
+    () =>
+      (selectedTenantId
+        ? allCategories.filter(
+            (category) =>
+              String(category.tenantId) === String(selectedTenantId),
+          )
+        : allCategories
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+    [allCategories, selectedTenantId],
+  );
 
   useEffect(() => {
     if (
@@ -255,6 +309,84 @@ export function CheckoutSection() {
   const [activeLineIndex, setActiveLineIndex] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
+  const [orderType, setOrderType] = useState<PosOrderType>("dine-in");
+  const [tableNumber, setTableNumber] = useState("Table #1");
+  const [giftCode, setGiftCode] = useState("");
+  const [promotionCode, setPromotionCode] = useState("");
+  const [selectedPromotionRuleId, setSelectedPromotionRuleId] = useState<
+    string | null
+  >(null);
+  const [loginTime, setLoginTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (
+      selectedCategoryId !== "__all__" &&
+      !categories.some(
+        (category) => String(category.id) === String(selectedCategoryId),
+      )
+    ) {
+      setSelectedCategoryId("__all__");
+    }
+  }, [categories, selectedCategoryId]);
+
+  useEffect(() => {
+    if (orderType === "dine-in") {
+      setTableNumber((current) => current || "Table #1");
+      return;
+    }
+    setTableNumber("");
+  }, [orderType]);
+
+  const activePromotionRules = useMemo(() => {
+    const now = Date.now();
+    return (selectedTenantId
+      ? allPromotionRules.filter(
+          (rule) => String(rule.tenantId) === String(selectedTenantId),
+        )
+      : allPromotionRules
+    ).filter((rule) => {
+      const start = Date.parse(rule.startDate);
+      const end = Date.parse(rule.endDate);
+      if (!Number.isFinite(start) || !Number.isFinite(end)) return true;
+      return start <= now && now <= end;
+    });
+  }, [allPromotionRules, selectedTenantId]);
+
+  const selectedPromotionRule = useMemo(() => {
+    if (!selectedPromotionRuleId) return null;
+    return (
+      activePromotionRules.find(
+        (rule) => String(rule.id) === String(selectedPromotionRuleId),
+      ) ?? null
+    );
+  }, [activePromotionRules, selectedPromotionRuleId]);
+
+  useEffect(() => {
+    if (
+      selectedPromotionRuleId &&
+      !activePromotionRules.some(
+        (rule) => String(rule.id) === String(selectedPromotionRuleId),
+      )
+    ) {
+      setSelectedPromotionRuleId(null);
+      setPromotionCode("");
+    }
+  }, [activePromotionRules, selectedPromotionRuleId]);
+
+  function handlePromotionCodeChange(value: string) {
+    setPromotionCode(value);
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      setSelectedPromotionRuleId(null);
+      return;
+    }
+
+    const matchedRule = activePromotionRules.find(
+      (rule) => rule.name.trim().toLowerCase() === normalized,
+    );
+    setSelectedPromotionRuleId(matchedRule ? String(matchedRule.id) : null);
+  }
 
   const [variantPickerProductId, setVariantPickerProductId] = useState<
     string | null
@@ -284,12 +416,18 @@ export function CheckoutSection() {
     const byTenant = selectedTenantId
       ? base.filter((p) => String(p.tenantId) === String(selectedTenantId))
       : base;
-    if (!s) return byTenant;
-    return byTenant.filter((p) => {
+    const byCategory =
+      selectedCategoryId === "__all__"
+        ? byTenant
+        : byTenant.filter(
+            (p) => String(p.categoryId) === String(selectedCategoryId),
+          );
+    if (!s) return byCategory;
+    return byCategory.filter((p) => {
       const hay = `${p.name} ${p.baseSku}`.toLowerCase();
       return hay.includes(s);
     });
-  }, [products, productSearch, selectedTenantId]);
+  }, [products, productSearch, selectedCategoryId, selectedTenantId]);
 
   const subtotal = useMemo(() => {
     return watchedItems.reduce((sum, it, i) => {
@@ -358,6 +496,8 @@ export function CheckoutSection() {
           productName: product.name,
           productImage: product.imageUrl ?? null,
           variantSku: variant.variantSku,
+          categoryName: product.categoryName ?? "Menu item",
+          modifierLabel: variant.variantSku,
           unitPrice,
           isTaxable,
           taxRate,
@@ -447,7 +587,7 @@ export function CheckoutSection() {
     }
     if (!(totalPaid + 1e-9 >= subtotal)) {
       return toast.error(
-        `Insufficient payment: required ${money4(subtotal)}, received ${money4(totalPaid)}.`,
+        `Insufficient payment: required ${formatPrice(subtotal)}, received ${formatPrice(totalPaid)}.`,
       );
     }
 
@@ -460,8 +600,120 @@ export function CheckoutSection() {
     });
   }
 
+  const sessionUser = session?.user as
+    | { name?: string | null; email?: string | null; image?: string | null }
+    | undefined;
+  const sessionAccessToken =
+    typeof session?.accessToken === "string" ? session.accessToken : "";
+  const profileName = sessionUser?.name ?? sessionUser?.email ?? "Current user";
+  const profileInitial = profileName.trim().charAt(0).toUpperCase() || "U";
+  const loginStorageKey = useMemo(() => {
+    const identity = sessionUser?.email?.trim() || profileName.trim() || "guest";
+    const sessionScope = sessionAccessToken.trim() || "anonymous-session";
+    return `pos-login-time:${identity.toLowerCase()}:${sessionScope}`;
+  }, [profileName, sessionAccessToken, sessionUser?.email]);
+
+  useEffect(() => {
+    setLoginTime(resolveStoredLoginTime(loginStorageKey));
+  }, [loginStorageKey]);
+
+  const loginTimeLabel = loginTime ? formatLoginTime(loginTime) : "";
+  const orderNumber = form
+    .getValues("idempotencyKey")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-4)
+    .toUpperCase()
+    .padStart(4, "0");
+  const availableTables = [
+    "Table #1",
+    "Table #2",
+    "Table #3",
+    "Table #4",
+    "Table #5",
+    "Patio #1",
+    "VIP #1",
+  ];
+  const sidebarItems = watchedItems.map((it, idx) => {
+    const variantId = String(it?.variantId ?? "");
+    const meta = lineMeta[variantId + ":" + idx];
+    const quantity = Number(it?.quantity) || 0;
+    const discount = Number(it?.lineDiscount) || 0;
+    const lineTotal = (meta?.unitPrice ?? 0) * quantity - discount;
+    return {
+      id: `${variantId}:${idx}`,
+      category: meta?.categoryName ?? "Menu item",
+      name: meta?.productName ?? "Item",
+      modifier:
+        meta?.modifierLabel && meta.modifierLabel !== meta.productName
+          ? meta.modifierLabel
+          : undefined,
+      quantity,
+      price: lineTotal,
+    };
+  });
+
+  function formatPromotionRuleMeta(rule: PromotionRule | null): string | null {
+    if (!rule) return null;
+    const rewardType = rule.rewardAction?.type ?? "";
+    const rewardValue = Number(rule.rewardAction?.value ?? 0);
+    if (rewardType === "PERCENTAGE_DISCOUNT") {
+      return `${rewardValue}% off from Promotion Rules`;
+    }
+    if (rewardType === "FIXED_AMOUNT_DISCOUNT") {
+      return `${formatPrice(rewardValue)} off from Promotion Rules`;
+    }
+    if (rewardType === "FIXED_PRICE") {
+      return `Fixed price ${formatPrice(rewardValue)} from Promotion Rules`;
+    }
+    return rewardType
+      ? `${rewardType} from Promotion Rules`
+      : "Bound to Promotion Rules";
+  }
+
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]">
+        <div>
+          <p className="section-label">Checkout profile</p>
+          <p className="text-sm text-muted">
+            Active cashier for this checkout screen.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-mint/5 px-3 py-2">
+          <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-mint/15 text-sm font-semibold text-mint">
+            {sessionUser?.image ? (
+              <Image
+                src={sessionUser.image}
+                alt={profileName}
+                fill
+                className="object-cover"
+                sizes="44px"
+                unoptimized
+              />
+            ) : (
+              profileInitial
+            )}
+          </div>
+          <div className="min-w-0 space-y-0.5">
+            <p className="max-w-44 truncate text-sm font-medium text-foreground">
+              {profileName}
+            </p>
+            <p className="flex items-center gap-1 text-xs text-muted">
+              <User className="h-3.5 w-3.5" />
+              Cashier profile
+            </p>
+            {loginTimeLabel ? (
+              <p
+                className="text-xs text-gray-400 dark:text-muted"
+                title={`Logged in: ${loginTimeLabel}`}
+              >
+                Logged in: {loginTimeLabel}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <SettingsStrip
         form={form}
         tenants={tenants}
@@ -471,10 +723,49 @@ export function CheckoutSection() {
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
       />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="lg:col-span-7 xl:col-span-7 space-y-4">
-          <div className="rounded-xl border border-border bg-background">
+      <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
+        <div className="order-1 min-h-0 space-y-4 lg:col-span-5 xl:col-span-4">
+          <PosRightSidebarCart
+            currency={selectedTenantCurrency}
+            orderNumber={orderNumber}
+            tableNumber={tableNumber}
+            staffName={profileName}
+            orderType={orderType}
+            tableOptions={availableTables}
+            items={sidebarItems}
+            giftCode={giftCode}
+            promotionCode={promotionCode}
+            promotionOptions={activePromotionRules.map((rule) => ({
+              id: String(rule.id),
+              label: rule.name,
+            }))}
+            promotionMeta={formatPromotionRuleMeta(selectedPromotionRule)}
+            summary={{
+              subtotal: netSubtotal,
+              discount: 0,
+              serviceCharge: 0,
+              tax: taxTotal,
+              total: subtotal,
+            }}
+            onOrderTypeChange={setOrderType}
+            onTableNumberChange={setTableNumber}
+            onGiftCodeChange={setGiftCode}
+            onPromotionCodeChange={handlePromotionCodeChange}
+            onPrint={() => {
+              if (typeof window !== "undefined") {
+                window.print();
+              }
+            }}
+            onPrimaryAction={form.handleSubmit(onSubmit)}
+            primaryActionDisabled={checkout.isPending || items.fields.length === 0}
+            primaryActionLabel={
+              checkout.isPending ? "Processing..." : "Pay Now"
+            }
+            printDisabled={items.fields.length === 0}
+          />
+          {false ? (
+            <>
+          <div className="rounded-xl border border-border bg-background shadow-[var(--shadow-panel)]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="section-label flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4 text-mint" />
@@ -519,42 +810,35 @@ export function CheckoutSection() {
                         key={f.id}
                         onClick={() => setActiveLineIndex(idx)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors",
+                          "flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors",
                           isActive
                             ? "bg-mint/10 border-l-2 border-l-mint"
                             : "hover:bg-mint/5 border-l-2 border-l-transparent",
                         )}
                       >
-                        <div className="relative h-12 w-12 shrink-0 rounded-md overflow-hidden bg-muted/30 border border-border">
-                          {meta?.productImage ? (
-                            <Image
-                              src={resolveProductImageSrc(meta.productImage)}
-                              alt={meta?.productName ?? ""}
-                              fill
-                              className="object-cover"
-                              sizes="48px"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-[10px] text-muted">
-                              No image
-                            </div>
-                          )}
+                        <div className="relative h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted/20 border border-border">
+                          <ProductCardImage
+                            src={meta?.productImage}
+                            alt={meta?.productName ?? "Product"}
+                            sizes="48px"
+                            imageClassName="object-cover"
+                            logoClassName="w-7"
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium truncate">
+                          <div className="font-semibold truncate text-foreground">
                             {meta?.productName ?? "Item"}
                           </div>
                           <div className="text-xs text-muted truncate">
-                            {meta?.variantSku ?? variantId} · {money(unitPrice)}
+                            {meta?.variantSku ?? variantId} · {formatPrice(unitPrice)}
                           </div>
                         </div>
-                        <div className="shrink-0 flex items-center gap-1.5 rounded-lg border border-border bg-muted/20 px-1.5 py-1">
+                        <div className="shrink-0 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 dark:bg-white/10">
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                             onClick={(e) => {
                               e.stopPropagation();
                               decrementItem(idx);
@@ -563,14 +847,14 @@ export function CheckoutSection() {
                           >
                             <Minus className="h-3.5 w-3.5" />
                           </Button>
-                          <span className="w-8 text-center font-mono text-sm font-medium">
+                          <span className="w-8 text-center text-sm font-semibold tabular-nums text-foreground">
                             {qty}
                           </span>
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                             onClick={(e) => {
                               e.stopPropagation();
                               incrementItem(idx);
@@ -580,13 +864,14 @@ export function CheckoutSection() {
                             <Plus className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                        <div className="w-24 text-right shrink-0 font-medium">
-                          {money(lineTotal)}
+                        <div className="min-w-[96px] text-right text-base font-bold tabular-nums text-foreground">
+                          {formatPrice(lineTotal)}
                         </div>
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-9 w-9 rounded-full text-muted hover:text-red-600 dark:hover:text-red-400"
                           onClick={(e) => {
                             e.stopPropagation();
                             items.remove(idx);
@@ -604,29 +889,29 @@ export function CheckoutSection() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-background p-5 space-y-4">
+          <div className="rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-panel)] space-y-4">
               <h3 className="section-label">Totals</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Subtotal</span>
-                  <span className="font-medium">{money4(netSubtotal)}</span>
+                  <span className="font-medium">{formatPrice(netSubtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Tax</span>
-                  <span className="font-medium">{money4(taxTotal)}</span>
+                  <span className="font-medium">{formatPrice(taxTotal)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Total paid</span>
-                  <span className="font-medium">{money4(totalPaid)}</span>
+                  <span className="font-medium">{formatPrice(totalPaid)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted">Change due</span>
-                  <span className="font-medium">{money4(changeDue)}</span>
+                  <span className="font-medium">{formatPrice(changeDue)}</span>
                 </div>
                 <div className="pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm font-semibold">Grand total</span>
                   <span className="text-2xl font-bold text-mint">
-                    {money4(subtotal)}
+                    {formatPrice(subtotal)}
                   </span>
                 </div>
               </div>
@@ -660,10 +945,13 @@ export function CheckoutSection() {
                 >
                   {checkout.isPending
                     ? "Processing..."
-                    : `Pay now ${money4(subtotal)}`}
+                    : "Pay now"}
                 </Button>
               </div>
           </div>
+
+            </>
+          ) : null}
 
           <div className="rounded-xl border border-border bg-background p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -755,8 +1043,8 @@ export function CheckoutSection() {
 
         </div>
 
-        <div className="lg:col-span-5 xl:col-span-5">
-          <div className="rounded-xl border border-border bg-background p-4 space-y-4 sticky top-4">
+        <div className="order-2 lg:col-span-7 xl:col-span-8">
+          <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
@@ -769,6 +1057,21 @@ export function CheckoutSection() {
               </div>
             </div>
 
+            <CategoryChooser
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={setSelectedCategoryId}
+            />
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold tracking-tight">
+                Special Menu for you
+              </h3>
+              <p className="text-sm text-muted">
+                Pick an item to add it to the current order.
+              </p>
+            </div>
+
             {productsLoading ? (
               <AppLoader
                 fullScreen={false}
@@ -778,56 +1081,58 @@ export function CheckoutSection() {
             ) : filteredProducts.length === 0 ? (
               <p className="text-sm text-muted text-center py-8">
                 {selectedTenantId
-                  ? "No products for this tenant."
+                  ? selectedCategoryId === "__all__"
+                    ? "No products for this tenant."
+                    : "No products in this category."
                   : "Select a tenant to load products."}
               </p>
             ) : (
-              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 max-h-[70vh] overflow-y-auto">
+              <div
+                className="visible-scrollbar grid max-h-[70vh] grid-cols-2 gap-4 overflow-y-auto pr-2 touch-pan-y md:grid-cols-3 xl:grid-cols-4"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {filteredProducts.map((p) => (
                   <button
                     key={String(p.id)}
                     type="button"
                     onClick={() => onProductClick(p)}
-                    className="rounded-xl border border-border hover:border-mint/40 hover:bg-mint/5 transition-colors overflow-hidden text-left flex flex-col"
+                    className="group flex flex-col rounded-[28px] border border-gray-200 bg-white px-4 pb-4 pt-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-mint/50 hover:shadow-md dark:border-border dark:bg-background"
                   >
-                    <div className="relative aspect-4/3 bg-muted/30 overflow-hidden">
-                      {p.imageUrl ? (
-                        <Image
-                          src={resolveProductImageSrc(p.imageUrl)}
-                          alt={p.name}
-                          fill
-                          className="object-cover"
-                          sizes="(min-width: 1280px) 33vw, (min-width: 1024px) 33vw, 50vw"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-xs text-muted">
-                          No image
-                        </div>
-                      )}
+                    <div className="relative mx-auto mb-4 flex h-24 w-full max-w-[112px] items-center justify-center overflow-hidden rounded-2xl bg-transparent">
+                      <ProductCardImage
+                        src={p.imageUrl}
+                        alt={p.name}
+                        sizes="112px"
+                        className="overflow-hidden rounded-2xl"
+                        imageClassName="transition-transform duration-200 group-hover:scale-105"
+                        logoClassName="w-12"
+                      />
                     </div>
-                    <div className="p-2.5 flex-1 flex flex-col gap-1">
-                      <div className="font-medium leading-tight line-clamp-2 text-sm">
+                    <div className="flex flex-1 flex-col">
+                      <div className="min-h-[2.75rem] text-sm font-semibold leading-snug text-foreground line-clamp-2">
                         {p.name}
                       </div>
-                      <div className="mt-auto flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-muted truncate">
-                          {p.baseSku}
+                      <div className="mt-2 text-sm font-medium text-muted">
+                        {formatPrice(
+                          (() => {
+                            const unit = Number(p.basePrice) || 0;
+                            const taxable = Boolean(p.isTaxable);
+                            const rate = p.taxRateRatePercentage ?? 0;
+                            const inclusive = Boolean(
+                              p.taxRateIsPriceInclusive,
+                            );
+                            if (!taxable) return unit;
+                            if (inclusive) return unit;
+                            return unit + calcTax(unit, rate, false);
+                          })(),
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center rounded-full bg-mint px-2 py-1.5 text-white shadow-sm dark:text-gloss-black">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
+                          <Plus className="h-4 w-4" />
                         </span>
-                        <span className="text-sm font-semibold text-mint">
-                          {money(
-                            (() => {
-                              const unit = Number(p.basePrice) || 0;
-                              const taxable = Boolean(p.isTaxable);
-                              const rate = p.taxRateRatePercentage ?? 0;
-                              const inclusive = Boolean(
-                                p.taxRateIsPriceInclusive,
-                              );
-                              if (!taxable) return unit;
-                              if (inclusive) return unit;
-                              return unit + calcTax(unit, rate, false);
-                            })(),
-                          )}
+                        <span className="flex-1 text-center text-sm font-semibold tracking-wide">
+                          ADD
                         </span>
                       </div>
                     </div>
@@ -845,10 +1150,119 @@ export function CheckoutSection() {
         product={selectedProduct}
         variants={variants}
         variantsLoading={variantsLoading}
+        formatPrice={formatPrice}
         onPickVariant={(v) => {
           if (selectedProduct) addVariantToCart(selectedProduct, v);
         }}
       />
+    </div>
+  );
+}
+
+function CategoryChooser({
+  categories,
+  selectedCategoryId,
+  onSelectCategory,
+}: {
+  categories: Category[];
+  selectedCategoryId: string;
+  onSelectCategory: (value: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const updateScrollState = () => {
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+      setCanScrollLeft(el.scrollLeft > 4);
+      setCanScrollRight(maxScrollLeft - el.scrollLeft > 4);
+    };
+
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [categories]);
+
+  function scrollByAmount(direction: "left" | "right") {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const amount = Math.max(220, Math.floor(el.clientWidth * 0.6));
+    el.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="h-4 w-4 text-mint" />
+          <h3 className="section-label">Category</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => scrollByAmount("left")}
+            disabled={!canScrollLeft}
+            aria-label="Scroll categories left"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => scrollByAmount("right")}
+            disabled={!canScrollRight}
+            aria-label="Scroll categories right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div
+        ref={scrollRef}
+        className="hide-scrollbar flex gap-2 overflow-x-auto overflow-y-hidden pb-1 touch-pan-x"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        <Button
+          type="button"
+          variant={selectedCategoryId === "__all__" ? "default" : "outline"}
+          className="h-14 shrink-0 px-5"
+          onClick={() => onSelectCategory("__all__")}
+        >
+          All
+        </Button>
+        {categories.map((category) => {
+          const isActive = String(category.id) === String(selectedCategoryId);
+          return (
+            <Button
+              key={String(category.id)}
+              type="button"
+              variant={isActive ? "default" : "outline"}
+              className="h-14 shrink-0 px-5"
+              onClick={() => onSelectCategory(String(category.id))}
+            >
+              {category.name}
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1085,6 +1499,7 @@ function VariantPickerModal({
   product,
   variants,
   variantsLoading,
+  formatPrice,
   onPickVariant,
 }: {
   isOpen: boolean;
@@ -1092,6 +1507,7 @@ function VariantPickerModal({
   product: Product | null;
   variants: ProductVariant[];
   variantsLoading: boolean;
+  formatPrice: (value: number) => string;
   onPickVariant: (v: ProductVariant) => void;
 }) {
   return (
@@ -1155,7 +1571,7 @@ function VariantPickerModal({
                       {opts || "—"}
                     </div>
                   </div>
-                  <div className="text-sm font-medium">{money(price)}</div>
+                  <div className="text-sm font-medium">{formatPrice(price)}</div>
                 </div>
               </button>
             );

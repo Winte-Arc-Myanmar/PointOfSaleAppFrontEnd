@@ -148,6 +148,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
 
   return (
     <form
+      method="post"
       onSubmit={
         isLogin
           ? loginForm.handleSubmit(handleLoginSubmit)

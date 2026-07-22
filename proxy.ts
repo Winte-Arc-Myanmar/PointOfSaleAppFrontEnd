@@ -1,5 +1,5 @@
 /**
- * Middleware - protects dashboard routes.
+ * Proxy - protects dashboard routes.
  * systemAdmin has full access. Regular users are gated by per-branch permissions.
  * /admin/* routes are system-admin only.
  */

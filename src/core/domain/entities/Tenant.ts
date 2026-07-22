@@ -5,6 +5,8 @@
 
 import type { Id } from "@/core/domain/types";
 
+export type TenantCurrency = "MMK" | "USD";
+
 export interface Tenant {
   id: Id;
   name: string;
@@ -20,6 +22,7 @@ export interface Tenant {
   state: string;
   country: string;
   zipCode: string;
+  baseCurrency: TenantCurrency;
   status?: string;
   deletedAt?: string | null;
   createdAt?: string;

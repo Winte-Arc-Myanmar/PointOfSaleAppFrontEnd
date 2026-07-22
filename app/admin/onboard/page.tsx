@@ -5,9 +5,7 @@ export default function OnboardPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Onboard a new tenant with an initial branch and owner account in one step.
-        </p>
+        <p className="page-description">Manage tenant onboarding.</p>
         <OnboardTenantForm />
       </div>
     </Shell>

@@ -5,9 +5,7 @@ export default function PromotionRulesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Create and manage promotion rules and discount logic.
-        </p>
+        <p className="page-description">Manage promotion rules.</p>
         <section>
           <h2 className="section-label mb-4">Promotion rules</h2>
           <PromotionRuleList />

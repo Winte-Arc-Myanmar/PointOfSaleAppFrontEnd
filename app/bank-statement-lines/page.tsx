@@ -5,9 +5,7 @@ export default function BankStatementLinesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">
-          Manage individual transactions on bank statements for reconciliation.
-        </p>
+        <p className="page-description">Manage bank statement lines.</p>
         <section>
           <h2 className="section-label mb-4">Bank statement lines</h2>
           <BankStatementLinesPageWithStatementSelect />
