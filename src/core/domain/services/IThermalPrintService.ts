@@ -1,0 +1,29 @@
+import type { Receipt } from "@/core/domain/entities/Receipt";
+import type {
+  OrderSlip,
+  ThermalPrintOptions,
+  ThermalPrintResult,
+} from "@/core/domain/entities/ThermalPrint";
+
+export interface IThermalPrintService {
+  printReceipt(
+    receipt: Receipt,
+    options?: ThermalPrintOptions,
+  ): Promise<ThermalPrintResult>;
+
+  printOrderSlip(
+    slip: OrderSlip,
+    options?: ThermalPrintOptions,
+  ): Promise<ThermalPrintResult>;
+
+  /** Build raw ESC/POS bytes without sending them. */
+  buildReceiptEscPos(
+    receipt: Receipt,
+    options?: ThermalPrintOptions,
+  ): Uint8Array;
+
+  buildOrderSlipEscPos(
+    slip: OrderSlip,
+    options?: ThermalPrintOptions,
+  ): Uint8Array;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ReceiptText, Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
@@ -10,7 +11,18 @@ import {
   DetailRows,
   formatDate,
 } from "@/presentation/components/detail";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { useReceipt } from "@/presentation/hooks/useReceipts";
+import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
+import { useToast } from "@/presentation/providers/ToastProvider";
+import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
+import { ThermalReceiptView } from "./ThermalReceiptView";
 
 function money(n: number): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -18,6 +30,9 @@ function money(n: number): string {
 
 export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
   const { data: receipt, isLoading, error, refetch } = useReceipt(salesOrderId);
+  const { printReceipt, isPrinting } = useThermalPrint();
+  const toast = useToast();
+  const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
 
   if (isLoading)
     return (
@@ -39,16 +54,37 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
     );
   }
 
+  async function handleThermalPrint(mode: "browser" | "raw-escpos") {
+    const result = await printReceipt(receipt!, {
+      paperWidthMm,
+      mode,
+      cut: true,
+    });
+    if (result.success) {
+      toast.success(result.message ?? "Sent to thermal printer.");
+    } else {
+      toast.error(result.message ?? "Thermal print failed.");
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div data-print-receipt className="space-y-6">
+      <div className="print:hidden">
         <DetailPageHeader
           backHref={`/sales-orders/${salesOrderId}`}
           backLabel="Sales order"
           title={receipt.orderInfo.receiptNumber || "Receipt"}
         />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div data-print-receipt className="space-y-6">
+        <ThermalReceiptView
+          receipt={receipt}
+          paperWidthMm={paperWidthMm}
+          className="print:border-0 print:shadow-none"
+        />
+
+        <div className="grid grid-cols-1 gap-5 print:hidden lg:grid-cols-2">
           <DetailSection title="Header" icon={ReceiptText}>
             <DetailRows
               rows={[
@@ -139,7 +175,11 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
           </DetailSection>
         </div>
 
-        <DetailSection title="Line items" icon={ReceiptText}>
+        <DetailSection
+          title="Line items"
+          icon={ReceiptText}
+          className="print:hidden"
+        >
           {receipt.lineItems.length === 0 ? (
             <p className="text-sm text-muted">No line items.</p>
           ) : (
@@ -177,20 +217,45 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
         </DetailSection>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-end gap-2 print:hidden">
+        <div className="space-y-1">
+          <p className="text-xs text-muted">Paper width</p>
+          <Select
+            value={String(paperWidthMm)}
+            onValueChange={(value) =>
+              setPaperWidthMm(Number(value) as ThermalPaperWidth)
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="80">80mm thermal</SelectItem>
+              <SelectItem value="58">58mm thermal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button
           type="button"
           variant="outline"
-          onClick={() => window.print()}
-          className="print:hidden"
+          disabled={isPrinting}
+          onClick={() => handleThermalPrint("browser")}
         >
           <Printer className="mr-2 h-4 w-4" />
-          Print
+          {isPrinting ? "Printing..." : "Print thermal"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isPrinting}
+          onClick={() => handleThermalPrint("raw-escpos")}
+        >
+          ESC/POS raw
         </Button>
         <Link
           href={`/refunds?salesOrderId=${encodeURIComponent(salesOrderId)}`}
         >
-          <Button type="button" variant="outline" className="print:hidden">
+          <Button type="button" variant="outline">
             Start refund
           </Button>
         </Link>

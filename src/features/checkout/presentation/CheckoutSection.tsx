@@ -49,6 +49,7 @@ import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
 import { usePromotionRules } from "@/presentation/hooks/usePromotionRules";
+import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   calcLineTotals,
@@ -132,6 +133,7 @@ export function CheckoutSection() {
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
+  const { printOrderSlip, isPrinting } = useThermalPrint();
   const { formatPrice: formatCurrencyPrice } = useCurrency();
   const { data: session } = useSession();
   const { tenantId } = usePermissions();
@@ -670,6 +672,66 @@ export function CheckoutSection() {
       : "Bound to Promotion Rules";
   }
 
+  async function handleThermalOrderSlipPrint(options: {
+    mode: "browser" | "raw-escpos";
+    paperWidthMm: 58 | 80;
+  }) {
+    const orderTypeLabel =
+      orderType === "dine-in"
+        ? "Dine In"
+        : orderType === "takeout"
+          ? "Takeout"
+          : orderType === "curbside"
+            ? "Curbside"
+            : orderType === "delivery"
+              ? "Delivery"
+              : orderType === "drive-thru"
+                ? "Drive-Thru"
+                : "Catering";
+
+    const result = await printOrderSlip(
+      {
+        title: "Order Slip",
+        businessName: "Vision AI POS",
+        orderNumber,
+        orderType: orderTypeLabel,
+        tableNumber: orderType === "dine-in" ? tableNumber : undefined,
+        dateTime: new Date().toISOString(),
+        lines: watchedItems.map((it, idx) => {
+          const variantId = String(it?.variantId ?? "");
+          const meta = lineMeta[variantId + ":" + idx];
+          const quantity = Number(it?.quantity) || 0;
+          const discount = Number(it?.lineDiscount) || 0;
+          const unitPrice = meta?.unitPrice ?? 0;
+          return {
+            name: meta?.productName ?? "Item",
+            quantity,
+            unitPrice,
+            lineTotal: unitPrice * quantity - discount,
+            note:
+              meta?.modifierLabel && meta.modifierLabel !== meta.productName
+                ? meta.modifierLabel
+                : undefined,
+          };
+        }),
+        subtotal: netSubtotal,
+        tax: taxTotal,
+        total: subtotal,
+      },
+      {
+        mode: options.mode,
+        paperWidthMm: options.paperWidthMm,
+        cut: true,
+      },
+    );
+
+    if (result.success) {
+      toast.success(result.message ?? "Order slip sent to thermal printer.");
+    } else {
+      toast.error(result.message ?? "Thermal print failed.");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]">
@@ -751,17 +813,16 @@ export function CheckoutSection() {
             onTableNumberChange={setTableNumber}
             onGiftCodeChange={setGiftCode}
             onPromotionCodeChange={handlePromotionCodeChange}
-            onPrint={() => {
-              if (typeof window !== "undefined") {
-                window.print();
-              }
+            onPrint={(options) => {
+              void handleThermalOrderSlipPrint(options);
             }}
             onPrimaryAction={form.handleSubmit(onSubmit)}
             primaryActionDisabled={checkout.isPending || items.fields.length === 0}
             primaryActionLabel={
               checkout.isPending ? "Processing..." : "Pay Now"
             }
-            printDisabled={items.fields.length === 0}
+            printDisabled={items.fields.length === 0 || isPrinting}
+            isPrinting={isPrinting}
           />
           {false ? (
             <>

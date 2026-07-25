@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bike,
   CarFront,
@@ -24,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import type { TenantCurrency } from "@/core/domain/entities/Tenant";
+import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
 
 export type PosOrderType =
   | "dine-in"
@@ -72,11 +74,15 @@ export interface PosRightSidebarCartProps {
   onTableNumberChange: (value: string) => void;
   onGiftCodeChange: (value: string) => void;
   onPromotionCodeChange: (value: string) => void;
-  onPrint: () => void;
+  onPrint: (options: {
+    mode: "browser" | "raw-escpos";
+    paperWidthMm: 58 | 80;
+  }) => void;
   onPrimaryAction: () => void;
   primaryActionLabel?: string;
   primaryActionDisabled?: boolean;
   printDisabled?: boolean;
+  isPrinting?: boolean;
   className?: string;
 }
 
@@ -102,10 +108,12 @@ export function PosRightSidebarCart({
   primaryActionLabel = "Pay Now",
   primaryActionDisabled = false,
   printDisabled = false,
+  isPrinting = false,
   className,
 }: PosRightSidebarCartProps) {
   const { formatPrice: formatCurrencyPrice } = useCurrency();
   const formatPrice = (value: number) => formatCurrencyPrice(value, currency);
+  const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
   const normalizedOrderNumber = orderNumber?.trim();
   const orderDisplayValue = normalizedOrderNumber
     ? `Order #${normalizedOrderNumber}`
@@ -359,24 +367,56 @@ export function PosRightSidebarCart({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 print:hidden">
+        <div className="mt-4 space-y-3 print:hidden">
+          <div className="space-y-1">
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">
+              Thermal paper
+            </p>
+            <Select
+              value={String(paperWidthMm)}
+              onValueChange={(value) =>
+                setPaperWidthMm(Number(value) as ThermalPaperWidth)
+              }
+            >
+              <SelectTrigger className="h-10 rounded-xl border-gray-200 bg-white dark:border-border dark:bg-background">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="80">80mm thermal</SelectItem>
+                <SelectItem value="58">58mm thermal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                onPrint({ mode: "browser", paperWidthMm })
+              }
+              disabled={printDisabled}
+              className="h-12 rounded-2xl border-gray-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-border dark:bg-background"
+            >
+              <Printer className="h-4 w-4" />
+              {isPrinting ? "Printing..." : "Print thermal"}
+            </Button>
+            <Button
+              type="button"
+              onClick={onPrimaryAction}
+              disabled={primaryActionDisabled}
+              className="h-12 rounded-2xl bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
+            >
+              {primaryActionLabel}
+            </Button>
+          </div>
           <Button
             type="button"
             variant="outline"
-            onClick={onPrint}
+            onClick={() => onPrint({ mode: "raw-escpos", paperWidthMm })}
             disabled={printDisabled}
-            className="h-12 rounded-2xl border-gray-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-border dark:bg-background"
+            className="h-10 w-full rounded-2xl border-gray-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-border dark:bg-background"
           >
-            <Printer className="h-4 w-4" />
-            Print
-          </Button>
-          <Button
-            type="button"
-            onClick={onPrimaryAction}
-            disabled={primaryActionDisabled}
-            className="h-12 rounded-2xl bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
-          >
-            {primaryActionLabel}
+            ESC/POS raw
           </Button>
         </div>
       </div>

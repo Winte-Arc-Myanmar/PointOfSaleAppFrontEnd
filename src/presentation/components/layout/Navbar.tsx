@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/language/LanguageSwitcher";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
+import { APP_VERSION_LABEL } from "@/lib/app-version";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -74,6 +75,12 @@ export function Navbar({
         </motion.h1>
       )}
       <div className="ml-auto flex items-center gap-3">
+        <span
+          className="hidden text-xs font-medium tracking-wide text-muted sm:inline"
+          title={`App version ${APP_VERSION_LABEL}`}
+        >
+          {APP_VERSION_LABEL}
+        </span>
         <LanguageSwitcher />
         {displayName && (
           <div className="hidden items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-900 dark:border-transparent dark:bg-mint/10 dark:text-foreground sm:flex">

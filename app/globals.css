@@ -199,14 +199,16 @@ summary {
   filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
 }
 
-/* Print only the receipt container. */
+/* Print only the receipt / thermal container. */
 @media print {
   body * {
     visibility: hidden !important;
   }
 
   [data-print-receipt],
-  [data-print-receipt] * {
+  [data-print-receipt] *,
+  [data-thermal-receipt],
+  [data-thermal-receipt] * {
     visibility: visible !important;
   }
 
@@ -219,7 +221,26 @@ summary {
     margin: 0;
   }
 
+  [data-thermal-receipt] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  [data-thermal-receipt][data-paper-width="58"] {
+    width: 58mm;
+  }
+
+  [data-thermal-receipt][data-paper-width="80"] {
+    width: 80mm;
+  }
+
   @page {
-    margin: 12mm;
+    size: 80mm auto;
+    margin: 0;
   }
 }

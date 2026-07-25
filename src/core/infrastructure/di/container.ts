@@ -120,6 +120,9 @@ import { ApiRefundRepository } from "../repositories/ApiRefundRepository";
 import { CheckoutService } from "@/core/application/services/CheckoutService";
 import { ReceiptService } from "@/core/application/services/ReceiptService";
 import { RefundService } from "@/core/application/services/RefundService";
+import { ThermalPrintService } from "@/core/application/services/ThermalPrintService";
+import { EscPosReceiptFormatter } from "@/core/application/print/EscPosReceiptFormatter";
+import { BrowserThermalPrintGateway } from "../print/BrowserThermalPrintGateway";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -233,6 +236,11 @@ import type { IReceiptRepository } from "@/core/domain/repositories/IReceiptRepo
 import type { IRefundRepository } from "@/core/domain/repositories/IRefundRepository";
 import type { ICheckoutService } from "@/core/domain/services/ICheckoutService";
 import type { IReceiptService } from "@/core/domain/services/IReceiptService";
+import type { IThermalPrintService } from "@/core/domain/services/IThermalPrintService";
+import type {
+  IThermalPrintGateway,
+  IThermalReceiptFormatter,
+} from "@/core/domain/repositories/IThermalPrintGateway";
 import type { IRefundService } from "@/core/domain/services/IRefundService";
 import type { IReportRepository } from "@/core/domain/repositories/IReportRepository";
 import type { IReportService } from "@/core/domain/services/IReportService";
@@ -374,6 +382,12 @@ class Container {
     const refundService = new RefundService(refundRepository);
     const reportRepository = new ApiReportRepository(httpClient);
     const reportService = new ReportService(reportRepository);
+    const thermalReceiptFormatter = new EscPosReceiptFormatter();
+    const thermalPrintGateway = new BrowserThermalPrintGateway();
+    const thermalPrintService = new ThermalPrintService(
+      thermalReceiptFormatter,
+      thermalPrintGateway,
+    );
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -591,6 +605,18 @@ class Container {
     this.register<IRefundService>("refundService", refundService);
     this.register<IReportRepository>("reportRepository", reportRepository);
     this.register<IReportService>("reportService", reportService);
+    this.register<IThermalReceiptFormatter>(
+      "thermalReceiptFormatter",
+      thermalReceiptFormatter,
+    );
+    this.register<IThermalPrintGateway>(
+      "thermalPrintGateway",
+      thermalPrintGateway,
+    );
+    this.register<IThermalPrintService>(
+      "thermalPrintService",
+      thermalPrintService,
+    );
   }
 
   register<T>(key: string, instance: T): void {
