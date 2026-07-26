@@ -195,6 +195,18 @@ const allMenuItems: MenuItem[] = [
     icon: ScrollText,
     permissions: ["inventory-ledger:read"],
   },
+  {
+    href: "/transfer-orders",
+    labelKey: "nav.transferOrders",
+    icon: ArrowLeftRight,
+    permissions: ["transfer-orders:read"],
+  },
+  {
+    href: "/transfer-order-lines",
+    labelKey: "nav.transferOrderLines",
+    icon: ListTree,
+    permissions: ["transfer-order-lines:read"],
+  },
   { href: "/uom-classes", labelKey: "nav.uomClasses", icon: Ruler, permissions: ["uom:read"] },
   { href: "/uoms", labelKey: "nav.uoms", icon: Ruler, permissions: ["uom:read"] },
   { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },

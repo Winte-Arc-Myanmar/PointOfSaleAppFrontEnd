@@ -416,6 +416,23 @@ export const API_ENDPOINTS = {
       DELETE: (id: string) => `/v1/bank-statements/${bankStatementId}/lines/${id}`,
     }),
   },
+  TRANSFER_ORDERS: {
+    LIST: "/v1/transfer-orders",
+    BY_ID: (id: string) => `/v1/transfer-orders/${id}`,
+    CREATE: "/v1/transfer-orders",
+    UPDATE: (id: string) => `/v1/transfer-orders/${id}`,
+    DELETE: (id: string) => `/v1/transfer-orders/${id}`,
+    LINES: (transferOrderId: string) => ({
+      LIST: `/v1/transfer-orders/${transferOrderId}/lines`,
+      BY_ID: (id: string) =>
+        `/v1/transfer-orders/${transferOrderId}/lines/${id}`,
+      CREATE: `/v1/transfer-orders/${transferOrderId}/lines`,
+      UPDATE: (id: string) =>
+        `/v1/transfer-orders/${transferOrderId}/lines/${id}`,
+      DELETE: (id: string) =>
+        `/v1/transfer-orders/${transferOrderId}/lines/${id}`,
+    }),
+  },
   RECONCILIATION_MATCHES: {
     LIST: "/v1/reconciliation-matches",
     BY_ID: (id: string) => `/v1/reconciliation-matches/${id}`,

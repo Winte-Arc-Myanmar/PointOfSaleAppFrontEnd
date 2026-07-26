@@ -55,6 +55,8 @@ const routeTitles: Record<string, string> = {
   "/journal-lines": "Journal Lines",
   "/bank-statements": "Bank Statements",
   "/bank-statement-lines": "Bank Statement Lines",
+  "/transfer-orders": "Transfer Orders",
+  "/transfer-order-lines": "Transfer Order Lines",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
   "/depreciation-schedules": "Depreciation Schedules",
@@ -162,6 +164,14 @@ function getTitle(pathname: string): string {
     return "Edit bank statement line";
   if (pathname.match(/^\/bank-statement-lines\/[^/]+\/[^/]+$/)) return "Bank statement line";
   if (pathname.startsWith("/bank-statement-lines/")) return "Bank statement lines";
+  if (pathname.startsWith("/transfer-orders/") && pathname.endsWith("/edit"))
+    return "Edit transfer order";
+  if (pathname.startsWith("/transfer-orders/")) return "Transfer order";
+  if (pathname.startsWith("/transfer-order-lines/") && pathname.endsWith("/edit"))
+    return "Edit transfer order line";
+  if (pathname.match(/^\/transfer-order-lines\/[^/]+\/[^/]+$/))
+    return "Transfer order line";
+  if (pathname.startsWith("/transfer-order-lines/")) return "Transfer order lines";
   if (pathname.startsWith("/reconciliation-matches/") && pathname.endsWith("/edit"))
     return "Edit reconciliation match";
   if (pathname.startsWith("/reconciliation-matches/")) return "Reconciliation match";
@@ -237,6 +247,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/journal-lines", labelKey: "nav.journalLines" },
   { href: "/bank-statements", labelKey: "nav.bankStatements" },
   { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
+  { href: "/transfer-orders", labelKey: "nav.transferOrders" },
+  { href: "/transfer-order-lines", labelKey: "nav.transferOrderLines" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
   { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },

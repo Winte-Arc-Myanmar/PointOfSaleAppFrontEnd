@@ -63,6 +63,11 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/journal-lines", permissions: ["journal-lines:read"] },
   { prefix: "/bank-statements", permissions: ["bank-statements:read"] },
   { prefix: "/bank-statement-lines", permissions: ["bank-statement-lines:read"] },
+  { prefix: "/transfer-orders", permissions: ["transfer-orders:read"] },
+  {
+    prefix: "/transfer-order-lines",
+    permissions: ["transfer-order-lines:read"],
+  },
   { prefix: "/reconciliation-matches", permissions: ["reconciliation-matches:read"] },
   { prefix: "/fixed-assets", permissions: ["fixed-assets:read"] },
   { prefix: "/depreciation-schedules", permissions: ["depreciation-schedules:read"] },

@@ -108,6 +108,10 @@ import { ApiBankStatementRepository } from "../repositories/ApiBankStatementRepo
 import { BankStatementService } from "@/core/application/services/BankStatementService";
 import { ApiBankStatementLineRepository } from "../repositories/ApiBankStatementLineRepository";
 import { BankStatementLineService } from "@/core/application/services/BankStatementLineService";
+import { ApiTransferOrderRepository } from "../repositories/ApiTransferOrderRepository";
+import { TransferOrderService } from "@/core/application/services/TransferOrderService";
+import { ApiTransferOrderLineRepository } from "../repositories/ApiTransferOrderLineRepository";
+import { TransferOrderLineService } from "@/core/application/services/TransferOrderLineService";
 import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliationMatchRepository";
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
@@ -225,6 +229,10 @@ import type { IBankStatementRepository } from "@/core/domain/repositories/IBankS
 import type { IBankStatementService } from "@/core/domain/services/IBankStatementService";
 import type { IBankStatementLineRepository } from "@/core/domain/repositories/IBankStatementLineRepository";
 import type { IBankStatementLineService } from "@/core/domain/services/IBankStatementLineService";
+import type { ITransferOrderRepository } from "@/core/domain/repositories/ITransferOrderRepository";
+import type { ITransferOrderService } from "@/core/domain/services/ITransferOrderService";
+import type { ITransferOrderLineRepository } from "@/core/domain/repositories/ITransferOrderLineRepository";
+import type { ITransferOrderLineService } from "@/core/domain/services/ITransferOrderLineService";
 import type { IReconciliationMatchRepository } from "@/core/domain/repositories/IReconciliationMatchRepository";
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
@@ -366,6 +374,12 @@ class Container {
     const bankStatementService = new BankStatementService(bankStatementRepository);
     const bankStatementLineRepository = new ApiBankStatementLineRepository(httpClient);
     const bankStatementLineService = new BankStatementLineService(bankStatementLineRepository);
+    const transferOrderRepository = new ApiTransferOrderRepository(httpClient);
+    const transferOrderService = new TransferOrderService(transferOrderRepository);
+    const transferOrderLineRepository = new ApiTransferOrderLineRepository(httpClient);
+    const transferOrderLineService = new TransferOrderLineService(
+      transferOrderLineRepository,
+    );
     const reconciliationMatchRepository = new ApiReconciliationMatchRepository(httpClient);
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
@@ -578,6 +592,22 @@ class Container {
     this.register<IBankStatementLineService>(
       "bankStatementLineService",
       bankStatementLineService
+    );
+    this.register<ITransferOrderRepository>(
+      "transferOrderRepository",
+      transferOrderRepository,
+    );
+    this.register<ITransferOrderService>(
+      "transferOrderService",
+      transferOrderService,
+    );
+    this.register<ITransferOrderLineRepository>(
+      "transferOrderLineRepository",
+      transferOrderLineRepository,
+    );
+    this.register<ITransferOrderLineService>(
+      "transferOrderLineService",
+      transferOrderLineService,
     );
     this.register<IReconciliationMatchRepository>(
       "reconciliationMatchRepository",
