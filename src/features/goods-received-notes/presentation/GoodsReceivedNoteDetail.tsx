@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardCheck, Info, ListTree } from "lucide-react";
+import { ClipboardCheck, FileText, Info, ListTree } from "lucide-react";
 import { useGoodsReceivedNote } from "@/presentation/hooks/useGoodsReceivedNotes";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -58,6 +58,14 @@ export function GoodsReceivedNoteDetail({ grnId }: { grnId: string }) {
           <Button variant="outline" size="sm" className="gap-2">
             <ListTree className="h-4 w-4" />
             View GRN lines
+          </Button>
+        </Link>
+        <Link
+          href={`/vendor-invoices?grnId=${encodeURIComponent(String(note.id))}`}
+        >
+          <Button variant="outline" size="sm" className="gap-2">
+            <FileText className="h-4 w-4" />
+            Create vendor invoice
           </Button>
         </Link>
       </div>

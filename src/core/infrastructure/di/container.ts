@@ -120,6 +120,10 @@ import { ApiGoodsReceivedNoteRepository } from "../repositories/ApiGoodsReceived
 import { GoodsReceivedNoteService } from "@/core/application/services/GoodsReceivedNoteService";
 import { ApiGrnLineRepository } from "../repositories/ApiGrnLineRepository";
 import { GrnLineService } from "@/core/application/services/GrnLineService";
+import { ApiVendorInvoiceRepository } from "../repositories/ApiVendorInvoiceRepository";
+import { VendorInvoiceService } from "@/core/application/services/VendorInvoiceService";
+import { ApiLandedCostAllocationRepository } from "../repositories/ApiLandedCostAllocationRepository";
+import { LandedCostAllocationService } from "@/core/application/services/LandedCostAllocationService";
 import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliationMatchRepository";
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
@@ -249,6 +253,10 @@ import type { IGoodsReceivedNoteRepository } from "@/core/domain/repositories/IG
 import type { IGoodsReceivedNoteService } from "@/core/domain/services/IGoodsReceivedNoteService";
 import type { IGrnLineRepository } from "@/core/domain/repositories/IGrnLineRepository";
 import type { IGrnLineService } from "@/core/domain/services/IGrnLineService";
+import type { IVendorInvoiceRepository } from "@/core/domain/repositories/IVendorInvoiceRepository";
+import type { IVendorInvoiceService } from "@/core/domain/services/IVendorInvoiceService";
+import type { ILandedCostAllocationRepository } from "@/core/domain/repositories/ILandedCostAllocationRepository";
+import type { ILandedCostAllocationService } from "@/core/domain/services/ILandedCostAllocationService";
 import type { IReconciliationMatchRepository } from "@/core/domain/repositories/IReconciliationMatchRepository";
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
@@ -412,6 +420,15 @@ class Container {
     );
     const grnLineRepository = new ApiGrnLineRepository(httpClient);
     const grnLineService = new GrnLineService(grnLineRepository);
+    const vendorInvoiceRepository = new ApiVendorInvoiceRepository(httpClient);
+    const vendorInvoiceService = new VendorInvoiceService(
+      vendorInvoiceRepository,
+    );
+    const landedCostAllocationRepository =
+      new ApiLandedCostAllocationRepository(httpClient);
+    const landedCostAllocationService = new LandedCostAllocationService(
+      landedCostAllocationRepository,
+    );
     const reconciliationMatchRepository = new ApiReconciliationMatchRepository(httpClient);
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
@@ -667,6 +684,22 @@ class Container {
     );
     this.register<IGrnLineRepository>("grnLineRepository", grnLineRepository);
     this.register<IGrnLineService>("grnLineService", grnLineService);
+    this.register<IVendorInvoiceRepository>(
+      "vendorInvoiceRepository",
+      vendorInvoiceRepository,
+    );
+    this.register<IVendorInvoiceService>(
+      "vendorInvoiceService",
+      vendorInvoiceService,
+    );
+    this.register<ILandedCostAllocationRepository>(
+      "landedCostAllocationRepository",
+      landedCostAllocationRepository,
+    );
+    this.register<ILandedCostAllocationService>(
+      "landedCostAllocationService",
+      landedCostAllocationService,
+    );
     this.register<IReconciliationMatchRepository>(
       "reconciliationMatchRepository",
       reconciliationMatchRepository

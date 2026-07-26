@@ -61,6 +61,8 @@ const routeTitles: Record<string, string> = {
   "/purchase-orders": "Purchase Orders",
   "/goods-received-notes": "Goods Received Notes",
   "/grn-lines": "GRN Lines",
+  "/vendor-invoices": "Vendor Invoices",
+  "/landed-cost-allocations": "Landed Cost Allocations",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
   "/depreciation-schedules": "Depreciation Schedules",
@@ -189,6 +191,16 @@ function getTitle(pathname: string): string {
     return "Edit GRN line";
   if (pathname.match(/^\/grn-lines\/[^/]+\/[^/]+$/)) return "GRN line";
   if (pathname.startsWith("/grn-lines/")) return "GRN lines";
+  if (pathname.startsWith("/vendor-invoices/") && pathname.endsWith("/edit"))
+    return "Edit vendor invoice";
+  if (pathname.startsWith("/vendor-invoices/")) return "Vendor invoice";
+  if (
+    pathname.startsWith("/landed-cost-allocations/") &&
+    pathname.endsWith("/edit")
+  )
+    return "Edit landed cost allocation";
+  if (pathname.startsWith("/landed-cost-allocations/"))
+    return "Landed cost allocation";
   if (pathname.startsWith("/reconciliation-matches/") && pathname.endsWith("/edit"))
     return "Edit reconciliation match";
   if (pathname.startsWith("/reconciliation-matches/")) return "Reconciliation match";
@@ -270,6 +282,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/purchase-orders", labelKey: "nav.purchaseOrders" },
   { href: "/goods-received-notes", labelKey: "nav.goodsReceivedNotes" },
   { href: "/grn-lines", labelKey: "nav.grnLines" },
+  { href: "/vendor-invoices", labelKey: "nav.vendorInvoices" },
+  { href: "/landed-cost-allocations", labelKey: "nav.landedCostAllocations" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
   { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },

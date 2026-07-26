@@ -461,6 +461,20 @@ export const API_ENDPOINTS = {
       DELETE: (id: string) => `/v1/goods-received-notes/${grnId}/lines/${id}`,
     }),
   },
+  VENDOR_INVOICES: {
+    LIST: "/v1/vendor-invoices",
+    BY_ID: (id: string) => `/v1/vendor-invoices/${id}`,
+    CREATE: "/v1/vendor-invoices",
+    UPDATE: (id: string) => `/v1/vendor-invoices/${id}`,
+    DELETE: (id: string) => `/v1/vendor-invoices/${id}`,
+  },
+  LANDED_COST_ALLOCATIONS: {
+    LIST: "/v1/landed-cost-allocations",
+    BY_ID: (id: string) => `/v1/landed-cost-allocations/${id}`,
+    CREATE: "/v1/landed-cost-allocations",
+    UPDATE: (id: string) => `/v1/landed-cost-allocations/${id}`,
+    DELETE: (id: string) => `/v1/landed-cost-allocations/${id}`,
+  },
   RECONCILIATION_MATCHES: {
     LIST: "/v1/reconciliation-matches",
     BY_ID: (id: string) => `/v1/reconciliation-matches/${id}`,
