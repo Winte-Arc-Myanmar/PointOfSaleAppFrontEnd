@@ -433,6 +433,20 @@ export const API_ENDPOINTS = {
         `/v1/transfer-orders/${transferOrderId}/lines/${id}`,
     }),
   },
+  PURCHASE_REQUISITIONS: {
+    LIST: "/v1/purchase-requisitions",
+    BY_ID: (id: string) => `/v1/purchase-requisitions/${id}`,
+    CREATE: "/v1/purchase-requisitions",
+    UPDATE: (id: string) => `/v1/purchase-requisitions/${id}`,
+    DELETE: (id: string) => `/v1/purchase-requisitions/${id}`,
+  },
+  PURCHASE_ORDERS: {
+    LIST: "/v1/purchase-orders",
+    BY_ID: (id: string) => `/v1/purchase-orders/${id}`,
+    CREATE: "/v1/purchase-orders",
+    UPDATE: (id: string) => `/v1/purchase-orders/${id}`,
+    DELETE: (id: string) => `/v1/purchase-orders/${id}`,
+  },
   RECONCILIATION_MATCHES: {
     LIST: "/v1/reconciliation-matches",
     BY_ID: (id: string) => `/v1/reconciliation-matches/${id}`,

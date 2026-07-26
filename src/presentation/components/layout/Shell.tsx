@@ -57,6 +57,8 @@ const routeTitles: Record<string, string> = {
   "/bank-statement-lines": "Bank Statement Lines",
   "/transfer-orders": "Transfer Orders",
   "/transfer-order-lines": "Transfer Order Lines",
+  "/purchase-requisitions": "Purchase Requisitions",
+  "/purchase-orders": "Purchase Orders",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
   "/depreciation-schedules": "Depreciation Schedules",
@@ -172,6 +174,12 @@ function getTitle(pathname: string): string {
   if (pathname.match(/^\/transfer-order-lines\/[^/]+\/[^/]+$/))
     return "Transfer order line";
   if (pathname.startsWith("/transfer-order-lines/")) return "Transfer order lines";
+  if (pathname.startsWith("/purchase-requisitions/") && pathname.endsWith("/edit"))
+    return "Edit purchase requisition";
+  if (pathname.startsWith("/purchase-requisitions/")) return "Purchase requisition";
+  if (pathname.startsWith("/purchase-orders/") && pathname.endsWith("/edit"))
+    return "Edit purchase order";
+  if (pathname.startsWith("/purchase-orders/")) return "Purchase order";
   if (pathname.startsWith("/reconciliation-matches/") && pathname.endsWith("/edit"))
     return "Edit reconciliation match";
   if (pathname.startsWith("/reconciliation-matches/")) return "Reconciliation match";
@@ -249,6 +257,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
   { href: "/transfer-orders", labelKey: "nav.transferOrders" },
   { href: "/transfer-order-lines", labelKey: "nav.transferOrderLines" },
+  { href: "/purchase-requisitions", labelKey: "nav.purchaseRequisitions" },
+  { href: "/purchase-orders", labelKey: "nav.purchaseOrders" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
   { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },

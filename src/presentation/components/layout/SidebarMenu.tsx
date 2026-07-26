@@ -207,6 +207,18 @@ const allMenuItems: MenuItem[] = [
     icon: ListTree,
     permissions: ["transfer-order-lines:read"],
   },
+  {
+    href: "/purchase-requisitions",
+    labelKey: "nav.purchaseRequisitions",
+    icon: ClipboardList,
+    permissions: ["purchase-requisitions:read"],
+  },
+  {
+    href: "/purchase-orders",
+    labelKey: "nav.purchaseOrders",
+    icon: ShoppingBag,
+    permissions: ["purchase-orders:read"],
+  },
   { href: "/uom-classes", labelKey: "nav.uomClasses", icon: Ruler, permissions: ["uom:read"] },
   { href: "/uoms", labelKey: "nav.uoms", icon: Ruler, permissions: ["uom:read"] },
   { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },

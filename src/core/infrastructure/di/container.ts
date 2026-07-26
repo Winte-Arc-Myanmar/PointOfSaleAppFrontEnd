@@ -112,6 +112,10 @@ import { ApiTransferOrderRepository } from "../repositories/ApiTransferOrderRepo
 import { TransferOrderService } from "@/core/application/services/TransferOrderService";
 import { ApiTransferOrderLineRepository } from "../repositories/ApiTransferOrderLineRepository";
 import { TransferOrderLineService } from "@/core/application/services/TransferOrderLineService";
+import { ApiPurchaseRequisitionRepository } from "../repositories/ApiPurchaseRequisitionRepository";
+import { PurchaseRequisitionService } from "@/core/application/services/PurchaseRequisitionService";
+import { ApiPurchaseOrderRepository } from "../repositories/ApiPurchaseOrderRepository";
+import { PurchaseOrderService } from "@/core/application/services/PurchaseOrderService";
 import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliationMatchRepository";
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
@@ -233,6 +237,10 @@ import type { ITransferOrderRepository } from "@/core/domain/repositories/ITrans
 import type { ITransferOrderService } from "@/core/domain/services/ITransferOrderService";
 import type { ITransferOrderLineRepository } from "@/core/domain/repositories/ITransferOrderLineRepository";
 import type { ITransferOrderLineService } from "@/core/domain/services/ITransferOrderLineService";
+import type { IPurchaseRequisitionRepository } from "@/core/domain/repositories/IPurchaseRequisitionRepository";
+import type { IPurchaseRequisitionService } from "@/core/domain/services/IPurchaseRequisitionService";
+import type { IPurchaseOrderRepository } from "@/core/domain/repositories/IPurchaseOrderRepository";
+import type { IPurchaseOrderService } from "@/core/domain/services/IPurchaseOrderService";
 import type { IReconciliationMatchRepository } from "@/core/domain/repositories/IReconciliationMatchRepository";
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
@@ -380,6 +388,14 @@ class Container {
     const transferOrderLineService = new TransferOrderLineService(
       transferOrderLineRepository,
     );
+    const purchaseRequisitionRepository = new ApiPurchaseRequisitionRepository(
+      httpClient,
+    );
+    const purchaseRequisitionService = new PurchaseRequisitionService(
+      purchaseRequisitionRepository,
+    );
+    const purchaseOrderRepository = new ApiPurchaseOrderRepository(httpClient);
+    const purchaseOrderService = new PurchaseOrderService(purchaseOrderRepository);
     const reconciliationMatchRepository = new ApiReconciliationMatchRepository(httpClient);
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
@@ -608,6 +624,22 @@ class Container {
     this.register<ITransferOrderLineService>(
       "transferOrderLineService",
       transferOrderLineService,
+    );
+    this.register<IPurchaseRequisitionRepository>(
+      "purchaseRequisitionRepository",
+      purchaseRequisitionRepository,
+    );
+    this.register<IPurchaseRequisitionService>(
+      "purchaseRequisitionService",
+      purchaseRequisitionService,
+    );
+    this.register<IPurchaseOrderRepository>(
+      "purchaseOrderRepository",
+      purchaseOrderRepository,
+    );
+    this.register<IPurchaseOrderService>(
+      "purchaseOrderService",
+      purchaseOrderService,
     );
     this.register<IReconciliationMatchRepository>(
       "reconciliationMatchRepository",
