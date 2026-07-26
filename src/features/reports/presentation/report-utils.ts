@@ -4,6 +4,14 @@ export function formatMoney(value: string | number | null | undefined): string {
   return Number.isFinite(n) ? n.toFixed(2) : "—";
 }
 
+/** Format quantity sold (backend sends decimal strings like "48.0000"). */
+export function formatQuantity(value: string | number | null | undefined): string {
+  if (value == null || value === "") return "—";
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isFinite(n)) return "—";
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
+}
+
 export function formatHour(hour: number): string {
   if (!Number.isFinite(hour) || hour < 0 || hour > 23) return "—";
   const period = hour >= 12 ? "PM" : "AM";

@@ -7,7 +7,7 @@ import type {
   ServerPerformance,
   ZReportPayment,
 } from "@/core/domain/entities/Report";
-import { formatHour, formatMoney } from "./report-utils";
+import { formatHour, formatMoney, formatQuantity } from "./report-utils";
 
 export function getPaymentBreakdownColumns(): DataTableColumn<PaymentBreakdown>[] {
   return [
@@ -63,7 +63,7 @@ export function getSalesByItemColumns(): DataTableColumn<SalesByItem>[] {
       key: "quantitySold",
       header: "Qty sold",
       className: "text-right",
-      render: (row) => <span>{formatMoney(row.quantitySold)}</span>,
+      render: (row) => <span>{formatQuantity(row.quantitySold)}</span>,
     },
     {
       key: "totalRevenue",

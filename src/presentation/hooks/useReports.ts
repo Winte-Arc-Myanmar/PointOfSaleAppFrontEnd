@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type {
   GetDailyReportParams,
@@ -18,6 +18,7 @@ export function useDailySales(params: GetDailyReportParams | null) {
       return service.getDailySales(params!);
     },
     enabled: !!params?.locationId && !!params?.date,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -36,6 +37,7 @@ export function useSalesByCategory(params: GetDateRangeReportParams | null) {
       return service.getSalesByCategory(params!);
     },
     enabled: !!params?.locationId && !!params?.fromDate && !!params?.toDate,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -54,6 +56,7 @@ export function useSalesByItem(params: GetDateRangeReportParams | null) {
       return service.getSalesByItem(params!);
     },
     enabled: !!params?.locationId && !!params?.fromDate && !!params?.toDate,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -65,6 +68,7 @@ export function useSalesByHour(params: GetDailyReportParams | null) {
       return service.getSalesByHour(params!);
     },
     enabled: !!params?.locationId && !!params?.date,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -83,6 +87,7 @@ export function useServerPerformance(params: GetDateRangeReportParams | null) {
       return service.getServerPerformance(params!);
     },
     enabled: !!params?.locationId && !!params?.fromDate && !!params?.toDate,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -94,5 +99,6 @@ export function useZReport(params: GetDailyReportParams | null) {
       return service.getZReport(params!);
     },
     enabled: !!params?.locationId && !!params?.date,
+    placeholderData: keepPreviousData,
   });
 }

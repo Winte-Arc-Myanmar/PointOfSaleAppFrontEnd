@@ -199,7 +199,7 @@ summary {
   filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
 }
 
-/* Print only the receipt / thermal container. */
+/* Print only the receipt / thermal / reports container. */
 @media print {
   body * {
     visibility: hidden !important;
@@ -208,11 +208,22 @@ summary {
   [data-print-receipt],
   [data-print-receipt] *,
   [data-thermal-receipt],
-  [data-thermal-receipt] * {
+  [data-thermal-receipt] *,
+  [data-print-reports],
+  [data-print-reports] * {
     visibility: visible !important;
   }
 
   [data-print-receipt] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  [data-print-reports] {
     position: absolute;
     left: 0;
     top: 0;
@@ -240,7 +251,9 @@ summary {
   }
 
   @page {
-    size: 80mm auto;
-    margin: 0;
+    size: auto;
+    margin: 12mm;
   }
+
+  /* Thermal iframe jobs set their own @page; keep default for reports page print. */
 }

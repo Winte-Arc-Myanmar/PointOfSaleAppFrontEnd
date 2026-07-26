@@ -1,5 +1,9 @@
 import type { Receipt } from "@/core/domain/entities/Receipt";
 import type {
+  DailySalesSummary,
+  ZReport,
+} from "@/core/domain/entities/Report";
+import type {
   OrderSlip,
   ThermalPrintOptions,
   ThermalPrintResult,
@@ -8,7 +12,10 @@ import type {
   IThermalPrintGateway,
   IThermalReceiptFormatter,
 } from "@/core/domain/repositories/IThermalPrintGateway";
-import type { IThermalPrintService } from "@/core/domain/services/IThermalPrintService";
+import type {
+  IThermalPrintService,
+  ReportPrintContext,
+} from "@/core/domain/services/IThermalPrintService";
 
 const DEFAULT_OPTIONS: Required<ThermalPrintOptions> = {
   paperWidthMm: 80,
@@ -51,6 +58,34 @@ export class ThermalPrintService implements IThermalPrintService {
   ): Promise<ThermalPrintResult> {
     const resolved = resolveOptions(options);
     const formatted = this.formatter.formatOrderSlip(slip, resolved);
+
+    if (resolved.mode === "raw-escpos") {
+      return this.gateway.printEscPos(formatted.bytes, resolved);
+    }
+    return this.gateway.printHtml(formatted.html, resolved);
+  }
+
+  async printZReport(
+    report: ZReport,
+    context?: ReportPrintContext,
+    options?: ThermalPrintOptions,
+  ): Promise<ThermalPrintResult> {
+    const resolved = resolveOptions(options);
+    const formatted = this.formatter.formatZReport(report, context, resolved);
+
+    if (resolved.mode === "raw-escpos") {
+      return this.gateway.printEscPos(formatted.bytes, resolved);
+    }
+    return this.gateway.printHtml(formatted.html, resolved);
+  }
+
+  async printDailySales(
+    summary: DailySalesSummary,
+    context?: ReportPrintContext,
+    options?: ThermalPrintOptions,
+  ): Promise<ThermalPrintResult> {
+    const resolved = resolveOptions(options);
+    const formatted = this.formatter.formatDailySales(summary, context, resolved);
 
     if (resolved.mode === "raw-escpos") {
       return this.gateway.printEscPos(formatted.bytes, resolved);

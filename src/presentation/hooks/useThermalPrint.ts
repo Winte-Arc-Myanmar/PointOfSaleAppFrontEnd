@@ -2,8 +2,15 @@
 
 import { useCallback, useState } from "react";
 import container from "@/core/infrastructure/di/container";
-import type { IThermalPrintService } from "@/core/domain/services/IThermalPrintService";
+import type {
+  IThermalPrintService,
+  ReportPrintContext,
+} from "@/core/domain/services/IThermalPrintService";
 import type { Receipt } from "@/core/domain/entities/Receipt";
+import type {
+  DailySalesSummary,
+  ZReport,
+} from "@/core/domain/entities/Report";
 import type {
   OrderSlip,
   ThermalPrintOptions,
@@ -47,9 +54,51 @@ export function useThermalPrint() {
     [],
   );
 
+  const printZReport = useCallback(
+    async (
+      report: ZReport,
+      context?: ReportPrintContext,
+      options?: ThermalPrintOptions,
+    ): Promise<ThermalPrintResult> => {
+      setIsPrinting(true);
+      try {
+        return await getThermalPrintService().printZReport(
+          report,
+          context,
+          options,
+        );
+      } finally {
+        setIsPrinting(false);
+      }
+    },
+    [],
+  );
+
+  const printDailySales = useCallback(
+    async (
+      summary: DailySalesSummary,
+      context?: ReportPrintContext,
+      options?: ThermalPrintOptions,
+    ): Promise<ThermalPrintResult> => {
+      setIsPrinting(true);
+      try {
+        return await getThermalPrintService().printDailySales(
+          summary,
+          context,
+          options,
+        );
+      } finally {
+        setIsPrinting(false);
+      }
+    },
+    [],
+  );
+
   return {
     isPrinting,
     printReceipt,
     printOrderSlip,
+    printZReport,
+    printDailySales,
   };
 }

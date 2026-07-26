@@ -1,9 +1,14 @@
 import type { Receipt } from "@/core/domain/entities/Receipt";
 import type {
+  DailySalesSummary,
+  ZReport,
+} from "@/core/domain/entities/Report";
+import type {
   OrderSlip,
   ThermalPrintOptions,
 } from "@/core/domain/entities/ThermalPrint";
 import type { IThermalReceiptFormatter } from "@/core/domain/repositories/IThermalPrintGateway";
+import type { ReportPrintContext } from "@/core/domain/services/IThermalPrintService";
 import {
   EscPosEncoder,
   charsPerLine,
@@ -256,4 +261,157 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       html: toHtmlDocument(textLines, options.paperWidthMm),
     };
   }
+
+  formatZReport(
+    report: ZReport,
+    context: ReportPrintContext | undefined,
+    options: Required<ThermalPrintOptions>,
+  ): { bytes: Uint8Array; html: string } {
+    const width = charsPerLine(options.paperWidthMm);
+    const textLines: string[] = [];
+    const encoder = new EscPosEncoder().initialize();
+
+    const push = (line = "") => {
+      textLines.push(line);
+      encoder.line(line);
+    };
+    const pushCenter = (line: string, bold = false) => {
+      textLines.push(line);
+      encoder.align("center");
+      if (bold) encoder.bold(true);
+      encoder.line(line);
+      if (bold) encoder.bold(false);
+      encoder.align("left");
+    };
+
+    pushCenter("Z-REPORT", true);
+    pushCenter(context?.locationName || "Location");
+    push(`Date: ${report.date}`);
+    push(("-").repeat(width));
+    push(padLine("Completed", String(report.orders.completed), width));
+    push(padLine("Voided", String(report.orders.voided), width));
+    push(padLine("Refunded", String(report.orders.refunded), width));
+    push(("-").repeat(width));
+    push(padLine("Subtotal", moneyStr(report.totals.subtotal), width));
+    push(padLine("Discount", moneyStr(report.totals.totalDiscount), width));
+    push(padLine("Tax", moneyStr(report.totals.totalTax), width));
+    push(padLine("Tips", moneyStr(report.totals.tipAmount), width));
+    push(padLine("Service", moneyStr(report.totals.serviceCharge), width));
+    push(("=").repeat(width));
+    encoder.bold(true);
+    const totalLine = padLine("TOTAL", moneyStr(report.totals.grandTotal), width);
+    textLines.push(totalLine);
+    encoder.line(totalLine);
+    encoder.bold(false);
+    push(("=").repeat(width));
+
+    if (report.payments.length > 0) {
+      pushCenter("Payments");
+      for (const payment of report.payments) {
+        push(padLine(payment.method, moneyStr(payment.total), width));
+        if (Number(payment.tip) > 0) {
+          push(padLine("  Tip", moneyStr(payment.tip), width));
+        }
+      }
+      push(("-").repeat(width));
+    }
+
+    if (report.topItems.length > 0) {
+      pushCenter("Top items");
+      for (const item of report.topItems) {
+        push(padLine(qtyStr(item.quantitySold), moneyStr(item.totalRevenue), width));
+        for (const line of wrapText(item.productName, width)) push(line);
+      }
+      push(("-").repeat(width));
+    }
+
+    if (report.byCategory.length > 0) {
+      pushCenter("By category");
+      for (const category of report.byCategory) {
+        push(
+          padLine(
+            `${category.categoryName} (${category.orderCount})`,
+            moneyStr(category.totalRevenue),
+            width,
+          ),
+        );
+      }
+    }
+
+    encoder.newline(2);
+    if (options.cut) encoder.cut();
+
+    return {
+      bytes: encoder.encode(),
+      html: toHtmlDocument(textLines, options.paperWidthMm),
+    };
+  }
+
+  formatDailySales(
+    summary: DailySalesSummary,
+    context: ReportPrintContext | undefined,
+    options: Required<ThermalPrintOptions>,
+  ): { bytes: Uint8Array; html: string } {
+    const width = charsPerLine(options.paperWidthMm);
+    const textLines: string[] = [];
+    const encoder = new EscPosEncoder().initialize();
+
+    const push = (line = "") => {
+      textLines.push(line);
+      encoder.line(line);
+    };
+    const pushCenter = (line: string, bold = false) => {
+      textLines.push(line);
+      encoder.align("center");
+      if (bold) encoder.bold(true);
+      encoder.line(line);
+      if (bold) encoder.bold(false);
+      encoder.align("left");
+    };
+
+    pushCenter("DAILY SALES", true);
+    pushCenter(context?.locationName || "Location");
+    push(`Date: ${summary.date}`);
+    push(("-").repeat(width));
+    push(padLine("Orders", String(summary.orderCount), width));
+    push(padLine("Avg ticket", moneyStr(summary.averageTicket), width));
+    push(padLine("Subtotal", moneyStr(summary.subtotal), width));
+    push(padLine("Discount", moneyStr(summary.totalDiscount), width));
+    push(padLine("Tax", moneyStr(summary.totalTax), width));
+    push(padLine("Tips", moneyStr(summary.tipAmount), width));
+    push(padLine("Service", moneyStr(summary.serviceCharge), width));
+    push(("=").repeat(width));
+    encoder.bold(true);
+    const totalLine = padLine("TOTAL", moneyStr(summary.grandTotal), width);
+    textLines.push(totalLine);
+    encoder.line(totalLine);
+    encoder.bold(false);
+    push(("=").repeat(width));
+
+    if (summary.paymentBreakdown.length > 0) {
+      pushCenter("Payments");
+      for (const payment of summary.paymentBreakdown) {
+        push(padLine(payment.method, moneyStr(payment.total), width));
+      }
+    }
+
+    encoder.newline(2);
+    if (options.cut) encoder.cut();
+
+    return {
+      bytes: encoder.encode(),
+      html: toHtmlDocument(textLines, options.paperWidthMm),
+    };
+  }
+}
+
+function moneyStr(value: string | number): string {
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  return Number.isFinite(n) ? n.toFixed(2) : "0.00";
+}
+
+function qtyStr(value: string | number): string {
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isFinite(n)) return "0";
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
 }
