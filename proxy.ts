@@ -73,6 +73,11 @@ const permissionRoutes: RoutePermission[] = [
     permissions: ["purchase-requisitions:read"],
   },
   { prefix: "/purchase-orders", permissions: ["purchase-orders:read"] },
+  {
+    prefix: "/goods-received-notes",
+    permissions: ["goods-received-notes:read"],
+  },
+  { prefix: "/grn-lines", permissions: ["grn-lines:read"] },
   { prefix: "/reconciliation-matches", permissions: ["reconciliation-matches:read"] },
   { prefix: "/fixed-assets", permissions: ["fixed-assets:read"] },
   { prefix: "/depreciation-schedules", permissions: ["depreciation-schedules:read"] },

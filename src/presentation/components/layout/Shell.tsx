@@ -59,6 +59,8 @@ const routeTitles: Record<string, string> = {
   "/transfer-order-lines": "Transfer Order Lines",
   "/purchase-requisitions": "Purchase Requisitions",
   "/purchase-orders": "Purchase Orders",
+  "/goods-received-notes": "Goods Received Notes",
+  "/grn-lines": "GRN Lines",
   "/reconciliation-matches": "Reconciliation Matches",
   "/fixed-assets": "Fixed Assets",
   "/depreciation-schedules": "Depreciation Schedules",
@@ -180,6 +182,13 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/purchase-orders/") && pathname.endsWith("/edit"))
     return "Edit purchase order";
   if (pathname.startsWith("/purchase-orders/")) return "Purchase order";
+  if (pathname.startsWith("/goods-received-notes/") && pathname.endsWith("/edit"))
+    return "Edit goods received note";
+  if (pathname.startsWith("/goods-received-notes/")) return "Goods received note";
+  if (pathname.startsWith("/grn-lines/") && pathname.endsWith("/edit"))
+    return "Edit GRN line";
+  if (pathname.match(/^\/grn-lines\/[^/]+\/[^/]+$/)) return "GRN line";
+  if (pathname.startsWith("/grn-lines/")) return "GRN lines";
   if (pathname.startsWith("/reconciliation-matches/") && pathname.endsWith("/edit"))
     return "Edit reconciliation match";
   if (pathname.startsWith("/reconciliation-matches/")) return "Reconciliation match";
@@ -259,6 +268,8 @@ const TAB_MENU_ITEMS: MenuTabItem[] = [
   { href: "/transfer-order-lines", labelKey: "nav.transferOrderLines" },
   { href: "/purchase-requisitions", labelKey: "nav.purchaseRequisitions" },
   { href: "/purchase-orders", labelKey: "nav.purchaseOrders" },
+  { href: "/goods-received-notes", labelKey: "nav.goodsReceivedNotes" },
+  { href: "/grn-lines", labelKey: "nav.grnLines" },
   { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
   { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
   { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },

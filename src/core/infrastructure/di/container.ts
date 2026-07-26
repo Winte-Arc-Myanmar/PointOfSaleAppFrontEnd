@@ -116,6 +116,10 @@ import { ApiPurchaseRequisitionRepository } from "../repositories/ApiPurchaseReq
 import { PurchaseRequisitionService } from "@/core/application/services/PurchaseRequisitionService";
 import { ApiPurchaseOrderRepository } from "../repositories/ApiPurchaseOrderRepository";
 import { PurchaseOrderService } from "@/core/application/services/PurchaseOrderService";
+import { ApiGoodsReceivedNoteRepository } from "../repositories/ApiGoodsReceivedNoteRepository";
+import { GoodsReceivedNoteService } from "@/core/application/services/GoodsReceivedNoteService";
+import { ApiGrnLineRepository } from "../repositories/ApiGrnLineRepository";
+import { GrnLineService } from "@/core/application/services/GrnLineService";
 import { ApiReconciliationMatchRepository } from "../repositories/ApiReconciliationMatchRepository";
 import { ReconciliationMatchService } from "@/core/application/services/ReconciliationMatchService";
 import { ApiFixedAssetRepository } from "../repositories/ApiFixedAssetRepository";
@@ -241,6 +245,10 @@ import type { IPurchaseRequisitionRepository } from "@/core/domain/repositories/
 import type { IPurchaseRequisitionService } from "@/core/domain/services/IPurchaseRequisitionService";
 import type { IPurchaseOrderRepository } from "@/core/domain/repositories/IPurchaseOrderRepository";
 import type { IPurchaseOrderService } from "@/core/domain/services/IPurchaseOrderService";
+import type { IGoodsReceivedNoteRepository } from "@/core/domain/repositories/IGoodsReceivedNoteRepository";
+import type { IGoodsReceivedNoteService } from "@/core/domain/services/IGoodsReceivedNoteService";
+import type { IGrnLineRepository } from "@/core/domain/repositories/IGrnLineRepository";
+import type { IGrnLineService } from "@/core/domain/services/IGrnLineService";
 import type { IReconciliationMatchRepository } from "@/core/domain/repositories/IReconciliationMatchRepository";
 import type { IReconciliationMatchService } from "@/core/domain/services/IReconciliationMatchService";
 import type { IFixedAssetRepository } from "@/core/domain/repositories/IFixedAssetRepository";
@@ -396,6 +404,14 @@ class Container {
     );
     const purchaseOrderRepository = new ApiPurchaseOrderRepository(httpClient);
     const purchaseOrderService = new PurchaseOrderService(purchaseOrderRepository);
+    const goodsReceivedNoteRepository = new ApiGoodsReceivedNoteRepository(
+      httpClient,
+    );
+    const goodsReceivedNoteService = new GoodsReceivedNoteService(
+      goodsReceivedNoteRepository,
+    );
+    const grnLineRepository = new ApiGrnLineRepository(httpClient);
+    const grnLineService = new GrnLineService(grnLineRepository);
     const reconciliationMatchRepository = new ApiReconciliationMatchRepository(httpClient);
     const reconciliationMatchService = new ReconciliationMatchService(reconciliationMatchRepository);
     const fixedAssetRepository = new ApiFixedAssetRepository(httpClient);
@@ -641,6 +657,16 @@ class Container {
       "purchaseOrderService",
       purchaseOrderService,
     );
+    this.register<IGoodsReceivedNoteRepository>(
+      "goodsReceivedNoteRepository",
+      goodsReceivedNoteRepository,
+    );
+    this.register<IGoodsReceivedNoteService>(
+      "goodsReceivedNoteService",
+      goodsReceivedNoteService,
+    );
+    this.register<IGrnLineRepository>("grnLineRepository", grnLineRepository);
+    this.register<IGrnLineService>("grnLineService", grnLineService);
     this.register<IReconciliationMatchRepository>(
       "reconciliationMatchRepository",
       reconciliationMatchRepository

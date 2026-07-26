@@ -4,7 +4,8 @@
  * 1.1.0 — thermal printer support (ESC/POS + 58/80mm) on checkout & receipts
  * 1.2.0 — transfer orders/lines; reports thermal print + soft filter loading
  * 1.3.0 — purchase requisitions & purchase orders
+ * 1.4.0 — goods received notes & GRN lines
  */
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "1.4.0";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

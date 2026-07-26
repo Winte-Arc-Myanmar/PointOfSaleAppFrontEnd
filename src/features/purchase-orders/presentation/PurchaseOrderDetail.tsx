@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Info } from "lucide-react";
+import { ShoppingCart, Info, ClipboardCheck } from "lucide-react";
 import { usePurchaseOrder } from "@/presentation/hooks/usePurchaseOrders";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -54,6 +54,17 @@ export function PurchaseOrderDetail({ purchaseOrderId }: { purchaseOrderId: stri
         title={safeText(order.poNumber)}
         editHref={`/purchase-orders/${order.id}/edit`}
       />
+
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href={`/goods-received-notes?purchaseOrderId=${encodeURIComponent(String(order.id))}`}
+        >
+          <Button variant="outline" size="sm" className="gap-2">
+            <ClipboardCheck className="h-4 w-4" />
+            Create goods received note
+          </Button>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={ShoppingCart}>

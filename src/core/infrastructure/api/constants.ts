@@ -447,6 +447,20 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/purchase-orders/${id}`,
     DELETE: (id: string) => `/v1/purchase-orders/${id}`,
   },
+  GOODS_RECEIVED_NOTES: {
+    LIST: "/v1/goods-received-notes",
+    BY_ID: (id: string) => `/v1/goods-received-notes/${id}`,
+    CREATE: "/v1/goods-received-notes",
+    UPDATE: (id: string) => `/v1/goods-received-notes/${id}`,
+    DELETE: (id: string) => `/v1/goods-received-notes/${id}`,
+    LINES: (grnId: string) => ({
+      LIST: `/v1/goods-received-notes/${grnId}/lines`,
+      BY_ID: (id: string) => `/v1/goods-received-notes/${grnId}/lines/${id}`,
+      CREATE: `/v1/goods-received-notes/${grnId}/lines`,
+      UPDATE: (id: string) => `/v1/goods-received-notes/${grnId}/lines/${id}`,
+      DELETE: (id: string) => `/v1/goods-received-notes/${grnId}/lines/${id}`,
+    }),
+  },
   RECONCILIATION_MATCHES: {
     LIST: "/v1/reconciliation-matches",
     BY_ID: (id: string) => `/v1/reconciliation-matches/${id}`,
