@@ -227,17 +227,23 @@ export function ProductList() {
       defaultViewMode="grid"
       gridClassName="grid-cols-1 justify-items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
       gridCardClassName="w-full max-w-[210px] rounded-xl border border-border bg-background/90 p-0 shadow-sm"
+      gridContentClassName="pr-0"
       renderGridItem={(product) => {
         return (
           <article className="flex h-full flex-col">
-            <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-white">
+            <button
+              type="button"
+              aria-label={`View ${product.name} details`}
+              className="relative aspect-square w-full cursor-pointer overflow-hidden rounded-t-xl bg-white focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-mint"
+              onClick={() => router.push(`/products/${product.id}`)}
+            >
               <ProductCardImage
                 src={product.imageUrl}
                 alt={product.name}
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
                 logoClassName="w-20"
               />
-            </div>
+            </button>
 
             <div className="flex flex-1 flex-col p-2.5">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
