@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type {
@@ -27,8 +27,12 @@ export function useSystemAdminDeleteTenant() {
 }
 
 export function useSystemAdminCreateUser() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: SystemAdminCreateUserDto) => getService().createUser(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
   });
 }
 

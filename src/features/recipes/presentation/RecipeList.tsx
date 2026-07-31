@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Input } from "@/presentation/components/ui/input";
 import {
@@ -15,6 +16,10 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { useDeleteRecipe, useRecipes } from "@/presentation/hooks/useRecipes";
+import { useProducts } from "@/presentation/hooks/useProducts";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import container from "@/core/infrastructure/di/container";
+import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import type { Recipe } from "@/core/domain/entities/Recipe";
 import { CreateRecipeForm } from "./CreateRecipeForm";
 import { getRecipeRowActions } from "./recipe-row-actions";
@@ -53,6 +58,28 @@ export function RecipeList() {
     sortOrder: "desc",
   });
   const recipes = recipesResult?.items ?? [];
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const products = getPaginatedItems(productsData);
+  const productVariantQueries = useQueries({
+    queries: products.map((product) => ({
+      queryKey: ["products", product.id, "variants", 1, 200],
+      queryFn: () =>
+        container.resolve<IProductVariantService>("productVariantService").getAll(product.id, {
+          page: 1,
+          limit: 200,
+        }),
+      enabled: products.length > 0,
+    })),
+  });
+  const variantDisplayById = useMemo(() => {
+    const result = new Map<string, string>();
+    products.forEach((product, index) => {
+      getPaginatedItems(productVariantQueries[index]?.data).forEach((variant) => {
+        result.set(String(variant.id), `${product.name} · ${variant.variantSku || "Unnamed variant"}`);
+      });
+    });
+    return result;
+  }, [products, productVariantQueries]);
   const filteredRecipes = useMemo(
     () =>
       activeFilter === ALL
@@ -90,8 +117,9 @@ export function RecipeList() {
     () =>
       getRecipeTableColumns({
         onView: (recipe) => router.push(`/recipes/${recipe.id}`),
+        variantDisplayById,
       }),
-    [router],
+    [router, variantDisplayById],
   );
 
   return (
@@ -115,7 +143,7 @@ export function RecipeList() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search recipes by variant ID..."
+            placeholder="Search recipes by product or variant..."
           />
           <Select value={activeFilter} onValueChange={setActiveFilter}>
             <SelectTrigger className="sm:w-[180px]">

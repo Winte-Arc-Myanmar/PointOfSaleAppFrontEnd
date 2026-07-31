@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Label } from "@/presentation/components/ui/label";
 import {
   Select,
@@ -33,12 +32,10 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
     [customers],
   );
 
-  const customerIds = useMemo(
-    () => sorted.map((customer) => String(customer.id)),
-    [sorted],
-  );
-
   const isAllMode = selectedId === ALL_CUSTOMERS;
+  const selectedCustomer = sorted.find(
+    (customer) => String(customer.id) === selectedId,
+  );
 
   return (
     <div className="space-y-6">
@@ -68,11 +65,21 @@ export function LoyaltyLedgerPageWithCustomerSelect() {
       </div>
 
       {isAllMode ? (
-        <LoyaltyLedgerAllCustomersList customerIds={customerIds} />
+        <LoyaltyLedgerAllCustomersList customers={sorted} />
       ) : (
         <LoyaltyLedgerList
           customerId={selectedId}
           routeBasePath={`/loyalty-ledger/${selectedId}`}
+          customerDetailsById={
+            selectedCustomer
+              ? {
+                  [String(selectedCustomer.id)]: {
+                    name: selectedCustomer.name,
+                    loyaltyTier: selectedCustomer.loyaltyTier,
+                  },
+                }
+              : undefined
+          }
         />
       )}
     </div>

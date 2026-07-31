@@ -8,12 +8,13 @@ function truncate(str: string | null | undefined, max = 12): string {
 
 type BranchTableColumnOptions = {
   onView?: (branch: Branch) => void;
+  tenantNameById?: Map<string, string>;
 };
 
 export function getBranchTableColumns(
   options: BranchTableColumnOptions = {},
 ): DataTableColumn<Branch>[] {
-  const { onView } = options;
+  const { onView, tenantNameById } = options;
 
   return [
     {
@@ -46,6 +47,19 @@ export function getBranchTableColumns(
           {truncate(b.branchCode, 8)}
         </span>
       ),
+    },
+    {
+      key: "tenantId",
+      header: "Tenant",
+      className: "min-w-[130px] max-w-[200px]",
+      render: (b) => {
+        const tenantName = tenantNameById?.get(String(b.tenantId)) ?? "Tenant unavailable";
+        return (
+          <span className="truncate text-muted" title={tenantName}>
+            {truncate(tenantName, 18)}
+          </span>
+        );
+      },
     },
     {
       key: "type",

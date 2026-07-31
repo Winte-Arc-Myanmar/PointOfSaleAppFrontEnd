@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
@@ -19,7 +18,6 @@ import {
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
-  User,
 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -608,7 +606,6 @@ export function CheckoutSection() {
   const sessionAccessToken =
     typeof session?.accessToken === "string" ? session.accessToken : "";
   const profileName = sessionUser?.name ?? sessionUser?.email ?? "Current user";
-  const profileInitial = profileName.trim().charAt(0).toUpperCase() || "U";
   const loginStorageKey = useMemo(() => {
     const identity = sessionUser?.email?.trim() || profileName.trim() || "guest";
     const sessionScope = sessionAccessToken.trim() || "anonymous-session";
@@ -734,48 +731,6 @@ export function CheckoutSection() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]">
-        <div>
-          <p className="section-label">Checkout profile</p>
-          <p className="text-sm text-muted">
-            Active cashier for this checkout screen.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-mint/5 px-3 py-2">
-          <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-mint/15 text-sm font-semibold text-mint">
-            {sessionUser?.image ? (
-              <Image
-                src={sessionUser.image}
-                alt={profileName}
-                fill
-                className="object-cover"
-                sizes="44px"
-                unoptimized
-              />
-            ) : (
-              profileInitial
-            )}
-          </div>
-          <div className="min-w-0 space-y-0.5">
-            <p className="max-w-44 truncate text-sm font-medium text-foreground">
-              {profileName}
-            </p>
-            <p className="flex items-center gap-1 text-xs text-muted">
-              <User className="h-3.5 w-3.5" />
-              Cashier profile
-            </p>
-            {loginTimeLabel ? (
-              <p
-                className="text-xs text-gray-400 dark:text-muted"
-                title={`Logged in: ${loginTimeLabel}`}
-              >
-                Logged in: {loginTimeLabel}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
       <SettingsStrip
         form={form}
         tenants={tenants}
@@ -784,6 +739,7 @@ export function CheckoutSection() {
         customers={customers}
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
+        loginTimeLabel={loginTimeLabel}
       />
       <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
         <div className="order-1 min-h-0 space-y-4 lg:col-span-5 xl:col-span-4">
@@ -791,7 +747,6 @@ export function CheckoutSection() {
             currency={selectedTenantCurrency}
             orderNumber={orderNumber}
             tableNumber={tableNumber}
-            staffName={profileName}
             orderType={orderType}
             tableOptions={availableTables}
             items={sidebarItems}
@@ -813,6 +768,18 @@ export function CheckoutSection() {
             onTableNumberChange={setTableNumber}
             onGiftCodeChange={setGiftCode}
             onPromotionCodeChange={handlePromotionCodeChange}
+            onQuantityChange={(itemId, change) => {
+              const itemIndex = sidebarItems.findIndex(
+                (item) => item.id === itemId,
+              );
+              if (itemIndex < 0) return;
+
+              if (change === 1) {
+                incrementItem(itemIndex);
+              } else {
+                decrementItem(itemIndex);
+              }
+            }}
             onPrint={(options) => {
               void handleThermalOrderSlipPrint(options);
             }}
@@ -1049,7 +1016,27 @@ export function CheckoutSection() {
                       render={({ field }) => (
                         <Select
                           value={field.value}
-                          onValueChange={field.onChange}
+                          onValueChange={(paymentMethodId) => {
+                            field.onChange(paymentMethodId);
+
+                            const otherPaymentsTotal = watchedPayments.reduce(
+                              (sum, payment, paymentIndex) =>
+                                paymentIndex === idx
+                                  ? sum
+                                  : sum + (Number(payment?.amount) || 0),
+                              0,
+                            );
+                            const remainingAmount = Math.max(
+                              0,
+                              subtotal - otherPaymentsTotal,
+                            );
+
+                            form.setValue(
+                              `payments.${idx}.amount`,
+                              Number(remainingAmount.toFixed(4)),
+                              { shouldDirty: true, shouldValidate: true },
+                            );
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Method" />
@@ -1106,28 +1093,28 @@ export function CheckoutSection() {
 
         <div className="order-2 lg:col-span-7 xl:col-span-8">
           <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
-                <Input
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  placeholder="Search products..."
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
             <CategoryChooser
               categories={categories}
               selectedCategoryId={selectedCategoryId}
               onSelectCategory={setSelectedCategoryId}
             />
 
-            <div className="space-y-1">
-              <h3 className="text-lg font-semibold tracking-tight">
-                Special Menu for you
-              </h3>
+            <div className="space-y-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h3 className="shrink-0 text-lg font-semibold tracking-tight">
+                  Special Menu for you
+                </h3>
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                  <Input
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder="Search products..."
+                    aria-label="Search products"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
               <p className="text-sm text-muted">
                 Pick an item to add it to the current order.
               </p>
@@ -1336,6 +1323,7 @@ function SettingsStrip({
   customers,
   settingsOpen,
   setSettingsOpen,
+  loginTimeLabel,
 }: {
   form: ReturnType<typeof useForm<FormValues>>;
   tenants: { id: string | number; name: string }[];
@@ -1344,6 +1332,7 @@ function SettingsStrip({
   customers: { id: string | number; name?: string; email?: string }[];
   settingsOpen: boolean;
   setSettingsOpen: (v: boolean) => void;
+  loginTimeLabel: string | null;
 }) {
   const selectedTenant = useWatch({ control: form.control, name: "tenantId" });
   const selectedLocation = useWatch({
@@ -1375,7 +1364,7 @@ function SettingsStrip({
 
   return (
     <div className="rounded-xl border border-border bg-background">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4 text-sm flex-wrap">
           <span className="flex items-center gap-1.5">
             <span className="text-muted">Tenant:</span>
@@ -1394,15 +1383,25 @@ function SettingsStrip({
             <span className="font-medium">{customerName}</span>
           </span>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setSettingsOpen(!settingsOpen)}
-        >
-          <Settings2 className="mr-1 h-3.5 w-3.5" />
-          {settingsOpen ? "Hide settings" : "Settings"}
-        </Button>
+        <div className="flex items-center justify-between gap-3 lg:justify-end">
+          {loginTimeLabel ? (
+            <p
+              className="whitespace-nowrap text-sm text-muted"
+              title={`Logged in: ${loginTimeLabel}`}
+            >
+              Logged in: <span className="font-semibold text-foreground">{loginTimeLabel}</span>
+            </p>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+          >
+            <Settings2 className="mr-1 h-3.5 w-3.5" />
+            {settingsOpen ? "Hide settings" : "Settings"}
+          </Button>
+        </div>
       </div>
 
       {settingsOpen ? (

@@ -71,6 +71,7 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   renderGridItem?: (item: T) => ReactNode;
   gridClassName?: string;
   gridCardClassName?: string;
+  gridContentClassName?: string;
   onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
@@ -119,6 +120,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   renderGridItem,
   gridClassName,
   gridCardClassName,
+  gridContentClassName,
   onView,
   onEdit,
   onDelete,
@@ -227,6 +229,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
       renderGridItem={renderGridItem}
       gridClassName={gridClassName}
       gridCardClassName={gridCardClassName}
+      gridContentClassName={gridContentClassName}
       onView={onView}
       onEdit={onEdit}
       onDelete={onDelete}

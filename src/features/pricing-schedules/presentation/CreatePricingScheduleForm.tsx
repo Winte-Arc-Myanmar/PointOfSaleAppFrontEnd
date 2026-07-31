@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreatePricingSchedule } from "@/presentation/hooks/usePricingSchedules";
 import { useCategories } from "@/presentation/hooks/useCategories";
+import { useProducts } from "@/presentation/hooks/useProducts";
+import { useProductVariants } from "@/presentation/hooks/useProductVariants";
+import { useBundles } from "@/presentation/hooks/useBundles";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
@@ -20,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import type { Product } from "@/core/domain/entities/Product";
+import type { Bundle } from "@/core/domain/entities/Bundle";
 
 const ADJUSTMENT_TYPES = ["PERCENT_OFF", "AMOUNT_OFF", "FIXED_PRICE"] as const;
 
@@ -97,9 +102,13 @@ export function CreatePricingScheduleForm({
 
   const { data: tenantsData } = useTenants();
   const { data: categoriesData } = useCategories({ page: 1, limit: 200 });
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const { data: bundlesData } = useBundles({ page: 1, limit: 200 });
 
   const tenants = getPaginatedItems(tenantsData);
   const categories = getPaginatedItems(categoriesData);
+  const products = getPaginatedItems(productsData);
+  const bundles = getPaginatedItems(bundlesData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -120,6 +129,12 @@ export function CreatePricingScheduleForm({
   const filteredCategories = selectedTenantId
     ? categories.filter((category) => category.tenantId === selectedTenantId)
     : categories;
+  const filteredProducts = selectedTenantId
+    ? products.filter((product) => product.tenantId === selectedTenantId)
+    : products;
+  const filteredBundles = selectedTenantId
+    ? bundles.filter((bundle) => bundle.tenantId === selectedTenantId)
+    : bundles;
 
   useEffect(() => {
     onLoadingChange?.(create.isPending ?? false);
@@ -306,14 +321,6 @@ export function CreatePricingScheduleForm({
           <div key={field.id} className="rounded-lg border border-border p-3 space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor={`variantId-${field.id}`}>Variant ID (optional)</Label>
-                <Input
-                  id={`variantId-${field.id}`}
-                  placeholder="Variant UUID"
-                  {...form.register(`rules.${index}.variantId`)}
-                />
-              </div>
-              <div className="grid gap-2">
                 <Label htmlFor={`categoryId-${field.id}`}>Category (optional)</Label>
                 <Controller
                   control={form.control}
@@ -393,6 +400,92 @@ export function CreatePricingScheduleForm({
           <p className="text-sm text-red-600">{form.formState.errors.rules.message}</p>
         )}
       </div>
+
+      <div className="space-y-3 border-t border-border pt-5">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Applies to products & bundles</h3>
+          <p className="mt-1 text-sm text-muted">
+            Choose the product or bundle that each pricing rule will affect.
+          </p>
+        </div>
+
+        {fields.map((field, index) => (
+          <div key={`target-${field.id}`} className="rounded-lg border border-border p-3">
+            <div className="mb-2 text-sm font-medium text-foreground">Rule {index + 1} target</div>
+            <Controller
+              control={form.control}
+              name={`rules.${index}.variantId`}
+              render={({ field: variantField }) => (
+                <PricingRuleTargetSelector
+                  products={filteredProducts}
+                  bundles={filteredBundles}
+                  value={variantField.value ?? ""}
+                  onChange={variantField.onChange}
+                />
+              )}
+            />
+          </div>
+        ))}
+      </div>
     </form>
+  );
+}
+
+function PricingRuleTargetSelector({
+  products,
+  bundles,
+  value,
+  onChange,
+}: {
+  products: Product[];
+  bundles: Bundle[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [targetType, setTargetType] = useState<"product" | "bundle">("product");
+  const [targetId, setTargetId] = useState("");
+  const bundleProductId = bundles.find((bundle) => String(bundle.id) === targetId)?.productId;
+  const productId = targetType === "bundle" ? bundleProductId : targetId;
+  const { data: variantsData } = useProductVariants(productId || null, { page: 1, limit: 200 });
+  const variants = getPaginatedItems(variantsData);
+
+  const changeTargetType = (nextType: "product" | "bundle") => {
+    setTargetType(nextType);
+    setTargetId("");
+    onChange("");
+  };
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-3">
+      <Select value={targetType} onValueChange={changeTargetType}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="product">Product</SelectItem>
+          <SelectItem value="bundle">Bundle</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select
+        value={targetId || "__none__"}
+        onValueChange={(nextId) => {
+          setTargetId(nextId === "__none__" ? "" : nextId);
+          onChange("");
+        }}
+      >
+        <SelectTrigger><SelectValue placeholder={`Select ${targetType}`} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__">No {targetType} selected</SelectItem>
+          {targetType === "product"
+            ? products.map((product) => <SelectItem key={product.id} value={String(product.id)}>{product.name}</SelectItem>)
+            : bundles.map((bundle) => <SelectItem key={bundle.id} value={String(bundle.id)}>{bundle.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={value || "__none__"} onValueChange={(nextId) => onChange(nextId === "__none__" ? "" : nextId)} disabled={!productId}>
+        <SelectTrigger><SelectValue placeholder={productId ? "Select variant" : "Select product or bundle first"} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__">No variant selected</SelectItem>
+          {variants.map((variant) => <SelectItem key={variant.id} value={String(variant.id)}>{variant.variantSku || "Unnamed variant"}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

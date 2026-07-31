@@ -40,7 +40,7 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
   { key: "category", label: "Category", icon: FolderTree },
-  { key: "tax", label: "Tax", icon: Receipt },
+  { key: "tax", label: "Price & Tax", icon: Receipt },
   { key: "stock", label: "Stock", icon: Warehouse },
   { key: "recordInfo", label: "Record Info", icon: Info },
 ] as const;

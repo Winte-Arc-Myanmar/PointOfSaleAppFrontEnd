@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUsers, useDeleteUser } from "@/presentation/hooks/useUsers";
+import { useBranches } from "@/presentation/hooks/useBranches";
 import { usePagination } from "@/presentation/hooks/usePagination";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -35,6 +37,12 @@ export function UserList() {
     limit: PAGE_SIZE,
   });
   const users = usersResult?.items ?? [];
+  const { data: branchesData } = useBranches({ page: 1, limit: 200 });
+  const branches = getPaginatedItems(branchesData);
+  const branchNameById = useMemo(
+    () => new Map(branches.map((branch) => [String(branch.id), branch.name])),
+    [branches],
+  );
   const deleteUser = useDeleteUser();
   const toast = useToast();
   const confirm = useConfirm();
@@ -50,6 +58,7 @@ export function UserList() {
             u.phoneNumber ?? "",
             u.jobTitle ?? "",
             u.status ?? "",
+            u.branchId ? branchNameById.get(String(u.branchId)) ?? "" : "",
             String(u.id),
           ]
             .join(" ")
@@ -61,7 +70,7 @@ export function UserList() {
     return searchedUsers.filter(
       (u) => (u.jobTitle ?? "__unassigned__") === selectedJobTitle,
     );
-  }, [users, search, selectedJobTitle]);
+  }, [users, search, selectedJobTitle, branchNameById]);
 
   const jobTitleOptions = useMemo(() => {
     const titles = new Set<string>();
@@ -112,8 +121,9 @@ export function UserList() {
     () =>
       getUserTableColumns({
         onView: (u) => router.push(`/users/${u.id}`),
+        branchNameById,
       }),
-    [router],
+    [router, branchNameById],
   );
 
   async function handleDeleteSelected(items: AppUser[]) {
