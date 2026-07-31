@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { LoyaltyLedgerEntry } from "@/core/domain/entities/LoyaltyLedgerEntry";
+import type { Customer } from "@/core/domain/entities/Customer";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -12,17 +13,18 @@ import {
   useDeleteLoyaltyLedgerEntry,
 } from "@/presentation/hooks/useLoyaltyLedger";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
+import { useSalesOrders } from "@/presentation/hooks/useSalesOrders";
 import { getLoyaltyLedgerTableColumns } from "./loyalty-ledger-table-columns";
 import { getLoyaltyLedgerRowActions } from "./loyalty-ledger-row-actions";
 
 const PAGE_SIZE = 10;
 
 export interface LoyaltyLedgerAllCustomersListProps {
-  customerIds: string[];
+  customers: Customer[];
 }
 
 export function LoyaltyLedgerAllCustomersList({
-  customerIds,
+  customers,
 }: LoyaltyLedgerAllCustomersListProps) {
   const { t } = useLanguage();
   const router = useRouter();
@@ -31,18 +33,45 @@ export function LoyaltyLedgerAllCustomersList({
   const deleteEntry = useDeleteLoyaltyLedgerEntry();
 
   const pagination = usePagination({ pageSize: PAGE_SIZE });
+  const customerIds = useMemo(
+    () => customers.map((customer) => String(customer.id)),
+    [customers],
+  );
+  const customerDetailsById = useMemo(
+    () =>
+      Object.fromEntries(
+        customers.map((customer) => [
+          String(customer.id),
+          { name: customer.name, loyaltyTier: customer.loyaltyTier },
+        ]),
+      ),
+    [customers],
+  );
   const allRowsQuery = useAllCustomersLoyaltyLedgerEntries(customerIds, {
     page: pagination.page,
     limit: PAGE_SIZE,
   });
   const rows = allRowsQuery.data?.items ?? [];
+  const { data: ordersResult } = useSalesOrders({ page: 1, limit: 500 });
+  const orderNumberById = useMemo(
+    () =>
+      Object.fromEntries(
+        (ordersResult?.items ?? []).map((order) => [
+          String(order.id),
+          order.orderNumber,
+        ]),
+      ),
+    [ordersResult?.items],
+  );
 
   const columns = useMemo(
     () =>
       getLoyaltyLedgerTableColumns({
         onView: (row) => router.push(`/loyalty-ledger/${row.customerId}/${row.id}`),
+        customerDetailsById,
+        orderNumberById,
       }),
-    [router],
+    [router, customerDetailsById, orderNumberById],
   );
 
   const actions = useMemo(

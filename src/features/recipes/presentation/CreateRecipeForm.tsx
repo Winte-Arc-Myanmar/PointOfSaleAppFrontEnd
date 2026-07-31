@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import type { Product } from "@/core/domain/entities/Product";
 
 const ingredientSchema = z.object({
   ingredientVariantId: z.string().min(1, "Ingredient variant is required"),
@@ -34,7 +35,7 @@ const ingredientSchema = z.object({
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   productId: z.string().optional(),
-  variantId: z.string().min(1, "Variant ID is required"),
+  variantId: z.string().min(1, "Recipe variant is required"),
   yield: z.number().gt(0, "Yield must be greater than 0"),
   notes: z.string().optional(),
   isActive: z.boolean(),
@@ -181,17 +182,20 @@ export function CreateRecipeForm({
         </div>
 
         <div className="grid gap-2">
-          <Label htmlFor="productId">Product (for variant lookup)</Label>
+          <Label htmlFor="productId">Recipe product</Label>
           <Controller
             control={form.control}
             name="productId"
             render={({ field }) => (
               <Select
                 value={field.value || "__none__"}
-                onValueChange={(value) => field.onChange(value === "__none__" ? "" : value)}
+                onValueChange={(value) => {
+                  field.onChange(value === "__none__" ? "" : value);
+                  form.setValue("variantId", "", { shouldValidate: true });
+                }}
               >
                 <SelectTrigger id="productId">
-                  <SelectValue placeholder="Optional: select product" />
+                  <SelectValue placeholder="Select recipe product" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">No product selected</SelectItem>
@@ -209,26 +213,25 @@ export function CreateRecipeForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="variantId">Variant ID</Label>
-          <Input
-            id="variantId"
-            placeholder="Variant UUID"
-            {...form.register("variantId")}
+          <Label htmlFor="variantId">Recipe variant</Label>
+          <Controller
+            control={form.control}
+            name="variantId"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange} disabled={!selectedProductId}>
+                <SelectTrigger id="variantId">
+                  <SelectValue placeholder={selectedProductId ? "Select variant" : "Select product first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {variants.map((variant) => (
+                    <SelectItem key={variant.id} value={String(variant.id)}>
+                      {variant.variantSku || "Unnamed variant"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           />
-          {variants.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {variants.slice(0, 8).map((variant) => (
-                <button
-                  key={variant.id}
-                  type="button"
-                  className="rounded-md border border-border px-2 py-1 text-xs font-mono hover:border-mint hover:text-mint"
-                  onClick={() => form.setValue("variantId", variant.id, { shouldValidate: true })}
-                >
-                  {variant.variantSku}
-                </button>
-              ))}
-            </div>
-          )}
           {form.formState.errors.variantId && (
             <p className="text-sm text-red-600">{form.formState.errors.variantId.message}</p>
           )}
@@ -286,11 +289,17 @@ export function CreateRecipeForm({
           <div key={field.id} className="rounded-lg border border-border p-3 space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="grid gap-2 sm:col-span-2">
-                <Label htmlFor={`ingredientVariantId-${field.id}`}>Ingredient Variant ID</Label>
-                <Input
-                  id={`ingredientVariantId-${field.id}`}
-                  placeholder="Variant UUID"
-                  {...form.register(`ingredients.${index}.ingredientVariantId`)}
+                <Label>Ingredient variant</Label>
+                <Controller
+                  control={form.control}
+                  name={`ingredients.${index}.ingredientVariantId`}
+                  render={({ field: variantField }) => (
+                    <IngredientVariantSelector
+                      products={filteredProducts}
+                      value={variantField.value}
+                      onChange={variantField.onChange}
+                    />
+                  )}
                 />
                 {form.formState.errors.ingredients?.[index]?.ingredientVariantId && (
                   <p className="text-sm text-red-600">
@@ -382,5 +391,47 @@ export function CreateRecipeForm({
         )}
       </div>
     </form>
+  );
+}
+
+function IngredientVariantSelector({
+  products,
+  value,
+  onChange,
+}: {
+  products: Product[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [productId, setProductId] = useState("");
+  const { data: variantsData } = useProductVariants(productId || null, { page: 1, limit: 200 });
+  const variants = getPaginatedItems(variantsData);
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      <Select
+        value={productId || "__none__"}
+        onValueChange={(nextProductId) => {
+          setProductId(nextProductId === "__none__" ? "" : nextProductId);
+          onChange("");
+        }}
+      >
+        <SelectTrigger><SelectValue placeholder="Select ingredient product" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__">Select product</SelectItem>
+          {products.map((product) => (
+            <SelectItem key={product.id} value={String(product.id)}>{product.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={value} onValueChange={onChange} disabled={!productId}>
+        <SelectTrigger><SelectValue placeholder={productId ? "Select variant" : "Select product first"} /></SelectTrigger>
+        <SelectContent>
+          {variants.map((variant) => (
+            <SelectItem key={variant.id} value={String(variant.id)}>{variant.variantSku || "Unnamed variant"}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

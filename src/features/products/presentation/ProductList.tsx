@@ -82,7 +82,7 @@ export function ProductList() {
     isLoading,
     error,
     refetch,
-  } = useProducts({ page, limit: PAGE_SIZE });
+  } = useProducts({ page: 1, limit: 500 });
   const { data: categoryTree = [] } = useCategoryTree();
   const { data: tenantsResult } = useTenants({ page: 1, limit: 200 });
   const deleteProduct = useDeleteProduct();
@@ -142,6 +142,11 @@ export function ProductList() {
     }));
   }, [categoryTree]);
 
+  const pagedFilteredProducts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredProducts.slice(start, start + PAGE_SIZE);
+  }, [filteredProducts, page]);
+
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(id);
@@ -165,7 +170,7 @@ export function ProductList() {
 
   return (
     <EntityListWithCreateModal<Product>
-      data={filteredProducts}
+      data={pagedFilteredProducts}
       columns={columns}
       actions={[]}
       isLoading={isLoading}
@@ -213,8 +218,8 @@ export function ProductList() {
       }
       pageSize={PAGE_SIZE}
       currentPage={page}
-      totalPages={productsResult?.totalPages ?? getTotalPages(productsResult?.total)}
-      totalItems={productsResult?.total ?? 0}
+      totalPages={getTotalPages(filteredProducts.length)}
+      totalItems={filteredProducts.length}
       onPageChange={setPage}
       addLabel="Add Product"
       createTitle="Create Product"

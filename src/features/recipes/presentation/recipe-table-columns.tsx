@@ -3,6 +3,7 @@ import type { Recipe } from "@/core/domain/entities/Recipe";
 
 type RecipeTableColumnOptions = {
   onView?: (recipe: Recipe) => void;
+  variantDisplayById?: Map<string, string>;
 };
 
 function formatDate(value?: string | null) {
@@ -14,29 +15,32 @@ function formatDate(value?: string | null) {
 export function getRecipeTableColumns(
   options: RecipeTableColumnOptions = {},
 ): DataTableColumn<Recipe>[] {
-  const { onView } = options;
+  const { onView, variantDisplayById } = options;
 
   return [
     {
       key: "variantId",
-      header: "Variant",
+      header: "Product & variant",
       sortable: true,
       className: "min-w-[220px] max-w-[300px]",
-      render: (recipe) =>
-        onView ? (
+      render: (recipe) => {
+        const label = variantDisplayById?.get(String(recipe.variantId)) ?? "Variant unavailable";
+
+        return onView ? (
           <button
             type="button"
-            className="truncate font-mono text-sm text-left text-foreground hover:text-mint transition-colors"
+            className="truncate text-sm text-left font-medium text-foreground hover:text-mint transition-colors"
             onClick={() => onView(recipe)}
-            title={recipe.variantId}
+            title={label}
           >
-            {recipe.variantId}
+            {label}
           </button>
         ) : (
-          <span className="truncate font-mono text-sm text-foreground" title={recipe.variantId}>
-            {recipe.variantId}
+          <span className="truncate text-sm font-medium text-foreground" title={label}>
+            {label}
           </span>
-        ),
+        );
+      },
     },
     {
       key: "yield",

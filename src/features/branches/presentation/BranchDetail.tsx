@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { useBranch } from "@/presentation/hooks/useBranches";
+import { useTenant } from "@/presentation/hooks/useTenants";
+import { useUsers } from "@/presentation/hooks/useUsers";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { Button } from "@/presentation/components/ui/button";
-import { MapPin, Phone, Building2, Clock, Info } from "lucide-react";
+import { MapPin, Phone, Building2, Clock, Info, Users } from "lucide-react";
 import {
   DetailSection,
   DetailRows,
@@ -15,6 +18,11 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function BranchDetail({ branchId }: { branchId: string }) {
   const { data: branch, isLoading, error } = useBranch(branchId);
+  const { data: tenant } = useTenant(branch?.tenantId ?? null);
+  const { data: usersData } = useUsers({ page: 1, limit: 200 });
+  const branchUsers = getPaginatedItems(usersData).filter(
+    (user) => String(user.branchId) === String(branchId),
+  );
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading branch..." />;
   if (error || !branch)
@@ -42,7 +50,6 @@ export function BranchDetail({ branchId }: { branchId: string }) {
         { label: "Branch code", value: safeText(branch.branchCode), mono: true },
         { label: "Type", value: safeText(branch.type) },
         { label: "Status", value: safeText(branch.status) },
-        { label: "Tenant ID", value: safeText(branch.tenantId), mono: true },
         ...(branch.managerId ? [{ label: "Manager ID", value: safeText(branch.managerId), mono: true }] : []),
       ]
     : [];
@@ -104,6 +111,28 @@ export function BranchDetail({ branchId }: { branchId: string }) {
           <DetailRows rows={contactRows} />
         </DetailSection>
 
+        <DetailSection title="Tenant" icon={Building2}>
+          {tenant ? (
+            <DetailRows
+              rows={[
+                {
+                  label: "Tenant",
+                  value: (
+                    <Link href={`/tenants/${tenant.id}`} className="font-medium text-mint hover:underline">
+                      {tenant.name}
+                    </Link>
+                  ),
+                },
+                { label: "Legal name", value: safeText(tenant.legalName) },
+                { label: "Contact", value: safeText(tenant.primaryContactName) },
+                { label: "Email", value: safeText(tenant.primaryContactEmail) },
+              ]}
+            />
+          ) : (
+            <p className="text-sm text-muted">Tenant details are unavailable.</p>
+          )}
+        </DetailSection>
+
         <DetailSection title="Address" icon={MapPin} className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
             <div className="space-y-0 sm:col-span-2">
@@ -152,6 +181,31 @@ export function BranchDetail({ branchId }: { branchId: string }) {
 
         <DetailSection title="Record info" icon={Info}>
           <DetailRows rows={recordRows} />
+        </DetailSection>
+
+        <DetailSection title={`Users (${branchUsers.length})`} icon={Users} className="lg:col-span-2">
+          {branchUsers.length > 0 ? (
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {branchUsers.map((user) => (
+                <Link
+                  key={user.id}
+                  href={`/users/${user.id}`}
+                  className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-muted/30"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">{user.fullName || user.username}</p>
+                    <p className="truncate text-sm text-muted">{user.email}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm text-foreground">{user.jobTitle || "User"}</p>
+                    <p className="text-xs text-muted">{user.status || "Unknown"}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">No users are assigned to this branch.</p>
+          )}
         </DetailSection>
       </div>
     </div>

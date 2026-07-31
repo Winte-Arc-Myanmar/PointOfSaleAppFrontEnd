@@ -4,10 +4,7 @@ import { CheckoutSection } from "@/features/checkout/presentation/CheckoutSectio
 export default function CheckoutPage() {
   return (
     <Shell>
-      <div className="space-y-6">
-        <p className="page-description">Manage checkout.</p>
-        <CheckoutSection />
-      </div>
+      <CheckoutSection />
     </Shell>
   );
 }
