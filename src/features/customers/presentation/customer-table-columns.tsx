@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Customer } from "@/core/domain/entities/Customer";
+import { getCustomerDemoProfile } from "./customer-demo-profile";
 
 type CustomerTableColumnOptions = {
   onView?: (customer: Customer) => void;
@@ -31,6 +32,16 @@ export function getCustomerTableColumns(
             {c.name}
           </span>
         ),
+    },
+    {
+      key: "gender",
+      header: "Gender",
+      className: "min-w-[130px] max-w-[160px]",
+      render: (c) => (
+        <span className="text-sm text-muted">
+          {getCustomerDemoProfile(c).gender}
+        </span>
+      ),
     },
     {
       key: "phone",

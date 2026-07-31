@@ -7,7 +7,8 @@
  * 1.4.0 — goods received notes & GRN lines
  * 1.5.0 — vendor invoices & landed cost allocations
  * 1.5.3 — checkout and management UI/UX refinements
+ * 1.5.4 — customer demo profiles and history UI
  */
-export const APP_VERSION = "1.5.3";
+export const APP_VERSION = "1.5.4";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
