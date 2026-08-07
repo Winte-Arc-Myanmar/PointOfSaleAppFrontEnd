@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
@@ -319,6 +319,7 @@ export function Shell({ children }: ShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openTabs, setOpenTabs] = useState<MenuTabItem[]>([]);
   const [tabsLoaded, setTabsLoaded] = useState(false);
+  const activeTabRef = useRef<HTMLDivElement>(null);
   const title = getTitle(pathname);
   const activeMenu = useMemo(() => getMenuBase(pathname), [pathname]);
 
@@ -373,6 +374,16 @@ export function Shell({ children }: ShellProps) {
     return [...openTabs, activeMenu];
   }, [openTabs, activeMenu]);
 
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [pathname, displayedTabs.length]);
+
   function handleMenuNavigate(href: string) {
     const menu = TAB_MENU_ITEMS.find((item) => item.href === href);
     if (!menu) return;
@@ -421,16 +432,17 @@ export function Shell({ children }: ShellProps) {
           title={title}
         />
         {pathname !== "/checkout" && displayedTabs.length > 0 && (
-          <div className="border-b border-border bg-background/80 px-6 py-3 lg:px-8">
-            <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="hide-scrollbar overflow-x-auto border-b border-border bg-background/80 px-6 py-3 lg:px-8">
+            <div className="grid min-w-max auto-cols-[10.5rem] grid-flow-col grid-rows-2 gap-2">
               {displayedTabs.map((tab) => {
                 const isActive =
                   pathname === tab.href || pathname.startsWith(`${tab.href}/`);
                 return (
                   <div
                     key={tab.href}
+                    ref={isActive ? activeTabRef : undefined}
                     className={cn(
-                      "flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
+                      "flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm shadow-sm",
                       isActive
                         ? "border-mint/40 bg-mint/10 text-foreground"
                         : "border-border bg-background text-muted",
@@ -441,6 +453,7 @@ export function Shell({ children }: ShellProps) {
                       className="min-w-0 flex-1 truncate text-left font-medium hover:text-foreground"
                       onClick={() => router.push(tab.href)}
                       title={t(tab.labelKey)}
+                      aria-current={isActive ? "page" : undefined}
                     >
                       {t(tab.labelKey)}
                     </button>
