@@ -3,12 +3,13 @@ import type { AppUser } from "@/core/domain/entities/AppUser";
 
 type UserTableColumnOptions = {
   onView?: (user: AppUser) => void;
+  branchNameById?: Map<string, string>;
 };
 
 export function getUserTableColumns(
   options: UserTableColumnOptions = {},
 ): DataTableColumn<AppUser>[] {
-  const { onView } = options;
+  const { onView, branchNameById } = options;
 
   return [
     {
@@ -50,6 +51,16 @@ export function getUserTableColumns(
       render: (u) => (
         <span className="text-muted truncate" title={u.email}>
           {u.email}
+        </span>
+      ),
+    },
+    {
+      key: "branchId",
+      header: "Branch",
+      className: "min-w-[130px] max-w-[180px]",
+      render: (u) => (
+        <span className="truncate text-muted" title={u.branchId ? branchNameById?.get(String(u.branchId)) : undefined}>
+          {u.branchId ? branchNameById?.get(String(u.branchId)) ?? "Branch unavailable" : "Not assigned"}
         </span>
       ),
     },

@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Filter, Plus, Search, X } from "lucide-react";
-import { useCategories, useDeleteCategory } from "@/presentation/hooks/useCategories";
+import {
+  useCategories,
+  useCategoryTree,
+  useDeleteCategory,
+} from "@/presentation/hooks/useCategories";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -49,6 +53,7 @@ export function CategoryList() {
     limit: PAGE_SIZE,
   });
   const { data: productsResult } = useProducts({ page: 1, limit: 500 });
+  const { data: categoryTree = [] } = useCategoryTree();
   const categories = categoriesResult?.items ?? [];
   const products = productsResult?.items ?? [];
   const deleteCategory = useDeleteCategory();
@@ -61,6 +66,8 @@ export function CategoryList() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
+  const [selectedTreeCategory, setSelectedTreeCategory] =
+    useState<Category | null>(null);
 
   const productCountByCategoryId = useMemo(() => {
     const counts = new Map<string, number>();
@@ -68,13 +75,33 @@ export function CategoryList() {
       const categoryId = String(product.categoryId);
       counts.set(categoryId, (counts.get(categoryId) ?? 0) + 1);
     }
+
+    const addDescendantCounts = (category: Category): number => {
+      const categoryId = String(category.id);
+      let total = counts.get(categoryId) ?? 0;
+
+      for (const child of category.children ?? []) {
+        total += addDescendantCounts(child);
+      }
+
+      counts.set(categoryId, total);
+      return total;
+    };
+
+    for (const rootCategory of categoryTree) {
+      addDescendantCounts(rootCategory);
+    }
+
     return counts;
-  }, [products]);
+  }, [categoryTree, products]);
 
   const filteredCategories = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
+    const categoriesToFilter = selectedTreeCategory
+      ? [selectedTreeCategory]
+      : categories;
 
-    return categories.filter((category) => {
+    return categoriesToFilter.filter((category) => {
       const description = category.description?.trim() ?? "";
       const matchesSearch =
         normalizedSearch.length === 0 ||
@@ -86,14 +113,9 @@ export function CategoryList() {
         (descriptionFilter === "with-description" && description.length > 0) ||
         (descriptionFilter === "no-description" && description.length === 0);
 
-      const matchesSelectedCategory =
-        !selectedCategoryId || String(category.id) === selectedCategoryId;
-
-      return (
-        matchesSearch && matchesDescriptionFilter && matchesSelectedCategory
-      );
+      return matchesSearch && matchesDescriptionFilter;
     });
-  }, [categories, descriptionFilter, searchQuery, selectedCategoryId]);
+  }, [categories, descriptionFilter, searchQuery, selectedTreeCategory]);
 
   useEffect(() => {
     pagination.reset(1);
@@ -111,11 +133,17 @@ export function CategoryList() {
       if (!ok) return;
 
       deleteCategory.mutate(String(category.id), {
-        onSuccess: () => toast.success("Category deleted."),
+        onSuccess: () => {
+          if (selectedCategoryId === String(category.id)) {
+            setSelectedCategoryId(null);
+            setSelectedTreeCategory(null);
+          }
+          toast.success("Category deleted.");
+        },
         onError: () => toast.error("Failed to delete category."),
       });
     },
-    [confirm, deleteCategory, toast],
+    [confirm, deleteCategory, selectedCategoryId, toast],
   );
 
   const hasActiveFilters =
@@ -157,9 +185,16 @@ export function CategoryList() {
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
       totalPages={
-        categoriesResult?.totalPages ?? pagination.getTotalPages(categoriesResult?.total)
+        selectedTreeCategory
+          ? 1
+          : categoriesResult?.totalPages ??
+            pagination.getTotalPages(categoriesResult?.total)
       }
-      totalItems={categoriesResult?.total ?? 0}
+      totalItems={
+        selectedTreeCategory
+          ? filteredCategories.length
+          : categoriesResult?.total ?? 0
+      }
       onPageChange={pagination.setPage}
       showActionBar={false}
       addLabel="Add Category"
@@ -245,6 +280,7 @@ export function CategoryList() {
                 setSearchQuery("");
                 setDescriptionFilter("all");
                 setSelectedCategoryId(null);
+                setSelectedTreeCategory(null);
               }}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-mint/10"
             >
@@ -257,7 +293,10 @@ export function CategoryList() {
       sidebarContent={
         <CategoryTree
           selectedCategoryId={selectedCategoryId}
-          onSelectCategory={setSelectedCategoryId}
+          onSelectCategory={(categoryId, category) => {
+            setSelectedCategoryId(categoryId);
+            setSelectedTreeCategory(category ?? null);
+          }}
         />
       }
       tablePanelClassName="rounded-2xl border border-border bg-background/80 shadow-sm"

@@ -22,11 +22,13 @@ export interface LoyaltyLedgerListProps {
   customerId: string;
   /** Base URL for list/detail/edit (no trailing slash). Default: `/customers/:id/loyalty-ledger` */
   routeBasePath?: string;
+  customerDetailsById?: Record<string, { name: string; loyaltyTier: string }>;
 }
 
 export function LoyaltyLedgerList({
   customerId,
   routeBasePath,
+  customerDetailsById,
 }: LoyaltyLedgerListProps) {
   const router = useRouter();
   const pagination = usePagination({ pageSize: PAGE_SIZE });
@@ -74,8 +76,9 @@ export function LoyaltyLedgerList({
     () =>
       getLoyaltyLedgerTableColumns({
         onView: (row) => router.push(`${basePath}/${row.id}`),
+        customerDetailsById,
       }),
-    [router, basePath],
+    [router, basePath, customerDetailsById],
   );
 
   return (

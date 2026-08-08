@@ -346,6 +346,27 @@ export function Shell({ children }: ShellProps) {
     persistTabs(openTabs);
   }, [openTabs, tabsLoaded]);
 
+  useEffect(() => {
+    if (!tabsLoaded || pathname !== "/checkout") return;
+
+    const checkoutTab = TAB_MENU_ITEMS.find(
+      (item) => item.href === "/checkout",
+    );
+    if (!checkoutTab) return;
+
+    const cleanupTimer = window.setTimeout(() => {
+      setOpenTabs((currentTabs) => {
+        const isCheckoutOnly =
+          currentTabs.length === 1 &&
+          currentTabs[0]?.href === checkoutTab.href;
+
+        return isCheckoutOnly ? currentTabs : [checkoutTab];
+      });
+    }, 0);
+
+    return () => window.clearTimeout(cleanupTimer);
+  }, [pathname, tabsLoaded]);
+
   const displayedTabs = useMemo(() => {
     if (!activeMenu) return openTabs;
     if (openTabs.some((t) => t.href === activeMenu.href)) return openTabs;
@@ -399,7 +420,7 @@ export function Shell({ children }: ShellProps) {
           isCollapsed={isCollapsed}
           title={title}
         />
-        {displayedTabs.length > 0 && (
+        {pathname !== "/checkout" && displayedTabs.length > 0 && (
           <div className="border-b border-border bg-background/80 px-6 py-3 lg:px-8">
             <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {displayedTabs.map((tab) => {

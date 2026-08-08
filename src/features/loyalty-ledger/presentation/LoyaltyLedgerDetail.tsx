@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Gift } from "lucide-react";
+import { Gift, ReceiptText, UserRound } from "lucide-react";
 import { useLoyaltyLedgerEntry } from "@/presentation/hooks/useLoyaltyLedger";
+import { useCustomer } from "@/presentation/hooks/useCustomers";
+import { useSalesOrder } from "@/presentation/hooks/useSalesOrders";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
 import {
@@ -27,6 +29,8 @@ export function LoyaltyLedgerDetail({
     customerId,
     entryId
   );
+  const { data: customer } = useCustomer(customerId);
+  const { data: order } = useSalesOrder(entry?.referenceOrderId ?? null);
 
   const listHref =
     listHrefProp ?? `/customers/${customerId}/loyalty-ledger`;
@@ -62,6 +66,30 @@ export function LoyaltyLedgerDetail({
       ]
     : [];
 
+  const customerRows = customer
+    ? [
+        { label: "Name", value: safeText(customer.name) },
+        { label: "Tier", value: safeText(customer.loyaltyTier) },
+        { label: "Email", value: safeText(customer.email) },
+        { label: "Phone", value: safeText(customer.phone) },
+      ]
+    : [{ label: "Customer ID", value: safeText(customerId), mono: true }];
+
+  const orderRows = order
+    ? [
+        { label: "Order number", value: safeText(order.orderNumber) },
+        { label: "Order status", value: safeText(order.status) },
+        { label: "Sales channel", value: safeText(order.salesChannel) },
+        { label: "Grand total", value: safeText(order.grandTotal), mono: true },
+      ]
+    : [
+        {
+          label: "Order ID",
+          value: safeText(entry?.referenceOrderId ?? "—"),
+          mono: true,
+        },
+      ];
+
   if (isLoading)
     return (
       <AppLoader
@@ -93,6 +121,21 @@ export function LoyaltyLedgerDetail({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Details" icon={Gift}>
           <DetailRows rows={rows} />
+        </DetailSection>
+        <DetailSection title="Customer information" icon={UserRound}>
+          <DetailRows rows={customerRows} />
+        </DetailSection>
+        <DetailSection title="Order details" icon={ReceiptText} className="lg:col-span-2">
+          <DetailRows rows={orderRows} />
+          {order && entry.referenceOrderId ? (
+            <div className="mt-4">
+              <Link href={`/sales-orders/${entry.referenceOrderId}`}>
+                <Button variant="outline" size="sm">
+                  View order #{order.orderNumber}
+                </Button>
+              </Link>
+            </div>
+          ) : null}
         </DetailSection>
       </div>
     </div>

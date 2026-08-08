@@ -175,6 +175,7 @@ export interface DataTableProps<T extends { id: string | number }> {
   renderGridItem?: (item: T) => React.ReactNode;
   gridClassName?: string;
   gridCardClassName?: string;
+  gridContentClassName?: string;
   selectable?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
@@ -208,6 +209,7 @@ export function DataTable<T extends { id: string | number }>({
   renderGridItem,
   gridClassName,
   gridCardClassName,
+  gridContentClassName,
   selectable = false,
   selectedIds,
   onToggleSelect,
@@ -310,11 +312,20 @@ export function DataTable<T extends { id: string | number }>({
     if (!canUseGrid && viewMode !== "table") setViewMode("table");
   }, [canUseGrid, viewMode]);
 
-  const renderActionsMenu = (item: T) => (
+  const renderActionsMenu = (item: T, isGridCard = false) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MoreHorizontal className="h-4 w-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("common.actions")}
+          className={cn(
+            "h-8 w-8",
+            isGridCard &&
+              "border border-border bg-background/95 text-foreground shadow-md backdrop-blur-sm hover:border-mint hover:bg-background hover:text-mint focus-visible:ring-2 focus-visible:ring-mint",
+          )}
+        >
+          <MoreHorizontal className={cn("h-4 w-4", isGridCard && "h-5 w-5")} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -419,10 +430,12 @@ export function DataTable<T extends { id: string | number }>({
                 >
                   {hasActions && (
                     <div className="absolute right-2 top-2 z-10">
-                      {renderActionsMenu(row.original)}
+                      {renderActionsMenu(row.original, true)}
                     </div>
                   )}
-                  <div className={hasActions ? "pr-8" : undefined}>
+                  <div
+                    className={cn(hasActions && "pr-8", gridContentClassName)}
+                  >
                     {renderGridItem?.(row.original)}
                   </div>
                 </div>

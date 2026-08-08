@@ -6,7 +6,9 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateUser } from "@/presentation/hooks/useUsers";
+import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
 import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -62,14 +64,16 @@ export function CreateUserForm({
 }: CreateUserFormProps) {
   const { data: session } = useSession();
   const tenantId = session?.user?.tenantId;
+  const { isSystemAdmin } = usePermissions();
   const createUser = useCreateUser();
+  const createSystemAdminUser = useSystemAdminCreateUser();
   const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } =
     useCreateUserFormOptions();
 
   useEffect(() => {
-    onLoadingChange?.(createUser.isPending ?? false);
-  }, [createUser.isPending, onLoadingChange]);
+    onLoadingChange?.(Boolean(createUser.isPending || createSystemAdminUser.isPending));
+  }, [createUser.isPending, createSystemAdminUser.isPending, onLoadingChange]);
 
   const {
     register,
@@ -103,6 +107,34 @@ export function CreateUserForm({
   }, [filteredRoles, filteredBranches, getValues, setValue]);
 
   const onSubmit = (data: UserFormData) => {
+    const onCreated = () => {
+      toast.success("User created.");
+      reset(defaultValues);
+      onSuccess?.();
+    };
+    const onCreateError = () => toast.error("Failed to create user.");
+    const selectedBranch = filteredBranches.find((branch) => branch.id === data.branchId);
+
+    if (isSystemAdmin && selectedBranch && data.roleId) {
+      createSystemAdminUser.mutate(
+        {
+          email: data.email,
+          password: data.password,
+          username: data.username,
+          fullName: data.fullName,
+          phoneNumber: data.phoneNumber || undefined,
+          avatarUrl: data.avatarUrl || undefined,
+          jobTitle: data.jobTitle || undefined,
+          roleId: data.roleId,
+          branchId: data.branchId,
+          tenantId: selectedBranch.tenantId,
+          preferredLanguage: data.preferredLanguage || undefined,
+        },
+        { onSuccess: onCreated, onError: onCreateError },
+      );
+      return;
+    }
+
     createUser.mutate(
       {
         email: data.email,
@@ -116,14 +148,7 @@ export function CreateUserForm({
         branchId: data.branchId || undefined,
         preferredLanguage: data.preferredLanguage || undefined,
       },
-      {
-        onSuccess: () => {
-          toast.success("User created.");
-          reset(defaultValues);
-          onSuccess?.();
-        },
-        onError: () => toast.error("Failed to create user."),
-      }
+      { onSuccess: onCreated, onError: onCreateError },
     );
   };
 
@@ -275,14 +300,14 @@ export function CreateUserForm({
           placeholder="EN"
         />
       </div>
-      {createUser.isError && (
+      {(createUser.isError || createSystemAdminUser.isError) && (
         <p className="text-sm text-red-600">
           Failed to create user. Please try again.
         </p>
       )}
       {!formId && (
-        <Button type="submit" disabled={createUser.isPending}>
-          {createUser.isPending ? "Creating..." : "Create User"}
+        <Button type="submit" disabled={createUser.isPending || createSystemAdminUser.isPending}>
+          {createUser.isPending || createSystemAdminUser.isPending ? "Creating..." : "Create User"}
         </Button>
       )}
     </form>

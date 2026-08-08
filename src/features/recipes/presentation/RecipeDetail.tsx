@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { FlaskConical, Info, ListTree } from "lucide-react";
 import { useRecipe } from "@/presentation/hooks/useRecipes";
+import { useProducts } from "@/presentation/hooks/useProducts";
+import { useUoms } from "@/presentation/hooks/useUoms";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import container from "@/core/infrastructure/di/container";
+import type { IProductVariantService } from "@/core/domain/services/IProductVariantService";
 import { Button } from "@/presentation/components/ui/button";
 import {
   DetailSection,
@@ -15,6 +22,34 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function RecipeDetail({ recipeId }: { recipeId: string }) {
   const { data: recipe, isLoading, error } = useRecipe(recipeId);
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const { data: uomsData } = useUoms({ page: 1, limit: 200 });
+  const products = getPaginatedItems(productsData);
+  const uoms = getPaginatedItems(uomsData);
+  const productVariantQueries = useQueries({
+    queries: products.map((product) => ({
+      queryKey: ["products", product.id, "variants", 1, 200],
+      queryFn: () =>
+        container.resolve<IProductVariantService>("productVariantService").getAll(product.id, {
+          page: 1,
+          limit: 200,
+        }),
+      enabled: products.length > 0,
+    })),
+  });
+  const variantDisplayById = useMemo(() => {
+    const result = new Map<string, string>();
+    products.forEach((product, index) => {
+      getPaginatedItems(productVariantQueries[index]?.data).forEach((variant) => {
+        result.set(String(variant.id), `${product.name} · ${variant.variantSku || "Unnamed variant"}`);
+      });
+    });
+    return result;
+  }, [products, productVariantQueries]);
+  const uomDisplayById = useMemo(
+    () => new Map(uoms.map((uom) => [String(uom.id), `${uom.name} (${uom.abbreviation})`])),
+    [uoms],
+  );
 
   if (isLoading) {
     return <AppLoader fullScreen={false} size="md" message="Loading recipe..." />;
@@ -31,10 +66,11 @@ export function RecipeDetail({ recipeId }: { recipeId: string }) {
     );
   }
 
+  const recipeVariantLabel = variantDisplayById.get(String(recipe.variantId)) ?? "Variant unavailable";
   const overviewRows = [
     { label: "ID", value: safeText(recipe.id), mono: true },
     { label: "Tenant ID", value: safeText(recipe.tenantId), mono: true },
-    { label: "Variant ID", value: safeText(recipe.variantId), mono: true },
+    { label: "Product & variant", value: recipeVariantLabel },
     { label: "Yield", value: safeText(recipe.yield) },
     { label: "Status", value: recipe.isActive ? "Active" : "Inactive" },
     { label: "Notes", value: safeText(recipe.notes) },
@@ -51,7 +87,7 @@ export function RecipeDetail({ recipeId }: { recipeId: string }) {
       <DetailPageHeader
         backHref="/recipes"
         backLabel="Recipes"
-        title={`Recipe: ${safeText(recipe.variantId)}`}
+        title={`Recipe: ${recipeVariantLabel}`}
         editHref={`/recipes/${recipe.id}/edit`}
       />
 
@@ -70,9 +106,9 @@ export function RecipeDetail({ recipeId }: { recipeId: string }) {
             <table className="min-w-full text-sm">
               <thead className="bg-muted/30">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">Ingredient Variant ID</th>
+                  <th className="px-3 py-2 text-left font-medium">Ingredient product & variant</th>
                   <th className="px-3 py-2 text-left font-medium">Quantity</th>
-                  <th className="px-3 py-2 text-left font-medium">UOM ID</th>
+                  <th className="px-3 py-2 text-left font-medium">UOM</th>
                   <th className="px-3 py-2 text-left font-medium">Optional</th>
                   <th className="px-3 py-2 text-left font-medium">Notes</th>
                 </tr>
@@ -80,9 +116,13 @@ export function RecipeDetail({ recipeId }: { recipeId: string }) {
               <tbody>
                 {recipe.ingredients.map((ingredient, index) => (
                   <tr key={`${ingredient.ingredientVariantId}-${index}`} className="border-t border-border">
-                    <td className="px-3 py-2 font-mono">{safeText(ingredient.ingredientVariantId)}</td>
+                    <td className="px-3 py-2 font-medium">
+                      {variantDisplayById.get(String(ingredient.ingredientVariantId)) ?? "Variant unavailable"}
+                    </td>
                     <td className="px-3 py-2">{safeText(ingredient.quantity)}</td>
-                    <td className="px-3 py-2 font-mono">{safeText(ingredient.uomId)}</td>
+                    <td className="px-3 py-2">
+                      {uomDisplayById.get(String(ingredient.uomId)) ?? "UOM unavailable"}
+                    </td>
                     <td className="px-3 py-2">{ingredient.isOptional ? "Yes" : "No"}</td>
                     <td className="px-3 py-2">{safeText(ingredient.notes)}</td>
                   </tr>

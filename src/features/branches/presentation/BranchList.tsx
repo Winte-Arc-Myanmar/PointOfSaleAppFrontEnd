@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBranches, useDeleteBranch } from "@/presentation/hooks/useBranches";
+import { useTenants } from "@/presentation/hooks/useTenants";
 import { usePagination } from "@/presentation/hooks/usePagination";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { Input } from "@/presentation/components/ui/input";
@@ -35,6 +37,11 @@ export function BranchList() {
     limit: PAGE_SIZE,
   });
   const branches = branchesResult?.items ?? [];
+  const { data: tenantsData } = useTenants({ page: 1, limit: 200 });
+  const tenantNameById = useMemo(
+    () => new Map(getPaginatedItems(tenantsData).map((tenant) => [String(tenant.id), tenant.name])),
+    [tenantsData],
+  );
   const deleteBranch = useDeleteBranch();
   const toast = useToast();
   const confirm = useConfirm();
@@ -53,6 +60,7 @@ export function BranchList() {
         b.state,
         b.country,
         b.address,
+        tenantNameById.get(String(b.tenantId)),
         String(b.id),
       ]
         .join(" ")
@@ -61,7 +69,7 @@ export function BranchList() {
     );
     if (selectedType === "__all__") return searched;
     return searched.filter((b) => (b.type?.trim() || "__none__") === selectedType);
-  }, [branches, search, selectedType]);
+  }, [branches, search, selectedType, tenantNameById]);
 
   const typeOptions = useMemo(() => {
     const types = new Set<string>();
@@ -112,8 +120,9 @@ export function BranchList() {
     () =>
       getBranchTableColumns({
         onView: (b) => router.push(`/branches/${b.id}`),
+        tenantNameById,
       }),
-    [router],
+    [router, tenantNameById],
   );
 
   async function handleDeleteSelected(items: Branch[]) {

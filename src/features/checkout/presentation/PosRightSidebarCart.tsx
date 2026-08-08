@@ -6,7 +6,9 @@ import {
   CarFront,
   ChefHat,
   Gift,
+  Minus,
   Percent,
+  Plus,
   Printer,
   ReceiptText,
   ShoppingBag,
@@ -61,7 +63,6 @@ export interface PosRightSidebarCartProps {
   currency: TenantCurrency;
   orderNumber?: string | null;
   tableNumber: string;
-  staffName: string;
   orderType: PosOrderType;
   tableOptions: string[];
   items: PosSidebarCartItem[];
@@ -74,6 +75,7 @@ export interface PosRightSidebarCartProps {
   onTableNumberChange: (value: string) => void;
   onGiftCodeChange: (value: string) => void;
   onPromotionCodeChange: (value: string) => void;
+  onQuantityChange: (itemId: string, change: 1 | -1) => void;
   onPrint: (options: {
     mode: "browser" | "raw-escpos";
     paperWidthMm: 58 | 80;
@@ -90,7 +92,6 @@ export function PosRightSidebarCart({
   currency,
   orderNumber,
   tableNumber,
-  staffName,
   orderType,
   tableOptions,
   items,
@@ -103,6 +104,7 @@ export function PosRightSidebarCart({
   onTableNumberChange,
   onGiftCodeChange,
   onPromotionCodeChange,
+  onQuantityChange,
   onPrint,
   onPrimaryAction,
   primaryActionLabel = "Pay Now",
@@ -114,6 +116,7 @@ export function PosRightSidebarCart({
   const { formatPrice: formatCurrencyPrice } = useCurrency();
   const formatPrice = (value: number) => formatCurrencyPrice(value, currency);
   const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
+  const [offersEnabled, setOffersEnabled] = useState(false);
   const normalizedOrderNumber = orderNumber?.trim();
   const orderDisplayValue = normalizedOrderNumber
     ? `Order #${normalizedOrderNumber}`
@@ -258,24 +261,42 @@ export function PosRightSidebarCart({
                       key={item.id}
                       className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm print:rounded-none print:border-x-0 print:border-t-0 print:border-b-slate-200 print:bg-transparent print:px-0 print:shadow-none dark:border-border dark:bg-background"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="inline-flex min-w-9 shrink-0 justify-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold tabular-nums text-slate-700 dark:bg-white/10 dark:text-foreground">
-                          {item.quantity}x
-                        </div>
+                      <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <p className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-snug text-slate-900 dark:text-foreground">
-                              {item.name}
-                            </p>
-                            <div className="shrink-0 text-right text-sm font-semibold tabular-nums text-slate-900 print:hidden dark:text-foreground">
-                              {formatPrice(item.price)}
-                            </div>
-                          </div>
+                          <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 dark:text-foreground">
+                            {item.name}
+                          </p>
                           {item.modifier ? (
                             <p className="mt-1 truncate text-xs text-slate-400">
                               {item.modifier}
                             </p>
                           ) : null}
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          <div className="text-right text-sm font-semibold tabular-nums text-slate-900 dark:text-foreground">
+                            {formatPrice(item.price)}
+                          </div>
+                          <div className="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm dark:border-border dark:bg-white/5">
+                            <button
+                              type="button"
+                              onClick={() => onQuantityChange(item.id, -1)}
+                              className="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint dark:text-muted dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                              aria-label={`Decrease quantity for ${item.name}`}
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="flex h-8 min-w-8 items-center justify-center border-x border-slate-200 bg-white px-1 text-xs font-semibold tabular-nums text-slate-700 dark:border-border dark:bg-background dark:text-foreground">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => onQuantityChange(item.id, 1)}
+                              className="flex h-8 w-8 items-center justify-center text-slate-600 transition-colors hover:bg-mint/10 hover:text-mint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint dark:text-muted"
+                              aria-label={`Increase quantity for ${item.name}`}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -311,52 +332,76 @@ export function PosRightSidebarCart({
           <SummaryRow label="Tax" value={summary.tax} formatPrice={formatPrice} />
         </div>
         <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-3 print:hidden dark:border-border dark:bg-white/5">
-          <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">
-                Offers
-              </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-muted">
-                Add a gift code or promotion before payment.
+                Gift code or promotion
               </p>
             </div>
-            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500 shadow-sm dark:bg-background dark:text-muted">
-              Optional
-            </span>
+            <button
+              type="button"
+              onClick={() => setOffersEnabled((enabled) => !enabled)}
+              role="switch"
+              aria-checked={offersEnabled}
+              aria-label="Toggle gift code and promotion fields"
+              className={cn(
+                "relative inline-flex h-10 w-[76px] shrink-0 items-center rounded-full border p-1 text-[11px] font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2",
+                offersEnabled
+                  ? "border-mint bg-mint text-white dark:text-gloss-black"
+                  : "border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 dark:border-border dark:bg-white/10 dark:text-muted",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute h-8 w-8 rounded-full bg-white shadow-sm transition-transform",
+                  offersEnabled ? "translate-x-8" : "translate-x-0",
+                )}
+              />
+              <span
+                className={cn(
+                  "relative z-10 flex w-full",
+                  offersEnabled ? "justify-start pl-1" : "justify-end pr-1",
+                )}
+              >
+                {offersEnabled ? "On" : "Off"}
+              </span>
+            </button>
           </div>
-          <div className="space-y-2.5">
-            <OfferInput
-              icon={Gift}
-              label="Gift Code"
-              placeholder="Enter gift code"
-              value={giftCode}
-              onChange={onGiftCodeChange}
-            />
-            <OfferInput
-              icon={Percent}
-              label="Promotion"
-              placeholder="Enter promotion code"
-              value={promotionCode}
-              onChange={onPromotionCodeChange}
-              listId="promotion-rule-options"
-            />
-            {promotionOptions.length > 0 ? (
-              <datalist id="promotion-rule-options">
-                {promotionOptions.map((option) => (
-                  <option key={option.id} value={option.label} />
-                ))}
-              </datalist>
-            ) : null}
-            {promotionMeta ? (
-              <p className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm dark:bg-background dark:text-muted">
-                {promotionMeta}
-              </p>
-            ) : (
-              <p className="text-xs text-slate-400">
-                Suggestions come from your Promotion Rules page.
-              </p>
-            )}
-          </div>
+          {offersEnabled ? (
+            <div className="mt-3 space-y-2.5">
+              <OfferInput
+                icon={Gift}
+                label="Gift Code"
+                placeholder="Enter gift code"
+                value={giftCode}
+                onChange={onGiftCodeChange}
+              />
+              <OfferInput
+                icon={Percent}
+                label="Promotion"
+                placeholder="Enter promotion code"
+                value={promotionCode}
+                onChange={onPromotionCodeChange}
+                listId="promotion-rule-options"
+              />
+              {promotionOptions.length > 0 ? (
+                <datalist id="promotion-rule-options">
+                  {promotionOptions.map((option) => (
+                    <option key={option.id} value={option.label} />
+                  ))}
+                </datalist>
+              ) : null}
+              {promotionMeta ? (
+                <p className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-sm dark:bg-background dark:text-muted">
+                  {promotionMeta}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  Suggestions come from your Promotion Rules page.
+                </p>
+              )}
+            </div>
+          ) : null}
         </div>
         <div className="mt-4 flex items-end justify-between gap-3 border-t border-gray-100 pt-4 dark:border-border">
           <div>

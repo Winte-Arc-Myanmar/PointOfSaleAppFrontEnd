@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils";
 
 interface CategoryTreeProps {
   selectedCategoryId?: string | null;
-  onSelectCategory?: (categoryId: string | null) => void;
+  onSelectCategory?: (
+    categoryId: string | null,
+    category?: Category,
+  ) => void;
 }
 
 function getDescendantCount(category: Category): number {
@@ -28,7 +31,7 @@ function TreeNode({
   category: Category;
   depth: number;
   selectedCategoryId?: string | null;
-  onSelectCategory?: (id: string | null) => void;
+  onSelectCategory?: (id: string | null, category?: Category) => void;
 }) {
   const childCount = getDescendantCount(category);
   const isSelected = selectedCategoryId === String(category.id);
@@ -38,7 +41,12 @@ function TreeNode({
       <li>
         <button
           type="button"
-          onClick={() => onSelectCategory?.(isSelected ? null : String(category.id))}
+          onClick={() =>
+            onSelectCategory?.(
+              isSelected ? null : String(category.id),
+              isSelected ? undefined : category,
+            )
+          }
           className={cn(
             "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition",
             "focus:outline-none focus:ring-2 focus:ring-mint/50 focus:ring-offset-0",
