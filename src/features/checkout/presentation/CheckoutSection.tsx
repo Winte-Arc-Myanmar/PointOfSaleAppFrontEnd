@@ -115,6 +115,14 @@ function resolveStoredLoginTime(storageKey: string): Date {
   }
 }
 
+function isTabletLikeDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  const shortSide = Math.min(window.screen.width, window.screen.height);
+  const longSide = Math.max(window.screen.width, window.screen.height);
+  return coarsePointer && shortSide >= 600 && longSide <= 1400;
+}
+
 type FormValues = CheckoutRequestDto;
 
 interface LineMeta {
@@ -619,6 +627,23 @@ export function CheckoutSection() {
     setLoginTime(resolveStoredLoginTime(loginStorageKey));
   }, [loginStorageKey]);
 
+  useEffect(() => {
+    if (!isTabletLikeDevice()) return;
+
+    const orientation = screen.orientation as ScreenOrientation & {
+      lock?: (orientation: "portrait" | "portrait-primary") => Promise<void>;
+      unlock?: () => void;
+    };
+
+    void orientation.lock?.("portrait-primary").catch(() => {
+      // Browsers often allow orientation lock only in fullscreen/PWA contexts.
+    });
+
+    return () => {
+      orientation.unlock?.();
+    };
+  }, []);
+
   const loginTimeLabel = loginTime ? formatLoginTime(loginTime) : "";
   const orderNumber = form
     .getValues("idempotencyKey")
@@ -785,8 +810,8 @@ export function CheckoutSection() {
         settingsOpen={settingsOpen}
         setSettingsOpen={setSettingsOpen}
       />
-      <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:items-start">
-        <div className="order-1 min-h-0 space-y-4 lg:col-span-5 xl:col-span-4">
+      <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-12 md:items-start">
+        <div className="order-1 min-h-0 space-y-4 md:col-span-5 xl:col-span-4">
           <PosRightSidebarCart
             currency={selectedTenantCurrency}
             orderNumber={orderNumber}
@@ -1104,7 +1129,7 @@ export function CheckoutSection() {
 
         </div>
 
-        <div className="order-2 lg:col-span-7 xl:col-span-8">
+        <div className="order-2 md:col-span-7 xl:col-span-8">
           <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">

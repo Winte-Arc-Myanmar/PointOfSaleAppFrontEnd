@@ -35,14 +35,30 @@ function joinAddress(parts: Array<string | undefined>): string {
   return parts.filter(Boolean).join(", ");
 }
 
-function toHtmlDocument(
-  lines: string[],
-  paperWidthMm: 58 | 80,
-): string {
+function centerText(value: string, width: number): string {
+  const text = value.length > width ? value.slice(0, width) : value;
+  const left = Math.max(0, Math.floor((width - text.length) / 2));
+  return `${" ".repeat(left)}${text}`;
+}
+
+function centerCell(value: string, width: number): string {
+  const text = value.length > width ? value.slice(0, width) : value;
+  const left = Math.max(0, Math.floor((width - text.length) / 2));
+  const right = Math.max(0, width - text.length - left);
+  return `${" ".repeat(left)}${text}${" ".repeat(right)}`;
+}
+
+function toHtmlDocument(lines: string[], paperWidthMm: 58 | 80): string {
   const widthCss = paperWidthMm === 58 ? "58mm" : "80mm";
   const body = lines
     .map((line) => {
-      if (!line.trim()) return "<br />";
+      if (!line.trim()) return "<div class=\"spacer\"></div>";
+      if (/^[=\-*]{8,}$/.test(line.trim())) {
+        return `<div class="rule">${escapeHtml(line)}</div>`;
+      }
+      if (/^(KITCHEN ORDER|PAID RECEIPT|ORDER READY|TOTAL|THANK YOU!)/.test(line)) {
+        return `<div class="line strong">${escapeHtml(line)}</div>`;
+      }
       return `<div class="line">${escapeHtml(line)}</div>`;
     })
     .join("");
@@ -64,6 +80,7 @@ function toHtmlDocument(
       width: ${widthCss};
       font-family: "Courier New", Courier, monospace;
       font-size: 12px;
+      font-weight: 900;
       line-height: 1.35;
       padding: 2mm 3mm 6mm;
       box-sizing: border-box;
@@ -71,7 +88,22 @@ function toHtmlDocument(
     .line {
       white-space: pre-wrap;
       word-break: break-word;
+      font-weight: 900;
+      text-align: center;
     }
+    .strong {
+      font-size: 14px;
+      line-height: 1.25;
+      text-align: center;
+    }
+    .rule {
+      margin: 2mm 0 1mm;
+      overflow: hidden;
+      white-space: nowrap;
+      font-weight: 900;
+      text-align: center;
+    }
+    .spacer { height: 2mm; }
     .center { text-align: center; }
     .bold { font-weight: 700; }
   </style>
@@ -87,10 +119,11 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
   ): { bytes: Uint8Array; html: string } {
     const width = charsPerLine(options.paperWidthMm);
     const textLines: string[] = [];
-    const encoder = new EscPosEncoder().initialize();
+    const encoder = new EscPosEncoder().initialize().bold(true).align("center");
 
     const push = (line = "") => {
       textLines.push(line);
+      encoder.align("center");
       encoder.line(line);
     };
 
@@ -99,10 +132,11 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       encoder.align("center");
       if (bold) encoder.bold(true);
       encoder.line(line);
-      if (bold) encoder.bold(false);
-      encoder.align("left");
+      if (bold) encoder.bold(true);
+      encoder.align("center");
     };
 
+    pushCenter("PAID RECEIPT", true);
     pushCenter(receipt.header.businessName || "Receipt", true);
     if (receipt.header.legalName) pushCenter(receipt.header.legalName);
     const address = joinAddress([
@@ -115,63 +149,73 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       for (const line of wrapText(address, width)) pushCenter(line);
     }
     if (receipt.header.phone) pushCenter(`Tel: ${receipt.header.phone}`);
-    push(("-").repeat(width));
+    push(("=").repeat(width));
 
     push(`Receipt: ${receipt.orderInfo.receiptNumber}`);
-    push(`Order:   ${receipt.orderInfo.orderNumber}`);
-    push(`Date:    ${formatDateTime(receipt.orderInfo.dateTime)}`);
+    push(`Order: ${receipt.orderInfo.orderNumber}`);
+    push(`Date: ${formatDateTime(receipt.orderInfo.dateTime)}`);
     if (receipt.orderInfo.locationName) {
-      push(`Loc:     ${receipt.orderInfo.locationName}`);
+      push(`Loc: ${receipt.orderInfo.locationName}`);
     }
     if (receipt.orderInfo.salesChannel) {
       push(`Channel: ${receipt.orderInfo.salesChannel}`);
     }
     if (receipt.customer?.name) {
-      push(`Guest:   ${receipt.customer.name}`);
+      push(`Guest: ${receipt.customer.name}`);
     }
+    push(("-").repeat(width));
+    const qtyWidth = 5;
+    const amountWidth = options.paperWidthMm === 58 ? 8 : 10;
+    const itemWidth = width - qtyWidth - amountWidth - 2;
+    push(
+      `${centerCell("QTY", qtyWidth)} ${centerCell("ITEM", itemWidth)} ${centerCell("AMOUNT", amountWidth)}`,
+    );
     push(("-").repeat(width));
 
     for (const item of receipt.lineItems) {
-      const qtyPrice = `${item.quantity} x ${money(item.unitPrice)}`;
-      push(padLine(qtyPrice, money(item.lineTotal), width));
-      for (const line of wrapText(item.productName, width)) push(line);
-      if (item.variantSku) push(`  SKU: ${item.variantSku}`);
+      const itemLines = wrapText(item.productName.toUpperCase(), itemWidth);
+      const qtyCell = centerCell(`${item.quantity}x`, qtyWidth);
+      const amountCell = centerCell(money(item.lineTotal), amountWidth);
+      push(
+        `${qtyCell} ${centerCell(itemLines[0] ?? "", itemWidth)} ${amountCell}`,
+      );
+      for (const line of itemLines.slice(1)) {
+        push(
+          `${centerCell("", qtyWidth)} ${centerCell(line, itemWidth)} ${centerCell("", amountWidth)}`,
+        );
+      }
+      push(`@ ${money(item.unitPrice)} each`);
+      if (item.variantSku) push(`SKU ${item.variantSku}`);
       if (item.lineDiscount > 0) {
-        push(padLine("  Discount", `-${money(item.lineDiscount)}`, width));
+        push(`Discount -${money(item.lineDiscount)}`);
       }
     }
 
     push(("-").repeat(width));
-    push(padLine("Subtotal", money(receipt.totals.subtotal), width));
+    push(`Subtotal ${money(receipt.totals.subtotal)}`);
     if (receipt.totals.totalDiscount > 0) {
-      push(padLine("Discount", `-${money(receipt.totals.totalDiscount)}`, width));
+      push(`Discount -${money(receipt.totals.totalDiscount)}`);
     }
     for (const tax of receipt.taxSummary) {
-      push(
-        padLine(
-          `${tax.taxName} ${tax.ratePercentage}%`,
-          money(tax.taxAmount),
-          width,
-        ),
-      );
+      push(`${tax.taxName} ${tax.ratePercentage}% ${money(tax.taxAmount)}`);
     }
     if (receipt.taxSummary.length === 0 && receipt.totals.totalTax > 0) {
-      push(padLine("Tax", money(receipt.totals.totalTax), width));
+      push(`Tax ${money(receipt.totals.totalTax)}`);
     }
     push(("=").repeat(width));
     encoder.bold(true);
-    const totalLine = padLine("TOTAL", money(receipt.totals.grandTotal), width);
+    const totalLine = `TOTAL ${money(receipt.totals.grandTotal)}`;
     textLines.push(totalLine);
     encoder.line(totalLine);
-    encoder.bold(false);
+    encoder.bold(true);
     push(("=").repeat(width));
 
     for (const payment of receipt.paymentSummary.payments) {
-      push(padLine(payment.methodName, money(payment.amount), width));
+      push(`${payment.methodName} ${money(payment.amount)}`);
     }
-    push(padLine("Paid", money(receipt.paymentSummary.totalPaid), width));
+    push(`Paid ${money(receipt.paymentSummary.totalPaid)}`);
     if (receipt.paymentSummary.changeDue > 0) {
-      push(padLine("Change", money(receipt.paymentSummary.changeDue), width));
+      push(`Change ${money(receipt.paymentSummary.changeDue)}`);
     }
 
     if (receipt.footer?.message) {
@@ -187,7 +231,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
     }
 
     push();
-    pushCenter("Thank you!");
+    pushCenter("THANK YOU!", true);
     encoder.newline(2);
     if (options.cut) encoder.cut();
 
@@ -203,10 +247,11 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
   ): { bytes: Uint8Array; html: string } {
     const width = charsPerLine(options.paperWidthMm);
     const textLines: string[] = [];
-    const encoder = new EscPosEncoder().initialize();
+    const encoder = new EscPosEncoder().initialize().bold(true).align("center");
 
     const push = (line = "") => {
       textLines.push(line);
+      encoder.align("center");
       encoder.line(line);
     };
     const pushCenter = (line: string, bold = false) => {
@@ -214,39 +259,38 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       encoder.align("center");
       if (bold) encoder.bold(true);
       encoder.line(line);
-      if (bold) encoder.bold(false);
-      encoder.align("left");
+      if (bold) encoder.bold(true);
+      encoder.align("center");
     };
 
-    pushCenter(slip.title || "Order Slip", true);
+    pushCenter("KITCHEN ORDER", true);
     pushCenter(slip.businessName || "Vision AI POS");
-    push(("-").repeat(width));
-    if (slip.orderNumber) push(`Order: ${slip.orderNumber}`);
-    if (slip.orderType) push(`Type:  ${slip.orderType}`);
-    if (slip.tableNumber) push(`Table: ${slip.tableNumber}`);
-    push(`Date:  ${formatDateTime(slip.dateTime)}`);
+    push(("=").repeat(width));
+    if (slip.orderNumber) push(`ORDER ${slip.orderNumber}`);
+    if (slip.orderType) push(`TYPE ${slip.orderType.toUpperCase()}`);
+    if (slip.tableNumber) push(`TABLE ${slip.tableNumber}`);
+    push(`TIME ${formatDateTime(slip.dateTime)}`);
+    push(("=").repeat(width));
+    const qtyWidth = 5;
+    const itemWidth = width - qtyWidth - 1;
+    push(`${centerCell("QTY", qtyWidth)} ${centerCell("ITEM", itemWidth)}`);
     push(("-").repeat(width));
 
     for (const item of slip.lines) {
-      push(padLine(`${item.quantity} x ${money(item.unitPrice)}`, money(item.lineTotal), width));
-      for (const line of wrapText(item.name, width)) push(line);
-      if (item.note) {
-        for (const line of wrapText(`  ${item.note}`, width)) push(line);
+      const itemLines = wrapText(item.name.toUpperCase(), itemWidth);
+      push(
+        `${centerCell(`${item.quantity}x`, qtyWidth)} ${centerCell(itemLines[0] ?? "", itemWidth)}`,
+      );
+      for (const line of itemLines.slice(1)) {
+        push(`${centerCell("", qtyWidth)} ${centerCell(line, itemWidth)}`);
       }
+      if (item.note) {
+        for (const line of wrapText(`NOTE: ${item.note}`, width)) push(line);
+      }
+      push(("-").repeat(width));
     }
 
-    push(("-").repeat(width));
-    push(padLine("Subtotal", money(slip.subtotal), width));
-    if (slip.tax != null && slip.tax > 0) {
-      push(padLine("Tax", money(slip.tax), width));
-    }
-    push(("=").repeat(width));
-    encoder.bold(true);
-    const totalLine = padLine("TOTAL", money(slip.total), width);
-    textLines.push(totalLine);
-    encoder.line(totalLine);
-    encoder.bold(false);
-    push(("=").repeat(width));
+    pushCenter("ORDER READY", true);
 
     if (slip.footerMessage) {
       push();
@@ -269,7 +313,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
   ): { bytes: Uint8Array; html: string } {
     const width = charsPerLine(options.paperWidthMm);
     const textLines: string[] = [];
-    const encoder = new EscPosEncoder().initialize();
+    const encoder = new EscPosEncoder().initialize().bold(true);
 
     const push = (line = "") => {
       textLines.push(line);
@@ -280,7 +324,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       encoder.align("center");
       if (bold) encoder.bold(true);
       encoder.line(line);
-      if (bold) encoder.bold(false);
+      if (bold) encoder.bold(true);
       encoder.align("left");
     };
 
@@ -302,7 +346,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
     const totalLine = padLine("TOTAL", moneyStr(report.totals.grandTotal), width);
     textLines.push(totalLine);
     encoder.line(totalLine);
-    encoder.bold(false);
+    encoder.bold(true);
     push(("=").repeat(width));
 
     if (report.payments.length > 0) {
@@ -354,7 +398,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
   ): { bytes: Uint8Array; html: string } {
     const width = charsPerLine(options.paperWidthMm);
     const textLines: string[] = [];
-    const encoder = new EscPosEncoder().initialize();
+    const encoder = new EscPosEncoder().initialize().bold(true);
 
     const push = (line = "") => {
       textLines.push(line);
@@ -365,7 +409,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       encoder.align("center");
       if (bold) encoder.bold(true);
       encoder.line(line);
-      if (bold) encoder.bold(false);
+      if (bold) encoder.bold(true);
       encoder.align("left");
     };
 
@@ -385,7 +429,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
     const totalLine = padLine("TOTAL", moneyStr(summary.grandTotal), width);
     textLines.push(totalLine);
     encoder.line(totalLine);
-    encoder.bold(false);
+    encoder.bold(true);
     push(("=").repeat(width));
 
     if (summary.paymentBreakdown.length > 0) {

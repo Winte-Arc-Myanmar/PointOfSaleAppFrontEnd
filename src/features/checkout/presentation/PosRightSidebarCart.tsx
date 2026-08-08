@@ -158,9 +158,11 @@ export function PosRightSidebarCart({
     >
       <div className="shrink-0 space-y-3 print:space-y-2">
         <div className="hidden print:block">
-          <p className="text-center text-lg font-bold text-black">Order Slip</p>
-          <p className="mt-1 text-center text-xs uppercase tracking-[0.24em] text-slate-500">
-            Vision AI POS
+          <p className="text-center text-xl font-black uppercase text-black">
+            Kitchen Order
+          </p>
+          <p className="mt-1 text-center text-xs font-black uppercase tracking-[0.24em] text-black">
+            Prepare before payment
           </p>
         </div>
 
@@ -217,7 +219,7 @@ export function PosRightSidebarCart({
         <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 print:px-0 dark:border-border">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">
-              Selected Items
+              Kitchen Items
             </p>
             <p className="mt-1 text-sm font-medium text-slate-700 dark:text-foreground">
               {totalItems > 0
@@ -265,7 +267,7 @@ export function PosRightSidebarCart({
                             <p className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-snug text-slate-900 dark:text-foreground">
                               {item.name}
                             </p>
-                            <div className="shrink-0 text-right text-sm font-semibold tabular-nums text-slate-900 dark:text-foreground">
+                            <div className="shrink-0 text-right text-sm font-semibold tabular-nums text-slate-900 print:hidden dark:text-foreground">
                               {formatPrice(item.price)}
                             </div>
                           </div>
@@ -286,7 +288,7 @@ export function PosRightSidebarCart({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-gray-100 bg-white pt-4 print:border-t-0 print:bg-white print:pt-0 dark:border-border dark:bg-background">
+      <div className="shrink-0 border-t border-gray-100 bg-white pt-4 print:hidden dark:border-border dark:bg-background">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-border dark:bg-white/5">
           <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-400">
             Order Type

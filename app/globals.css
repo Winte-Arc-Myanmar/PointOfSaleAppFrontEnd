@@ -214,6 +214,16 @@ summary {
     visibility: visible !important;
   }
 
+  [data-print-receipt],
+  [data-print-receipt] *,
+  [data-thermal-receipt],
+  [data-thermal-receipt] * {
+    font-weight: 900 !important;
+    text-align: center !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   [data-print-receipt] {
     position: absolute;
     left: 0;
