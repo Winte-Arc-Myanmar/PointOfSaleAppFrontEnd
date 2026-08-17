@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useSystemAdminCreateUserOptions } from "@/presentation/hooks/useSystemAdminCreateUserOptions";
@@ -21,16 +20,13 @@ import {
 } from "@/presentation/components/ui/select";
 import {
   createUserDefaultValues,
-  createUserSchema,
   optionalUrl,
   USER_PREFERRED_LANGUAGES,
 } from "@/features/users/presentation/user-form-schema";
-
-const schema = createUserSchema.extend({
-  tenantId: z.string().trim().min(1, "Tenant is required"),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  systemAdminCreateUserSchema,
+  type SystemAdminCreateUserFormData,
+} from "./system-admin-form-schema";
 
 export function SystemAdminCreateUserForm() {
   const router = useRouter();
@@ -38,15 +34,15 @@ export function SystemAdminCreateUserForm() {
   const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useSystemAdminCreateUserOptions();
   const [showSuccess, setShowSuccess] = useState(false);
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<SystemAdminCreateUserFormData>({
+    resolver: zodResolver(systemAdminCreateUserSchema),
     defaultValues: {
       ...createUserDefaultValues,
       tenantId: "",
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: SystemAdminCreateUserFormData) => {
     setShowSuccess(false);
     createUser.mutate(
       {
@@ -121,7 +117,7 @@ export function SystemAdminCreateUserForm() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant  *</Label>
+          <Label htmlFor="tenantId">Tenant *</Label>
           <Controller
             control={form.control}
             name="tenantId"

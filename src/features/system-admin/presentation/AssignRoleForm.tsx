@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useAssignRole } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useAssignRoleOptions } from "@/presentation/hooks/useSystemAdminAssignOptions";
@@ -16,24 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
-
-const schema = z.object({
-  userId: z.string().min(1, "User ID is required"),
-  roleId: z.string().min(1, "Role ID is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
-  branchId: z.string().min(1, "Branch ID is required"),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  assignRoleDefaultValues,
+  assignRoleSchema,
+  type AssignRoleFormData,
+} from "./system-admin-form-schema";
 
 export function AssignRoleForm() {
   const assignRole = useAssignRole();
   const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useAssignRoleOptions();
   const [showSuccess, setShowSuccess] = useState(false);
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { userId: "", roleId: "", tenantId: "", branchId: "" },
+  const form = useForm<AssignRoleFormData>({
+    resolver: zodResolver(assignRoleSchema),
+    defaultValues: assignRoleDefaultValues,
   });
   const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
   const filteredRoles = (options?.roles ?? []).filter((r) =>
@@ -43,7 +38,7 @@ export function AssignRoleForm() {
     selectedTenantId ? b.tenantId === selectedTenantId : true
   );
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: AssignRoleFormData) => {
     setShowSuccess(false);
     assignRole.mutate(data, {
       onSuccess: () => {

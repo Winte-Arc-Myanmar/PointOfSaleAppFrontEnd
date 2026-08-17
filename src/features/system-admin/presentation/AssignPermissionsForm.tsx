@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { useAssignPermissions } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -19,13 +18,11 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { cn } from "@/lib/utils";
-
-const schema = z.object({
-  roleId: z.string().min(1, "Role ID is required"),
-  permissionIds: z.array(z.string()).min(1, "At least one permission is required"),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  assignPermissionsDefaultValues,
+  assignPermissionsSchema,
+  type AssignPermissionsFormData,
+} from "./system-admin-form-schema";
 
 export function AssignPermissionsForm() {
   const assignPermissions = useAssignPermissions();
@@ -35,9 +32,9 @@ export function AssignPermissionsForm() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [permissionSearch, setPermissionSearch] = useState("");
   const [isPermissionMenuOpen, setIsPermissionMenuOpen] = useState(false);
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { roleId: "", permissionIds: [] },
+  const form = useForm<AssignPermissionsFormData>({
+    resolver: zodResolver(assignPermissionsSchema),
+    defaultValues: assignPermissionsDefaultValues,
   });
 
   const selectedPermissionIds = form.watch("permissionIds");
@@ -63,7 +60,7 @@ export function AssignPermissionsForm() {
     form.setValue("permissionIds", next, { shouldValidate: true });
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: AssignPermissionsFormData) => {
     setShowSuccess(false);
     assignPermissions.mutate(
       { roleId: data.roleId, permissionIds: data.permissionIds },

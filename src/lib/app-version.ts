@@ -10,7 +10,8 @@
  * 1.5.4 — customer demo profiles and history UI
  * 1.6.0 — receipt redesign (kitchen slip + paid receipt), checkout tablet layout
  * 1.6.1 — required Zod validation for user create/update and tenant update
+ * 1.6.2 — user avatar image upload; required Zod validation for system-admin forms
  */
-export const APP_VERSION = "1.6.1";
+export const APP_VERSION = "1.6.2";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

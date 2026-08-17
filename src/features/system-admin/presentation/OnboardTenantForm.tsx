@@ -4,93 +4,68 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useOnboardTenant } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-
-const schema = z.object({
-  tenantName: z.string().min(1, "Tenant name is required"),
-  legalName: z.string(),
-  domain: z.string(),
-  website: z.string().url("Invalid URL").or(z.literal("")),
-  tenantAddress: z.string(),
-  tenantCity: z.string(),
-  tenantState: z.string(),
-  tenantCountry: z.string(),
-  tenantZipCode: z.string(),
-  branchName: z.string().min(1, "Branch name is required"),
-  branchCode: z.string().min(1, "Branch code is required"),
-  branchAddress: z.string(),
-  branchCity: z.string(),
-  branchPhone: z.string(),
-  ownerEmail: z.string().min(1, "Owner email is required").email("Invalid email"),
-  ownerPassword: z.string().min(6, "Password must be at least 6 characters"),
-  ownerUsername: z.string().min(1, "Owner username is required"),
-  ownerFullName: z.string().min(1, "Owner full name is required"),
-  ownerPhone: z.string(),
-  ownerJobTitle: z.string(),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  onboardTenantDefaultValues,
+  onboardTenantSchema,
+  type OnboardTenantFormData,
+} from "./system-admin-form-schema";
 
 export function OnboardTenantForm() {
   const router = useRouter();
   const onboard = useOnboardTenant();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      tenantName: "", legalName: "", domain: "", website: "",
-      tenantAddress: "", tenantCity: "", tenantState: "", tenantCountry: "", tenantZipCode: "",
-      branchName: "", branchCode: "", branchAddress: "", branchCity: "", branchPhone: "",
-      ownerEmail: "", ownerPassword: "", ownerUsername: "", ownerFullName: "", ownerPhone: "", ownerJobTitle: "",
-    },
+  const form = useForm<OnboardTenantFormData>({
+    resolver: zodResolver(onboardTenantSchema),
+    defaultValues: onboardTenantDefaultValues,
   });
+  const { register, formState: { errors } } = form;
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: OnboardTenantFormData) => {
     setShowSuccess(false);
     onboard.mutate(
       {
         tenant: {
-          name: data.tenantName,
-          legalName: data.legalName || undefined,
-          domain: data.domain || undefined,
-          website: data.website || undefined,
-          address: data.tenantAddress || undefined,
-          city: data.tenantCity || undefined,
-          state: data.tenantState || undefined,
-          country: data.tenantCountry || undefined,
-          zipCode: data.tenantZipCode || undefined,
+          name: data.tenant.name,
+          legalName: data.tenant.legalName,
+          domain: data.tenant.domain,
+          website: data.tenant.website,
+          address: data.tenant.address,
+          city: data.tenant.city,
+          state: data.tenant.state,
+          country: data.tenant.country,
+          zipCode: data.tenant.zipCode,
         },
         branch: {
-          name: data.branchName,
-          branchCode: data.branchCode,
-          address: data.branchAddress || undefined,
-          city: data.branchCity || undefined,
-          phone: data.branchPhone || undefined,
+          name: data.branch.name,
+          branchCode: data.branch.branchCode,
+          address: data.branch.address,
+          city: data.branch.city,
+          phone: data.branch.phone,
         },
         owner: {
-          email: data.ownerEmail,
-          password: data.ownerPassword,
-          username: data.ownerUsername,
-          fullName: data.ownerFullName,
-          phoneNumber: data.ownerPhone || undefined,
-          jobTitle: data.ownerJobTitle || undefined,
+          email: data.owner.email,
+          password: data.owner.password,
+          username: data.owner.username,
+          fullName: data.owner.fullName,
+          phoneNumber: data.owner.phoneNumber,
+          jobTitle: data.owner.jobTitle,
         },
       },
       {
         onSuccess: () => {
           toast.success("Tenant onboarded.");
           setShowSuccess(true);
-          form.reset();
+          form.reset(onboardTenantDefaultValues);
           setTimeout(() => router.push("/tenants"), 1500);
         },
         onError: () => toast.error("Failed to onboard tenant."),
-      }
+      },
     );
   };
 
@@ -100,45 +75,76 @@ export function OnboardTenantForm() {
         <legend className="text-lg font-semibold text-foreground">Tenant details</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="tenantName">Name *</Label>
-            <Input id="tenantName" {...form.register("tenantName")} />
-            {form.formState.errors.tenantName && <p className="text-sm text-red-600">{form.formState.errors.tenantName.message}</p>}
+            <Label htmlFor="tenant-name">Name *</Label>
+            <Input id="tenant-name" {...register("tenant.name")} />
+            {errors.tenant?.name && (
+              <p className="text-sm text-red-600">{errors.tenant.name.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="legalName">Legal name</Label>
-            <Input id="legalName" {...form.register("legalName")} />
+            <Label htmlFor="tenant-legalName">Legal name *</Label>
+            <Input id="tenant-legalName" {...register("tenant.legalName")} />
+            {errors.tenant?.legalName && (
+              <p className="text-sm text-red-600">{errors.tenant.legalName.message}</p>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="domain">Domain</Label>
-            <Input id="domain" {...form.register("domain")} placeholder="acme.com" />
+            <Label htmlFor="tenant-domain">Domain *</Label>
+            <Input id="tenant-domain" {...register("tenant.domain")} placeholder="acme.com" />
+            {errors.tenant?.domain && (
+              <p className="text-sm text-red-600">{errors.tenant.domain.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="website">Website</Label>
-            <Input id="website" type="url" {...form.register("website")} placeholder="https://acme.com" />
+            <Label htmlFor="tenant-website">Website *</Label>
+            <Input
+              id="tenant-website"
+              type="url"
+              {...register("tenant.website")}
+              placeholder="https://acme.com"
+            />
+            {errors.tenant?.website && (
+              <p className="text-sm text-red-600">{errors.tenant.website.message}</p>
+            )}
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="tenantAddress">Address</Label>
-          <Input id="tenantAddress" {...form.register("tenantAddress")} />
+          <Label htmlFor="tenant-address">Address *</Label>
+          <Input id="tenant-address" {...register("tenant.address")} />
+          {errors.tenant?.address && (
+            <p className="text-sm text-red-600">{errors.tenant.address.message}</p>
+          )}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="tenantCity">City</Label>
-            <Input id="tenantCity" {...form.register("tenantCity")} />
+            <Label htmlFor="tenant-city">City *</Label>
+            <Input id="tenant-city" {...register("tenant.city")} />
+            {errors.tenant?.city && (
+              <p className="text-sm text-red-600">{errors.tenant.city.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tenantState">State</Label>
-            <Input id="tenantState" {...form.register("tenantState")} />
+            <Label htmlFor="tenant-state">State *</Label>
+            <Input id="tenant-state" {...register("tenant.state")} />
+            {errors.tenant?.state && (
+              <p className="text-sm text-red-600">{errors.tenant.state.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tenantCountry">Country</Label>
-            <Input id="tenantCountry" {...form.register("tenantCountry")} />
+            <Label htmlFor="tenant-country">Country *</Label>
+            <Input id="tenant-country" {...register("tenant.country")} />
+            {errors.tenant?.country && (
+              <p className="text-sm text-red-600">{errors.tenant.country.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="tenantZipCode">Zip code</Label>
-            <Input id="tenantZipCode" {...form.register("tenantZipCode")} />
+            <Label htmlFor="tenant-zipCode">Zip code *</Label>
+            <Input id="tenant-zipCode" {...register("tenant.zipCode")} />
+            {errors.tenant?.zipCode && (
+              <p className="text-sm text-red-600">{errors.tenant.zipCode.message}</p>
+            )}
           </div>
         </div>
       </fieldset>
@@ -147,28 +153,49 @@ export function OnboardTenantForm() {
         <legend className="text-lg font-semibold text-foreground">Initial branch</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="branchName">Branch name *</Label>
-            <Input id="branchName" {...form.register("branchName")} />
-            {form.formState.errors.branchName && <p className="text-sm text-red-600">{form.formState.errors.branchName.message}</p>}
+            <Label htmlFor="branch-name">Branch name *</Label>
+            <Input id="branch-name" {...register("branch.name")} />
+            {errors.branch?.name && (
+              <p className="text-sm text-red-600">{errors.branch.name.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="branchCode">Branch code *</Label>
-            <Input id="branchCode" {...form.register("branchCode")} placeholder="MB001" />
-            {form.formState.errors.branchCode && <p className="text-sm text-red-600">{form.formState.errors.branchCode.message}</p>}
+            <Label htmlFor="branch-branchCode">Branch code *</Label>
+            <Input
+              id="branch-branchCode"
+              {...register("branch.branchCode")}
+              placeholder="MB001"
+            />
+            {errors.branch?.branchCode && (
+              <p className="text-sm text-red-600">{errors.branch.branchCode.message}</p>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="branchAddress">Address</Label>
-            <Input id="branchAddress" {...form.register("branchAddress")} />
+            <Label htmlFor="branch-address">Address *</Label>
+            <Input id="branch-address" {...register("branch.address")} />
+            {errors.branch?.address && (
+              <p className="text-sm text-red-600">{errors.branch.address.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="branchCity">City</Label>
-            <Input id="branchCity" {...form.register("branchCity")} />
+            <Label htmlFor="branch-city">City *</Label>
+            <Input id="branch-city" {...register("branch.city")} />
+            {errors.branch?.city && (
+              <p className="text-sm text-red-600">{errors.branch.city.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="branchPhone">Phone</Label>
-            <Input id="branchPhone" {...form.register("branchPhone")} />
+            <Label htmlFor="branch-phone">Phone *</Label>
+            <Input
+              id="branch-phone"
+              {...register("branch.phone")}
+              placeholder="+1234567890"
+            />
+            {errors.branch?.phone && (
+              <p className="text-sm text-red-600">{errors.branch.phone.message}</p>
+            )}
           </div>
         </div>
       </fieldset>
@@ -177,42 +204,71 @@ export function OnboardTenantForm() {
         <legend className="text-lg font-semibold text-foreground">Owner account</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="ownerFullName">Full name *</Label>
-            <Input id="ownerFullName" {...form.register("ownerFullName")} />
-            {form.formState.errors.ownerFullName && <p className="text-sm text-red-600">{form.formState.errors.ownerFullName.message}</p>}
+            <Label htmlFor="owner-fullName">Full name *</Label>
+            <Input id="owner-fullName" {...register("owner.fullName")} />
+            {errors.owner?.fullName && (
+              <p className="text-sm text-red-600">{errors.owner.fullName.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="ownerUsername">Username *</Label>
-            <Input id="ownerUsername" {...form.register("ownerUsername")} />
-            {form.formState.errors.ownerUsername && <p className="text-sm text-red-600">{form.formState.errors.ownerUsername.message}</p>}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="ownerEmail">Email *</Label>
-            <Input id="ownerEmail" type="email" {...form.register("ownerEmail")} />
-            {form.formState.errors.ownerEmail && <p className="text-sm text-red-600">{form.formState.errors.ownerEmail.message}</p>}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ownerPassword">Password *</Label>
-            <Input id="ownerPassword" type="password" {...form.register("ownerPassword")} placeholder="••••••••" />
-            {form.formState.errors.ownerPassword && <p className="text-sm text-red-600">{form.formState.errors.ownerPassword.message}</p>}
+            <Label htmlFor="owner-username">Username *</Label>
+            <Input id="owner-username" {...register("owner.username")} />
+            {errors.owner?.username && (
+              <p className="text-sm text-red-600">{errors.owner.username.message}</p>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="ownerPhone">Phone</Label>
-            <Input id="ownerPhone" {...form.register("ownerPhone")} />
+            <Label htmlFor="owner-email">Email *</Label>
+            <Input id="owner-email" type="email" {...register("owner.email")} />
+            {errors.owner?.email && (
+              <p className="text-sm text-red-600">{errors.owner.email.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="ownerJobTitle">Job title</Label>
-            <Input id="ownerJobTitle" {...form.register("ownerJobTitle")} />
+            <Label htmlFor="owner-password">Password *</Label>
+            <Input
+              id="owner-password"
+              type="password"
+              {...register("owner.password")}
+              placeholder="At least 8 characters"
+            />
+            {errors.owner?.password && (
+              <p className="text-sm text-red-600">{errors.owner.password.message}</p>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="owner-phoneNumber">Phone *</Label>
+            <Input
+              id="owner-phoneNumber"
+              {...register("owner.phoneNumber")}
+              placeholder="+1234567890"
+            />
+            {errors.owner?.phoneNumber && (
+              <p className="text-sm text-red-600">{errors.owner.phoneNumber.message}</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="owner-jobTitle">Job title *</Label>
+            <Input id="owner-jobTitle" {...register("owner.jobTitle")} />
+            {errors.owner?.jobTitle && (
+              <p className="text-sm text-red-600">{errors.owner.jobTitle.message}</p>
+            )}
           </div>
         </div>
       </fieldset>
 
-      {showSuccess && <p className="text-sm text-green-600 font-medium">Tenant onboarded successfully. Redirecting...</p>}
-      {onboard.isError && <p className="text-sm text-red-600">Failed to onboard tenant. Please try again.</p>}
+      {showSuccess && (
+        <p className="text-sm text-green-600 font-medium">
+          Tenant onboarded successfully. Redirecting...
+        </p>
+      )}
+      {onboard.isError && (
+        <p className="text-sm text-red-600">Failed to onboard tenant. Please try again.</p>
+      )}
 
       <Button type="submit" disabled={onboard.isPending}>
         {onboard.isPending ? "Onboarding..." : "Onboard tenant"}
