@@ -11,6 +11,7 @@ import { useSystemAdminCreateUserOptions } from "@/presentation/hooks/useSystemA
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { ImageUploadField } from "@/presentation/components/upload/ImageUploadField";
 import {
   Select,
   SelectContent,
@@ -18,19 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import {
+  createUserDefaultValues,
+  createUserSchema,
+  optionalUrl,
+  USER_PREFERRED_LANGUAGES,
+} from "@/features/users/presentation/user-form-schema";
 
-const schema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  username: z.string().min(1, "Username is required"),
-  fullName: z.string().min(1, "Full name is required"),
-  phoneNumber: z.string(),
-  avatarUrl: z.string().url("Invalid URL").or(z.literal("")),
-  jobTitle: z.string(),
-  roleId: z.string().min(1, "Role ID is required"),
-  branchId: z.string().min(1, "Branch ID is required"),
-  tenantId: z.string().min(1, "Tenant ID is required"),
-  preferredLanguage: z.string(),
+const schema = createUserSchema.extend({
+  tenantId: z.string().trim().min(1, "Tenant is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -44,9 +41,8 @@ export function SystemAdminCreateUserForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "", password: "", username: "", fullName: "",
-      phoneNumber: "", avatarUrl: "", jobTitle: "",
-      roleId: "", branchId: "", tenantId: "", preferredLanguage: "EN",
+      ...createUserDefaultValues,
+      tenantId: "",
     },
   });
 
@@ -58,13 +54,13 @@ export function SystemAdminCreateUserForm() {
         password: data.password,
         username: data.username,
         fullName: data.fullName,
-        phoneNumber: data.phoneNumber || undefined,
-        avatarUrl: data.avatarUrl || undefined,
-        jobTitle: data.jobTitle || undefined,
+        phoneNumber: data.phoneNumber,
+        avatarUrl: optionalUrl(data.avatarUrl),
+        jobTitle: data.jobTitle,
         roleId: data.roleId,
         branchId: data.branchId,
         tenantId: data.tenantId,
-        preferredLanguage: data.preferredLanguage || undefined,
+        preferredLanguage: data.preferredLanguage,
       },
       {
         onSuccess: () => {
@@ -119,7 +115,7 @@ export function SystemAdminCreateUserForm() {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="password">Password *</Label>
-          <Input id="password" type="password" {...form.register("password")} placeholder="••••••••" />
+          <Input id="password" type="password" {...form.register("password")} placeholder="At least 8 characters" />
           {form.formState.errors.password && <p className="text-sm text-red-600">{form.formState.errors.password.message}</p>}
         </div>
       </div>
@@ -211,22 +207,54 @@ export function SystemAdminCreateUserForm() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="phoneNumber">Phone</Label>
-          <Input id="phoneNumber" {...form.register("phoneNumber")} />
+          <Label htmlFor="phoneNumber">Phone *</Label>
+          <Input id="phoneNumber" {...form.register("phoneNumber")} placeholder="+1234567890" />
+          {form.formState.errors.phoneNumber && <p className="text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="jobTitle">Job title</Label>
+          <Label htmlFor="jobTitle">Job title *</Label>
           <Input id="jobTitle" {...form.register("jobTitle")} />
+          {form.formState.errors.jobTitle && <p className="text-sm text-red-600">{form.formState.errors.jobTitle.message}</p>}
         </div>
       </div>
+      <Controller
+        control={form.control}
+        name="avatarUrl"
+        render={({ field }) => (
+          <ImageUploadField
+            id="avatarUrl"
+            label="Avatar"
+            value={field.value}
+            onChange={field.onChange}
+            folder="users"
+            error={form.formState.errors.avatarUrl?.message}
+          />
+        )}
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="avatarUrl">Avatar URL</Label>
-          <Input id="avatarUrl" type="url" {...form.register("avatarUrl")} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="preferredLanguage">Preferred language</Label>
-          <Input id="preferredLanguage" {...form.register("preferredLanguage")} />
+          <Label htmlFor="preferredLanguage">Preferred language *</Label>
+          <Controller
+            control={form.control}
+            name="preferredLanguage"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="preferredLanguage">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {USER_PREFERRED_LANGUAGES.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.preferredLanguage && (
+            <p className="text-sm text-red-600">{form.formState.errors.preferredLanguage.message}</p>
+          )}
         </div>
       </div>
 

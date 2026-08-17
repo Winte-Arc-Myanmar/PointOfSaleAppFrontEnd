@@ -3,31 +3,38 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useUser, useUpdateUser } from "@/presentation/hooks/useUsers";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { ImageUploadField } from "@/presentation/components/upload/ImageUploadField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
-
-const schema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
-  password: z.string(),
-  username: z.string().min(1, "Username is required"),
-  fullName: z.string().min(1, "Full name is required"),
-  phoneNumber: z.string(),
-  avatarUrl: z.string().url("Invalid URL").or(z.literal("")),
-  jobTitle: z.string(),
-  preferredLanguage: z.string(),
-});
-
-type UserFormData = z.infer<typeof schema>;
+import {
+  optionalUrl,
+  updateUserSchema,
+  USER_PREFERRED_LANGUAGES,
+  type UpdateUserFormData,
+} from "./user-form-schema";
 
 const REDIRECT_DELAY_MS = 1500;
+
+function toPreferredLanguage(
+  value?: string | null,
+): UpdateUserFormData["preferredLanguage"] {
+  const normalized = value?.trim().toUpperCase();
+  return normalized === "MY" ? "MY" : "EN";
+}
 
 export function EditUserForm({ userId }: { userId: string }) {
   const router = useRouter();
@@ -35,8 +42,8 @@ export function EditUserForm({ userId }: { userId: string }) {
   const updateUser = useUpdateUser();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<UpdateUserFormData>({
+    resolver: zodResolver(updateUserSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -50,32 +57,31 @@ export function EditUserForm({ userId }: { userId: string }) {
   });
 
   useEffect(() => {
-    if (user) {
-      form.reset({
-        email: user.email,
-        password: "",
-        username: user.username,
-        fullName: user.fullName,
-        phoneNumber: user.phoneNumber ?? "",
-        avatarUrl: user.avatarUrl ?? "",
-        jobTitle: user.jobTitle ?? "",
-        preferredLanguage: user.preferredLanguage ?? "EN",
-      });
-    }
+    if (!user) return;
+    form.reset({
+      email: user.email,
+      password: "",
+      username: user.username,
+      fullName: user.fullName,
+      phoneNumber: user.phoneNumber ?? "",
+      avatarUrl: user.avatarUrl ?? "",
+      jobTitle: user.jobTitle ?? "",
+      preferredLanguage: toPreferredLanguage(user.preferredLanguage),
+    });
   }, [user, form]);
 
-  const onSubmit = (data: UserFormData) => {
+  const onSubmit = (data: UpdateUserFormData) => {
     setShowSuccess(false);
     const payload = {
       email: data.email,
       username: data.username,
       fullName: data.fullName,
-      phoneNumber: data.phoneNumber || undefined,
-      avatarUrl: data.avatarUrl || undefined,
-      jobTitle: data.jobTitle || undefined,
-      preferredLanguage: data.preferredLanguage || undefined,
+      phoneNumber: data.phoneNumber,
+      avatarUrl: optionalUrl(data.avatarUrl),
+      jobTitle: data.jobTitle,
+      preferredLanguage: data.preferredLanguage,
+      ...(data.password ? { password: data.password } : {}),
     };
-    if (data.password) Object.assign(payload, { password: data.password });
     updateUser.mutate(
       { id: userId, data: payload },
       {
@@ -102,6 +108,8 @@ export function EditUserForm({ userId }: { userId: string }) {
       </div>
     );
 
+  const errors = form.formState.errors;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -118,32 +126,26 @@ export function EditUserForm({ userId }: { userId: string }) {
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="fullName">Full name</Label>
+            <Label htmlFor="fullName">Full name *</Label>
             <Input id="fullName" {...form.register("fullName")} />
-            {form.formState.errors.fullName && (
-              <p className="text-sm text-red-600">
-                {form.formState.errors.fullName.message}
-              </p>
+            {errors.fullName && (
+              <p className="text-sm text-red-600">{errors.fullName.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Username *</Label>
             <Input id="username" {...form.register("username")} />
-            {form.formState.errors.username && (
-              <p className="text-sm text-red-600">
-                {form.formState.errors.username.message}
-              </p>
+            {errors.username && (
+              <p className="text-sm text-red-600">{errors.username.message}</p>
             )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email *</Label>
             <Input id="email" type="email" {...form.register("email")} />
-            {form.formState.errors.email && (
-              <p className="text-sm text-red-600">
-                {form.formState.errors.email.message}
-              </p>
+            {errors.email && (
+              <p className="text-sm text-red-600">{errors.email.message}</p>
             )}
           </div>
           <div className="grid gap-2">
@@ -152,35 +154,70 @@ export function EditUserForm({ userId }: { userId: string }) {
               id="password"
               type="password"
               {...form.register("password")}
-              placeholder="••••••••"
+              placeholder="At least 8 characters"
             />
+            {errors.password && (
+              <p className="text-sm text-red-600">{errors.password.message}</p>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="phoneNumber">Phone</Label>
+            <Label htmlFor="phoneNumber">Phone *</Label>
             <Input id="phoneNumber" {...form.register("phoneNumber")} />
+            {errors.phoneNumber && (
+              <p className="text-sm text-red-600">
+                {errors.phoneNumber.message}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="jobTitle">Job title</Label>
+            <Label htmlFor="jobTitle">Job title *</Label>
             <Input id="jobTitle" {...form.register("jobTitle")} />
+            {errors.jobTitle && (
+              <p className="text-sm text-red-600">{errors.jobTitle.message}</p>
+            )}
           </div>
         </div>
+        <Controller
+          control={form.control}
+          name="avatarUrl"
+          render={({ field }) => (
+            <ImageUploadField
+              id="avatarUrl"
+              label="Avatar"
+              value={field.value}
+              onChange={field.onChange}
+              folder="users"
+              error={errors.avatarUrl?.message}
+            />
+          )}
+        />
         <div className="grid gap-2">
-          <Label htmlFor="avatarUrl">Avatar URL</Label>
-          <Input id="avatarUrl" type="url" {...form.register("avatarUrl")} />
-          {form.formState.errors.avatarUrl && (
+          <Label htmlFor="preferredLanguage">Preferred language *</Label>
+          <Controller
+            control={form.control}
+            name="preferredLanguage"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="preferredLanguage">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {USER_PREFERRED_LANGUAGES.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.preferredLanguage && (
             <p className="text-sm text-red-600">
-              {form.formState.errors.avatarUrl.message}
+              {errors.preferredLanguage.message}
             </p>
           )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="preferredLanguage">Preferred language</Label>
-          <Input
-            id="preferredLanguage"
-            {...form.register("preferredLanguage")}
-          />
         </div>
         {showSuccess && (
           <p className="text-sm text-green-600 font-medium">

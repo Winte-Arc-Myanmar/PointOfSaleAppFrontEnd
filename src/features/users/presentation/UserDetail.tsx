@@ -13,6 +13,7 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
@@ -80,7 +81,7 @@ export function UserDetail({ userId }: { userId: string }) {
                 <dt className="text-xs font-medium text-muted uppercase tracking-wider">Avatar</dt>
                 <dd className="mt-1">
                   <Image
-                    src={user.avatarUrl}
+                    src={resolveMediaUrl(user.avatarUrl)}
                     alt={`${user.fullName} avatar`}
                     width={80}
                     height={80}

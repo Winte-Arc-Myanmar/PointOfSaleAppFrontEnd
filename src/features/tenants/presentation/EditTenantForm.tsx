@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useTenant, useUpdateTenant } from "@/presentation/hooks/useTenants";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
@@ -15,25 +14,11 @@ import { ArrowLeft, CircleDollarSign, HandCoins } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import type { TenantCurrency } from "@/core/domain/entities/Tenant";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  legalName: z.string().min(1, "Legal name is required"),
-  domain: z.string().min(1, "Domain is required"),
-  website: z.string().url("Invalid URL").or(z.literal("")),
-  logoUrl: z.string().url("Invalid URL").or(z.literal("")),
-  primaryContactName: z.string(),
-  primaryContactEmail: z.string().email("Invalid email").or(z.literal("")),
-  primaryContactPhone: z.string(),
-  address: z.string(),
-  city: z.string(),
-  state: z.string(),
-  country: z.string().min(1, "Country is required"),
-  zipCode: z.string(),
-  baseCurrency: z.enum(["MMK", "USD"]),
-});
-
-type TenantFormData = z.infer<typeof schema>;
+import {
+  emptyToBlank,
+  updateTenantSchema,
+  type UpdateTenantFormData,
+} from "./tenant-form-schema";
 
 const REDIRECT_DELAY_MS = 1500;
 
@@ -63,8 +48,8 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
   const updateTenant = useUpdateTenant();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
-  const form = useForm<TenantFormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<UpdateTenantFormData>({
+    resolver: zodResolver(updateTenantSchema),
     defaultValues: {
       name: "",
       legalName: "",
@@ -104,7 +89,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
     }
   }, [tenant, form]);
 
-  const onSubmit = (data: TenantFormData) => {
+  const onSubmit = (data: UpdateTenantFormData) => {
     setShowSuccess(false);
     updateTenant.mutate(
       {
@@ -113,16 +98,16 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           name: data.name,
           legalName: data.legalName,
           domain: data.domain,
-          website: data.website || "",
-          logoUrl: data.logoUrl || "",
-          primaryContactName: data.primaryContactName || "",
-          primaryContactEmail: data.primaryContactEmail || "",
-          primaryContactPhone: data.primaryContactPhone || "",
-          address: data.address || "",
-          city: data.city || "",
-          state: data.state || "",
+          website: emptyToBlank(data.website),
+          logoUrl: emptyToBlank(data.logoUrl),
+          primaryContactName: data.primaryContactName,
+          primaryContactEmail: data.primaryContactEmail,
+          primaryContactPhone: data.primaryContactPhone,
+          address: data.address,
+          city: data.city,
+          state: data.state,
           country: data.country,
-          zipCode: data.zipCode || "",
+          zipCode: data.zipCode,
           baseCurrency: data.baseCurrency,
         },
       },
@@ -151,6 +136,8 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
       </div>
     );
 
+  const errors = form.formState.errors;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -168,77 +155,107 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         <div className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Name *</Label>
             <Input id="name" {...form.register("name")} />
-            {form.formState.errors.name && (
-              <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="legalName">Legal name</Label>
+            <Label htmlFor="legalName">Legal name *</Label>
             <Input id="legalName" {...form.register("legalName")} />
-            {form.formState.errors.legalName && (
-              <p className="text-sm text-red-600">{form.formState.errors.legalName.message}</p>
+            {errors.legalName && (
+              <p className="text-sm text-red-600">{errors.legalName.message}</p>
             )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="domain">Domain</Label>
+            <Label htmlFor="domain">Domain *</Label>
             <Input id="domain" {...form.register("domain")} />
-            {form.formState.errors.domain && (
-              <p className="text-sm text-red-600">{form.formState.errors.domain.message}</p>
+            {errors.domain && (
+              <p className="text-sm text-red-600">{errors.domain.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">Website *</Label>
             <Input id="website" type="url" {...form.register("website")} />
-            {form.formState.errors.website && (
-              <p className="text-sm text-red-600">{form.formState.errors.website.message}</p>
+            {errors.website && (
+              <p className="text-sm text-red-600">{errors.website.message}</p>
             )}
           </div>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="logoUrl">Logo URL</Label>
           <Input id="logoUrl" type="url" {...form.register("logoUrl")} />
+          {errors.logoUrl && (
+            <p className="text-sm text-red-600">{errors.logoUrl.message}</p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactName">Primary contact name</Label>
+            <Label htmlFor="primaryContactName">Primary contact name *</Label>
             <Input id="primaryContactName" {...form.register("primaryContactName")} />
+            {errors.primaryContactName && (
+              <p className="text-sm text-red-600">
+                {errors.primaryContactName.message}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactEmail">Primary contact email</Label>
+            <Label htmlFor="primaryContactEmail">Primary contact email *</Label>
             <Input id="primaryContactEmail" type="email" {...form.register("primaryContactEmail")} />
+            {errors.primaryContactEmail && (
+              <p className="text-sm text-red-600">
+                {errors.primaryContactEmail.message}
+              </p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactPhone">Primary contact phone</Label>
+            <Label htmlFor="primaryContactPhone">Primary contact phone *</Label>
             <Input id="primaryContactPhone" {...form.register("primaryContactPhone")} />
+            {errors.primaryContactPhone && (
+              <p className="text-sm text-red-600">
+                {errors.primaryContactPhone.message}
+              </p>
+            )}
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">Address *</Label>
           <Input id="address" {...form.register("address")} />
+          {errors.address && (
+            <p className="text-sm text-red-600">{errors.address.message}</p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city">City *</Label>
             <Input id="city" {...form.register("city")} />
+            {errors.city && (
+              <p className="text-sm text-red-600">{errors.city.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="state">State</Label>
+            <Label htmlFor="state">State *</Label>
             <Input id="state" {...form.register("state")} />
+            {errors.state && (
+              <p className="text-sm text-red-600">{errors.state.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="zipCode">Zip code</Label>
+            <Label htmlFor="zipCode">Zip code *</Label>
             <Input id="zipCode" {...form.register("zipCode")} />
+            {errors.zipCode && (
+              <p className="text-sm text-red-600">{errors.zipCode.message}</p>
+            )}
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="country">Country</Label>
+          <Label htmlFor="country">Country *</Label>
           <Input id="country" {...form.register("country")} />
-          {form.formState.errors.country && (
-            <p className="text-sm text-red-600">{form.formState.errors.country.message}</p>
+          {errors.country && (
+            <p className="text-sm text-red-600">{errors.country.message}</p>
           )}
         </div>
         {showSuccess && (
@@ -350,6 +367,12 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
               </div>
             )}
           />
+
+          {errors.baseCurrency && (
+            <p className="mt-2 text-sm text-red-600">
+              {errors.baseCurrency.message}
+            </p>
+          )}
 
           <p className="mt-4 rounded-lg bg-muted/10 px-3 py-2 text-xs leading-5 text-muted">
             Saved with this tenant. Currency conversion is managed separately through Exchange Rates.

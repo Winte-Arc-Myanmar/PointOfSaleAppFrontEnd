@@ -3,46 +3,17 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useCreateTenant } from "@/presentation/hooks/useTenants";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  legalName: z.string().min(1, "Legal name is required"),
-  domain: z.string().min(1, "Domain is required"),
-  website: z.string().url("Invalid URL").or(z.literal("")),
-  logoUrl: z.string().url("Invalid URL").or(z.literal("")),
-  primaryContactName: z.string(),
-  primaryContactEmail: z.string().email("Invalid email").or(z.literal("")),
-  primaryContactPhone: z.string(),
-  address: z.string(),
-  city: z.string(),
-  state: z.string(),
-  country: z.string().min(1, "Country is required"),
-  zipCode: z.string(),
-});
-
-export type TenantFormData = z.infer<typeof schema>;
-
-const defaultValues: TenantFormData = {
-  name: "",
-  legalName: "",
-  domain: "",
-  website: "",
-  logoUrl: "",
-  primaryContactName: "",
-  primaryContactEmail: "",
-  primaryContactPhone: "",
-  address: "",
-  city: "",
-  state: "",
-  country: "",
-  zipCode: "",
-};
+import {
+  createTenantDefaultValues,
+  createTenantSchema,
+  emptyToBlank,
+  type CreateTenantFormData,
+} from "./tenant-form-schema";
 
 export interface CreateTenantFormProps {
   onSuccess?: () => void;
@@ -50,7 +21,11 @@ export interface CreateTenantFormProps {
   onLoadingChange?: (loading: boolean) => void;
 }
 
-export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateTenantFormProps) {
+export function CreateTenantForm({
+  onSuccess,
+  formId,
+  onLoadingChange,
+}: CreateTenantFormProps) {
   const createTenant = useCreateTenant();
   const toast = useToast();
   useEffect(() => {
@@ -61,55 +36,51 @@ export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateT
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<TenantFormData>({
-    resolver: zodResolver(schema),
-    defaultValues,
+  } = useForm<CreateTenantFormData>({
+    resolver: zodResolver(createTenantSchema),
+    defaultValues: createTenantDefaultValues,
   });
 
-  const onSubmit = (data: TenantFormData) => {
+  const onSubmit = (data: CreateTenantFormData) => {
     createTenant.mutate(
       {
         name: data.name,
         legalName: data.legalName,
         domain: data.domain,
-        website: data.website || "",
-        logoUrl: data.logoUrl || "",
-        primaryContactName: data.primaryContactName || "",
-        primaryContactEmail: data.primaryContactEmail || "",
-        primaryContactPhone: data.primaryContactPhone || "",
-        address: data.address || "",
-        city: data.city || "",
-        state: data.state || "",
+        website: emptyToBlank(data.website),
+        logoUrl: emptyToBlank(data.logoUrl),
+        primaryContactName: data.primaryContactName,
+        primaryContactEmail: data.primaryContactEmail,
+        primaryContactPhone: data.primaryContactPhone,
+        address: data.address,
+        city: data.city,
+        state: data.state,
         country: data.country,
-        zipCode: data.zipCode || "",
+        zipCode: data.zipCode,
       },
       {
         onSuccess: () => {
           toast.success("Tenant created.");
-          reset(defaultValues);
+          reset(createTenantDefaultValues);
           onSuccess?.();
         },
         onError: () => toast.error("Failed to create tenant."),
-      }
+      },
     );
   };
 
   return (
-    <form
-      id={formId}
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4"
-    >
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">Name *</Label>
           <Input id="name" {...register("name")} placeholder="e.g. KFC" />
           {errors.name && (
             <p className="text-sm text-red-600">{errors.name.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="legalName">Legal name</Label>
+          <Label htmlFor="legalName">Legal name *</Label>
           <Input
             id="legalName"
             {...register("legalName")}
@@ -122,14 +93,14 @@ export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateT
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="domain">Domain</Label>
+          <Label htmlFor="domain">Domain *</Label>
           <Input id="domain" {...register("domain")} placeholder="kfc.com" />
           {errors.domain && (
             <p className="text-sm text-red-600">{errors.domain.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="website">Website</Label>
+          <Label htmlFor="website">Website *</Label>
           <Input
             id="website"
             type="url"
@@ -156,11 +127,16 @@ export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateT
       <p className="text-sm font-medium text-foreground/80">Primary contact</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactName">Name</Label>
+          <Label htmlFor="primaryContactName">Name *</Label>
           <Input id="primaryContactName" {...register("primaryContactName")} />
+          {errors.primaryContactName && (
+            <p className="text-sm text-red-600">
+              {errors.primaryContactName.message}
+            </p>
+          )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactEmail">Email</Label>
+          <Label htmlFor="primaryContactEmail">Email *</Label>
           <Input
             id="primaryContactEmail"
             type="email"
@@ -173,37 +149,64 @@ export function CreateTenantForm({ onSuccess, formId, onLoadingChange }: CreateT
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactPhone">Phone</Label>
-          <Input id="primaryContactPhone" {...register("primaryContactPhone")} />
+          <Label htmlFor="primaryContactPhone">Phone *</Label>
+          <Input
+            id="primaryContactPhone"
+            {...register("primaryContactPhone")}
+            placeholder="+1234567890"
+          />
+          {errors.primaryContactPhone && (
+            <p className="text-sm text-red-600">
+              {errors.primaryContactPhone.message}
+            </p>
+          )}
         </div>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="address">Address</Label>
-        <Input id="address" {...register("address")} placeholder="Street address" />
+        <Label htmlFor="address">Address *</Label>
+        <Input
+          id="address"
+          {...register("address")}
+          placeholder="Street address"
+        />
+        {errors.address && (
+          <p className="text-sm text-red-600">{errors.address.message}</p>
+        )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="city">City</Label>
+          <Label htmlFor="city">City *</Label>
           <Input id="city" {...register("city")} />
+          {errors.city && (
+            <p className="text-sm text-red-600">{errors.city.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="state">State</Label>
+          <Label htmlFor="state">State *</Label>
           <Input id="state" {...register("state")} />
+          {errors.state && (
+            <p className="text-sm text-red-600">{errors.state.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="zipCode">Zip code</Label>
+          <Label htmlFor="zipCode">Zip code *</Label>
           <Input id="zipCode" {...register("zipCode")} />
+          {errors.zipCode && (
+            <p className="text-sm text-red-600">{errors.zipCode.message}</p>
+          )}
         </div>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="country">Country</Label>
+        <Label htmlFor="country">Country *</Label>
         <Input id="country" {...register("country")} placeholder="e.g. USA" />
         {errors.country && (
           <p className="text-sm text-red-600">{errors.country.message}</p>
         )}
       </div>
       {createTenant.isError && (
-        <p className="text-sm text-red-600">Failed to create tenant. Please try again.</p>
+        <p className="text-sm text-red-600">
+          Failed to create tenant. Please try again.
+        </p>
       )}
       {!formId && (
         <Button type="submit" disabled={createTenant.isPending}>
