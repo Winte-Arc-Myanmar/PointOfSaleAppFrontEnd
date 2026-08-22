@@ -11,6 +11,7 @@ import { SidebarMenu } from "./SidebarMenu";
 import { Navbar } from "./Navbar";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
+import { getFlatSidebarMenuItems } from "@/presentation/components/layout/sidebar-menu-config";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
@@ -230,71 +231,9 @@ type MenuTabItem = {
 
 const TAB_STORAGE_KEY = "pos-open-menu-tabs";
 
-const TAB_MENU_ITEMS: MenuTabItem[] = [
-  { href: "/customers", labelKey: "nav.customers" },
-  { href: "/customer-interactions", labelKey: "nav.interactions" },
-  { href: "/loyalty-ledger", labelKey: "nav.loyaltyLedger" },
-  { href: "/vendors", labelKey: "nav.vendors" },
-  { href: "/products", labelKey: "nav.products" },
-  { href: "/recipes", labelKey: "nav.recipes" },
-  { href: "/bundles", labelKey: "nav.bundles" },
-  { href: "/pricing-schedules", labelKey: "nav.pricingSchedules" },
-  { href: "/modifier-groups", labelKey: "nav.modifierGroups" },
-  { href: "/tenants", labelKey: "nav.tenants" },
-  { href: "/users", labelKey: "nav.users" },
-  { href: "/roles", labelKey: "nav.roles" },
-  { href: "/categories", labelKey: "nav.categories" },
-  { href: "/branches", labelKey: "nav.branches" },
-  { href: "/locations", labelKey: "nav.locations" },
-  { href: "/dining-zones", labelKey: "nav.diningZones" },
-  { href: "/dining-tables", labelKey: "nav.diningTables" },
-  { href: "/sections", labelKey: "nav.sections" },
-  { href: "/kitchen-printers", labelKey: "nav.kitchenPrinters" },
-  { href: "/table-sessions", labelKey: "nav.tableSessions" },
-  { href: "/kds-stations", labelKey: "nav.kdsStations" },
-  { href: "/kds-tickets", labelKey: "nav.kdsTickets" },
-  { href: "/reservations", labelKey: "nav.reservations" },
-  { href: "/waitlist", labelKey: "nav.waitlist" },
-  { href: "/tip-pools", labelKey: "nav.tipPools" },
-  { href: "/counter-orders", labelKey: "nav.counterOrders" },
-  { href: "/inventory-ledger", labelKey: "nav.inventoryLedger" },
-  { href: "/uom-classes", labelKey: "nav.uomClasses" },
-  { href: "/uoms", labelKey: "nav.uoms" },
-  { href: "/uploads", labelKey: "nav.uploads" },
-  { href: "/sales-orders", labelKey: "nav.salesOrders" },
-  { href: "/reports", labelKey: "nav.reports" },
-  { href: "/promotion-rules", labelKey: "nav.promotionRules" },
-  { href: "/discount-reasons", labelKey: "nav.discountReasons" },
-  { href: "/void-reasons", labelKey: "nav.voidReasons" },
-  { href: "/pos-registers", labelKey: "nav.posRegisters" },
-  { href: "/pos-sessions", labelKey: "nav.posSessions" },
-  { href: "/payment-methods", labelKey: "nav.paymentMethods" },
-  { href: "/chart-of-accounts", labelKey: "nav.chartOfAccounts" },
-  { href: "/accounting-periods", labelKey: "nav.accountingPeriods" },
-  { href: "/exchange-rates", labelKey: "nav.exchangeRates" },
-  { href: "/tax-rates", labelKey: "nav.taxRates" },
-  { href: "/journal-entries", labelKey: "nav.journalEntries" },
-  { href: "/journal-lines", labelKey: "nav.journalLines" },
-  { href: "/bank-statements", labelKey: "nav.bankStatements" },
-  { href: "/bank-statement-lines", labelKey: "nav.bankStatementLines" },
-  { href: "/transfer-orders", labelKey: "nav.transferOrders" },
-  { href: "/transfer-order-lines", labelKey: "nav.transferOrderLines" },
-  { href: "/purchase-requisitions", labelKey: "nav.purchaseRequisitions" },
-  { href: "/purchase-orders", labelKey: "nav.purchaseOrders" },
-  { href: "/goods-received-notes", labelKey: "nav.goodsReceivedNotes" },
-  { href: "/grn-lines", labelKey: "nav.grnLines" },
-  { href: "/vendor-invoices", labelKey: "nav.vendorInvoices" },
-  { href: "/landed-cost-allocations", labelKey: "nav.landedCostAllocations" },
-  { href: "/reconciliation-matches", labelKey: "nav.reconciliationMatches" },
-  { href: "/fixed-assets", labelKey: "nav.fixedAssets" },
-  { href: "/depreciation-schedules", labelKey: "nav.depreciationSchedules" },
-  { href: "/checkout", labelKey: "nav.checkout" },
-  { href: "/refunds", labelKey: "nav.refunds" },
-  { href: "/admin/onboard", labelKey: "nav.onboardTenant" },
-  { href: "/admin/create-user", labelKey: "nav.createUser" },
-  { href: "/admin/assign-permissions", labelKey: "nav.assignPermissions" },
-  { href: "/admin/assign-role", labelKey: "nav.assignRole" },
-];
+const TAB_MENU_ITEMS: MenuTabItem[] = getFlatSidebarMenuItems().map(
+  ({ href, labelKey }) => ({ href, labelKey }),
+);
 
 function getMenuBase(pathname: string): MenuTabItem | null {
   return (

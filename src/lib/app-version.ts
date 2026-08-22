@@ -12,7 +12,8 @@
  * 1.6.1 — required Zod validation for user create/update and tenant update
  * 1.6.2 — user avatar image upload; required Zod validation for system-admin forms
  * 1.7.0 — POS AI helper agent (OpenAI-compatible connection port)
+ * 1.8.0 — grouped accordion sidebar; Loli floating assistant; reports & vendors in nav
  */
-export const APP_VERSION = "1.7.0";
+export const APP_VERSION = "1.8.0";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

@@ -1,383 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Package,
-  LogOut,
-  Building2,
-  Users,
-  Shield,
-  Ruler,
-  FolderTree,
-  MapPin,
-  Warehouse,
-  UtensilsCrossed,
-  LayoutGrid,
-  ScrollText,
-  Truck,
-  UserRound,
-  ShieldPlus,
-  UserRoundPlus,
-  KeyRound,
-  UserCog,
-  Gift,
-  MessageSquareText,
-  Upload,
-  Receipt,
-  Percent,
-  Monitor,
-  Clock,
-  CreditCard,
-  ShoppingCart,
-  RotateCcw,
-  BookText,
-  CalendarRange,
-  ArrowLeftRight,
-  BadgePercent,
-  NotebookPen,
-  ListTree,
-  Landmark,
-  GitCompareArrows,
-  Building,
-  CalendarClock,
-  Layers3,
-  Printer,
-  ClipboardList,
-  ClipboardCheck,
-  FileSpreadsheet,
-  Scale,
-  TvMinimal,
-  Ticket,
-  CalendarDays,
-  Hourglass,
-  HandCoins,
-  ShoppingBag,
-  BarChart3,
-  Tag,
-  Ban,
-  SlidersHorizontal,
-  Layers,
-  FlaskConical,
-} from "lucide-react";
+import { ChevronDown, LogOut, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
-import type { TranslationKey } from "@/presentation/i18n/translations";
-
-interface MenuItem {
-  href: string;
-  labelKey: TranslationKey;
-  icon: typeof Package;
-  permissions?: string[];
-  /** Only visible to systemAdmin (ignores permission check). */
-  adminOnly?: boolean;
-}
-
-const allMenuItems: MenuItem[] = [
-  { href: "/customers", labelKey: "nav.customers", icon: UserRound, permissions: ["customers:read"] },
-  {
-    href: "/customer-interactions",
-    labelKey: "nav.interactions",
-    icon: MessageSquareText,
-    permissions: ["customer-interactions:read"],
-  },
-  {
-    href: "/loyalty-ledger",
-    labelKey: "nav.loyaltyLedger",
-    icon: Gift,
-    permissions: ["loyalty-ledger:read"],
-  },
-  { href: "/vendors", labelKey: "nav.vendors", icon: Truck, permissions: ["vendors:read"] },
-  { href: "/products", labelKey: "nav.products", icon: Package, permissions: ["products:read"] },
-  {
-    href: "/recipes",
-    labelKey: "nav.recipes",
-    icon: FlaskConical,
-    permissions: ["recipes:read"],
-  },
-  {
-    href: "/bundles",
-    labelKey: "nav.bundles",
-    icon: Layers,
-    permissions: ["bundles:read"],
-  },
-  {
-    href: "/pricing-schedules",
-    labelKey: "nav.pricingSchedules",
-    icon: CalendarClock,
-    permissions: ["pricing-schedules:read"],
-  },
-  {
-    href: "/modifier-groups",
-    labelKey: "nav.modifierGroups",
-    icon: SlidersHorizontal,
-    permissions: ["modifier-groups:read"],
-  },
-  { href: "/tenants", labelKey: "nav.tenants", icon: Building2, permissions: ["tenants:read"] },
-  { href: "/users", labelKey: "nav.users", icon: Users, permissions: ["users:read"] },
-  { href: "/roles", labelKey: "nav.roles", icon: Shield, permissions: ["roles:read"] },
-  { href: "/categories", labelKey: "nav.categories", icon: FolderTree, permissions: ["categories:read"] },
-  { href: "/branches", labelKey: "nav.branches", icon: MapPin, permissions: ["branches:read"] },
-  { href: "/locations", labelKey: "nav.locations", icon: Warehouse, permissions: ["locations:read"] },
-  {
-    href: "/dining-zones",
-    labelKey: "nav.diningZones",
-    icon: UtensilsCrossed,
-    permissions: ["dining-zones:read"],
-  },
-  {
-    href: "/dining-tables",
-    labelKey: "nav.diningTables",
-    icon: LayoutGrid,
-    permissions: ["dining-tables:read"],
-  },
-  {
-    href: "/sections",
-    labelKey: "nav.sections",
-    icon: Layers3,
-    permissions: ["sections:read"],
-  },
-  {
-    href: "/kitchen-printers",
-    labelKey: "nav.kitchenPrinters",
-    icon: Printer,
-    permissions: ["kitchen-printers:read"],
-  },
-  {
-    href: "/table-sessions",
-    labelKey: "nav.tableSessions",
-    icon: ClipboardList,
-    permissions: ["table-sessions:read"],
-  },
-  {
-    href: "/kds-stations",
-    labelKey: "nav.kdsStations",
-    icon: TvMinimal,
-    permissions: ["kds-stations:read"],
-  },
-  {
-    href: "/kds-tickets",
-    labelKey: "nav.kdsTickets",
-    icon: Ticket,
-    permissions: ["kds-tickets:read"],
-  },
-  {
-    href: "/reservations",
-    labelKey: "nav.reservations",
-    icon: CalendarDays,
-    permissions: ["reservations:read"],
-  },
-  {
-    href: "/waitlist",
-    labelKey: "nav.waitlist",
-    icon: Hourglass,
-    permissions: ["waitlist:read"],
-  },
-  {
-    href: "/tip-pools",
-    labelKey: "nav.tipPools",
-    icon: HandCoins,
-    permissions: ["tip-pools:read"],
-  },
-  {
-    href: "/counter-orders",
-    labelKey: "nav.counterOrders",
-    icon: ShoppingBag,
-    permissions: ["counter-orders:read"],
-  },
-  {
-    href: "/inventory-ledger",
-    labelKey: "nav.inventoryLedger",
-    icon: ScrollText,
-    permissions: ["inventory-ledger:read"],
-  },
-  {
-    href: "/transfer-orders",
-    labelKey: "nav.transferOrders",
-    icon: ArrowLeftRight,
-    permissions: ["transfer-orders:read"],
-  },
-  {
-    href: "/transfer-order-lines",
-    labelKey: "nav.transferOrderLines",
-    icon: ListTree,
-    permissions: ["transfer-order-lines:read"],
-  },
-  {
-    href: "/purchase-requisitions",
-    labelKey: "nav.purchaseRequisitions",
-    icon: ClipboardList,
-    permissions: ["purchase-requisitions:read"],
-  },
-  {
-    href: "/purchase-orders",
-    labelKey: "nav.purchaseOrders",
-    icon: ShoppingBag,
-    permissions: ["purchase-orders:read"],
-  },
-  {
-    href: "/goods-received-notes",
-    labelKey: "nav.goodsReceivedNotes",
-    icon: ClipboardCheck,
-    permissions: ["goods-received-notes:read"],
-  },
-  {
-    href: "/grn-lines",
-    labelKey: "nav.grnLines",
-    icon: ListTree,
-    permissions: ["grn-lines:read"],
-  },
-  {
-    href: "/vendor-invoices",
-    labelKey: "nav.vendorInvoices",
-    icon: FileSpreadsheet,
-    permissions: ["vendor-invoices:read"],
-  },
-  {
-    href: "/landed-cost-allocations",
-    labelKey: "nav.landedCostAllocations",
-    icon: Scale,
-    permissions: ["landed-cost-allocations:read"],
-  },
-  { href: "/uom-classes", labelKey: "nav.uomClasses", icon: Ruler, permissions: ["uom:read"] },
-  { href: "/uoms", labelKey: "nav.uoms", icon: Ruler, permissions: ["uom:read"] },
-  { href: "/uploads", labelKey: "nav.uploads", icon: Upload, permissions: ["uploads:read"] },
-  { href: "/sales-orders", labelKey: "nav.salesOrders", icon: Receipt, permissions: ["sales-orders:read"] },
-  {
-    href: "/reports",
-    labelKey: "nav.reports",
-    icon: BarChart3,
-    permissions: ["reports:read"],
-  },
-  {
-    href: "/promotion-rules",
-    labelKey: "nav.promotionRules",
-    icon: Percent,
-    permissions: ["promotion-rules:read"],
-  },
-  {
-    href: "/discount-reasons",
-    labelKey: "nav.discountReasons",
-    icon: Tag,
-    permissions: ["discount-reasons:read"],
-  },
-  {
-    href: "/void-reasons",
-    labelKey: "nav.voidReasons",
-    icon: Ban,
-    permissions: ["void-reasons:read"],
-  },
-  {
-    href: "/pos-registers",
-    labelKey: "nav.posRegisters",
-    icon: Monitor,
-    permissions: ["pos-registers:read"],
-  },
-  {
-    href: "/pos-sessions",
-    labelKey: "nav.posSessions",
-    icon: Clock,
-    permissions: ["pos-sessions:read"],
-  },
-  {
-    href: "/payment-methods",
-    labelKey: "nav.paymentMethods",
-    icon: CreditCard,
-    permissions: ["payment-methods:read"],
-  },
-  {
-    href: "/chart-of-accounts",
-    labelKey: "nav.chartOfAccounts",
-    icon: BookText,
-    permissions: ["chart-of-accounts:read"],
-  },
-  {
-    href: "/accounting-periods",
-    labelKey: "nav.accountingPeriods",
-    icon: CalendarRange,
-    permissions: ["accounting-periods:read"],
-  },
-  {
-    href: "/exchange-rates",
-    labelKey: "nav.exchangeRates",
-    icon: ArrowLeftRight,
-    permissions: ["exchange-rates:read"],
-  },
-  {
-    href: "/tax-rates",
-    labelKey: "nav.taxRates",
-    icon: BadgePercent,
-    permissions: ["tax-rates:read"],
-  },
-  {
-    href: "/journal-entries",
-    labelKey: "nav.journalEntries",
-    icon: NotebookPen,
-    permissions: ["journal-entries:read"],
-  },
-  {
-    href: "/journal-lines",
-    labelKey: "nav.journalLines",
-    icon: ListTree,
-    permissions: ["journal-lines:read"],
-  },
-  {
-    href: "/bank-statements",
-    labelKey: "nav.bankStatements",
-    icon: Landmark,
-    permissions: ["bank-statements:read"],
-  },
-  {
-    href: "/bank-statement-lines",
-    labelKey: "nav.bankStatementLines",
-    icon: ListTree,
-    permissions: ["bank-statement-lines:read"],
-  },
-  {
-    href: "/reconciliation-matches",
-    labelKey: "nav.reconciliationMatches",
-    icon: GitCompareArrows,
-    permissions: ["reconciliation-matches:read"],
-  },
-  {
-    href: "/fixed-assets",
-    labelKey: "nav.fixedAssets",
-    icon: Building,
-    permissions: ["fixed-assets:read"],
-  },
-  {
-    href: "/depreciation-schedules",
-    labelKey: "nav.depreciationSchedules",
-    icon: CalendarClock,
-    permissions: ["depreciation-schedules:read"],
-  },
-  {
-    href: "/checkout",
-    labelKey: "nav.checkout",
-    icon: ShoppingCart,
-    permissions: ["sales:checkout:write"],
-  },
-  {
-    href: "/refunds",
-    labelKey: "nav.refunds",
-    icon: RotateCcw,
-    permissions: ["sales:refund:write", "sales:refund:read"],
-  },
-];
-
-const adminMenuItems: MenuItem[] = [
-  { href: "/admin/onboard", labelKey: "nav.onboardTenant", icon: ShieldPlus, adminOnly: true },
-  { href: "/admin/create-user", labelKey: "nav.createUser", icon: UserRoundPlus, adminOnly: true },
-  { href: "/admin/assign-permissions", labelKey: "nav.assignPermissions", icon: KeyRound, adminOnly: true },
-  { href: "/admin/assign-role", labelKey: "nav.assignRole", icon: UserCog, adminOnly: true },
-];
+import {
+  SIDEBAR_MENU_GROUPS,
+  findSidebarGroupForPath,
+  type SidebarMenuGroup,
+  type SidebarMenuItem,
+} from "./sidebar-menu-config";
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -385,6 +24,20 @@ interface SidebarMenuProps {
   onClose: () => void;
   pathname: string;
   onMenuNavigate?: (href: string) => void;
+}
+
+function isItemVisible(
+  item: SidebarMenuItem,
+  canAny: (...permissions: string[]) => boolean,
+  isSystemAdmin: boolean,
+): boolean {
+  if (item.adminOnly) return isSystemAdmin;
+  if (!item.permissions?.length) return true;
+  return canAny(...item.permissions);
+}
+
+function isRouteActive(pathname: string, href: string): boolean {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 }
 
 export function SidebarMenu({
@@ -398,25 +51,49 @@ export function SidebarMenu({
   const { canAny, isSystemAdmin } = usePermissions();
   const { t } = useLanguage();
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [collapsedFlyoutGroupId, setCollapsedFlyoutGroupId] = useState<string | null>(
+    null,
+  );
 
-  const menuItems = useMemo(() => {
-    const items = allMenuItems.filter((item) => {
-      if (!item.permissions || item.permissions.length === 0) return true;
-      return canAny(...item.permissions);
-    });
-    if (isSystemAdmin) {
-      items.push(...adminMenuItems);
-    }
-    return items;
+  const visibleGroups = useMemo(() => {
+    return SIDEBAR_MENU_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        isItemVisible(item, canAny, isSystemAdmin),
+      ),
+    })).filter((group) => group.items.length > 0);
   }, [canAny, isSystemAdmin]);
 
   useEffect(() => {
-    // Keep the active route visible in the scrollable sidebar list.
+    const activeGroupId = findSidebarGroupForPath(pathname);
+    if (!activeGroupId) return;
+    setOpenGroups((current) => ({ ...current, [activeGroupId]: true }));
+  }, [pathname]);
+
+  useEffect(() => {
     activeItemRef.current?.scrollIntoView({
       block: "nearest",
       inline: "nearest",
     });
-  }, [pathname, menuItems.length]);
+  }, [pathname, visibleGroups.length]);
+
+  useEffect(() => {
+    if (!isCollapsed) setCollapsedFlyoutGroupId(null);
+  }, [isCollapsed]);
+
+  function toggleGroup(groupId: string) {
+    setOpenGroups((current) => ({
+      ...current,
+      [groupId]: !current[groupId],
+    }));
+  }
+
+  function handleNavigate(href: string) {
+    onMenuNavigate?.(href);
+    onClose();
+    setCollapsedFlyoutGroupId(null);
+  }
 
   return (
     <>
@@ -446,13 +123,13 @@ export function SidebarMenu({
           mass: 0.8,
         }}
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden border-r border-gray-300 bg-white shadow-sm dark:border-border dark:bg-background dark:shadow-xl lg:static lg:z-auto"
+          "fixed left-0 top-0 z-50 flex h-full flex-col overflow-hidden border-r border-gray-300 bg-white shadow-sm dark:border-border dark:bg-background dark:shadow-xl lg:static lg:z-auto",
         )}
       >
         <div
           className={cn(
             "flex h-16 shrink-0 items-center border-b border-gray-300 transition-all duration-300 dark:border-mint/20",
-            isCollapsed ? "justify-center px-0" : "justify-between px-4"
+            isCollapsed ? "justify-center px-0" : "justify-between px-4",
           )}
         >
           <AppLogo
@@ -462,7 +139,7 @@ export function SidebarMenu({
             onClick={onClose}
             className={cn(
               "text-gray-900 [&:hover]:text-mint dark:text-foreground",
-              isCollapsed && "justify-center"
+              isCollapsed && "justify-center",
             )}
           />
           {!isCollapsed && (
@@ -479,71 +156,58 @@ export function SidebarMenu({
 
         <nav
           className={cn(
-            "hide-scrollbar flex-1 overflow-y-auto py-6 transition-all duration-300",
-            isCollapsed ? "px-2" : "px-3"
+            "hide-scrollbar flex-1 overflow-y-auto py-4 transition-all duration-300",
+            isCollapsed ? "px-2" : "px-3",
           )}
         >
-          {!isCollapsed && <p className="section-label mb-3 px-3">{t("common.menu")}</p>}
-          <ul className="space-y-0.5">
-            {menuItems.map(({ href, labelKey, icon: Icon, adminOnly }, i) => {
-              const label = t(labelKey);
-              const isActive = pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
-              const showDivider = adminOnly && i > 0 && !menuItems[i - 1]?.adminOnly;
-              return (
-                <motion.li
-                  key={href}
-                  initial={false}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: isCollapsed ? 0 : i * 0.03 }}
-                >
-                  {showDivider && !isCollapsed && (
-                    <p className="section-label mt-5 mb-3 px-3">{t("nav.systemAdmin")}</p>
-                  )}
-                  <Link
-                    href={href}
-                    ref={isActive ? activeItemRef : null}
-                    onClick={() => {
-                      onMenuNavigate?.(href);
-                      onClose();
-                    }}
-                    title={isCollapsed ? label : undefined}
-                    className={cn(
-                      "group flex items-center rounded-lg text-sm font-medium transition-all duration-200",
-                      isCollapsed
-                        ? "justify-center px-0 py-2.5"
-                        : "gap-3 px-3 py-2.5 pl-3",
-                      isActive
-                        ? "border border-[#54e3a1]/40 border-l-2 border-l-[#54e3a1] bg-[#54e3a1]/12 text-[#177a55] shadow-sm dark:border-mint/20 dark:border-l-mint dark:bg-mint/15 dark:text-foreground"
-                        : "border-l-2 border-l-transparent text-gray-700 hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground"
-                    )}
-                  >
-                    <Icon
-                      className={cn(
-                        "size-5 shrink-0",
-                        isActive
-                          ? "text-[#2bc787] dark:text-mint"
-                          : "text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted dark:group-hover:text-mint"
-                      )}
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
-                    {!isCollapsed && <span>{label}</span>}
-                  </Link>
-                </motion.li>
-              );
-            })}
+          {!isCollapsed && (
+            <p className="section-label mb-3 px-3">{t("common.menu")}</p>
+          )}
+          <ul className="space-y-1">
+            {visibleGroups.map((group) =>
+              isCollapsed ? (
+                <CollapsedGroupButton
+                  key={group.id}
+                  group={group}
+                  pathname={pathname}
+                  isFlyoutOpen={collapsedFlyoutGroupId === group.id}
+                  onToggleFlyout={() =>
+                    setCollapsedFlyoutGroupId((current) =>
+                      current === group.id ? null : group.id,
+                    )
+                  }
+                  onNavigate={handleNavigate}
+                  t={t}
+                />
+              ) : (
+                <ExpandedGroup
+                  key={group.id}
+                  group={group}
+                  pathname={pathname}
+                  isOpen={Boolean(openGroups[group.id])}
+                  onToggle={() => toggleGroup(group.id)}
+                  onNavigate={handleNavigate}
+                  activeItemRef={activeItemRef}
+                  t={t}
+                />
+              ),
+            )}
           </ul>
         </nav>
 
         <div
           className={cn(
             "shrink-0 border-t border-border transition-all duration-300",
-            isCollapsed ? "p-2" : "p-4 space-y-3"
+            isCollapsed ? "p-2" : "space-y-3 p-4",
           )}
         >
           {!isCollapsed ? (
             <PoweredByWinterArc variant="compact" className="pb-1" />
           ) : (
-            <PoweredByWinterArc variant="compact" className="pb-1 [&_.powered-by-winter-arc-text]:sr-only" />
+            <PoweredByWinterArc
+              variant="compact"
+              className="pb-1 [&_.powered-by-winter-arc-text]:sr-only"
+            />
           )}
           <button
             type="button"
@@ -551,14 +215,181 @@ export function SidebarMenu({
             title={isCollapsed ? t("common.signOut") : undefined}
             className={cn(
               "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
-              isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
+              isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
             )}
           >
-            <LogOut className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted" strokeWidth={2} />
+            <LogOut
+              className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted"
+              strokeWidth={2}
+            />
             {!isCollapsed && <span>{t("common.signOut")}</span>}
           </button>
         </div>
       </motion.aside>
     </>
+  );
+}
+
+function ExpandedGroup({
+  group,
+  pathname,
+  isOpen,
+  onToggle,
+  onNavigate,
+  activeItemRef,
+  t,
+}: {
+  group: SidebarMenuGroup & { items: SidebarMenuItem[] };
+  pathname: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  onNavigate: (href: string) => void;
+  activeItemRef: RefObject<HTMLAnchorElement | null>;
+  t: (key: import("@/presentation/i18n/translations").TranslationKey) => string;
+}) {
+  const GroupIcon = group.icon;
+  const groupActive = group.items.some((item) => isRouteActive(pathname, item.href));
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onToggle}
+        className={cn(
+          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors",
+          groupActive
+            ? "bg-mint/10 text-[#177a55] dark:text-foreground"
+            : "text-gray-800 hover:bg-mint/5 dark:text-foreground dark:hover:bg-mint/10",
+        )}
+        aria-expanded={isOpen}
+      >
+        <GroupIcon className="size-4 shrink-0" strokeWidth={2} />
+        <span className="min-w-0 flex-1 truncate">{t(group.labelKey)}</span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 transition-transform",
+            isOpen && "rotate-180",
+          )}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen ? (
+          <motion.ul
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = isRouteActive(pathname, item.href);
+              const label = t(item.labelKey);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    ref={isActive ? activeItemRef : null}
+                    onClick={() => onNavigate(item.href)}
+                    className={cn(
+                      "group ml-2 flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "border-l-2 border-l-mint bg-mint/12 text-[#177a55] dark:text-foreground"
+                        : "border-l-2 border-l-transparent text-gray-700 hover:bg-mint/10 hover:text-[#177a55] dark:text-muted dark:hover:text-foreground",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "size-4 shrink-0",
+                        isActive
+                          ? "text-[#2bc787] dark:text-mint"
+                          : "text-gray-600 group-hover:text-[#2bc787] dark:text-muted",
+                      )}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                    <span className="truncate">{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </motion.ul>
+        ) : null}
+      </AnimatePresence>
+    </li>
+  );
+}
+
+function CollapsedGroupButton({
+  group,
+  pathname,
+  isFlyoutOpen,
+  onToggleFlyout,
+  onNavigate,
+  t,
+}: {
+  group: SidebarMenuGroup & { items: SidebarMenuItem[] };
+  pathname: string;
+  isFlyoutOpen: boolean;
+  onToggleFlyout: () => void;
+  onNavigate: (href: string) => void;
+  t: (key: import("@/presentation/i18n/translations").TranslationKey) => string;
+}) {
+  const GroupIcon = group.icon;
+  const groupActive = group.items.some((item) => isRouteActive(pathname, item.href));
+
+  return (
+    <li className="relative">
+      <button
+        type="button"
+        title={t(group.labelKey)}
+        onClick={onToggleFlyout}
+        className={cn(
+          "flex w-full items-center justify-center rounded-lg py-2.5 transition-colors",
+          groupActive || isFlyoutOpen
+            ? "bg-mint/15 text-[#177a55] dark:text-mint"
+            : "text-gray-700 hover:bg-mint/10 dark:text-muted",
+        )}
+        aria-expanded={isFlyoutOpen}
+      >
+        <GroupIcon className="size-5" strokeWidth={2} />
+      </button>
+      <AnimatePresence>
+        {isFlyoutOpen ? (
+          <motion.div
+            initial={{ opacity: 0, x: -4 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -4 }}
+            className="absolute left-full top-0 z-50 ml-2 w-56 rounded-xl border border-border bg-background p-2 shadow-xl"
+          >
+            <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
+              {t(group.labelKey)}
+            </p>
+            <ul className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = isRouteActive(pathname, item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => onNavigate(item.href)}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-2 py-2 text-sm",
+                        isActive
+                          ? "bg-mint/12 text-[#177a55] dark:text-foreground"
+                          : "text-gray-700 hover:bg-mint/10 dark:text-muted",
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span className="truncate">{t(item.labelKey)}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </li>
   );
 }
