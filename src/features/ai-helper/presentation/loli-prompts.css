@@ -48,25 +48,6 @@
   color: rgb(96 165 250);
 }
 
-.loli-prompt__dots {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.45rem;
-}
-
-.loli-prompt__dot {
-  height: 0.3rem;
-  width: 0.3rem;
-  border-radius: 9999px;
-  background: rgb(147 197 253 / 0.55);
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.loli-prompt__dot--active {
-  background: rgb(59 130 246);
-  transform: scale(1.15);
-}
-
 .dark .loli-prompt__bubble {
   border-color: rgb(96 165 250 / 0.35);
   background: linear-gradient(

@@ -56,18 +56,6 @@ export function LoliQuestionPrompts({
           {question}
         </motion.button>
       </AnimatePresence>
-      <div className="loli-prompt__dots" aria-hidden="true">
-        {PROMPT_QUESTIONS.map((item, dotIndex) => (
-          <span
-            key={item}
-            className={
-              dotIndex === index
-                ? "loli-prompt__dot loli-prompt__dot--active"
-                : "loli-prompt__dot"
-            }
-          />
-        ))}
-      </div>
     </div>
   );
 }
