@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Minus, Send, WifiOff, X } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,15 +12,13 @@ import {
   visibleChatMessages,
 } from "@/presentation/hooks/useAiHelper";
 import { LoliAvatar } from "./LoliAvatar";
+import { LoliQuestionPrompts, PROMPT_QUESTIONS } from "./LoliQuestionPrompts";
 
-const SUGGESTIONS = [
-  "How do I check out an order?",
-  "Where do I receive stock (GRN)?",
-  "How do I create a staff user?",
-];
+const SUGGESTIONS = PROMPT_QUESTIONS.slice(0, 3);
 
 export function AiHelperChat() {
   const [open, setOpen] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const statusQuery = useAiHelperStatus(open);
   const turn = useAiHelperTurn();
   const toast = useToast();
@@ -49,6 +47,18 @@ export function AiHelperChat() {
       });
     });
   }
+
+  function openWithQuestion(question: string) {
+    setPendingQuestion(question);
+    setOpen(true);
+  }
+
+  useEffect(() => {
+    if (!open || !pendingQuestion || busy) return;
+    const question = pendingQuestion;
+    setPendingQuestion(null);
+    void send(question);
+  }, [open, pendingQuestion, busy]);
 
   return (
     <div className="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end gap-3">
@@ -81,6 +91,7 @@ export function AiHelperChat() {
                   setOpen(false);
                   setMessages([]);
                   setDraft("");
+                  setPendingQuestion(null);
                 }}
                 aria-label="Close helper"
               >
@@ -162,15 +173,30 @@ export function AiHelperChat() {
         </div>
       ) : null}
 
-      <button
-        type="button"
-        className="pointer-events-auto rounded-full bg-transparent p-0"
-        onClick={() => setOpen((value) => !value)}
-        aria-label={open ? "Hide Loli" : "Open Loli"}
-        aria-expanded={open}
-      >
-        <LoliAvatar size="lg" />
-      </button>
+      {!open ? (
+        <div className="pointer-events-none flex items-end gap-3">
+          <LoliQuestionPrompts onSelect={openWithQuestion} />
+          <button
+            type="button"
+            className="pointer-events-auto shrink-0 rounded-full bg-transparent p-0"
+            onClick={() => setOpen(true)}
+            aria-label="Open Loli"
+            aria-expanded={false}
+          >
+            <LoliAvatar size="lg" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="pointer-events-auto rounded-full bg-transparent p-0"
+          onClick={() => setOpen(false)}
+          aria-label="Hide Loli"
+          aria-expanded
+        >
+          <LoliAvatar size="lg" />
+        </button>
+      )}
     </div>
   );
 }
