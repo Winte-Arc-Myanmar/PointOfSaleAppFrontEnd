@@ -139,6 +139,9 @@ import { RefundService } from "@/core/application/services/RefundService";
 import { ThermalPrintService } from "@/core/application/services/ThermalPrintService";
 import { EscPosReceiptFormatter } from "@/core/application/print/EscPosReceiptFormatter";
 import { BrowserThermalPrintGateway } from "../print/BrowserThermalPrintGateway";
+import { ApiAiConnection } from "../ai/ApiAiConnection";
+import { AgentService } from "@/core/application/services/AgentService";
+import { PosHelperToolExecutor } from "@/core/application/services/PosHelperToolExecutor";
 import type { IProductRepository } from "@/core/domain/repositories/IProductRepository";
 import type { IProductVariantRepository } from "@/core/domain/repositories/IProductVariantRepository";
 import type { IAuthRepository } from "@/core/domain/repositories/IAuthRepository";
@@ -276,6 +279,9 @@ import type {
 import type { IRefundService } from "@/core/domain/services/IRefundService";
 import type { IReportRepository } from "@/core/domain/repositories/IReportRepository";
 import type { IReportService } from "@/core/domain/services/IReportService";
+import type { IAiConnection } from "@/core/domain/repositories/IAiConnection";
+import type { IAgentService } from "@/core/domain/services/IAgentService";
+import type { IAgentToolExecutor } from "@/core/domain/services/IAgentToolExecutor";
 
 class Container {
   private instances = new Map<string, unknown>();
@@ -451,6 +457,9 @@ class Container {
       thermalReceiptFormatter,
       thermalPrintGateway,
     );
+    const aiConnection = new ApiAiConnection(httpClient);
+    const agentToolExecutor = new PosHelperToolExecutor();
+    const agentService = new AgentService(aiConnection, agentToolExecutor);
 
     this.register("httpClient", httpClient);
     this.register<IProductRepository>("productRepository", productRepository);
@@ -738,6 +747,9 @@ class Container {
       "thermalPrintService",
       thermalPrintService,
     );
+    this.register<IAiConnection>("aiConnection", aiConnection);
+    this.register<IAgentToolExecutor>("agentToolExecutor", agentToolExecutor);
+    this.register<IAgentService>("agentService", agentService);
   }
 
   register<T>(key: string, instance: T): void {

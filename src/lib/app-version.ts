@@ -11,7 +11,8 @@
  * 1.6.0 — receipt redesign (kitchen slip + paid receipt), checkout tablet layout
  * 1.6.1 — required Zod validation for user create/update and tenant update
  * 1.6.2 — user avatar image upload; required Zod validation for system-admin forms
+ * 1.7.0 — POS AI helper agent (OpenAI-compatible connection port)
  */
-export const APP_VERSION = "1.6.2";
+export const APP_VERSION = "1.7.0";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { SidebarMenu } from "./SidebarMenu";
 import { Navbar } from "./Navbar";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
+import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
@@ -474,6 +475,7 @@ export function Shell({ children }: ShellProps) {
           />
         </main>
       </div>
+      <AiHelperChat />
     </div>
   );
 }

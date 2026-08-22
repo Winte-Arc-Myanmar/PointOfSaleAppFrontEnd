@@ -516,6 +516,16 @@ export const API_ENDPOINTS = {
     SERVER_PERFORMANCE: "/v1/reports/server-performance",
     Z_REPORT: "/v1/reports/z-report",
   },
+  /**
+   * Standard AI connection (to be implemented on the backend).
+   * Chat Completions is OpenAI-compatible: messages, tools, tool_choice, model.
+   * Auth: same session Bearer token as the rest of /v1.
+   * Provider keys stay on the server — never in NEXT_PUBLIC_* vars.
+   */
+  AI: {
+    STATUS: "/v1/ai/status",
+    CHAT_COMPLETIONS: "/v1/ai/chat/completions",
+  },
   DISCOUNT_REASONS: {
     LIST: "/v1/discount-reasons",
     BY_ID: (id: string) => `/v1/discount-reasons/${id}`,

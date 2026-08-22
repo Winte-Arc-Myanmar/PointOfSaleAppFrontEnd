@@ -17,6 +17,9 @@ Backend contract (current):
   - When type is "user", tenantId and branchId are also sent.
   - Response is expected to include an access token (e.g. access_token / token / accessToken) plus user/session fields.
 - Example resource routes: /v1/products, /v1/customers, /v1/roles, etc. (see src/core/infrastructure/api/constants.ts for the full list).
+- AI helper (when the backend adds it): GET /v1/ai/status and POST /v1/ai/chat/completions.
+  - Completions follow the OpenAI Chat Completions contract (messages, optional tools / tool_choice, model).
+  - The frontend never holds a provider API key; the backend proxies to the LLM.
 
 Pagination:
 
