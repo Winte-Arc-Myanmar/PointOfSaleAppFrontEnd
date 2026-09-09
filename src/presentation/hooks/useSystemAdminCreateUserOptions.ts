@@ -17,14 +17,23 @@ export function useSystemAdminCreateUserOptions() {
       const branchService = container.resolve<IBranchService>("branchService");
       const tenantService = container.resolve<ITenantService>("tenantService");
 
-      const [rolesResult, branchesResult, tenantsResult] = await Promise.all([
-        roleService.getAll(),
+      const rolesResult = await roleService.getAll();
+      const rolePageCount = Math.ceil(rolesResult.total / rolesResult.limit);
+      const remainingRolePages = await Promise.all(
+        Array.from({ length: rolePageCount - 1 }, (_, index) =>
+          roleService.getAll({ page: index + 2, limit: rolesResult.limit })
+        )
+      );
+      const [branchesResult, tenantsResult] = await Promise.all([
         branchService.getAll(),
         tenantService.getAll(),
       ]);
 
       return {
-        roles: getPaginatedItems(rolesResult),
+        roles: [
+          ...getPaginatedItems(rolesResult),
+          ...remainingRolePages.flatMap(getPaginatedItems),
+        ],
         branches: getPaginatedItems(branchesResult),
         tenants: getPaginatedItems(tenantsResult),
       };
