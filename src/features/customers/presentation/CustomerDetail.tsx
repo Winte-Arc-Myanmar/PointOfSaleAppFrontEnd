@@ -26,6 +26,7 @@ import {
   calculateAge,
   getCustomerDemoProfile,
 } from "./customer-demo-profile";
+import { CustomerMembershipPanel } from "./CustomerMembershipPanel";
 
 const moneyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
@@ -212,6 +213,8 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
           </DetailSection>
         </div>
       </div>
+
+      <CustomerMembershipPanel customer={customer} />
 
       {demoProfile ? (
         <section className="space-y-4" aria-labelledby="customer-history-title">

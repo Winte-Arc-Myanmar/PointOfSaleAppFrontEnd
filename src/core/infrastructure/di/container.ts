@@ -97,11 +97,13 @@ import { ExchangeRateService } from "@/core/application/services/ExchangeRateSer
 import { ApiTaxRateRepository } from "../repositories/ApiTaxRateRepository";
 import { ApiMembershipCardCategoryRepository } from "../repositories/ApiMembershipCardCategoryRepository";
 import { ApiMembershipCardTemplateRepository } from "../repositories/ApiMembershipCardTemplateRepository";
+import { ApiMembershipMemberRepository } from "../repositories/ApiMembershipMemberRepository";
 import { ApiDiscountReasonRepository } from "../repositories/ApiDiscountReasonRepository";
 import { ApiVoidReasonRepository } from "../repositories/ApiVoidReasonRepository";
 import { TaxRateService } from "@/core/application/services/TaxRateService";
 import { MembershipCardCategoryService } from "@/core/application/services/MembershipCardCategoryService";
 import { MembershipCardTemplateService } from "@/core/application/services/MembershipCardTemplateService";
+import { MembershipMemberService } from "@/core/application/services/MembershipMemberService";
 import { DiscountReasonService } from "@/core/application/services/DiscountReasonService";
 import { VoidReasonService } from "@/core/application/services/VoidReasonService";
 import { ApiJournalEntryRepository } from "../repositories/ApiJournalEntryRepository";
@@ -237,9 +239,11 @@ import type { IExchangeRateService } from "@/core/domain/services/IExchangeRateS
 import type { ITaxRateRepository } from "@/core/domain/repositories/ITaxRateRepository";
 import type { IMembershipCardCategoryRepository } from "@/core/domain/repositories/IMembershipCardCategoryRepository";
 import type { IMembershipCardTemplateRepository } from "@/core/domain/repositories/IMembershipCardTemplateRepository";
+import type { IMembershipMemberRepository } from "@/core/domain/repositories/IMembershipMemberRepository";
 import type { ITaxRateService } from "@/core/domain/services/ITaxRateService";
 import type { IMembershipCardCategoryService } from "@/core/domain/services/IMembershipCardCategoryService";
 import type { IMembershipCardTemplateService } from "@/core/domain/services/IMembershipCardTemplateService";
+import type { IMembershipMemberService } from "@/core/domain/services/IMembershipMemberService";
 import type { IDiscountReasonRepository } from "@/core/domain/repositories/IDiscountReasonRepository";
 import type { IDiscountReasonService } from "@/core/domain/services/IDiscountReasonService";
 import type { IVoidReasonRepository } from "@/core/domain/repositories/IVoidReasonRepository";
@@ -411,6 +415,10 @@ class Container {
     );
     const membershipCardTemplateService = new MembershipCardTemplateService(
       membershipCardTemplateRepository,
+    );
+    const membershipMemberRepository = new ApiMembershipMemberRepository(httpClient);
+    const membershipMemberService = new MembershipMemberService(
+      membershipMemberRepository,
     );
     const discountReasonRepository = new ApiDiscountReasonRepository(httpClient);
     const discountReasonService = new DiscountReasonService(discountReasonRepository);
@@ -659,6 +667,14 @@ class Container {
     this.register<IMembershipCardTemplateService>(
       "membershipCardTemplateService",
       membershipCardTemplateService,
+    );
+    this.register<IMembershipMemberRepository>(
+      "membershipMemberRepository",
+      membershipMemberRepository,
+    );
+    this.register<IMembershipMemberService>(
+      "membershipMemberService",
+      membershipMemberService,
     );
     this.register<IDiscountReasonRepository>(
       "discountReasonRepository",

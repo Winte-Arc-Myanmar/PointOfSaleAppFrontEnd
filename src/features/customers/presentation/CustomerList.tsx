@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { UserPlus } from "lucide-react";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import {
   Select,
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { FormModal } from "@/presentation/components/modal/FormModal";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import {
   useCustomers,
@@ -19,12 +22,14 @@ import {
 } from "@/presentation/hooks/useCustomers";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import type { Customer } from "@/core/domain/entities/Customer";
+import { RegisterMembershipForm } from "@/features/memberships/presentation/RegisterMembershipForm";
 import { CreateCustomerForm } from "./CreateCustomerForm";
 import { getCustomerRowActions } from "./customer-row-actions";
 import { getCustomerTableColumns } from "./customer-table-columns";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 
 const CREATE_CUSTOMER_FORM_ID = "create-customer-form";
+const REGISTER_MEMBERSHIP_FORM_ID = "register-membership-from-customers-form";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 10;
@@ -44,6 +49,8 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
   const [search, setSearch] = useState("");
   const [selectedLoyaltyTier, setSelectedLoyaltyTier] = useState("__all__");
   const [selectedAccountType, setSelectedAccountType] = useState("__all__");
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
   const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
@@ -242,6 +249,18 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
         enableRowSelection
         onEditSelected={(item) => router.push(`/customers/${item.id}/edit`)}
         onDeleteSelected={handleDeleteSelected}
+        toolbarEndContent={
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setRegisterOpen(true)}
+            aria-label="Register membership"
+            title="Register membership"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Register membership
+          </Button>
+        }
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
           <CreateCustomerForm
             formId={formId}
@@ -249,6 +268,23 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
             onLoadingChange={onLoadingChange}
           />
         )}
+      />
+      <FormModal
+        isOpen={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+        title="Membership Registration"
+        formId={REGISTER_MEMBERSHIP_FORM_ID}
+        formContent={
+          <RegisterMembershipForm
+            formId={REGISTER_MEMBERSHIP_FORM_ID}
+            onSuccess={() => setRegisterOpen(false)}
+            onLoadingChange={setRegisterLoading}
+          />
+        }
+        submitText="Register"
+        loadingText="Registering..."
+        isLoading={registerLoading}
+        maxWidth="2xl"
       />
     </div>
   );

@@ -15,7 +15,9 @@
  * 1.8.0 — grouped accordion sidebar; Loli floating assistant; reports & vendors in nav
  * 1.8.1 — Loli open button rotating question prompts
  * 1.9.0 — Membership Payment Card Templates UI (card categories + card details)
+ * 1.10.0 — Membership/Customer menu: list, registration, topup/refund, bind/unbind, close
+ * 1.10.1 — Membership actions live under Customers (list register + detail wallet/card)
  */
-export const APP_VERSION = "1.9.0";
+export const APP_VERSION = "1.10.1";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

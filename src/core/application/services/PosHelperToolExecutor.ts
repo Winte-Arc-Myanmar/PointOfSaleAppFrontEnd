@@ -85,6 +85,18 @@ const POS_MODULES: PosModuleHelp[] = [
     aliases: ["po", "buying", "vendor order"],
   },
   {
+    id: "memberships",
+    title: "Customer memberships",
+    href: "/customers",
+    summary: "Register memberships and manage wallet/card actions from Customers.",
+    steps: [
+      "Open Customers from CRM & Loyalty.",
+      "Use Register membership on the list, or open a customer and register there.",
+      "On the customer detail page: topup, refund, bind/unbind, or close membership.",
+    ],
+    aliases: ["membership", "member", "topup", "bind card", "membership customer"],
+  },
+  {
     id: "membership-card-templates",
     title: "Membership card templates",
     href: "/membership-card-templates",

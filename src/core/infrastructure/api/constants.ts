@@ -403,6 +403,16 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/membership-card-templates/${id}`,
     DELETE: (id: string) => `/v1/membership-card-templates/${id}`,
   },
+  MEMBERSHIPS: {
+    LIST: "/v1/memberships",
+    BY_ID: (id: string) => `/v1/memberships/${id}`,
+    REGISTER: "/v1/memberships/register",
+    TOPUP: (id: string) => `/v1/memberships/${id}/topup`,
+    REFUND: (id: string) => `/v1/memberships/${id}/refund`,
+    BIND_CARD: (id: string) => `/v1/memberships/${id}/bind-card`,
+    UNBIND_CARD: (id: string) => `/v1/memberships/${id}/unbind-card`,
+    CLOSE: (id: string) => `/v1/memberships/${id}/close`,
+  },
   JOURNAL_ENTRIES: {
     LIST: "/v1/journal-entries",
     BY_ID: (id: string) => `/v1/journal-entries/${id}`,
