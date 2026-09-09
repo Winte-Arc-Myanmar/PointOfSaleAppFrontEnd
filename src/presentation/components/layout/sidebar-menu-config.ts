@@ -283,6 +283,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         icon: Gift,
         permissions: ["loyalty-ledger:read"],
       },
+      {
+        href: "/membership-card-templates",
+        labelKey: "nav.membershipCardTemplates",
+        icon: CreditCard,
+        permissions: ["membership-card-templates:read"],
+      },
     ],
   },
   {

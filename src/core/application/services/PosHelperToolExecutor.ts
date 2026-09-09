@@ -85,6 +85,18 @@ const POS_MODULES: PosModuleHelp[] = [
     aliases: ["po", "buying", "vendor order"],
   },
   {
+    id: "membership-card-templates",
+    title: "Membership card templates",
+    href: "/membership-card-templates",
+    summary: "Manage membership payment card categories and card template details.",
+    steps: [
+      "Open Membership Card Templates.",
+      "Use Card Categories tree to select where the card belongs.",
+      "Add card details: tier, amount, billing period, and rules.",
+    ],
+    aliases: ["membership", "member card", "card template", "loyalty card"],
+  },
+  {
     id: "reports",
     title: "Reports",
     href: "/reports",

@@ -14,7 +14,8 @@
  * 1.7.0 — POS AI helper agent (OpenAI-compatible connection port)
  * 1.8.0 — grouped accordion sidebar; Loli floating assistant; reports & vendors in nav
  * 1.8.1 — Loli open button rotating question prompts
+ * 1.9.0 — Membership Payment Card Templates UI (card categories + card details)
  */
-export const APP_VERSION = "1.8.1";
+export const APP_VERSION = "1.9.0";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

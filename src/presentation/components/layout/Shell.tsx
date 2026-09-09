@@ -53,6 +53,7 @@ const routeTitles: Record<string, string> = {
   "/accounting-periods": "Accounting Periods",
   "/exchange-rates": "Exchange Rates",
   "/tax-rates": "Tax Rates",
+  "/membership-card-templates": "Membership Card Templates",
   "/journal-entries": "Journal Entries",
   "/journal-lines": "Journal Lines",
   "/bank-statements": "Bank Statements",
@@ -158,6 +159,13 @@ function getTitle(pathname: string): string {
   if (pathname.startsWith("/tax-rates/") && pathname.endsWith("/edit"))
     return "Edit tax rate";
   if (pathname.startsWith("/tax-rates/")) return "Tax rate";
+  if (
+    pathname.startsWith("/membership-card-templates/") &&
+    pathname.endsWith("/edit")
+  )
+    return "Edit membership card template";
+  if (pathname.startsWith("/membership-card-templates/"))
+    return "Membership card template";
   if (pathname.startsWith("/journal-entries/") && pathname.endsWith("/edit"))
     return "Edit journal entry";
   if (pathname.startsWith("/journal-entries/")) return "Journal entry";
