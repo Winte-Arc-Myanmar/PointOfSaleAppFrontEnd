@@ -17,7 +17,10 @@
  * 1.9.0 — Membership Payment Card Templates UI (card categories + card details)
  * 1.10.0 — Membership/Customer menu: list, registration, topup/refund, bind/unbind, close
  * 1.10.1 — Membership actions live under Customers (list register + detail wallet/card)
+ * 1.11.0 — Card Tiers wired to /v1/card-tiers (replaces UI-only card categories/details)
+ * 1.11.1 — Card tier list/create error handling and pagination fixes
+ * 1.11.2 — Card tiers routes moved to /card-tiers (old template URLs redirect)
  */
-export const APP_VERSION = "1.10.1";
+export const APP_VERSION = "1.11.2";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

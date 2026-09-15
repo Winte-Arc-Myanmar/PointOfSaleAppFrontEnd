@@ -284,10 +284,10 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["loyalty-ledger:read"],
       },
       {
-        href: "/membership-card-templates",
+        href: "/card-tiers",
         labelKey: "nav.membershipCardTemplates",
         icon: CreditCard,
-        permissions: ["membership-card-templates:read"],
+        permissions: ["card-tiers:read", "membership-card-templates:read"],
       },
     ],
   },

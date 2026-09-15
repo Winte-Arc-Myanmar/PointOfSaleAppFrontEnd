@@ -30,7 +30,10 @@ function parseDecimal(val: unknown): number {
   return Number(val) || 0;
 }
 
-type MembershipCardTemplateDtoRaw = Omit<MembershipCardTemplateDto, "amount"> & {
+type MembershipCardTemplateDtoRaw = Omit<
+  MembershipCardTemplateDto,
+  "amount" | "durationMonths"
+> & {
   id: string;
   amount?: unknown;
   durationMonths?: unknown;

@@ -50,12 +50,15 @@ export function parsePaginatedResponse<T>(
       ? payload.data
       : [];
 
+  const metaTotal = getNumber(
+    payload?.total ?? payload?.meta?.total ?? payload?.meta?.totalItems,
+    -1,
+  );
+  const total = metaTotal >= 0 ? metaTotal : items.length;
+
   return {
     items,
-    total: getNumber(
-      payload?.total ?? payload?.meta?.total ?? payload?.meta?.totalItems,
-      items.length,
-    ),
+    total: items.length > 0 && total === 0 ? items.length : total,
     page: getNumber(payload?.page ?? payload?.meta?.page ?? payload?.meta?.currentPage, page),
     limit: getNumber(payload?.limit ?? payload?.meta?.limit ?? payload?.meta?.perPage, limit),
     totalPages: getNumber(payload?.totalPages ?? payload?.meta?.totalPages, 0) || undefined,

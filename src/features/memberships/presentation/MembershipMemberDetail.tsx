@@ -67,8 +67,10 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
     );
   }
 
-  const isClosed = member.status === "CLOSED";
-  const isBound = member.cardBindStatus === "BOUND" && Boolean(member.cardNumber);
+  const activeMember = member;
+  const isClosed = activeMember.status === "CLOSED";
+  const isBound =
+    activeMember.cardBindStatus === "BOUND" && Boolean(activeMember.cardNumber);
 
   const overviewRows = [
     { label: "Membership ID", value: safeText(member.id), mono: true },
@@ -106,7 +108,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   async function handleRefund() {
     const amount = Number(refundAmount);
     if (!(amount > 0)) return toast.error("Enter a refund amount greater than 0.");
-    if (amount > member.walletBalance) {
+    if (amount > activeMember.walletBalance) {
       return toast.error("Refund cannot exceed wallet balance.");
     }
     refund.mutate(
@@ -144,7 +146,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   async function handleUnbind() {
     const ok = await confirm({
       title: "Unbind card",
-      description: `Unbind card ${member.cardNumber}? The membership wallet will remain.`,
+      description: `Unbind card ${activeMember.cardNumber}? The membership wallet will remain.`,
       confirmLabel: "Unbind",
       variant: "destructive",
     });
@@ -161,7 +163,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   async function handleClose() {
     const ok = await confirm({
       title: "Close membership",
-      description: `Close membership for ${member.customerName}? This cannot be undone.`,
+      description: `Close membership for ${activeMember.customerName}? This cannot be undone.`,
       confirmLabel: "Close membership",
       variant: "destructive",
     });

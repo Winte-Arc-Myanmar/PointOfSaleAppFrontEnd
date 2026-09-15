@@ -84,6 +84,8 @@ export function useRegisterMembership() {
         customerName?: string;
         phone?: string;
         email?: string;
+        cardTemplateName?: string;
+        tier?: string;
       },
     ) => {
       try {
@@ -100,8 +102,8 @@ export function useRegisterMembership() {
           customerName: data.customerName,
           phone: data.phone,
           email: data.email,
-          cardTemplateName: template?.name,
-          tier: template?.tier,
+          cardTemplateName: data.cardTemplateName ?? template?.name,
+          tier: data.tier ?? template?.tier,
         });
       }
     },

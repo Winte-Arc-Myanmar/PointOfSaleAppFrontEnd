@@ -388,6 +388,13 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/tax-rates/${id}`,
     DELETE: (id: string) => `/v1/tax-rates/${id}`,
   },
+  CARD_TIERS: {
+    LIST: "/v1/card-tiers",
+    BY_ID: (id: string) => `/v1/card-tiers/${id}`,
+    CREATE: "/v1/card-tiers",
+    UPDATE: (id: string) => `/v1/card-tiers/${id}`,
+    DELETE: (id: string) => `/v1/card-tiers/${id}`,
+  },
   MEMBERSHIP_CARD_CATEGORIES: {
     LIST: "/v1/membership-card-categories",
     TREE: "/v1/membership-card-categories/tree",

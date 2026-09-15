@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
-import { useMembershipCardTemplates } from "@/presentation/hooks/useMembershipCardTemplates";
+import { useCardTiers } from "@/presentation/hooks/useCardTiers";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useRegisterMembership } from "@/presentation/hooks/useMembershipMembers";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -24,7 +24,7 @@ import {
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   customerId: z.string().min(1, "Customer is required"),
-  cardTemplateId: z.string().min(1, "Card template is required"),
+  cardTemplateId: z.string().min(1, "Card tier is required"),
   cardNumber: z.string(),
   initialTopup: z.number().min(0),
 });
@@ -59,11 +59,13 @@ export function RegisterMembershipForm({
   const tenants = getPaginatedItems(tenantsData);
   const { data: customersData } = useCustomers({ page: 1, limit: 200 });
   const customers = getPaginatedItems(customersData);
-  const { data: templatesData } = useMembershipCardTemplates({
+  const { data: cardTiersData } = useCardTiers({
     page: 1,
     limit: 200,
+    sortBy: "rank",
+    sortOrder: "asc",
   });
-  const templates = templatesData?.items ?? [];
+  const cardTiers = cardTiersData?.items ?? [];
   const lockCustomer = Boolean(defaultCustomerId);
 
   const form = useForm<FormData>({
@@ -85,12 +87,12 @@ export function RegisterMembershipForm({
     [customers, selectedTenantId],
   );
 
-  const filteredTemplates = useMemo(
+  const filteredTiers = useMemo(
     () =>
-      templates.filter((t) =>
+      cardTiers.filter((t) =>
         selectedTenantId ? String(t.tenantId) === String(selectedTenantId) : true,
       ),
-    [templates, selectedTenantId],
+    [cardTiers, selectedTenantId],
   );
 
   useEffect(() => {
@@ -110,16 +112,21 @@ export function RegisterMembershipForm({
     const selectedCustomer = filteredCustomers.find(
       (c) => String(c.id) === String(data.customerId),
     );
+    const selectedTier = filteredTiers.find(
+      (t) => String(t.id) === String(data.cardTemplateId),
+    );
     registerMembership.mutate(
       {
         tenantId: data.tenantId,
         customerId: data.customerId,
         cardTemplateId: data.cardTemplateId,
         cardNumber: data.cardNumber.trim() || null,
-        initialTopup: data.initialTopup,
+        initialTopup: data.initialTopup || selectedTier?.preloadAmount || 0,
         customerName: selectedCustomer?.name,
         phone: selectedCustomer?.phone,
         email: selectedCustomer?.email,
+        cardTemplateName: selectedTier?.name,
+        tier: selectedTier?.name,
       },
       {
         onSuccess: () => {
@@ -196,23 +203,29 @@ export function RegisterMembershipForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="cardTemplateId">Card template</Label>
+          <Label htmlFor="cardTemplateId">Card tier</Label>
           <Controller
             control={form.control}
             name="cardTemplateId"
             render={({ field }) => (
               <Select
                 value={field.value}
-                onValueChange={field.onChange}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  const tier = filteredTiers.find((t) => String(t.id) === value);
+                  if (tier && !form.getValues("initialTopup")) {
+                    form.setValue("initialTopup", tier.preloadAmount);
+                  }
+                }}
                 disabled={!selectedTenantId}
               >
                 <SelectTrigger id="cardTemplateId">
-                  <SelectValue placeholder="Select card template" />
+                  <SelectValue placeholder="Select card tier" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredTemplates.map((t) => (
+                  {filteredTiers.map((t) => (
                     <SelectItem key={t.id} value={String(t.id)}>
-                      {t.name} ({t.tier})
+                      {t.name} (rank {t.rank})
                     </SelectItem>
                   ))}
                 </SelectContent>
