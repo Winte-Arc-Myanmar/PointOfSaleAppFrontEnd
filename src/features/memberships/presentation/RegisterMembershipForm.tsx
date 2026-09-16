@@ -89,10 +89,14 @@ export function RegisterMembershipForm({
   const posSessions = getPaginatedItems(posSessionsData);
   const { data: paymentMethodsData } = usePaymentMethods({ page: 1, limit: 200 });
   const paymentMethods = getPaginatedItems(paymentMethodsData);
-  const { data: cardTiersData } = useCardTiers({
+  const {
+    data: cardTiersData,
+    isLoading: cardTiersLoading,
+    isError: cardTiersError,
+  } = useCardTiers({
     page: 1,
     limit: 200,
-    sortBy: "rank",
+    sortBy: "createdAt",
     sortOrder: "asc",
   });
   const cardTiers = cardTiersData?.items ?? [];
@@ -123,10 +127,15 @@ export function RegisterMembershipForm({
 
   const filteredTiers = useMemo(() => {
     if (!selectedTenantId) return [];
-    return cardTiers.filter(
-      (t) =>
-        !t.tenantId || String(t.tenantId) === String(selectedTenantId),
-    );
+    const activeTiers = cardTiers.filter((tier) => tier.isActive);
+    const withTenantId = activeTiers.filter((tier) => tier.tenantId);
+    const scopedTiers =
+      withTenantId.length === 0
+        ? activeTiers
+        : withTenantId.filter(
+            (tier) => String(tier.tenantId) === String(selectedTenantId),
+          );
+    return [...scopedTiers].sort((a, b) => a.rank - b.rank);
   }, [cardTiers, selectedTenantId]);
   const filteredLocations = useMemo(
     () =>
@@ -248,7 +257,7 @@ export function RegisterMembershipForm({
                 </SelectTrigger>
                 <SelectContent>
                   {tenants.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
+                    <SelectItem key={t.id} value={String(t.id)}>
                       {t.name}
                     </SelectItem>
                   ))}
@@ -304,22 +313,26 @@ export function RegisterMembershipForm({
                     form.setValue("amount", tier.preloadAmount);
                   }
                 }}
-                disabled={!selectedTenantId}
+                disabled={!selectedTenantId || cardTiersLoading}
               >
                 <SelectTrigger id="tierId">
                   <SelectValue
                     placeholder={
                       !selectedTenantId
                         ? "Select tenant first"
-                        : filteredTiers.length === 0
-                          ? "No card tiers available"
-                          : "Select card tier"
+                        : cardTiersLoading
+                          ? "Loading card tiers..."
+                          : cardTiersError
+                            ? "Failed to load card tiers"
+                            : filteredTiers.length === 0
+                              ? "No card tiers available"
+                              : "Select card tier"
                     }
                   />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {filteredTiers.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
+                    <SelectItem key={String(t.id)} value={String(t.id)}>
                       {t.name} (rank {t.rank})
                     </SelectItem>
                   ))}
@@ -327,6 +340,19 @@ export function RegisterMembershipForm({
               </Select>
             )}
           />
+          {cardTiersError ? (
+            <p className="text-xs text-red-500">
+              Could not load card tiers. Check Card Tiers in the menu or try again.
+            </p>
+          ) : null}
+          {!cardTiersLoading &&
+          selectedTenantId &&
+          !cardTiersError &&
+          filteredTiers.length === 0 ? (
+            <p className="text-xs text-muted">
+              No active card tiers for this tenant. Create one under Card Tiers first.
+            </p>
+          ) : null}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="guestIdNumber">Guest ID Number (optional)</Label>
