@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import type { TenantCurrency } from "@/core/domain/entities/Tenant";
 import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
+import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 
 export type PosOrderType =
   | "dine-in"
@@ -115,7 +116,10 @@ export function PosRightSidebarCart({
 }: PosRightSidebarCartProps) {
   const { formatPrice: formatCurrencyPrice } = useCurrency();
   const formatPrice = (value: number) => formatCurrencyPrice(value, currency);
-  const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
+  const { preferences, setReceiptPreferences } = usePrinterPreferences();
+  const paperWidthMm = preferences.receipt.paperWidthMm;
+  const setPaperWidthMm = (value: ThermalPaperWidth) =>
+    setReceiptPreferences({ paperWidthMm: value });
   const [offersEnabled, setOffersEnabled] = useState(false);
   const normalizedOrderNumber = orderNumber?.trim();
   const orderDisplayValue = normalizedOrderNumber

@@ -3,6 +3,12 @@ import type {
   ThermalPrintResult,
 } from "@/core/domain/entities/ThermalPrint";
 import type { IThermalPrintGateway } from "@/core/domain/repositories/IThermalPrintGateway";
+import {
+  connectUsbPrinter,
+  getConnectedUsbPrinter,
+  printEscPosToUsb,
+  reconnectSavedUsbPrinter,
+} from "@/lib/usb-printer";
 
 /**
  * Browser-side thermal print transport.
@@ -99,7 +105,36 @@ export class BrowserThermalPrintGateway implements IThermalPrintGateway {
       };
     }
 
-    // Prefer WebUSB when the browser and printer support it.
+    const connected = getConnectedUsbPrinter();
+    if (connected) {
+      try {
+        await printEscPosToUsb(bytes);
+        return {
+          success: true,
+          mode: "raw-escpos",
+          rawBytes: bytes,
+          message: `Printed via USB (${connected.label}).`,
+        };
+      } catch {
+        // Fall through to picker / download if the active session failed.
+      }
+    }
+
+    const reconnected = await reconnectSavedUsbPrinter();
+    if (reconnected) {
+      try {
+        await printEscPosToUsb(bytes);
+        return {
+          success: true,
+          mode: "raw-escpos",
+          rawBytes: bytes,
+          message: `Printed via USB (${reconnected.label}).`,
+        };
+      } catch {
+        // Fall through to picker / download.
+      }
+    }
+
     const usbResult = await this.tryWebUsb(bytes);
     if (usbResult) return usbResult;
 
@@ -127,55 +162,14 @@ export class BrowserThermalPrintGateway implements IThermalPrintGateway {
   private async tryWebUsb(
     bytes: Uint8Array,
   ): Promise<ThermalPrintResult | null> {
-    const nav = navigator as Navigator & {
-      usb?: {
-        requestDevice: (options: {
-          filters: Array<{ classCode?: number }>;
-        }) => Promise<UsbDeviceLike>;
-      };
-    };
-
-    if (!nav.usb) return null;
-
     try {
-      const device = await nav.usb.requestDevice({
-        filters: [{ classCode: 7 }], // USB printer class
-      });
-      await device.open();
-      if (device.configuration == null) {
-        await device.selectConfiguration(1);
-      }
-
-      const iface = device.configuration?.interfaces.find((entry) =>
-        entry.alternates.some((alt) => alt.interfaceClass === 7),
-      );
-      if (!iface) {
-        await device.close();
-        return null;
-      }
-
-      await device.claimInterface(iface.interfaceNumber);
-      const alternate =
-        iface.alternates.find((alt) => alt.interfaceClass === 7) ??
-        iface.alternates[0];
-      const endpoint = alternate.endpoints.find(
-        (ep) => ep.direction === "out",
-      );
-      if (!endpoint) {
-        await device.releaseInterface(iface.interfaceNumber);
-        await device.close();
-        return null;
-      }
-
-      await device.transferOut(endpoint.endpointNumber, copyBytes(bytes));
-      await device.releaseInterface(iface.interfaceNumber);
-      await device.close();
-
+      const device = await connectUsbPrinter();
+      await printEscPosToUsb(bytes);
       return {
         success: true,
         mode: "raw-escpos",
         rawBytes: bytes,
-        message: "Printed via WebUSB ESC/POS.",
+        message: `Printed via USB (${device.label}).`,
       };
     } catch {
       // User cancelled device picker or device is unsupported — fall through.
@@ -188,28 +182,4 @@ function copyBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   return copy;
-}
-
-interface UsbDeviceLike {
-  open: () => Promise<void>;
-  close: () => Promise<void>;
-  selectConfiguration: (configurationValue: number) => Promise<void>;
-  claimInterface: (interfaceNumber: number) => Promise<void>;
-  releaseInterface: (interfaceNumber: number) => Promise<void>;
-  transferOut: (
-    endpointNumber: number,
-    data: BufferSource,
-  ) => Promise<unknown>;
-  configuration: {
-    interfaces: Array<{
-      interfaceNumber: number;
-      alternates: Array<{
-        interfaceClass: number;
-        endpoints: Array<{
-          endpointNumber: number;
-          direction: "in" | "out";
-        }>;
-      }>;
-    }>;
-  } | null;
 }

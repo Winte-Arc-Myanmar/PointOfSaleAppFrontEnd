@@ -27,6 +27,7 @@ import {
   safeText,
 } from "@/presentation/components/detail";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { KitchenPrinterConnection } from "@/presentation/components/printer/KitchenPrinterConnection";
 
 export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
   const toast = useToast();
@@ -101,6 +102,8 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
           <DetailRows rows={recordRows} />
         </DetailSection>
       </div>
+
+      <KitchenPrinterConnection defaultPrinterId={String(printer.id)} />
 
       <DetailSection title="Category routing" icon={FolderTree}>
         <p className="text-sm text-muted mb-4">

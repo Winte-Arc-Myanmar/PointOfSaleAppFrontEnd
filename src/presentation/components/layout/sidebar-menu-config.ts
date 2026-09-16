@@ -204,6 +204,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         icon: Printer,
         permissions: ["kitchen-printers:read"],
       },
+      {
+        href: "/printer-setup",
+        labelKey: "nav.printerSetup",
+        icon: Printer,
+        permissions: ["kitchen-printers:read"],
+      },
     ],
   },
   {

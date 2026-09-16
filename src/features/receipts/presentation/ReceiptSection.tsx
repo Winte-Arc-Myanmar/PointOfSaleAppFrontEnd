@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ReceiptText, Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
@@ -20,8 +19,10 @@ import {
 } from "@/presentation/components/ui/select";
 import { useReceipt } from "@/presentation/hooks/useReceipts";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
+import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
+import { PrinterConnectionStatus } from "@/presentation/components/printer/PrinterConnectionStatus";
 import { ThermalReceiptView } from "./ThermalReceiptView";
 
 function money(n: number): string {
@@ -31,8 +32,11 @@ function money(n: number): string {
 export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
   const { data: receipt, isLoading, error, refetch } = useReceipt(salesOrderId);
   const { printReceipt, isPrinting } = useThermalPrint();
+  const { preferences, setReceiptPreferences } = usePrinterPreferences();
   const toast = useToast();
-  const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
+  const paperWidthMm = preferences.receipt.paperWidthMm;
+  const setPaperWidthMm = (value: ThermalPaperWidth) =>
+    setReceiptPreferences({ paperWidthMm: value });
 
   if (isLoading)
     return (
@@ -54,10 +58,10 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
     );
   }
 
-  async function handleThermalPrint(mode: "browser" | "raw-escpos") {
+  async function handleThermalPrint(mode?: "browser" | "raw-escpos") {
     const result = await printReceipt(receipt!, {
       paperWidthMm,
-      mode,
+      mode: mode ?? preferences.receipt.mode,
       cut: true,
     });
     if (result.success) {
@@ -216,6 +220,8 @@ export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
           )}
         </DetailSection>
       </div>
+
+      <PrinterConnectionStatus />
 
       <div className="flex flex-wrap items-end gap-2 print:hidden">
         <div className="space-y-1">

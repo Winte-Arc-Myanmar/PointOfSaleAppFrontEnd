@@ -31,6 +31,7 @@ const routeTitles: Record<string, string> = {
   "/dining-tables": "Dining Tables",
   "/sections": "Sections",
   "/kitchen-printers": "Kitchen Printers",
+  "/printer-setup": "Printer Setup",
   "/table-sessions": "Table Sessions",
   "/kds-stations": "KDS Stations",
   "/kds-tickets": "KDS Tickets",

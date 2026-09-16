@@ -63,6 +63,7 @@ import {
   type PosOrderType,
 } from "./PosRightSidebarCart";
 import { CheckoutGuestCardPanel } from "./CheckoutGuestCardPanel";
+import { PrinterConnectionStatus } from "@/presentation/components/printer/PrinterConnectionStatus";
 
 function newIdempotencyKey(): string {
   try {
@@ -817,6 +818,7 @@ export function CheckoutSection() {
             printDisabled={items.fields.length === 0 || isPrinting}
             isPrinting={isPrinting}
           />
+          <PrinterConnectionStatus />
           <CheckoutGuestCardPanel
             onCustomerLinked={(customerId) => {
               form.setValue("customerId", customerId);
