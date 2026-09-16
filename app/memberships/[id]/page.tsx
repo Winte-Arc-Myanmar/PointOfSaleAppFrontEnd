@@ -1,5 +1,15 @@
-import { redirect } from "next/navigation";
+import { Shell } from "@/presentation/components/layout/Shell";
+import { MembershipMemberDetail } from "@/features/memberships/presentation/MembershipMemberDetail";
 
-export default function MembershipDetailPage() {
-  redirect("/customers");
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function MembershipDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  return (
+    <Shell>
+      <MembershipMemberDetail membershipId={id} />
+    </Shell>
+  );
 }

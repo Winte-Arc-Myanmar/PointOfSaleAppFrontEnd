@@ -45,6 +45,7 @@ import {
   useMembershipVoid,
 } from "@/presentation/hooks/useMembershipMembers";
 import { WalletLedgerSection } from "@/features/memberships/presentation/WalletLedgerSection";
+import { CardUidField } from "@/presentation/components/card-reader/CardUidField";
 import { getMembershipOverviewRows } from "@/features/memberships/presentation/membership-overview-rows";
 
 export function MembershipMemberDetail({ membershipId }: { membershipId: string }) {
@@ -176,7 +177,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
 
   async function handleBind() {
     const cardNumber = bindCardNumber.trim();
-    if (!cardNumber) return toast.error("Enter a card number to bind.");
+    if (!cardNumber) return toast.error("Enter or tap a card UID to bind.");
     bindCard.mutate(
       { id: membershipId, data: { cardUid: cardNumber } },
       {
@@ -407,12 +408,12 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
             {!isBound ? (
               <>
                 <div className="grid gap-2">
-                  <Label htmlFor="bindCardNumber">Card number</Label>
-                  <Input
+                  <Label htmlFor="bindCardNumber">Card UID</Label>
+                  <CardUidField
                     id="bindCardNumber"
                     value={bindCardNumber}
-                    onChange={(e) => setBindCardNumber(e.target.value)}
-                    placeholder="MC-xxxx-xxxx"
+                    onChange={setBindCardNumber}
+                    placeholder="04A3B2C1"
                     disabled={isClosed}
                   />
                 </div>
@@ -542,10 +543,10 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
             </div>
           )}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <Input
+            <CardUidField
               placeholder="New card UID"
               value={replaceCardUid}
-              onChange={(e) => setReplaceCardUid(e.target.value)}
+              onChange={setReplaceCardUid}
               disabled={isClosed}
             />
             <Button
@@ -575,10 +576,19 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
             >
               Replace first usable card
             </Button>
-            <Input
+            <CardUidField
               placeholder="Lookup card UID"
               value={lookupCardUid}
-              onChange={(e) => setLookupCardUid(e.target.value)}
+              onChange={setLookupCardUid}
+              onScanned={(uid) => {
+                lookupCard.mutate(uid, {
+                  onSuccess: (card) => {
+                    if (!card) return toast.error("No active card with that UID.");
+                    toast.success(`Found ${card.cardUid} on wallet ${card.walletId}.`);
+                  },
+                  onError: () => toast.error("Card lookup failed."),
+                });
+              }}
             />
             <Button
               type="button"

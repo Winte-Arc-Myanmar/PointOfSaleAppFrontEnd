@@ -78,6 +78,7 @@ function invalidateMembershipQueries(
   id?: string,
 ) {
   queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+  queryClient.invalidateQueries({ queryKey: ["guest-cards"] });
   if (id) {
     queryClient.invalidateQueries({ queryKey: [...QUERY_KEY, id] });
   }

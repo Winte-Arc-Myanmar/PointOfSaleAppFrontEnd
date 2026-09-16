@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard } from "lucide-react";
+import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
+import { CardUidField } from "@/presentation/components/card-reader/CardUidField";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { useGuestCards } from "@/presentation/hooks/useGuestCards";
+import { useMembershipCardLookup } from "@/presentation/hooks/useMembershipMembers";
+import { useToast } from "@/presentation/providers/ToastProvider";
 import type { MembershipGuestCard } from "@/core/domain/entities/MembershipMember";
 import { getGuestCardTableColumns } from "./guest-card-table-columns";
 
@@ -15,9 +19,12 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function GuestCardList() {
   const router = useRouter();
+  const toast = useToast();
+  const lookupCard = useMembershipCardLookup();
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [lookupUid, setLookupUid] = useState("");
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
@@ -86,13 +93,48 @@ export function GuestCardList() {
         </div>
       )}
       topContent={
-        <div className="mb-6 rounded-2xl border border-border bg-background/80 p-4 shadow-sm">
+        <div className="mb-6 space-y-3 rounded-2xl border border-border bg-background/80 p-4 shadow-sm">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search by card UID, label, room, or wallet..."
             className="h-11"
           />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+            <CardUidField
+              value={lookupUid}
+              onChange={setLookupUid}
+              placeholder="Tap or enter UID to look up"
+              onScanned={(uid) => {
+                lookupCard.mutate(uid, {
+                  onSuccess: (card) => {
+                    if (!card) return toast.error("No active card with that UID.");
+                    router.push(`/guest-cards/${card.id}`);
+                  },
+                  onError: () => toast.error("Card lookup failed."),
+                });
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10"
+              disabled={lookupCard.isPending}
+              onClick={() => {
+                const uid = lookupUid.trim();
+                if (!uid) return toast.error("Tap a card or enter a UID.");
+                lookupCard.mutate(uid, {
+                  onSuccess: (card) => {
+                    if (!card) return toast.error("No active card with that UID.");
+                    router.push(`/guest-cards/${card.id}`);
+                  },
+                  onError: () => toast.error("Card lookup failed."),
+                });
+              }}
+            >
+              {lookupCard.isPending ? "Looking up..." : "Lookup"}
+            </Button>
+          </div>
         </div>
       }
       tablePanelClassName="rounded-2xl border border-border bg-background/80 shadow-sm"

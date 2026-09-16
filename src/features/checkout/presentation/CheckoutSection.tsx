@@ -62,6 +62,7 @@ import {
   PosRightSidebarCart,
   type PosOrderType,
 } from "./PosRightSidebarCart";
+import { CheckoutGuestCardPanel } from "./CheckoutGuestCardPanel";
 
 function newIdempotencyKey(): string {
   try {
@@ -815,6 +816,12 @@ export function CheckoutSection() {
             }
             printDisabled={items.fields.length === 0 || isPrinting}
             isPrinting={isPrinting}
+          />
+          <CheckoutGuestCardPanel
+            onCustomerLinked={(customerId) => {
+              form.setValue("customerId", customerId);
+              toast.success("Customer linked from guest card.");
+            }}
           />
           {false ? (
             <>

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { FormModal } from "@/presentation/components/modal/FormModal";
+import { CardUidField } from "@/presentation/components/card-reader/CardUidField";
 import {
   DetailRows,
   DetailSection,
@@ -547,10 +548,10 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
 
         {walletCards.length > 0 ? (
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
+            <CardUidField
               placeholder="New card UID"
               value={replaceCardUid}
-              onChange={(e) => setReplaceCardUid(e.target.value)}
+              onChange={setReplaceCardUid}
               disabled={isClosed}
             />
             <Input
@@ -608,10 +609,19 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
         <div className="mt-4 space-y-3 rounded-lg border border-border p-3">
           <p className="text-sm font-medium">Lookup card by UID</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
+            <CardUidField
               placeholder="04A3B2C1"
               value={lookupCardUid}
-              onChange={(e) => setLookupCardUid(e.target.value)}
+              onChange={setLookupCardUid}
+              onScanned={(uid) => {
+                lookupCard.mutate(uid, {
+                  onSuccess: (card) => {
+                    if (!card) return toast.error("No active card with that UID.");
+                    toast.success(`Found ${card.cardUid} on wallet ${card.walletId}.`);
+                  },
+                  onError: () => toast.error("Card lookup failed."),
+                });
+              }}
             />
             <Button
               type="button"
@@ -1210,10 +1220,10 @@ function CustomerMembershipActions({
               <>
                 <div className="grid gap-2">
                   <Label htmlFor="customer-bind-card">Card UID</Label>
-                  <Input
+                  <CardUidField
                     id="customer-bind-card"
                     value={bindCardUid}
-                    onChange={(e) => setBindCardUid(e.target.value)}
+                    onChange={setBindCardUid}
                     placeholder="04A3B2C1"
                     disabled={isClosed}
                   />

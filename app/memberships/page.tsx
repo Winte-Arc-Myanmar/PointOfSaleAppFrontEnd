@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { Shell } from "@/presentation/components/layout/Shell";
+import { MembershipMemberList } from "@/features/memberships/presentation/MembershipMemberList";
 
 export default function MembershipsPage() {
-  redirect("/customers");
+  return (
+    <Shell>
+      <MembershipMemberList />
+    </Shell>
+  );
 }

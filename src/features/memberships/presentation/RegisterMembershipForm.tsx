@@ -18,6 +18,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { CardUidField } from "@/presentation/components/card-reader/CardUidField";
 import {
   Select,
   SelectContent,
@@ -425,10 +426,17 @@ export function RegisterMembershipForm({
           >
             <div className="grid gap-2 sm:col-span-1">
               <Label htmlFor={`cards.${index}.cardUid`}>Card UID</Label>
-              <Input
-                id={`cards.${index}.cardUid`}
-                {...form.register(`cards.${index}.cardUid`)}
-                placeholder="04A3B2C1"
+              <Controller
+                control={form.control}
+                name={`cards.${index}.cardUid`}
+                render={({ field }) => (
+                  <CardUidField
+                    id={`cards.${index}.cardUid`}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="04A3B2C1"
+                  />
+                )}
               />
             </div>
             <div className="grid gap-2 sm:col-span-1">

@@ -54,6 +54,7 @@ import {
   UserRoundPlus,
   Users,
   UtensilsCrossed,
+  Wallet,
   Warehouse,
 } from "lucide-react";
 import type { TranslationKey } from "@/presentation/i18n/translations";
@@ -288,6 +289,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.membershipCardTemplates",
         icon: CreditCard,
         permissions: ["card-tiers:read", "membership-card-templates:read"],
+      },
+      {
+        href: "/memberships",
+        labelKey: "nav.memberships",
+        icon: Wallet,
+        permissions: ["customers:read"],
       },
       {
         href: "/guest-cards",

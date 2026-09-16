@@ -114,10 +114,10 @@ export function MembershipMemberList() {
               Membership / Customer
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-              Membership List
+              Guest Wallets
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-muted">
-              Register members, manage wallet topup/refund, and bind or close cards.
+              Issue wallets, manage topup/refund, and bind or close guest cards.
             </p>
             {usingDemoData ? (
               <p className="text-xs text-amber-700 dark:text-amber-300">
