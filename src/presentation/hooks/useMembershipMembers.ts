@@ -6,9 +6,16 @@ import type { IMembershipMemberService } from "@/core/domain/services/IMembershi
 import type { GetMembershipMembersParams } from "@/core/domain/repositories/IMembershipMemberRepository";
 import type {
   MembershipBindCardRequest,
+  MembershipCloseRequest,
+  MembershipGuestCard,
+  MembershipLedgerEntry,
   MembershipRefundRequest,
   MembershipRegisterRequest,
+  MembershipReplaceCardRequest,
+  MembershipSettlementQuote,
   MembershipTopupRequest,
+  MembershipVoidRequest,
+  MembershipWalletAudit,
 } from "@/core/domain/entities/MembershipMember";
 import {
   createDemoMembershipMember,
@@ -98,7 +105,11 @@ export function useRegisterMembership() {
           (t) => t.id === data.cardTemplateId,
         );
         return createDemoMembershipMember({
-          ...data,
+          tenantId: data.tenantId,
+          customerId: data.customerId ?? data.guestIdNumber ?? `guest-${Date.now()}`,
+          cardTemplateId: data.tierId ?? data.cardTemplateId ?? "",
+          cardNumber: data.cards?.[0]?.cardUid ?? null,
+          initialTopup: data.payment?.amount ?? 0,
           customerName: data.customerName,
           phone: data.phone,
           email: data.email,
@@ -127,6 +138,8 @@ export function useMembershipTopup() {
         return upsertDemoMembershipMember({
           ...current,
           walletBalance: current.walletBalance + Number(data.amount || 0),
+          purchasedBalance:
+            (current.purchasedBalance ?? current.walletBalance) + Number(data.amount || 0),
           updatedAt: new Date().toISOString(),
         });
       }
@@ -156,6 +169,10 @@ export function useMembershipRefund() {
         return upsertDemoMembershipMember({
           ...current,
           walletBalance: next,
+          purchasedBalance: Math.max(
+            0,
+            (current.purchasedBalance ?? current.walletBalance) - Number(data.amount || 0),
+          ),
           updatedAt: new Date().toISOString(),
         });
       }
@@ -183,7 +200,9 @@ export function useMembershipBindCard() {
         if (!current) throw new Error("Membership not found");
         return upsertDemoMembershipMember({
           ...current,
-          cardNumber: data.cardNumber,
+          cardNumber: data.cardUid,
+          cardLabel: data.label ?? null,
+          cardRoomNumber: data.roomNumber ?? null,
           cardBindStatus: "BOUND",
           updatedAt: new Date().toISOString(),
         });
@@ -200,13 +219,15 @@ export function useMembershipBindCard() {
 export function useMembershipUnbindCard() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, cardId }: { id: string; cardId?: string }) => {
       if (isDemoMembershipId(id)) {
         const current = getDemoMembershipMemberById(id);
         if (!current) throw new Error("Membership not found");
         return upsertDemoMembershipMember({
           ...current,
           cardNumber: null,
+          cardLabel: null,
+          cardRoomNumber: null,
           cardBindStatus: "UNBOUND",
           updatedAt: new Date().toISOString(),
         });
@@ -214,16 +235,22 @@ export function useMembershipUnbindCard() {
       const service = container.resolve<IMembershipMemberService>(
         "membershipMemberService",
       );
-      return service.unbindCard(id);
+      return service.unbindCard(id, cardId);
     },
-    onSuccess: (_data, id) => invalidateMembershipQueries(queryClient, id),
+    onSuccess: (_data, vars) => invalidateMembershipQueries(queryClient, vars.id),
   });
 }
 
 export function useMembershipClose() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: MembershipCloseRequest;
+    }) => {
       if (isDemoMembershipId(id)) {
         const current = getDemoMembershipMemberById(id);
         if (!current) throw new Error("Membership not found");
@@ -238,8 +265,285 @@ export function useMembershipClose() {
       const service = container.resolve<IMembershipMemberService>(
         "membershipMemberService",
       );
-      return service.close(id);
+      return service.close(id, data);
+    },
+    onSuccess: (_data, vars) => invalidateMembershipQueries(queryClient, vars.id),
+  });
+}
+
+export function useMembershipCards(id: string | null) {
+  return useQuery({
+    queryKey: [...QUERY_KEY, id, "cards"],
+    queryFn: async () => {
+      if (!id) return [] as MembershipGuestCard[];
+      if (isDemoMembershipId(id)) {
+        const current = getDemoMembershipMemberById(id);
+        if (!current?.cardNumber) return [];
+        return [
+          {
+            id: current.primaryCardId ?? `${id}-card`,
+            tenantId: current.tenantId,
+            walletId: id,
+            cardUid: current.cardNumber,
+            label: current.cardLabel ?? null,
+            roomNumber: current.cardRoomNumber ?? null,
+            status: "ACTIVE",
+            issuedAt: current.registeredAt,
+            issuedByUserId: null,
+            deactivatedAt: null,
+            replacedByCardId: null,
+            createdAt: current.createdAt ?? null,
+            updatedAt: current.updatedAt ?? null,
+          },
+        ];
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.getCards(id);
+    },
+    enabled: !!id,
+  });
+}
+
+export function useMembershipSettlementQuote(id: string | null) {
+  return useQuery({
+    queryKey: [...QUERY_KEY, id, "settlement-quote"],
+    queryFn: async () => {
+      if (!id) return null as MembershipSettlementQuote | null;
+      if (isDemoMembershipId(id)) {
+        const current = getDemoMembershipMemberById(id);
+        if (!current) return null;
+        return {
+          walletId: id,
+          walletNumber: current.walletNumber ?? String(current.id),
+          guestName: current.customerName,
+          status: current.status,
+          balance: current.walletBalance,
+          purchasedBalance: current.purchasedBalance ?? current.walletBalance,
+          grantedBalance: current.grantedBalance ?? 0,
+          action: current.walletBalance > 0 ? "REFUND_DUE" : "CAN_CLOSE",
+          refundable: Math.max(0, current.purchasedBalance ?? current.walletBalance),
+          forfeitable: Math.max(0, current.grantedBalance ?? 0),
+          collectable: 0,
+          blockers: [],
+        };
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.getSettlementQuote(id);
+    },
+    enabled: !!id,
+  });
+}
+
+export function useMembershipBeginSettlement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (isDemoMembershipId(id)) return getDemoMembershipMemberById(id);
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.beginSettlement(id);
     },
     onSuccess: (_data, id) => invalidateMembershipQueries(queryClient, id),
+  });
+}
+
+export function useMembershipCancelSettlement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (isDemoMembershipId(id)) return getDemoMembershipMemberById(id);
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.cancelSettlement(id);
+    },
+    onSuccess: (_data, id) => invalidateMembershipQueries(queryClient, id),
+  });
+}
+
+export function useMembershipReportLostCard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ walletId, cardId }: { walletId: string; cardId: string }) => {
+      if (isDemoMembershipId(walletId)) {
+        const current = getDemoMembershipMemberById(walletId);
+        if (!current) throw new Error("Membership not found");
+        return upsertDemoMembershipMember({
+          ...current,
+          cardBindStatus: "UNBOUND",
+          cardNumber: null,
+          cardLabel: null,
+          cardRoomNumber: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.reportLostCard(walletId, cardId);
+    },
+    onSuccess: (_data, vars) => invalidateMembershipQueries(queryClient, vars.walletId),
+  });
+}
+
+export function useMembershipReplaceCard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      walletId,
+      cardId,
+      data,
+    }: {
+      walletId: string;
+      cardId: string;
+      data: MembershipReplaceCardRequest;
+    }) => {
+      if (isDemoMembershipId(walletId)) {
+        const current = getDemoMembershipMemberById(walletId);
+        if (!current) throw new Error("Membership not found");
+        return upsertDemoMembershipMember({
+          ...current,
+          cardNumber: data.newCardUid,
+          cardLabel: data.label ?? current.cardLabel ?? null,
+          cardRoomNumber: data.roomNumber ?? current.cardRoomNumber ?? null,
+          cardBindStatus: "BOUND",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.replaceCard(walletId, cardId, data);
+    },
+    onSuccess: (_data, vars) => invalidateMembershipQueries(queryClient, vars.walletId),
+  });
+}
+
+export function useMembershipCardLookup() {
+  return useMutation({
+    mutationFn: async (cardUid: string) => {
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      const card = await service.lookupCard(cardUid);
+      if (card) return card;
+      const demo = getDemoMembershipMembersPage({ page: 1, limit: 200 }).items.find(
+        (item) => item.cardNumber?.toLowerCase() === cardUid.trim().toLowerCase(),
+      );
+      if (!demo?.cardNumber) return null;
+      return {
+        id: demo.primaryCardId ?? `${demo.id}-card`,
+        tenantId: demo.tenantId,
+        walletId: String(demo.id),
+        cardUid: demo.cardNumber,
+        label: demo.cardLabel ?? null,
+        roomNumber: demo.cardRoomNumber ?? null,
+        status: "ACTIVE",
+        issuedAt: demo.registeredAt,
+        issuedByUserId: null,
+        deactivatedAt: null,
+        replacedByCardId: null,
+        createdAt: demo.createdAt ?? null,
+        updatedAt: demo.updatedAt ?? null,
+      } satisfies MembershipGuestCard;
+    },
+  });
+}
+
+export function useMembershipLedger(
+  id: string | null,
+  params?: GetMembershipMembersParams,
+) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+  const search = params?.search;
+  const sortBy = params?.sortBy ?? "createdAt";
+  const sortOrder = params?.sortOrder ?? "desc";
+
+  return useQuery({
+    queryKey: [...QUERY_KEY, id, "ledger", page, limit, search, sortBy, sortOrder],
+    queryFn: async () => {
+      if (!id) {
+        return { items: [] as MembershipLedgerEntry[], total: 0, page, limit };
+      }
+      if (isDemoMembershipId(id)) {
+        const current = getDemoMembershipMemberById(id);
+        if (!current) {
+          return { items: [] as MembershipLedgerEntry[], total: 0, page, limit };
+        }
+        return {
+          items: [
+            {
+              id: `${id}-open`,
+              tenantId: current.tenantId,
+              walletId: id,
+              sequenceNo: 1,
+              entryType: "ISSUE",
+              amount: current.walletBalance,
+              purchasedDelta: current.purchasedBalance ?? current.walletBalance,
+              grantedDelta: current.grantedBalance ?? 0,
+              balanceAfter: current.walletBalance,
+              notes: "Demo opening balance",
+              createdAt: current.registeredAt,
+            },
+          ] satisfies MembershipLedgerEntry[],
+          total: 1,
+          page,
+          limit,
+        };
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.getLedger(id, {
+        page,
+        limit,
+        search,
+        sortBy,
+        sortOrder,
+      });
+    },
+    enabled: !!id,
+  });
+}
+
+export function useMembershipAudit(id: string | null) {
+  return useQuery({
+    queryKey: [...QUERY_KEY, id, "audit"],
+    queryFn: async () => {
+      if (!id) return null as MembershipWalletAudit | null;
+      if (isDemoMembershipId(id)) {
+        const current = getDemoMembershipMemberById(id);
+        if (!current) return null;
+        return {
+          walletId: id,
+          balanced: true,
+          storedBalance: current.walletBalance,
+          replayedBalance: current.walletBalance,
+          drift: 0,
+          message: "Demo ledger matches stored balance.",
+        } satisfies MembershipWalletAudit;
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.getAudit(id);
+    },
+    enabled: !!id,
+  });
+}
+
+export function useMembershipVoid() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: MembershipVoidRequest;
+    }) => {
+      if (isDemoMembershipId(id)) {
+        const current = getDemoMembershipMemberById(id);
+        if (!current) throw new Error("Membership not found");
+        const now = new Date().toISOString();
+        return upsertDemoMembershipMember({
+          ...current,
+          status: "VOIDED",
+          closedAt: now,
+          updatedAt: now,
+        });
+      }
+      const service = container.resolve<IMembershipMemberService>("membershipMemberService");
+      return service.voidWallet(id, data);
+    },
+    onSuccess: (_data, vars) => invalidateMembershipQueries(queryClient, vars.id),
   });
 }

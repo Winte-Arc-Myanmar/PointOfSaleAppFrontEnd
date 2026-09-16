@@ -289,6 +289,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         icon: CreditCard,
         permissions: ["card-tiers:read", "membership-card-templates:read"],
       },
+      {
+        href: "/guest-cards",
+        labelKey: "nav.guestCards",
+        icon: CreditCard,
+        permissions: ["customers:read"],
+      },
     ],
   },
   {

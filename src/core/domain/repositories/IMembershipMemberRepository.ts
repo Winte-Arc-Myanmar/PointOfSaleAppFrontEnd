@@ -5,10 +5,17 @@
 
 import type {
   MembershipBindCardRequest,
+  MembershipCloseRequest,
+  MembershipGuestCard,
+  MembershipLedgerEntry,
   MembershipMember,
+  MembershipReplaceCardRequest,
   MembershipRefundRequest,
   MembershipRegisterRequest,
+  MembershipSettlementQuote,
   MembershipTopupRequest,
+  MembershipVoidRequest,
+  MembershipWalletAudit,
 } from "../entities/MembershipMember";
 import type { PaginatedResult } from "../types/pagination";
 
@@ -27,6 +34,27 @@ export interface IMembershipMemberRepository {
   topup(id: string, data: MembershipTopupRequest): Promise<MembershipMember>;
   refund(id: string, data: MembershipRefundRequest): Promise<MembershipMember>;
   bindCard(id: string, data: MembershipBindCardRequest): Promise<MembershipMember>;
-  unbindCard(id: string): Promise<MembershipMember>;
-  close(id: string): Promise<MembershipMember>;
+  unbindCard(id: string, cardId?: string): Promise<MembershipMember>;
+  close(id: string, data: MembershipCloseRequest): Promise<MembershipMember>;
+  voidWallet(id: string, data: MembershipVoidRequest): Promise<MembershipMember>;
+  getSettlementQuote(id: string): Promise<MembershipSettlementQuote | null>;
+  beginSettlement(id: string): Promise<MembershipMember>;
+  cancelSettlement(id: string): Promise<MembershipMember>;
+  getCards(id: string): Promise<MembershipGuestCard[]>;
+  getAllGuestCards(
+    params?: GetMembershipMembersParams,
+  ): Promise<PaginatedResult<MembershipGuestCard>>;
+  getGuestCardById(id: string): Promise<MembershipGuestCard | null>;
+  lookupCard(cardUid: string): Promise<MembershipGuestCard | null>;
+  getLedger(
+    id: string,
+    params?: GetMembershipMembersParams,
+  ): Promise<PaginatedResult<MembershipLedgerEntry>>;
+  getAudit(id: string): Promise<MembershipWalletAudit | null>;
+  reportLostCard(walletId: string, cardId: string): Promise<MembershipMember>;
+  replaceCard(
+    walletId: string,
+    cardId: string,
+    data: MembershipReplaceCardRequest,
+  ): Promise<MembershipMember>;
 }

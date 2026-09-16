@@ -9,6 +9,8 @@ import {
   Link2Off,
   Power,
   RotateCcw,
+  Search,
+  ShieldAlert,
   Wallet,
 } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
@@ -26,13 +28,24 @@ import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import {
+  useMembershipAudit,
+  useMembershipBeginSettlement,
   useMembershipBindCard,
+  useMembershipCancelSettlement,
+  useMembershipCardLookup,
+  useMembershipCards,
   useMembershipClose,
   useMembershipMember,
   useMembershipRefund,
+  useMembershipReplaceCard,
+  useMembershipReportLostCard,
+  useMembershipSettlementQuote,
   useMembershipTopup,
   useMembershipUnbindCard,
+  useMembershipVoid,
 } from "@/presentation/hooks/useMembershipMembers";
+import { WalletLedgerSection } from "@/features/memberships/presentation/WalletLedgerSection";
+import { getMembershipOverviewRows } from "@/features/memberships/presentation/membership-overview-rows";
 
 export function MembershipMemberDetail({ membershipId }: { membershipId: string }) {
   const toast = useToast();
@@ -45,12 +58,35 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   const bindCard = useMembershipBindCard();
   const unbindCard = useMembershipUnbindCard();
   const closeMembership = useMembershipClose();
+  const beginSettlement = useMembershipBeginSettlement();
+  const cancelSettlement = useMembershipCancelSettlement();
+  const reportLostCard = useMembershipReportLostCard();
+  const replaceCard = useMembershipReplaceCard();
+  const lookupCard = useMembershipCardLookup();
+  const voidWallet = useMembershipVoid();
+  const { data: walletCards = [], refetch: refetchCards } = useMembershipCards(membershipId);
+  const { data: settlementQuote, refetch: refetchSettlementQuote } =
+    useMembershipSettlementQuote(membershipId);
+  const { data: walletAudit, refetch: refetchAudit } = useMembershipAudit(membershipId);
 
   const [topupAmount, setTopupAmount] = useState("10000");
   const [topupNote, setTopupNote] = useState("");
+  const [topupPaymentMethodId, setTopupPaymentMethodId] = useState("");
+  const [topupPosSessionId, setTopupPosSessionId] = useState("");
+  const [topupLocationId, setTopupLocationId] = useState("");
   const [refundAmount, setRefundAmount] = useState("1000");
   const [refundReason, setRefundReason] = useState("");
+  const [refundPaymentMethodId, setRefundPaymentMethodId] = useState("");
+  const [refundPosSessionId, setRefundPosSessionId] = useState("");
+  const [refundLocationId, setRefundLocationId] = useState("");
   const [bindCardNumber, setBindCardNumber] = useState("");
+  const [closePosSessionId, setClosePosSessionId] = useState("");
+  const [closeLocationId, setCloseLocationId] = useState("");
+  const [refundApproverToken, setRefundApproverToken] = useState("");
+  const [closeApproverToken, setCloseApproverToken] = useState("");
+  const [replaceCardUid, setReplaceCardUid] = useState("");
+  const [lookupCardUid, setLookupCardUid] = useState("");
+  const [voidApproverToken, setVoidApproverToken] = useState("");
 
   if (isLoading) {
     return <AppLoader fullScreen={false} size="md" message="Loading membership..." />;
@@ -68,32 +104,30 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   }
 
   const activeMember = member;
-  const isClosed = activeMember.status === "CLOSED";
+  const isClosed =
+    activeMember.status === "CLOSED" || activeMember.status === "VOIDED";
   const isBound =
     activeMember.cardBindStatus === "BOUND" && Boolean(activeMember.cardNumber);
 
-  const overviewRows = [
-    { label: "Membership ID", value: safeText(member.id), mono: true },
-    { label: "Customer", value: safeText(member.customerName) },
-    { label: "Phone", value: safeText(member.phone || "—") },
-    { label: "Email", value: safeText(member.email || "—") },
-    { label: "Tier", value: safeText(member.tier) },
-    { label: "Card template", value: safeText(member.cardTemplateName) },
-    { label: "Wallet balance", value: formatPrice(member.walletBalance) },
-    { label: "Card number", value: safeText(member.cardNumber || "Unbound"), mono: true },
-    { label: "Card status", value: safeText(member.cardBindStatus) },
-    { label: "Membership status", value: safeText(member.status) },
-    { label: "Registered at", value: formatDate(member.registeredAt) },
-    ...(member.closedAt
-      ? [{ label: "Closed at", value: formatDate(member.closedAt) }]
-      : []),
-  ];
+  const overviewRows = getMembershipOverviewRows(member, formatPrice);
 
   async function handleTopup() {
     const amount = Number(topupAmount);
     if (!(amount > 0)) return toast.error("Enter a topup amount greater than 0.");
+    if (!topupPaymentMethodId || !topupPosSessionId || !topupLocationId) {
+      return toast.error("Topup needs payment method, POS session, and location.");
+    }
     topup.mutate(
-      { id: membershipId, data: { amount, note: topupNote.trim() || undefined } },
+      {
+        id: membershipId,
+        data: {
+          amount,
+          paymentMethodId: topupPaymentMethodId,
+          posSessionId: topupPosSessionId,
+          locationId: topupLocationId,
+          notes: topupNote.trim() || undefined,
+        },
+      },
       {
         onSuccess: () => {
           toast.success("Topup completed.");
@@ -111,10 +145,23 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
     if (amount > activeMember.walletBalance) {
       return toast.error("Refund cannot exceed wallet balance.");
     }
+    if (!refundPaymentMethodId || !refundPosSessionId || !refundLocationId) {
+      return toast.error("Refund needs payment method, POS session, and location.");
+    }
+    if (!refundApproverToken.trim()) {
+      return toast.error("Refund needs an approver token.");
+    }
     refund.mutate(
       {
         id: membershipId,
-        data: { amount, reason: refundReason.trim() || undefined },
+        data: {
+          amount,
+          paymentMethodId: refundPaymentMethodId,
+          posSessionId: refundPosSessionId,
+          locationId: refundLocationId,
+          notes: refundReason.trim() || undefined,
+          approverAuthorization: refundApproverToken.trim(),
+        },
       },
       {
         onSuccess: () => {
@@ -131,12 +178,13 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
     const cardNumber = bindCardNumber.trim();
     if (!cardNumber) return toast.error("Enter a card number to bind.");
     bindCard.mutate(
-      { id: membershipId, data: { cardNumber } },
+      { id: membershipId, data: { cardUid: cardNumber } },
       {
         onSuccess: () => {
           toast.success("Card bound.");
           setBindCardNumber("");
           void refetch();
+          void refetchCards();
         },
         onError: () => toast.error("Failed to bind card."),
       },
@@ -151,30 +199,52 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
       variant: "destructive",
     });
     if (!ok) return;
-    unbindCard.mutate(membershipId, {
-      onSuccess: () => {
-        toast.success("Card unbound.");
-        void refetch();
+    unbindCard.mutate(
+      { id: membershipId },
+      {
+        onSuccess: () => {
+          toast.success("Card unbound.");
+          void refetch();
+          void refetchCards();
+        },
+        onError: () => toast.error("Failed to unbind card."),
       },
-      onError: () => toast.error("Failed to unbind card."),
-    });
+    );
   }
 
   async function handleClose() {
     const ok = await confirm({
-      title: "Close membership",
-      description: `Close membership for ${activeMember.customerName}? This cannot be undone.`,
-      confirmLabel: "Close membership",
+      title: "Settle and close wallet",
+      description: `Settle wallet for ${activeMember.customerName}? Begin settlement first if the wallet is still spendable.`,
+      confirmLabel: "Settle and close",
       variant: "destructive",
     });
     if (!ok) return;
-    closeMembership.mutate(membershipId, {
-      onSuccess: () => {
-        toast.success("Membership closed.");
-        void refetch();
+    if (!closePosSessionId || !closeLocationId) {
+      return toast.error("Settle needs POS session and location.");
+    }
+    if (!closeApproverToken.trim()) {
+      return toast.error("Settle needs an approver token.");
+    }
+    closeMembership.mutate(
+      {
+        id: membershipId,
+        data: {
+          posSessionId: closePosSessionId,
+          locationId: closeLocationId,
+          approverAuthorization: closeApproverToken.trim(),
+        },
       },
-      onError: () => toast.error("Failed to close membership."),
-    });
+      {
+      onSuccess: () => {
+        toast.success("Wallet settled and closed.");
+        void refetch();
+        void refetchCards();
+        void refetchSettlementQuote();
+      },
+      onError: () => toast.error("Failed to settle wallet."),
+      },
+    );
   }
 
   return (
@@ -219,6 +289,33 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                 disabled={isClosed}
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="topupPaymentMethodId">Payment method ID</Label>
+              <Input
+                id="topupPaymentMethodId"
+                value={topupPaymentMethodId}
+                onChange={(e) => setTopupPaymentMethodId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="topupPosSessionId">POS session ID</Label>
+              <Input
+                id="topupPosSessionId"
+                value={topupPosSessionId}
+                onChange={(e) => setTopupPosSessionId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="topupLocationId">Location ID</Label>
+              <Input
+                id="topupLocationId"
+                value={topupLocationId}
+                onChange={(e) => setTopupLocationId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
             <Button
               type="button"
               onClick={() => void handleTopup()}
@@ -249,6 +346,42 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                 id="refundReason"
                 value={refundReason}
                 onChange={(e) => setRefundReason(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="refundPaymentMethodId">Payment method ID</Label>
+              <Input
+                id="refundPaymentMethodId"
+                value={refundPaymentMethodId}
+                onChange={(e) => setRefundPaymentMethodId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="refundPosSessionId">POS session ID</Label>
+              <Input
+                id="refundPosSessionId"
+                value={refundPosSessionId}
+                onChange={(e) => setRefundPosSessionId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="refundLocationId">Location ID</Label>
+              <Input
+                id="refundLocationId"
+                value={refundLocationId}
+                onChange={(e) => setRefundLocationId(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="refundApproverToken">Approver token</Label>
+              <Input
+                id="refundApproverToken"
+                value={refundApproverToken}
+                onChange={(e) => setRefundApproverToken(e.target.value)}
                 disabled={isClosed}
               />
             </div>
@@ -306,22 +439,305 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           </div>
         </DetailSection>
 
-        <DetailSection title="Close membership" icon={Power} className="lg:col-span-2">
+        <DetailSection title="Settle and close wallet" icon={Power} className="lg:col-span-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted">
               {isClosed
-                ? "This membership is already closed."
-                : "Closing stops topup, refund, and card bind actions for this member."}
+                ? "This wallet is already closed."
+                : "Begin settlement first, then settle. Closing refunds purchased value, forfeits grants, retires cards, and closes the wallet."}
             </p>
+            <div className="grid w-full gap-2 sm:w-auto">
+              <Input
+                placeholder="POS session ID"
+                value={closePosSessionId}
+                onChange={(e) => setClosePosSessionId(e.target.value)}
+                disabled={isClosed}
+              />
+              <Input
+                placeholder="Location ID"
+                value={closeLocationId}
+                onChange={(e) => setCloseLocationId(e.target.value)}
+                disabled={isClosed}
+              />
+              <Input
+                placeholder="Approver token"
+                value={closeApproverToken}
+                onChange={(e) => setCloseApproverToken(e.target.value)}
+                disabled={isClosed}
+              />
+            </div>
             <Button
               type="button"
               variant="destructive"
               onClick={() => void handleClose()}
               disabled={isClosed || closeMembership.isPending}
             >
-              {closeMembership.isPending ? "Closing..." : "Close membership"}
+              {closeMembership.isPending ? "Settling..." : "Settle and close"}
             </Button>
           </div>
+        </DetailSection>
+
+        <DetailSection title="Guest cards" icon={CreditCard} className="lg:col-span-2">
+          {walletCards.length === 0 ? (
+            <p className="text-sm text-muted">No cards linked to this wallet yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {walletCards.map((card) => (
+                <div key={card.id} className="rounded-lg border border-border p-3 space-y-2">
+                  <DetailRows
+                    rows={[
+                      { label: "Card UID", value: safeText(card.cardUid), mono: true },
+                      { label: "Status", value: safeText(card.status) },
+                      { label: "Label", value: safeText(card.label || "-") },
+                      { label: "Room", value: safeText(card.roomNumber || "-") },
+                    ]}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isClosed || reportLostCard.isPending}
+                      onClick={() =>
+                        reportLostCard.mutate(
+                          { walletId: membershipId, cardId: card.id },
+                          {
+                            onSuccess: () => {
+                              toast.success("Card reported lost.");
+                              void refetch();
+                              void refetchCards();
+                            },
+                            onError: () => toast.error("Failed to report lost card."),
+                          },
+                        )
+                      }
+                    >
+                      Report lost
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isClosed || unbindCard.isPending}
+                      onClick={() =>
+                        unbindCard.mutate(
+                          { id: membershipId, cardId: card.id },
+                          {
+                            onSuccess: () => {
+                              toast.success("Card unbound.");
+                              void refetch();
+                              void refetchCards();
+                            },
+                            onError: () => toast.error("Failed to unbind card."),
+                          },
+                        )
+                      }
+                    >
+                      Unbind
+                    </Button>
+                    <Link href={`/guest-cards/${card.id}`}>
+                      <Button type="button" variant="ghost">Open card</Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Input
+              placeholder="New card UID"
+              value={replaceCardUid}
+              onChange={(e) => setReplaceCardUid(e.target.value)}
+              disabled={isClosed}
+            />
+            <Button
+              type="button"
+              disabled={isClosed || replaceCard.isPending}
+              onClick={() => {
+                const target = walletCards.find((card) => card.status !== "DEACTIVATED");
+                if (!target?.id) return toast.error("No card to replace.");
+                if (!replaceCardUid.trim()) return toast.error("Enter a new card UID.");
+                replaceCard.mutate(
+                  {
+                    walletId: membershipId,
+                    cardId: target.id,
+                    data: { newCardUid: replaceCardUid.trim() },
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success("Card replaced.");
+                      setReplaceCardUid("");
+                      void refetch();
+                      void refetchCards();
+                    },
+                    onError: () => toast.error("Failed to replace card."),
+                  },
+                );
+              }}
+            >
+              Replace first usable card
+            </Button>
+            <Input
+              placeholder="Lookup card UID"
+              value={lookupCardUid}
+              onChange={(e) => setLookupCardUid(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={lookupCard.isPending}
+              onClick={() => {
+                const uid = lookupCardUid.trim();
+                if (!uid) return toast.error("Enter a card UID to look up.");
+                lookupCard.mutate(uid, {
+                  onSuccess: (card) => {
+                    if (!card) return toast.error("No active card with that UID.");
+                    toast.success(`Found ${card.cardUid} on wallet ${card.walletId}.`);
+                  },
+                  onError: () => toast.error("Card lookup failed."),
+                });
+              }}
+            >
+              <Search className="size-4" />
+              Lookup
+            </Button>
+          </div>
+        </DetailSection>
+
+        <DetailSection title="Guest wallet settlement" icon={Power} className="lg:col-span-2">
+          {settlementQuote ? (
+            <DetailRows
+              rows={[
+                { label: "Action", value: safeText(settlementQuote.action) },
+                { label: "Balance", value: formatPrice(settlementQuote.balance) },
+                { label: "Refundable", value: formatPrice(settlementQuote.refundable) },
+                { label: "Forfeitable", value: formatPrice(settlementQuote.forfeitable) },
+                { label: "Collectable", value: formatPrice(settlementQuote.collectable) },
+                {
+                  label: "Blockers",
+                  value:
+                    settlementQuote.blockers.length > 0
+                      ? settlementQuote.blockers
+                          .map((b) => `${b.type}: ${b.label || b.id}`)
+                          .join(", ")
+                      : "None",
+                },
+              ]}
+            />
+          ) : (
+            <p className="text-sm text-muted">No settlement quote available.</p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isClosed || beginSettlement.isPending}
+              onClick={() =>
+                beginSettlement.mutate(membershipId, {
+                  onSuccess: () => {
+                    toast.success("Settlement started.");
+                    void refetch();
+                    void refetchSettlementQuote();
+                  },
+                  onError: () => toast.error("Failed to begin settlement."),
+                })
+              }
+            >
+              Begin settlement
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isClosed || cancelSettlement.isPending}
+              onClick={() =>
+                cancelSettlement.mutate(membershipId, {
+                  onSuccess: () => {
+                    toast.success("Settlement canceled.");
+                    void refetch();
+                    void refetchSettlementQuote();
+                  },
+                  onError: () => toast.error("Failed to cancel settlement."),
+                })
+              }
+            >
+              Cancel settlement
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => void refetchSettlementQuote()}>
+              Refresh quote
+            </Button>
+          </div>
+        </DetailSection>
+
+        <div className="lg:col-span-2">
+          <WalletLedgerSection walletId={membershipId} />
+        </div>
+
+        <DetailSection title="Wallet audit" icon={ShieldAlert}>
+          {walletAudit ? (
+            <DetailRows
+              rows={[
+                {
+                  label: "Balanced",
+                  value:
+                    walletAudit.balanced == null
+                      ? "-"
+                      : walletAudit.balanced
+                        ? "Yes"
+                        : "No",
+                },
+                {
+                  label: "Drift",
+                  value: walletAudit.drift == null ? "-" : formatPrice(walletAudit.drift),
+                },
+                { label: "Message", value: safeText(walletAudit.message || "-") },
+              ]}
+            />
+          ) : (
+            <p className="text-sm text-muted">No audit result yet.</p>
+          )}
+          <Button type="button" variant="ghost" className="mt-2" onClick={() => void refetchAudit()}>
+            Recheck ledger
+          </Button>
+        </DetailSection>
+
+        <DetailSection title="Void wallet" icon={Power}>
+          <Input
+            placeholder="Approver token"
+            value={voidApproverToken}
+            onChange={(e) => setVoidApproverToken(e.target.value)}
+            disabled={isClosed}
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            className="mt-3"
+            disabled={isClosed || voidWallet.isPending}
+            onClick={async () => {
+              if (!voidApproverToken.trim()) {
+                return toast.error("Void needs an approver token.");
+              }
+              const ok = await confirm({
+                title: "Void wallet",
+                description: `Void wallet for ${activeMember.customerName}?`,
+                confirmLabel: "Void",
+                variant: "destructive",
+              });
+              if (!ok) return;
+              voidWallet.mutate(
+                {
+                  id: membershipId,
+                  data: { approverAuthorization: voidApproverToken.trim() },
+                },
+                {
+                  onSuccess: () => {
+                    toast.success("Wallet voided.");
+                    void refetch();
+                  },
+                  onError: () => toast.error("Failed to void wallet."),
+                },
+              );
+            }}
+          >
+            {voidWallet.isPending ? "Voiding..." : "Void wallet"}
+          </Button>
         </DetailSection>
       </div>
     </div>
