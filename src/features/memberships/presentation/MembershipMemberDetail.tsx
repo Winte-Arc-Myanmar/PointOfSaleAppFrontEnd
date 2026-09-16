@@ -45,8 +45,17 @@ import {
   useMembershipVoid,
 } from "@/presentation/hooks/useMembershipMembers";
 import { WalletLedgerSection } from "@/features/memberships/presentation/WalletLedgerSection";
+import { WalletSettlementFlow } from "@/features/memberships/presentation/WalletSettlementFlow";
 import { CardUidField } from "@/presentation/components/card-reader/CardUidField";
 import { getMembershipOverviewRows } from "@/features/memberships/presentation/membership-overview-rows";
+import {
+  canVoidWallet,
+  getPurchasedBalance,
+} from "@/features/memberships/presentation/wallet-settlement-utils";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { useLocations } from "@/presentation/hooks/useLocations";
+import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
+import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 
 export function MembershipMemberDetail({ membershipId }: { membershipId: string }) {
   const toast = useToast();
@@ -69,6 +78,18 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   const { data: settlementQuote, refetch: refetchSettlementQuote } =
     useMembershipSettlementQuote(membershipId);
   const { data: walletAudit, refetch: refetchAudit } = useMembershipAudit(membershipId);
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
+  const locations = getPaginatedItems(locationsData).filter(
+    (item) => String(item.tenantId) === String(member?.tenantId ?? ""),
+  );
+  const { data: paymentMethodsData } = usePaymentMethods({ page: 1, limit: 200 });
+  const paymentMethods = getPaginatedItems(paymentMethodsData).filter(
+    (item) => String(item.tenantId) === String(member?.tenantId ?? ""),
+  );
+  const { data: posSessionsData } = usePosSessions({ page: 1, limit: 200 });
+  const posSessions = getPaginatedItems(posSessionsData).filter(
+    (item) => String(item.tenantId) === String(member?.tenantId ?? ""),
+  );
 
   const [topupAmount, setTopupAmount] = useState("10000");
   const [topupNote, setTopupNote] = useState("");
@@ -81,10 +102,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   const [refundPosSessionId, setRefundPosSessionId] = useState("");
   const [refundLocationId, setRefundLocationId] = useState("");
   const [bindCardNumber, setBindCardNumber] = useState("");
-  const [closePosSessionId, setClosePosSessionId] = useState("");
-  const [closeLocationId, setCloseLocationId] = useState("");
   const [refundApproverToken, setRefundApproverToken] = useState("");
-  const [closeApproverToken, setCloseApproverToken] = useState("");
   const [replaceCardUid, setReplaceCardUid] = useState("");
   const [lookupCardUid, setLookupCardUid] = useState("");
   const [voidApproverToken, setVoidApproverToken] = useState("");
@@ -143,8 +161,11 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   async function handleRefund() {
     const amount = Number(refundAmount);
     if (!(amount > 0)) return toast.error("Enter a refund amount greater than 0.");
-    if (amount > activeMember.walletBalance) {
-      return toast.error("Refund cannot exceed wallet balance.");
+    const maxRefundable = getPurchasedBalance(activeMember);
+    if (amount > maxRefundable) {
+      return toast.error(
+        "Refund cannot exceed purchased balance. Promotional value cannot be paid out.",
+      );
     }
     if (!refundPaymentMethodId || !refundPosSessionId || !refundLocationId) {
       return toast.error("Refund needs payment method, POS session, and location.");
@@ -209,41 +230,6 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           void refetchCards();
         },
         onError: () => toast.error("Failed to unbind card."),
-      },
-    );
-  }
-
-  async function handleClose() {
-    const ok = await confirm({
-      title: "Settle and close wallet",
-      description: `Settle wallet for ${activeMember.customerName}? Begin settlement first if the wallet is still spendable.`,
-      confirmLabel: "Settle and close",
-      variant: "destructive",
-    });
-    if (!ok) return;
-    if (!closePosSessionId || !closeLocationId) {
-      return toast.error("Settle needs POS session and location.");
-    }
-    if (!closeApproverToken.trim()) {
-      return toast.error("Settle needs an approver token.");
-    }
-    closeMembership.mutate(
-      {
-        id: membershipId,
-        data: {
-          posSessionId: closePosSessionId,
-          locationId: closeLocationId,
-          approverAuthorization: closeApproverToken.trim(),
-        },
-      },
-      {
-      onSuccess: () => {
-        toast.success("Wallet settled and closed.");
-        void refetch();
-        void refetchCards();
-        void refetchSettlementQuote();
-      },
-      onError: () => toast.error("Failed to settle wallet."),
       },
     );
   }
@@ -440,43 +426,66 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           </div>
         </DetailSection>
 
-        <DetailSection title="Settle and close wallet" icon={Power} className="lg:col-span-2">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted">
-              {isClosed
-                ? "This wallet is already closed."
-                : "Begin settlement first, then settle. Closing refunds purchased value, forfeits grants, retires cards, and closes the wallet."}
-            </p>
-            <div className="grid w-full gap-2 sm:w-auto">
-              <Input
-                placeholder="POS session ID"
-                value={closePosSessionId}
-                onChange={(e) => setClosePosSessionId(e.target.value)}
-                disabled={isClosed}
-              />
-              <Input
-                placeholder="Location ID"
-                value={closeLocationId}
-                onChange={(e) => setCloseLocationId(e.target.value)}
-                disabled={isClosed}
-              />
-              <Input
-                placeholder="Approver token"
-                value={closeApproverToken}
-                onChange={(e) => setCloseApproverToken(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => void handleClose()}
-              disabled={isClosed || closeMembership.isPending}
-            >
-              {closeMembership.isPending ? "Settling..." : "Settle and close"}
-            </Button>
-          </div>
-        </DetailSection>
+        <div className="lg:col-span-2">
+          <WalletSettlementFlow
+            walletId={membershipId}
+            guestName={activeMember.customerName}
+            walletStatus={String(activeMember.status)}
+            isClosed={isClosed}
+            settlementQuote={settlementQuote}
+            formatPrice={formatPrice}
+            paymentMethods={paymentMethods}
+            locations={locations}
+            posSessions={posSessions}
+            beginPending={beginSettlement.isPending}
+            cancelPending={cancelSettlement.isPending}
+            settlePending={closeMembership.isPending}
+            onRefreshQuote={() => void refetchSettlementQuote()}
+            onBeginSettlement={() =>
+              beginSettlement.mutate(membershipId, {
+                onSuccess: () => {
+                  toast.success("Settlement started — wallet frozen.");
+                  void refetch();
+                  void refetchSettlementQuote();
+                },
+                onError: () => toast.error("Failed to begin settlement."),
+              })
+            }
+            onCancelSettlement={() =>
+              cancelSettlement.mutate(membershipId, {
+                onSuccess: () => {
+                  toast.success("Settlement canceled — wallet spendable again.");
+                  void refetch();
+                  void refetchSettlementQuote();
+                },
+                onError: () => toast.error("Failed to cancel settlement."),
+              })
+            }
+            onSettle={async (data) => {
+              const ok = await confirm({
+                title: "Settle and close wallet",
+                description: `Settle and close wallet for ${activeMember.customerName}? Cards will be retired.`,
+                confirmLabel: "Settle and close",
+                variant: "destructive",
+              });
+              if (!ok) return;
+              closeMembership.mutate(
+                { id: membershipId, data },
+                {
+                  onSuccess: () => {
+                    toast.success("Wallet settled and closed.");
+                    void refetch();
+                    void refetchCards();
+                    void refetchSettlementQuote();
+                    void refetchAudit();
+                  },
+                  onError: () => toast.error("Failed to settle wallet."),
+                },
+              );
+            }}
+            idPrefix="membership-wallet-checkout"
+          />
+        </div>
 
         <DetailSection title="Guest cards" icon={CreditCard} className="lg:col-span-2">
           {walletCards.length === 0 ? (
@@ -612,70 +621,6 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           </div>
         </DetailSection>
 
-        <DetailSection title="Guest wallet settlement" icon={Power} className="lg:col-span-2">
-          {settlementQuote ? (
-            <DetailRows
-              rows={[
-                { label: "Action", value: safeText(settlementQuote.action) },
-                { label: "Balance", value: formatPrice(settlementQuote.balance) },
-                { label: "Refundable", value: formatPrice(settlementQuote.refundable) },
-                { label: "Forfeitable", value: formatPrice(settlementQuote.forfeitable) },
-                { label: "Collectable", value: formatPrice(settlementQuote.collectable) },
-                {
-                  label: "Blockers",
-                  value:
-                    settlementQuote.blockers.length > 0
-                      ? settlementQuote.blockers
-                          .map((b) => `${b.type}: ${b.label || b.id}`)
-                          .join(", ")
-                      : "None",
-                },
-              ]}
-            />
-          ) : (
-            <p className="text-sm text-muted">No settlement quote available.</p>
-          )}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isClosed || beginSettlement.isPending}
-              onClick={() =>
-                beginSettlement.mutate(membershipId, {
-                  onSuccess: () => {
-                    toast.success("Settlement started.");
-                    void refetch();
-                    void refetchSettlementQuote();
-                  },
-                  onError: () => toast.error("Failed to begin settlement."),
-                })
-              }
-            >
-              Begin settlement
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isClosed || cancelSettlement.isPending}
-              onClick={() =>
-                cancelSettlement.mutate(membershipId, {
-                  onSuccess: () => {
-                    toast.success("Settlement canceled.");
-                    void refetch();
-                    void refetchSettlementQuote();
-                  },
-                  onError: () => toast.error("Failed to cancel settlement."),
-                })
-              }
-            >
-              Cancel settlement
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => void refetchSettlementQuote()}>
-              Refresh quote
-            </Button>
-          </div>
-        </DetailSection>
-
         <div className="lg:col-span-2">
           <WalletLedgerSection walletId={membershipId} />
         </div>
@@ -709,17 +654,27 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
         </DetailSection>
 
         <DetailSection title="Void wallet" icon={Power}>
+          <p className="text-sm text-muted">
+            Only while the wallet is untouched. Requires a different manager’s bearer
+            token.
+          </p>
+          {!canVoidWallet(activeMember) && !isClosed ? (
+            <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+              This wallet has activity and cannot be voided. Use wallet checkout instead.
+            </p>
+          ) : null}
           <Input
             placeholder="Approver token"
             value={voidApproverToken}
             onChange={(e) => setVoidApproverToken(e.target.value)}
-            disabled={isClosed}
+            disabled={isClosed || !canVoidWallet(activeMember)}
+            className="mt-3"
           />
           <Button
             type="button"
             variant="destructive"
             className="mt-3"
-            disabled={isClosed || voidWallet.isPending}
+            disabled={isClosed || voidWallet.isPending || !canVoidWallet(activeMember)}
             onClick={async () => {
               if (!voidApproverToken.trim()) {
                 return toast.error("Void needs an approver token.");

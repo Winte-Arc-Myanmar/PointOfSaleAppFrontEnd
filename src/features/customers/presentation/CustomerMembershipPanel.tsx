@@ -59,7 +59,12 @@ import {
 } from "@/presentation/hooks/useMembershipMembers";
 import { RegisterMembershipForm } from "@/features/memberships/presentation/RegisterMembershipForm";
 import { WalletLedgerSection } from "@/features/memberships/presentation/WalletLedgerSection";
+import { WalletSettlementFlow } from "@/features/memberships/presentation/WalletSettlementFlow";
 import { getMembershipOverviewRows } from "@/features/memberships/presentation/membership-overview-rows";
+import {
+  canVoidWallet,
+  getPurchasedBalance,
+} from "@/features/memberships/presentation/wallet-settlement-utils";
 import type { Customer } from "@/core/domain/entities/Customer";
 import type { MembershipMember } from "@/core/domain/entities/MembershipMember";
 
@@ -117,16 +122,6 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
   const [bindCardUid, setBindCardUid] = useState("");
   const [bindLabel, setBindLabel] = useState("Guest 2");
   const [bindRoomNumber, setBindRoomNumber] = useState("");
-  const [closePosSessionId, setClosePosSessionId] = useState("");
-  const [closeLocationId, setCloseLocationId] = useState("");
-  const [closeApproverToken, setCloseApproverToken] = useState("");
-  const [closeIdempotencyKey, setCloseIdempotencyKey] = useState("");
-  const [closeNotes, setCloseNotes] = useState("");
-  const [closeRefundPaymentMethodId, setCloseRefundPaymentMethodId] = useState("");
-  const [closeRefundReference, setCloseRefundReference] = useState("");
-  const [closeCollectPaymentMethodId, setCloseCollectPaymentMethodId] = useState("");
-  const [closeCollectReference, setCloseCollectReference] = useState("");
-  const [closeCollectAmount, setCloseCollectAmount] = useState("");
   const [replaceCardUid, setReplaceCardUid] = useState("");
   const [replaceCardLabel, setReplaceCardLabel] = useState("");
   const [replaceCardRoomNumber, setReplaceCardRoomNumber] = useState("");
@@ -144,9 +139,6 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
   const walletId = member ? String(member.id) : null;
   const isClosed =
     member?.status === "CLOSED" || member?.status === "VOIDED";
-  const isSettling = String(member?.status ?? "")
-    .toUpperCase()
-    .includes("SETTL");
   const { data: walletCards = [], refetch: refetchCards } = useMembershipCards(walletId);
   const { data: settlementQuote, refetch: refetchSettlementQuote } =
     useMembershipSettlementQuote(walletId);
@@ -249,31 +241,10 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
       setBindLabel={setBindLabel}
       bindRoomNumber={bindRoomNumber}
       setBindRoomNumber={setBindRoomNumber}
-      closePosSessionId={closePosSessionId}
-      setClosePosSessionId={setClosePosSessionId}
-      closeLocationId={closeLocationId}
-      setCloseLocationId={setCloseLocationId}
-      closeApproverToken={closeApproverToken}
-      setCloseApproverToken={setCloseApproverToken}
-      closeIdempotencyKey={closeIdempotencyKey}
-      setCloseIdempotencyKey={setCloseIdempotencyKey}
-      closeNotes={closeNotes}
-      setCloseNotes={setCloseNotes}
-      closeRefundPaymentMethodId={closeRefundPaymentMethodId}
-      setCloseRefundPaymentMethodId={setCloseRefundPaymentMethodId}
-      closeRefundReference={closeRefundReference}
-      setCloseRefundReference={setCloseRefundReference}
-      closeCollectPaymentMethodId={closeCollectPaymentMethodId}
-      setCloseCollectPaymentMethodId={setCloseCollectPaymentMethodId}
-      closeCollectReference={closeCollectReference}
-      setCloseCollectReference={setCloseCollectReference}
-      closeCollectAmount={closeCollectAmount}
-      setCloseCollectAmount={setCloseCollectAmount}
       topupPending={topup.isPending}
       refundPending={refund.isPending}
       bindPending={bindCard.isPending}
       unbindPending={unbindCard.isPending}
-      closePending={closeMembership.isPending}
       onTopup={() => {
         const amount = Number(topupAmount);
         if (!(amount > 0)) return toast.error("Enter a topup amount greater than 0.");
@@ -306,8 +277,11 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
       onRefund={() => {
         const amount = Number(refundAmount);
         if (!(amount > 0)) return toast.error("Enter a refund amount greater than 0.");
-        if (amount > member.walletBalance) {
-          return toast.error("Refund cannot exceed wallet balance.");
+        const maxRefundable = getPurchasedBalance(member);
+        if (amount > maxRefundable) {
+          return toast.error(
+            "Refund cannot exceed purchased balance. Promotional value cannot be paid out.",
+          );
         }
         if (!refundPaymentMethodId || !refundPosSessionId || !refundLocationId) {
           return toast.error("Refund needs payment method, POS session, and location.");
@@ -381,58 +355,65 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
           },
         );
       }}
-      onClose={async () => {
-        const ok = await confirm({
-          title: "Settle and close wallet",
-          description: `Settle wallet for ${member.customerName}? Begin settlement first if the wallet is still spendable.`,
-          confirmLabel: "Settle and close",
-          variant: "destructive",
-        });
-        if (!ok) return;
-        if (!closePosSessionId || !closeLocationId) {
-          return toast.error("Settle needs POS session and location.");
-        }
-        if (!closeApproverToken.trim()) {
-          return toast.error("Settle needs an approver token.");
-        }
-        closeMembership.mutate(
-          {
-            id: String(member.id),
-            data: {
-              posSessionId: closePosSessionId,
-              locationId: closeLocationId,
-              approverAuthorization: closeApproverToken.trim(),
-              idempotencyKey: closeIdempotencyKey.trim() || undefined,
-              notes: closeNotes.trim() || undefined,
-              refund: closeRefundPaymentMethodId
-                ? {
-                    paymentMethodId: closeRefundPaymentMethodId,
-                    reference: closeRefundReference.trim() || undefined,
-                  }
-                : undefined,
-              collect: closeCollectPaymentMethodId
-                ? {
-                    paymentMethodId: closeCollectPaymentMethodId,
-                    reference: closeCollectReference.trim() || undefined,
-                    amount: closeCollectAmount.trim()
-                      ? Number(closeCollectAmount)
-                      : undefined,
-                  }
-                : undefined,
-            },
-          },
-          {
+      />
+
+      <WalletSettlementFlow
+        walletId={String(member.id)}
+        guestName={member.customerName}
+        walletStatus={String(member.status)}
+        isClosed={Boolean(isClosed)}
+        settlementQuote={settlementQuote}
+        formatPrice={formatPrice}
+        paymentMethods={paymentMethods}
+        locations={locations}
+        posSessions={posSessions}
+        beginPending={beginSettlement.isPending}
+        cancelPending={cancelSettlement.isPending}
+        settlePending={closeMembership.isPending}
+        onRefreshQuote={() => void refetchSettlementQuote()}
+        onBeginSettlement={() =>
+          beginSettlement.mutate(String(member.id), {
             onSuccess: () => {
-              toast.success("Wallet settled and closed.");
+              toast.success("Settlement started — wallet frozen.");
               void refetch();
-              void refetchCards();
               void refetchSettlementQuote();
-              void refetchAudit();
             },
-            onError: () => toast.error("Failed to settle wallet."),
-          },
-        );
-      }}
+            onError: () => toast.error("Failed to begin settlement."),
+          })
+        }
+        onCancelSettlement={() =>
+          cancelSettlement.mutate(String(member.id), {
+            onSuccess: () => {
+              toast.success("Settlement canceled — wallet spendable again.");
+              void refetch();
+              void refetchSettlementQuote();
+            },
+            onError: () => toast.error("Failed to cancel settlement."),
+          })
+        }
+        onSettle={async (data) => {
+          const ok = await confirm({
+            title: "Settle and close wallet",
+            description: `Settle and close wallet for ${member.customerName}? Cards will be retired.`,
+            confirmLabel: "Settle and close",
+            variant: "destructive",
+          });
+          if (!ok) return;
+          closeMembership.mutate(
+            { id: String(member.id), data },
+            {
+              onSuccess: () => {
+                toast.success("Wallet settled and closed.");
+                void refetch();
+                void refetchCards();
+                void refetchSettlementQuote();
+                void refetchAudit();
+              },
+              onError: () => toast.error("Failed to settle wallet."),
+            },
+          );
+        }}
+        idPrefix="customer-wallet-checkout"
       />
 
       <DetailSection title="Guest cards" icon={CreditCard}>
@@ -657,80 +638,6 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
         </div>
       </DetailSection>
 
-      <DetailSection title="Guest wallet settlement" icon={Power}>
-        {settlementQuote ? (
-          <DetailRows
-            rows={[
-              { label: "Wallet number", value: safeText(settlementQuote.walletNumber) },
-              { label: "Guest", value: safeText(settlementQuote.guestName) },
-              { label: "Wallet status", value: safeText(settlementQuote.status) },
-              { label: "Action", value: safeText(settlementQuote.action) },
-              { label: "Balance", value: formatPrice(settlementQuote.balance) },
-              { label: "Purchased", value: formatPrice(settlementQuote.purchasedBalance) },
-              { label: "Granted", value: formatPrice(settlementQuote.grantedBalance) },
-              { label: "Refundable", value: formatPrice(settlementQuote.refundable) },
-              { label: "Forfeitable", value: formatPrice(settlementQuote.forfeitable) },
-              { label: "Collectable", value: formatPrice(settlementQuote.collectable) },
-              {
-                label: "Blockers",
-                value:
-                  settlementQuote.blockers.length > 0
-                    ? settlementQuote.blockers
-                        .map((b) => `${b.type}: ${b.label || b.id}`)
-                        .join(", ")
-                    : "None",
-              },
-            ]}
-          />
-        ) : (
-          <p className="text-sm text-muted">No settlement quote available.</p>
-        )}
-        <p className="mt-3 text-sm text-muted">
-          Begin settlement to freeze spend, then settle and close. Cancel returns the
-          wallet to spendable if the guest stays. Settle uses the form in “Settle and
-          close wallet” below.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={beginSettlement.isPending || isClosed || isSettling}
-            onClick={() =>
-              beginSettlement.mutate(String(member.id), {
-                onSuccess: () => {
-                  toast.success("Settlement started.");
-                  void refetch();
-                  void refetchSettlementQuote();
-                },
-                onError: () => toast.error("Failed to begin settlement."),
-              })
-            }
-          >
-            Begin settlement
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={cancelSettlement.isPending || isClosed}
-            onClick={() =>
-              cancelSettlement.mutate(String(member.id), {
-                onSuccess: () => {
-                  toast.success("Settlement canceled.");
-                  void refetch();
-                  void refetchSettlementQuote();
-                },
-                onError: () => toast.error("Failed to cancel settlement."),
-              })
-            }
-          >
-            Cancel settlement
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => void refetchSettlementQuote()}>
-            Refresh quote
-          </Button>
-        </div>
-      </DetailSection>
-
       {walletId ? <WalletLedgerSection walletId={walletId} /> : null}
 
       <DetailSection title="Wallet audit" icon={ShieldAlert}>
@@ -778,23 +685,30 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
 
       <DetailSection title="Void wallet" icon={Power}>
         <p className="text-sm text-muted">
-          Only while the wallet is untouched. Anything with real history must be settled
-          instead of erased. Requires a different manager’s bearer token.
+          Only while the wallet is untouched (no spending history). Anything with real
+          history must be settled instead of erased. Requires a different manager’s
+          bearer token.
         </p>
+        {!canVoidWallet(member) && !isClosed ? (
+          <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+            This wallet has activity and cannot be voided. Use checkout settlement
+            instead.
+          </p>
+        ) : null}
         <div className="mt-3 grid gap-2">
           <Label htmlFor="customer-void-approver">Approver token</Label>
           <Input
             id="customer-void-approver"
             value={voidApproverToken}
             onChange={(e) => setVoidApproverToken(e.target.value)}
-            disabled={isClosed}
+            disabled={isClosed || !canVoidWallet(member)}
           />
         </div>
         <Button
           type="button"
           variant="destructive"
           className="mt-3"
-          disabled={voidWallet.isPending || isClosed}
+          disabled={voidWallet.isPending || isClosed || !canVoidWallet(member)}
           onClick={async () => {
             if (!voidApproverToken.trim()) {
               return toast.error("Void needs an approver token.");
@@ -877,36 +791,14 @@ function CustomerMembershipActions({
   setBindLabel,
   bindRoomNumber,
   setBindRoomNumber,
-  closePosSessionId,
-  setClosePosSessionId,
-  closeLocationId,
-  setCloseLocationId,
-  closeApproverToken,
-  setCloseApproverToken,
-  closeIdempotencyKey,
-  setCloseIdempotencyKey,
-  closeNotes,
-  setCloseNotes,
-  closeRefundPaymentMethodId,
-  setCloseRefundPaymentMethodId,
-  closeRefundReference,
-  setCloseRefundReference,
-  closeCollectPaymentMethodId,
-  setCloseCollectPaymentMethodId,
-  closeCollectReference,
-  setCloseCollectReference,
-  closeCollectAmount,
-  setCloseCollectAmount,
   topupPending,
   refundPending,
   bindPending,
   unbindPending,
-  closePending,
   onTopup,
   onRefund,
   onBind,
   onUnbind,
-  onClose,
 }: {
   member: MembershipMember;
   formatPrice: (value: number) => string;
@@ -953,36 +845,14 @@ function CustomerMembershipActions({
   setBindLabel: (value: string) => void;
   bindRoomNumber: string;
   setBindRoomNumber: (value: string) => void;
-  closePosSessionId: string;
-  setClosePosSessionId: (value: string) => void;
-  closeLocationId: string;
-  setCloseLocationId: (value: string) => void;
-  closeApproverToken: string;
-  setCloseApproverToken: (value: string) => void;
-  closeIdempotencyKey: string;
-  setCloseIdempotencyKey: (value: string) => void;
-  closeNotes: string;
-  setCloseNotes: (value: string) => void;
-  closeRefundPaymentMethodId: string;
-  setCloseRefundPaymentMethodId: (value: string) => void;
-  closeRefundReference: string;
-  setCloseRefundReference: (value: string) => void;
-  closeCollectPaymentMethodId: string;
-  setCloseCollectPaymentMethodId: (value: string) => void;
-  closeCollectReference: string;
-  setCloseCollectReference: (value: string) => void;
-  closeCollectAmount: string;
-  setCloseCollectAmount: (value: string) => void;
   topupPending: boolean;
   refundPending: boolean;
   bindPending: boolean;
   unbindPending: boolean;
-  closePending: boolean;
   onTopup: () => void;
   onRefund: () => void;
   onBind: () => void;
   onUnbind: () => void;
-  onClose: () => void;
 }) {
   const overviewRows = getMembershipOverviewRows(member, formatPrice);
 
@@ -1264,149 +1134,6 @@ function CustomerMembershipActions({
                 {unbindPending ? "Unbinding..." : "Unbind card"}
               </Button>
             )}
-          </div>
-        </DetailSection>
-
-        <DetailSection title="Settle and close wallet" icon={Power}>
-          <div className="space-y-3">
-            <p className="text-sm text-muted">
-              {isClosed
-                ? "This wallet is already closed."
-                : "Settle forfeits promotional value, refunds purchased balance, collects postpaid amounts, retires cards, and closes the wallet. Begin settlement first."}
-            </p>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-pos-session">POS session</Label>
-              <Select value={closePosSessionId} onValueChange={setClosePosSessionId} disabled={isClosed}>
-                <SelectTrigger id="customer-close-pos-session">
-                  <SelectValue placeholder="Select POS session" />
-                </SelectTrigger>
-                <SelectContent>
-                  {posSessions.map((session) => (
-                    <SelectItem key={String(session.id)} value={String(session.id)}>
-                      {String(session.id)} ({session.status ?? "UNKNOWN"})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-location">Location</Label>
-              <Select value={closeLocationId} onValueChange={setCloseLocationId} disabled={isClosed}>
-                <SelectTrigger id="customer-close-location">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map((location) => (
-                    <SelectItem key={String(location.id)} value={String(location.id)}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-approver">Approver token</Label>
-              <Input
-                id="customer-close-approver"
-                value={closeApproverToken}
-                onChange={(e) => setCloseApproverToken(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-idempotency">Idempotency key (optional)</Label>
-              <Input
-                id="customer-close-idempotency"
-                value={closeIdempotencyKey}
-                onChange={(e) => setCloseIdempotencyKey(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-notes">Notes (optional)</Label>
-              <Input
-                id="customer-close-notes"
-                value={closeNotes}
-                onChange={(e) => setCloseNotes(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-refund-pm">Refund payment method (optional)</Label>
-              <Select
-                value={closeRefundPaymentMethodId}
-                onValueChange={setCloseRefundPaymentMethodId}
-                disabled={isClosed}
-              >
-                <SelectTrigger id="customer-close-refund-pm">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((pm) => (
-                    <SelectItem key={String(pm.id)} value={String(pm.id)}>
-                      {pm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-refund-ref">Refund reference (optional)</Label>
-              <Input
-                id="customer-close-refund-ref"
-                value={closeRefundReference}
-                onChange={(e) => setCloseRefundReference(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-collect-pm">Collect payment method (optional)</Label>
-              <Select
-                value={closeCollectPaymentMethodId}
-                onValueChange={setCloseCollectPaymentMethodId}
-                disabled={isClosed}
-              >
-                <SelectTrigger id="customer-close-collect-pm">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((pm) => (
-                    <SelectItem key={String(pm.id)} value={String(pm.id)}>
-                      {pm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-collect-ref">Collect reference (optional)</Label>
-              <Input
-                id="customer-close-collect-ref"
-                value={closeCollectReference}
-                onChange={(e) => setCloseCollectReference(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-close-collect-amount">Collect amount (optional)</Label>
-              <Input
-                id="customer-close-collect-amount"
-                type="number"
-                min={0}
-                step="0.01"
-                value={closeCollectAmount}
-                onChange={(e) => setCloseCollectAmount(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={onClose}
-              disabled={isClosed || closePending}
-            >
-              {closePending ? "Settling..." : "Settle and close"}
-            </Button>
           </div>
         </DetailSection>
       </div>
