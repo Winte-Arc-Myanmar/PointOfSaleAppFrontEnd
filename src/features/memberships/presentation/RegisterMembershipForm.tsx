@@ -120,13 +120,13 @@ export function RegisterMembershipForm({
     [customers, selectedTenantId],
   );
 
-  const filteredTiers = useMemo(
-    () =>
-      cardTiers.filter((t) =>
-        selectedTenantId ? String(t.tenantId) === String(selectedTenantId) : true,
-      ),
-    [cardTiers, selectedTenantId],
-  );
+  const filteredTiers = useMemo(() => {
+    if (!selectedTenantId) return [];
+    return cardTiers.filter(
+      (t) =>
+        !t.tenantId || String(t.tenantId) === String(selectedTenantId),
+    );
+  }, [cardTiers, selectedTenantId]);
   const filteredLocations = useMemo(
     () =>
       locations.filter((item) =>
@@ -161,6 +161,16 @@ export function RegisterMembershipForm({
   useEffect(() => {
     if (defaultCustomerId) form.setValue("customerId", defaultCustomerId);
   }, [defaultCustomerId, form]);
+
+  useEffect(() => {
+    const currentTierId = form.getValues("tierId");
+    if (
+      currentTierId &&
+      !filteredTiers.some((tier) => String(tier.id) === String(currentTierId))
+    ) {
+      form.setValue("tierId", "");
+    }
+  }, [filteredTiers, form]);
 
   useEffect(() => {
     const nextKey =
@@ -285,7 +295,7 @@ export function RegisterMembershipForm({
             name="tierId"
             render={({ field }) => (
               <Select
-                value={field.value}
+                value={field.value || undefined}
                 onValueChange={(value) => {
                   field.onChange(value);
                   const tier = filteredTiers.find((t) => String(t.id) === value);
@@ -296,7 +306,15 @@ export function RegisterMembershipForm({
                 disabled={!selectedTenantId}
               >
                 <SelectTrigger id="tierId">
-                  <SelectValue placeholder="Select card tier" />
+                  <SelectValue
+                    placeholder={
+                      !selectedTenantId
+                        ? "Select tenant first"
+                        : filteredTiers.length === 0
+                          ? "No card tiers available"
+                          : "Select card tier"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredTiers.map((t) => (
