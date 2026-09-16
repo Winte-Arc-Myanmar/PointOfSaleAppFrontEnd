@@ -9,6 +9,8 @@ import {
   printEscPosToUsb,
   reconnectSavedUsbPrinter,
 } from "@/lib/usb-printer";
+import { printEscPosToReceiptPrinter } from "@/lib/receipt-printer";
+import { loadPrinterPreferences } from "@/lib/printer-preferences";
 
 /**
  * Browser-side thermal print transport.
@@ -103,6 +105,29 @@ export class BrowserThermalPrintGateway implements IThermalPrintGateway {
         rawBytes: bytes,
         message: "Raw ESC/POS export is only available in the browser.",
       };
+    }
+
+    const prefs = loadPrinterPreferences().receipt;
+    if (prefs.transport === "bluetooth" || prefs.transport === "wifi") {
+      try {
+        const result = await printEscPosToReceiptPrinter(bytes);
+        return {
+          success: true,
+          mode: "raw-escpos",
+          rawBytes: bytes,
+          message: `Printed via ${result.transport} (${result.label}).`,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          mode: "raw-escpos",
+          rawBytes: bytes,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to print to the configured Bluetooth or Wi‑Fi printer.",
+        };
+      }
     }
 
     const connected = getConnectedUsbPrinter();

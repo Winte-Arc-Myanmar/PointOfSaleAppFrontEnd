@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
+import { useBluetoothPrinter } from "@/presentation/hooks/useBluetoothPrinter";
 import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 import { useUsbPrinter } from "@/presentation/hooks/useUsbPrinter";
@@ -10,13 +11,18 @@ import { useUsbPrinter } from "@/presentation/hooks/useUsbPrinter";
 export function PrinterConnectionStatus() {
   const { preferences } = usePrinterPreferences();
   const usb = useUsbPrinter();
+  const bluetooth = useBluetoothPrinter();
   const { data: kitchenResult } = useKitchenPrinters({ page: 1, limit: 200 });
   const kitchenPrinter = kitchenResult?.items.find(
     (printer) => String(printer.id) === String(preferences.kitchen.printerId),
   );
-
+  const transport = preferences.receipt.transport ?? "browser";
   const receiptReady =
-    preferences.receipt.mode === "browser" || Boolean(usb.connected || preferences.receipt.usbDeviceLabel);
+    transport === "browser" ||
+    (transport === "usb" && Boolean(usb.connected || preferences.receipt.usbDeviceLabel)) ||
+    (transport === "bluetooth" &&
+      Boolean(bluetooth.connected || preferences.receipt.bluetoothDeviceLabel)) ||
+    (transport === "wifi" && Boolean(preferences.receipt.wifiHost));
   const kitchenReady = Boolean(kitchenPrinter);
 
   return (
@@ -40,13 +46,23 @@ export function PrinterConnectionStatus() {
           <div>
             <p className="font-medium">Receipt</p>
             <p className="text-muted">
-              {preferences.receipt.mode === "browser"
+              {transport === "browser"
                 ? "Browser print dialog"
-                : usb.connected
-                  ? usb.connected.label
-                  : preferences.receipt.usbDeviceLabel
-                    ? `${preferences.receipt.usbDeviceLabel} (reconnect needed)`
-                    : "Not connected"}
+                : transport === "bluetooth"
+                  ? bluetooth.connected
+                    ? `Bluetooth · ${bluetooth.connected.label}`
+                    : preferences.receipt.bluetoothDeviceLabel
+                      ? `Bluetooth · ${preferences.receipt.bluetoothDeviceLabel} (reconnect)`
+                      : "Bluetooth not paired"
+                  : transport === "wifi"
+                    ? preferences.receipt.wifiHost
+                      ? `Wi‑Fi · ${preferences.receipt.wifiHost}:${preferences.receipt.wifiPort ?? 80}`
+                      : "Wi‑Fi printer not saved"
+                    : usb.connected
+                      ? `USB · ${usb.connected.label}`
+                      : preferences.receipt.usbDeviceLabel
+                        ? `USB · ${preferences.receipt.usbDeviceLabel} (reconnect needed)`
+                        : "USB not connected"}
             </p>
           </div>
         </div>

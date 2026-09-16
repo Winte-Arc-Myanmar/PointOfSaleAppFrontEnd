@@ -58,6 +58,7 @@ export async function connectUsbPrinter(
   const info = toDeviceInfo(selected);
   updateReceiptPrinterPreferences({
     mode: "raw-escpos",
+    transport: "usb",
     usbDeviceLabel: info.label,
     usbVendorId: info.vendorId,
     usbProductId: info.productId,

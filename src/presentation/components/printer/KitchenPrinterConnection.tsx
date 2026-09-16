@@ -41,9 +41,9 @@ export function KitchenPrinterConnection({
   return (
     <DetailSection title="Kitchen printer" icon={Printer}>
       <p className="mb-4 text-sm text-muted">
-        Choose which network kitchen printer this POS terminal should use. Printer
-        records are stored in Kitchen Printers; this step binds the active device to
-        this checkout station.
+        Choose which network kitchen printer this POS terminal should use. Kitchen
+        printers are Wi‑Fi or Ethernet devices (IP:port). Tickets are sent from the
+        server over the LAN — the browser cannot open raw TCP 9100 itself.
       </p>
 
       <div className="grid gap-2">
@@ -93,8 +93,8 @@ export function KitchenPrinterConnection({
               <p className="text-sm text-muted">No kitchen printer selected yet.</p>
             )}
             <p className="text-xs text-muted">
-              Kitchen tickets are sent to the printer IP from the server when orders
-              are fired. Verify the device is online on your LAN.
+              Kitchen tickets are sent over Wi‑Fi/Ethernet to this IP from the server
+              when orders are fired. Verify the printer is online on your LAN.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

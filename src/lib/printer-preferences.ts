@@ -2,13 +2,22 @@ import type { ThermalPaperWidth, ThermalPrintMode } from "@/core/domain/entities
 
 const STORAGE_KEY = "pos-printer-preferences";
 
+export type ReceiptPrinterTransport = "browser" | "usb" | "bluetooth" | "wifi";
+export type WifiPrinterProtocol = "epos" | "star" | "http-raw";
+
 export interface ReceiptPrinterPreferences {
   mode: ThermalPrintMode;
   paperWidthMm: ThermalPaperWidth;
+  transport?: ReceiptPrinterTransport;
   usbDeviceLabel?: string;
   usbVendorId?: number;
   usbProductId?: number;
   usbSerialNumber?: string;
+  bluetoothDeviceId?: string;
+  bluetoothDeviceLabel?: string;
+  wifiHost?: string;
+  wifiPort?: number;
+  wifiProtocol?: WifiPrinterProtocol;
 }
 
 export interface KitchenPrinterPreferences {
@@ -24,6 +33,7 @@ const DEFAULT_PREFERENCES: PrinterPreferences = {
   receipt: {
     mode: "browser",
     paperWidthMm: 80,
+    transport: "browser",
   },
   kitchen: {},
 };
