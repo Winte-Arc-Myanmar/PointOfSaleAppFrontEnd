@@ -20,7 +20,8 @@
  * 1.11.0 — Card Tiers wired to /v1/card-tiers (replaces UI-only card categories/details)
  * 1.11.1 — Card tier list/create error handling and pagination fixes
  * 1.11.2 — Card tiers routes moved to /card-tiers (old template URLs redirect)
+ * 1.12.0 — Dashboard for sales summary, item sales, till movements, guest cards, and loyalty
  */
-export const APP_VERSION = "1.11.2";
+export const APP_VERSION = "1.12.0";
 
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

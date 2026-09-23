@@ -40,6 +40,7 @@ const routeTitles: Record<string, string> = {
   "/tip-pools": "Tip Pools",
   "/counter-orders": "Counter Orders",
   "/reports": "Reports",
+  "/dashboard": "Dashboard",
   "/discount-reasons": "Discount Reasons",
   "/void-reasons": "Void Reasons",
   "/inventory-ledger": "Inventory ledger",

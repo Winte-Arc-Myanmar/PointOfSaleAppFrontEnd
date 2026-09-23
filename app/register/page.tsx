@@ -14,5 +14,5 @@ export default async function RegisterPage() {
   if (userType === "systemAdmin") {
     redirect("/admin/create-user");
   }
-  redirect("/products");
+  redirect("/dashboard");
 }

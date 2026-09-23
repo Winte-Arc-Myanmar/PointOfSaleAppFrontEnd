@@ -555,6 +555,11 @@ export const API_ENDPOINTS = {
     BY_ORDER_ID: (salesOrderId: string) => `/v1/refunds/order/${salesOrderId}`,
   },
   REPORTS: {
+    SALES_SUMMARY: "/v1/reports/sales-summary",
+    ITEM_SALES: "/v1/reports/item-sales",
+    OTHER_INCOME_EXPENSES: "/v1/reports/other-income-expenses",
+    MEMBER_CARDS: "/v1/reports/member-cards",
+    LOYALTY_POINTS: "/v1/reports/loyalty-points",
     DAILY_SALES: "/v1/reports/daily-sales",
     SALES_BY_CATEGORY: "/v1/reports/sales-by-category",
     SALES_BY_ITEM: "/v1/reports/sales-by-item",

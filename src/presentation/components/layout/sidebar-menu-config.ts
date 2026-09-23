@@ -24,6 +24,7 @@ import {
   KeyRound,
   Landmark,
   Layers,
+  LayoutDashboard,
   LayoutGrid,
   ListTree,
   MapPin,
@@ -99,6 +100,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.counterOrders",
         icon: ShoppingBag,
         permissions: ["counter-orders:read"],
+      },
+      {
+        href: "/dashboard",
+        labelKey: "nav.dashboard",
+        icon: LayoutDashboard,
+        permissions: ["reports:read"],
       },
       {
         href: "/reports",

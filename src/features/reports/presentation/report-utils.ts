@@ -12,6 +12,26 @@ export function formatQuantity(value: string | number | null | undefined): strin
   return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
 }
 
+export function formatShare(value: string | number | null | undefined): string {
+  if (value == null || value === "") return "—";
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  return Number.isFinite(n) ? `${n.toFixed(2)}%` : "—";
+}
+
+export function formatCount(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return value.toLocaleString();
+}
+
+export function formatLabel(value: string | null | undefined): string {
+  if (!value) return "—";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+    .join(" ");
+}
+
 export function formatHour(hour: number): string {
   if (!Number.isFinite(hour) || hour < 0 || hour > 23) return "—";
   const period = hour >= 12 ? "PM" : "AM";

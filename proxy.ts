@@ -50,6 +50,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/uploads", permissions: ["uploads:read"] },
   { prefix: "/sales-orders", permissions: ["sales-orders:read"] },
   { prefix: "/reports", permissions: ["reports:read"] },
+  { prefix: "/dashboard", permissions: ["reports:read"] },
   { prefix: "/promotion-rules", permissions: ["promotion-rules:read"] },
   { prefix: "/discount-reasons", permissions: ["discount-reasons:read"] },
   { prefix: "/void-reasons", permissions: ["void-reasons:read"] },
@@ -115,7 +116,7 @@ export default auth((req) => {
     return Response.redirect(new URL("/login", req.nextUrl));
   }
   if (isLoggedIn && pathname.startsWith("/login")) {
-    return Response.redirect(new URL("/products", req.nextUrl));
+    return Response.redirect(new URL("/dashboard", req.nextUrl));
   }
 
   if (isLoggedIn && req.auth) {

@@ -39,7 +39,7 @@ export type AuthMode = "login" | "register";
 
 export interface AuthFormProps {
   mode: AuthMode;
-  /** Optional redirect after login (defaults to callbackUrl search param or /products) */
+  /** Optional redirect after login (defaults to callbackUrl search param or /dashboard) */
   callbackUrl?: string;
 }
 
@@ -72,7 +72,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const tenantId = tenantIdRaw.replace(/^["']|["']$/g, "").trim();
 
   const defaultCallbackUrl =
-    callbackUrl ?? searchParams.get("callbackUrl") ?? "/products";
+    callbackUrl ?? searchParams.get("callbackUrl") ?? "/dashboard";
 
   /** Show Branch ID field when tenant link is used (tenant user flow). */
   const isTenantUserFlow = isLogin && tenantId.length > 0;
