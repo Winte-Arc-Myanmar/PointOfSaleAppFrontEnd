@@ -18,6 +18,13 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
+import {
   DetailPageHeader,
   DetailRows,
   DetailSection,
@@ -277,31 +284,61 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="topupPaymentMethodId">Payment method ID</Label>
-              <Input
-                id="topupPaymentMethodId"
-                value={topupPaymentMethodId}
-                onChange={(e) => setTopupPaymentMethodId(e.target.value)}
+              <Label htmlFor="topupPaymentMethodId">Payment method</Label>
+              <Select
+                value={topupPaymentMethodId || undefined}
+                onValueChange={setTopupPaymentMethodId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="topupPaymentMethodId">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((pm) => (
+                    <SelectItem key={String(pm.id)} value={String(pm.id)}>
+                      {pm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="topupPosSessionId">POS session ID</Label>
-              <Input
-                id="topupPosSessionId"
-                value={topupPosSessionId}
-                onChange={(e) => setTopupPosSessionId(e.target.value)}
+              <Label htmlFor="topupPosSessionId">POS session</Label>
+              <Select
+                value={topupPosSessionId || undefined}
+                onValueChange={setTopupPosSessionId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="topupPosSessionId">
+                  <SelectValue placeholder="Select POS session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {posSessions.map((session) => (
+                    <SelectItem key={String(session.id)} value={String(session.id)}>
+                      {session.status} · {String(session.id)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="topupLocationId">Location ID</Label>
-              <Input
-                id="topupLocationId"
-                value={topupLocationId}
-                onChange={(e) => setTopupLocationId(e.target.value)}
+              <Label htmlFor="topupLocationId">Location</Label>
+              <Select
+                value={topupLocationId || undefined}
+                onValueChange={setTopupLocationId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="topupLocationId">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={String(location.id)} value={String(location.id)}>
+                      {location.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button
               type="button"
@@ -337,31 +374,61 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="refundPaymentMethodId">Payment method ID</Label>
-              <Input
-                id="refundPaymentMethodId"
-                value={refundPaymentMethodId}
-                onChange={(e) => setRefundPaymentMethodId(e.target.value)}
+              <Label htmlFor="refundPaymentMethodId">Payment method</Label>
+              <Select
+                value={refundPaymentMethodId || undefined}
+                onValueChange={setRefundPaymentMethodId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="refundPaymentMethodId">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((pm) => (
+                    <SelectItem key={String(pm.id)} value={String(pm.id)}>
+                      {pm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="refundPosSessionId">POS session ID</Label>
-              <Input
-                id="refundPosSessionId"
-                value={refundPosSessionId}
-                onChange={(e) => setRefundPosSessionId(e.target.value)}
+              <Label htmlFor="refundPosSessionId">POS session</Label>
+              <Select
+                value={refundPosSessionId || undefined}
+                onValueChange={setRefundPosSessionId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="refundPosSessionId">
+                  <SelectValue placeholder="Select POS session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {posSessions.map((session) => (
+                    <SelectItem key={String(session.id)} value={String(session.id)}>
+                      {session.status} · {String(session.id)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="refundLocationId">Location ID</Label>
-              <Input
-                id="refundLocationId"
-                value={refundLocationId}
-                onChange={(e) => setRefundLocationId(e.target.value)}
+              <Label htmlFor="refundLocationId">Location</Label>
+              <Select
+                value={refundLocationId || undefined}
+                onValueChange={setRefundLocationId}
                 disabled={isClosed}
-              />
+              >
+                <SelectTrigger id="refundLocationId">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map((location) => (
+                    <SelectItem key={String(location.id)} value={String(location.id)}>
+                      {location.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="refundApproverToken">Approver token</Label>
