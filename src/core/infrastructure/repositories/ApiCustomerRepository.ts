@@ -9,7 +9,7 @@ import type {
   ICustomerRepository,
 } from "@/core/domain/repositories/ICustomerRepository";
 import type { CustomerDto } from "@/core/application/dtos/CustomerDto";
-import { toCustomer } from "@/core/application/mappers/CustomerMapper";
+import { toCustomer, toCustomerWritePayload } from "@/core/application/mappers/CustomerMapper";
 import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
@@ -54,7 +54,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async create(data: Omit<CustomerDto, "id">): Promise<Customer> {
     const dto = await this.httpClient.post<CustomerDto>(
       API_ENDPOINTS.CUSTOMERS.CREATE,
-      data,
+      toCustomerWritePayload(data),
     );
     if (!dto?.id) throw new Error("Create customer response missing id");
     return toCustomer(dto as CustomerDto & { id: string });
@@ -63,7 +63,7 @@ export class ApiCustomerRepository implements ICustomerRepository {
   async update(id: string, data: Omit<CustomerDto, "id">): Promise<Customer> {
     const dto = await this.httpClient.patch<CustomerDto>(
       API_ENDPOINTS.CUSTOMERS.UPDATE(id),
-      data,
+      toCustomerWritePayload(data),
     );
     return toCustomer({ ...dto, id: dto?.id ?? id } as CustomerDto & {
       id: string;

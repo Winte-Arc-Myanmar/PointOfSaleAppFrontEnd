@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { AppLoader } from "@/presentation/components/loader";
@@ -23,21 +22,12 @@ import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useCustomer, useUpdateCustomer } from "@/presentation/hooks/useCustomers";
 import { CUSTOMER_ACCOUNT_TYPES, CUSTOMER_LOYALTY_TIERS } from "./customer-constants";
+import {
+  customerFormSchema,
+  type CustomerFormData,
+  toCustomerMutationBody,
+} from "./customer-form-schema";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant is required"),
-  phone: z.string(),
-  email: z.string(),
-  accountType: z.string().min(1, "Account type is required"),
-  hasCreditAccount: z.boolean(),
-  maxCreditLimit: z.string(),
-  paymentTermsDays: z.number().min(0),
-  loyaltyTier: z.string().min(1, "Loyalty tier is required"),
-});
-
-type CustomerFormData = z.infer<typeof schema>;
 
 const REDIRECT_DELAY_MS = 1500;
 
@@ -52,7 +42,7 @@ export function EditCustomerForm({ customerId }: { customerId: string }) {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<CustomerFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(customerFormSchema),
     defaultValues: {
       name: "",
       tenantId: "",
@@ -101,19 +91,7 @@ export function EditCustomerForm({ customerId }: { customerId: string }) {
     updateCustomer.mutate(
       {
         id: customerId,
-        data: {
-          name: data.name,
-          tenantId: data.tenantId,
-          phone: data.phone,
-          email: data.email,
-          accountType: data.accountType,
-          hasCreditAccount: data.hasCreditAccount,
-          maxCreditLimit: data.maxCreditLimit || "0.0000",
-          paymentTermsDays: data.paymentTermsDays ?? 0,
-          loyaltyTier: data.loyaltyTier,
-          currentCreditBalance: customer?.currentCreditBalance ?? "0.0000",
-          lifetimePointsEarned: customer?.lifetimePointsEarned ?? 0,
-        },
+        data: toCustomerMutationBody(data),
       },
       {
         onSuccess: () => {
@@ -242,7 +220,10 @@ export function EditCustomerForm({ customerId }: { customerId: string }) {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...form.register("email")} />
+            <Input id="email" type="email" {...form.register("email")} placeholder="Optional" />
+            {form.formState.errors.email && (
+              <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+            )}
           </div>
         </div>
 

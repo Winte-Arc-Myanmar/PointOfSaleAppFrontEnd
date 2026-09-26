@@ -3,7 +3,6 @@
 import { useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useCreateCustomer } from "@/presentation/hooks/useCustomers";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
@@ -19,21 +18,12 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { CUSTOMER_ACCOUNT_TYPES, CUSTOMER_LOYALTY_TIERS } from "./customer-constants";
+import {
+  customerFormSchema,
+  type CustomerFormData,
+  toCustomerMutationBody,
+} from "./customer-form-schema";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  tenantId: z.string().min(1, "Tenant is required"),
-  phone: z.string(),
-  email: z.string(),
-  accountType: z.string().min(1, "Account type is required"),
-  hasCreditAccount: z.boolean(),
-  maxCreditLimit: z.string(),
-  paymentTermsDays: z.number().min(0),
-  loyaltyTier: z.string().min(1, "Loyalty tier is required"),
-});
-
-export type CustomerFormData = z.infer<typeof schema>;
 
 const defaultValues: CustomerFormData = {
   name: "",
@@ -81,7 +71,7 @@ export function CreateCustomerForm({
     setValue,
     getValues,
   } = useForm<CustomerFormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(customerFormSchema),
     defaultValues: defaultTenantValues(lockedTenantId),
   });
 
@@ -104,32 +94,17 @@ export function CreateCustomerForm({
   }, [hasCreditAccount, setValue]);
 
   const onSubmit = (data: CustomerFormData) => {
-    createCustomer.mutate(
-      {
-        name: data.name,
-        tenantId: data.tenantId,
-        phone: data.phone,
-        email: data.email,
-        accountType: data.accountType,
-        hasCreditAccount: data.hasCreditAccount,
-        maxCreditLimit: data.maxCreditLimit || "0.0000",
-        paymentTermsDays: data.paymentTermsDays ?? 0,
-        loyaltyTier: data.loyaltyTier,
-        currentCreditBalance: "0.0000",
-        lifetimePointsEarned: 0,
+    createCustomer.mutate(toCustomerMutationBody(data), {
+      onSuccess: () => {
+        toast.success("Customer created.");
+        reset({
+          ...defaultTenantValues(lockedTenantId),
+          tenantId: lockedTenantId ?? getValues("tenantId"),
+        });
+        onSuccess?.();
       },
-      {
-        onSuccess: () => {
-          toast.success("Customer created.");
-          reset({
-            ...defaultTenantValues(lockedTenantId),
-            tenantId: lockedTenantId ?? getValues("tenantId"),
-          });
-          onSuccess?.();
-        },
-        onError: () => toast.error("Failed to create customer."),
-      }
-    );
+      onError: () => toast.error("Failed to create customer."),
+    });
   };
 
   return (
@@ -203,7 +178,8 @@ export function CreateCustomerForm({
         </div>
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register("email")} placeholder="customer@example.com" />
+          <Input id="email" type="email" {...register("email")} placeholder="customer@example.com (optional)" />
+          {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
         </div>
       </div>
 

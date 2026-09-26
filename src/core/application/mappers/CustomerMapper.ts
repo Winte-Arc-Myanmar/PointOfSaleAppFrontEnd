@@ -48,3 +48,29 @@ export function toCustomerDto(customer: Partial<Customer>): CustomerDto {
   };
 }
 
+/** POST/PATCH body — server sets credit balance and lifetime points. */
+export function toCustomerWritePayload(data: {
+  tenantId: string;
+  accountType: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  hasCreditAccount: boolean;
+  maxCreditLimit: string;
+  paymentTermsDays: number;
+  loyaltyTier: string;
+}): Record<string, unknown> {
+  const email = data.email?.trim() ?? "";
+  return {
+    tenantId: data.tenantId,
+    accountType: data.accountType,
+    name: data.name,
+    phone: data.phone?.trim() ?? "",
+    ...(email ? { email } : {}),
+    hasCreditAccount: data.hasCreditAccount,
+    maxCreditLimit: data.maxCreditLimit,
+    paymentTermsDays: data.paymentTermsDays,
+    loyaltyTier: data.loyaltyTier,
+  };
+}
+
