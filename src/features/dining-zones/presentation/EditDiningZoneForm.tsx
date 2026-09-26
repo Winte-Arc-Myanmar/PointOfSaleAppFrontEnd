@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useDiningZone, useUpdateDiningZone } from "@/presentation/hooks/useDiningZones";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { AppLoader } from "@/presentation/components/loader";
@@ -130,22 +131,30 @@ export function EditDiningZoneForm({ diningZoneId }: { diningZoneId: string }) {
 
         <div className="grid gap-2">
           <Label>Floor layout template</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {ZONE_LAYOUT_PRESETS.map((preset) => (
-              <Button
-                key={preset.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-auto flex-col items-start gap-1 px-3 py-2 text-left"
-                onClick={() => form.setValue("layoutSvg", preset.svg, { shouldDirty: true })}
-              >
-                <span className="font-medium text-foreground">{preset.label}</span>
-                <span className="text-[11px] text-muted font-normal leading-tight">
-                  {preset.description}
-                </span>
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {ZONE_LAYOUT_PRESETS.map((preset) => {
+              const selected = form.watch("layoutSvg") === preset.svg;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={cn(
+                    "flex min-w-0 flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left whitespace-normal",
+                    selected
+                      ? "border-mint bg-mint/10"
+                      : "border-border bg-background hover:bg-mint/5",
+                  )}
+                  onClick={() => form.setValue("layoutSvg", preset.svg, { shouldDirty: true })}
+                >
+                  <span className="text-sm font-medium leading-tight text-foreground">
+                    {preset.label}
+                  </span>
+                  <span className="text-[11px] font-normal leading-snug text-muted">
+                    {preset.description}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

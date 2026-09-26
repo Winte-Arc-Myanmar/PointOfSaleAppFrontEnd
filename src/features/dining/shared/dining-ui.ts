@@ -81,38 +81,35 @@ export const ZONE_LAYOUT_PRESETS: { id: string; label: string; description: stri
   {
     id: "blank",
     label: "Blank floor",
-    description: "Empty canvas — add walls and zones in SVG editor",
+    description: "Empty canvas",
     svg: DEFAULT_ZONE_SVG,
   },
   {
     id: "main",
     label: "Main dining",
-    description: "Open room with service aisle",
+    description: "Open room with a service aisle",
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560">
   <rect x="0" y="0" width="900" height="560" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
   <rect x="40" y="40" width="820" height="480" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
   <rect x="420" y="40" width="60" height="480" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="450" y="290" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="sans-serif">Aisle</text>
 </svg>`,
   },
   {
     id: "patio",
     label: "Patio",
-    description: "Outdoor area with perimeter border",
+    description: "Outdoor area with a perimeter border",
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560">
   <rect x="0" y="0" width="900" height="560" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="2"/>
   <rect x="60" y="60" width="780" height="440" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-dasharray="10 8" rx="24"/>
-  <text x="450" y="40" text-anchor="middle" fill="#059669" font-size="13" font-family="sans-serif">Patio</text>
 </svg>`,
   },
   {
     id: "bar",
     label: "Bar",
-    description: "Bar counter with stool area",
+    description: "Bar counter with a stool area",
     svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560">
   <rect x="0" y="0" width="900" height="560" fill="#faf5ff" stroke="#e9d5ff" stroke-width="2"/>
   <rect x="80" y="80" width="740" height="80" fill="#ede9fe" stroke="#c4b5fd" stroke-width="2" rx="8"/>
-  <text x="450" y="130" text-anchor="middle" fill="#7c3aed" font-size="13" font-family="sans-serif">Bar</text>
   <rect x="80" y="200" width="740" height="280" fill="none" stroke="#ddd6fe" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>`,
   },
@@ -126,3 +123,8 @@ export const SHAPE_LABELS: Record<string, string> = {
 
 export const TEXTAREA_CLASS =
   "flex w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-mint focus:ring-offset-2";
+
+/** Layout SVGs are backgrounds only. Labels belong on table tiles, not painted over the floor. */
+export function layoutSvgWithoutLabels(svg: string): string {
+  return svg.replace(/<text\b[^>]*>[\s\S]*?<\/text>/gi, "");
+}

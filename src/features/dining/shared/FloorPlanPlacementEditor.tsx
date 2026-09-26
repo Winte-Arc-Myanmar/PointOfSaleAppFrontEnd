@@ -5,7 +5,7 @@ import type { DiningZone } from "@/core/domain/entities/DiningZone";
 import type { DiningTable } from "@/core/domain/entities/DiningTable";
 import { cn } from "@/lib/utils";
 import { DiningTableTile } from "./DiningTableTile";
-import { FLOOR_PLAN_HEIGHT, FLOOR_PLAN_WIDTH } from "./dining-ui";
+import { FLOOR_PLAN_HEIGHT, FLOOR_PLAN_WIDTH, layoutSvgWithoutLabels } from "./dining-ui";
 import {
   clientToFloorCoords,
   hasFloorPosition,
@@ -133,7 +133,7 @@ export function FloorPlanPlacementEditor({
           {zone?.layoutSvg ? (
             <div
               className="absolute inset-0 pointer-events-none opacity-90"
-              dangerouslySetInnerHTML={{ __html: zone.layoutSvg }}
+              dangerouslySetInnerHTML={{ __html: layoutSvgWithoutLabels(zone.layoutSvg) }}
             />
           ) : (
             <div
