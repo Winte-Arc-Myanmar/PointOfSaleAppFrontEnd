@@ -1,25 +1,39 @@
 type ApiErrorBody = {
   message?: string;
-  error?: string;
+  error?: string | { message?: string; code?: string };
   errors?: Array<string | { message?: string }>;
 };
+
+function messageFromApiBody(data: ApiErrorBody | undefined): string | undefined {
+  if (!data) return undefined;
+  if (typeof data.message === "string" && data.message.trim()) return data.message;
+
+  const err = data.error;
+  if (typeof err === "string" && err.trim()) return err;
+  if (err && typeof err === "object" && typeof err.message === "string" && err.message.trim()) {
+    return err.message;
+  }
+
+  return undefined;
+}
 
 export function getHttpErrorMessage(
   error: unknown,
   fallback = "Request failed.",
 ): string {
-  if (error instanceof Error && error.message && !("response" in error)) {
-    return error.message;
-  }
-
   const axiosLike = error as {
     response?: { status?: number; data?: ApiErrorBody };
     message?: string;
   };
 
+  const fromBody = messageFromApiBody(axiosLike.response?.data);
+  if (fromBody) return fromBody;
+
+  if (error instanceof Error && error.message && !("response" in error)) {
+    return error.message;
+  }
+
   const data = axiosLike.response?.data;
-  if (data?.message) return data.message;
-  if (data?.error) return data.error;
 
   if (Array.isArray(data?.errors) && data.errors.length > 0) {
     const first = data.errors[0];
