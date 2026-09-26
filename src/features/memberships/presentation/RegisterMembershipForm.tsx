@@ -89,17 +89,6 @@ export function RegisterMembershipForm({
   const posSessions = getPaginatedItems(posSessionsData);
   const { data: paymentMethodsData } = usePaymentMethods({ page: 1, limit: 200 });
   const paymentMethods = getPaginatedItems(paymentMethodsData);
-  const {
-    data: cardTiersData,
-    isLoading: cardTiersLoading,
-    isError: cardTiersError,
-  } = useCardTiers({
-    page: 1,
-    limit: 200,
-    sortBy: "createdAt",
-    sortOrder: "asc",
-  });
-  const cardTiers = cardTiersData?.items ?? [];
   const lockCustomer = Boolean(defaultCustomerId);
 
   const form = useForm<FormData>({
@@ -117,6 +106,19 @@ export function RegisterMembershipForm({
 
   const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
 
+  const {
+    data: cardTiersData,
+    isLoading: cardTiersLoading,
+    isError: cardTiersError,
+  } = useCardTiers(
+    {
+      page: 1,
+      limit: 200,
+    },
+    { enabled: Boolean(selectedTenantId) },
+  );
+  const cardTiers = cardTiersData?.items ?? [];
+
   const filteredCustomers = useMemo(
     () =>
       customers.filter((c) =>
@@ -127,15 +129,14 @@ export function RegisterMembershipForm({
 
   const filteredTiers = useMemo(() => {
     if (!selectedTenantId) return [];
-    const activeTiers = cardTiers.filter((tier) => tier.isActive);
-    const withTenantId = activeTiers.filter((tier) => tier.tenantId);
-    const scopedTiers =
-      withTenantId.length === 0
-        ? activeTiers
-        : withTenantId.filter(
-            (tier) => String(tier.tenantId) === String(selectedTenantId),
-          );
-    return [...scopedTiers].sort((a, b) => a.rank - b.rank);
+    return cardTiers
+      .filter((tier) => tier.isActive && !tier.deletedAt)
+      .filter(
+        (tier) =>
+          !tier.tenantId ||
+          String(tier.tenantId) === String(selectedTenantId),
+      )
+      .sort((a, b) => a.rank - b.rank);
   }, [cardTiers, selectedTenantId]);
   const filteredLocations = useMemo(
     () =>

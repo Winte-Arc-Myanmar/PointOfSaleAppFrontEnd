@@ -8,6 +8,8 @@ export interface GetCardTiersParams {
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc" | string;
+  /** When set (e.g. system admin membership registration), scope list to this tenant. */
+  tenantId?: string;
 }
 
 export interface ICardTierRepository {

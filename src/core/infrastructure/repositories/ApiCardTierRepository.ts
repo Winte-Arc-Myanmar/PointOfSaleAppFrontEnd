@@ -36,6 +36,7 @@ export class ApiCardTierRepository implements ICardTierRepository {
           ...(params?.search ? { search: params.search } : {}),
           ...(params?.sortBy ? { sortBy: params.sortBy } : {}),
           ...(params?.sortOrder ? { sortOrder: params.sortOrder } : {}),
+          ...(params?.tenantId ? { tenantId: params.tenantId } : {}),
         },
       },
     );

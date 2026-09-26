@@ -8,7 +8,10 @@ import type { GetCardTiersParams } from "@/core/domain/repositories/ICardTierRep
 
 const CARD_TIERS_QUERY_KEY = ["card-tiers"];
 
-export function useCardTiers(params?: GetCardTiersParams) {
+export function useCardTiers(
+  params?: GetCardTiersParams,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: [
       ...CARD_TIERS_QUERY_KEY,
@@ -17,11 +20,13 @@ export function useCardTiers(params?: GetCardTiersParams) {
       params?.search,
       params?.sortBy,
       params?.sortOrder,
+      params?.tenantId,
     ],
     queryFn: () => {
       const service = container.resolve<ICardTierService>("cardTierService");
       return service.getAll(params);
     },
+    enabled: options?.enabled ?? true,
   });
 }
 
