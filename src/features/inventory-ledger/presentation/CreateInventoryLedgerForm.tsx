@@ -24,6 +24,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { LEDGER_TRANSACTION_TYPES } from "./ledger-constants";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { getHttpErrorMessage } from "@/lib/http-error";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -31,7 +32,13 @@ const schema = z.object({
   variantId: z.string().min(1, "Variant is required"),
   locationId: z.string().min(1, "Location is required"),
   transactionType: z.string().min(1),
-  referenceId: z.string(),
+  referenceId: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === "" || z.string().uuid().safeParse(value).success,
+      "Reference ID must be a valid UUID when provided",
+    ),
   quantity: z.number().min(0, "Must be ≥ 0"),
   unitCost: z.number().min(0, "Must be ≥ 0"),
   serialNumber: z.string(),
@@ -39,6 +46,13 @@ const schema = z.object({
   manufacturingDate: z.string(),
   expiryDate: z.string(),
 });
+
+function newReferenceId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 export type CreateInventoryLedgerFormValues = z.infer<typeof schema>;
 
@@ -131,7 +145,8 @@ export function CreateInventoryLedgerForm({
         locationId: data.locationId,
         variantId: data.variantId,
         transactionType: data.transactionType,
-        referenceId: data.referenceId.trim() || undefined,
+        // API requires referenceId; generate one when the optional field is left blank.
+        referenceId: data.referenceId.trim() || newReferenceId(),
         quantity: data.quantity,
         unitCost: data.unitCost,
         serialNumber: data.serialNumber.trim() || undefined,
@@ -150,7 +165,8 @@ export function CreateInventoryLedgerForm({
           });
           onSuccess?.();
         },
-        onError: () => toast.error("Failed to create ledger entry."),
+        onError: (error) =>
+          toast.error(getHttpErrorMessage(error, "Failed to create ledger entry.")),
       },
     );
   };
@@ -314,8 +330,14 @@ export function CreateInventoryLedgerForm({
           <Input
             id="ledger-ref"
             {...register("referenceId")}
-            placeholder="UUID"
+            placeholder="Leave blank to auto-generate"
           />
+          {errors.referenceId && (
+            <p className="text-sm text-red-600">{errors.referenceId.message}</p>
+          )}
+          <p className="text-xs text-muted">
+            Link to a source document UUID if you have one; otherwise a reference is created for you.
+          </p>
         </div>
       </div>
 
