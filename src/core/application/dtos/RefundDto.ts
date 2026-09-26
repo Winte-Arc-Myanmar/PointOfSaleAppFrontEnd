@@ -16,7 +16,6 @@ export interface RefundRequestDto {
   refundMethod: RefundMethod;
   posSessionId: string;
   items: RefundItemRequestDto[];
-  tenantId: string;
 }
 
 export interface RefundLineDto {

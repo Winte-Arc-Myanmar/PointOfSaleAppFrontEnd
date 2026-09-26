@@ -16,7 +16,10 @@ function toApiDecimalStringFixed4(value: unknown): string {
 
 function normalizeWritePayload(data: RefundRequestDto): Record<string, unknown> {
   return {
-    ...data,
+    salesOrderId: data.salesOrderId,
+    reason: data.reason,
+    refundMethod: data.refundMethod,
+    posSessionId: data.posSessionId,
     items: Array.isArray(data.items)
       ? data.items.map((it) => ({
           salesOrderLineId: it.salesOrderLineId,
