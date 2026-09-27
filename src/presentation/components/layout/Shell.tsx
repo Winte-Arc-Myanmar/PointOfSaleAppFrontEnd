@@ -14,10 +14,6 @@ import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
 import { getFlatSidebarMenuItems } from "@/presentation/components/layout/sidebar-menu-config";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
-import { ALLOW_ALL_TENANTS } from "@/lib/acting-tenant";
-import { useActingTenant } from "@/presentation/hooks/useActingTenant";
-import { usePermissions } from "@/presentation/hooks/usePermissions";
-import { TenantSwitcher } from "./TenantSwitcher";
 import type { TranslationKey } from "@/presentation/i18n/translations";
 
 const routeTitles: Record<string, string> = {
@@ -238,11 +234,6 @@ function getTitle(pathname: string): string {
   return routeTitles[pathname] ?? "";
 }
 
-/** Platform pages a system admin uses without choosing a tenant. */
-function isPlatformPage(pathname: string): boolean {
-  return pathname.startsWith("/admin/") || pathname === "/tenants" || pathname.startsWith("/tenants/");
-}
-
 interface ShellProps {
   children: ReactNode;
 }
@@ -283,10 +274,6 @@ export function Shell({ children }: ShellProps) {
   const [openTabs, setOpenTabs] = useState<MenuTabItem[]>([]);
   const [tabsLoaded, setTabsLoaded] = useState(false);
   const title = getTitle(pathname);
-  const { isSystemAdmin } = usePermissions();
-  const actingTenantId = useActingTenant();
-  const needsTenant =
-    isSystemAdmin && !ALLOW_ALL_TENANTS && !actingTenantId && !isPlatformPage(pathname);
   const activeMenu = useMemo(() => getMenuBase(pathname), [pathname]);
 
   useEffect(() => {
@@ -433,18 +420,7 @@ export function Shell({ children }: ShellProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="mx-auto max-w-6xl"
           >
-            {needsTenant ? (
-              <div className="mx-auto mt-16 max-w-md space-y-4 rounded-xl border border-border bg-background p-6 text-center">
-                <h2 className="text-lg font-semibold">Choose a tenant to continue</h2>
-                <p className="text-sm text-muted">
-                  Pick the organization you want to look at. Everything you see and change
-                  here will be that tenant&apos;s.
-                </p>
-                <TenantSwitcher className="flex items-center justify-center gap-2" />
-              </div>
-            ) : (
-              children
-            )}
+            {children}
           </motion.div>
           <PoweredByWinterArc
             variant="footer"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Building2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
@@ -32,8 +33,17 @@ export function TenantSwitcher({ className }: { className?: string }) {
     enabled: isSystemAdmin,
   });
 
-  if (!isSystemAdmin) return null;
   const tenants = getPaginatedItems(data);
+  const known = tenants.some((tenant) => tenant.id === actingTenantId);
+
+  useEffect(() => {
+    if (!isSystemAdmin || ALLOW_ALL_TENANTS || !tenants.length || known) return;
+    // Always one tenant: the last choice, or the first while none is made.
+    setActingTenantId(tenants[0].id);
+    void queryClient.invalidateQueries();
+  }, [isSystemAdmin, known, queryClient, tenants]);
+
+  if (!isSystemAdmin) return null;
 
   const choose = (value: string) => {
     setActingTenantId(value === ALL ? null : value);
