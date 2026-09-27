@@ -14,14 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { Plus } from "lucide-react";
+import { Button } from "@/presentation/components/ui/button";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { getTenantRowActions } from "./tenant-row-actions";
 import { getTenantTableColumns } from "./tenant-table-columns";
-import { CreateTenantForm } from "./CreateTenantForm";
 import type { Tenant } from "@/core/domain/entities/Tenant";
 
-const CREATE_TENANT_FORM_ID = "create-tenant-form";
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -187,22 +187,17 @@ export function TenantList() {
       totalPages={tenantsResult?.totalPages ?? pagination.getTotalPages(tenantsResult?.total)}
       totalItems={tenantsResult?.total ?? 0}
       onPageChange={pagination.setPage}
-      addLabel="Add Tenant"
-      createTitle="Create Tenant"
-      createSubmitText="Create Tenant"
-      createLoadingText="Creating..."
-      createFormId={CREATE_TENANT_FORM_ID}
-      createMaxWidth="2xl"
+      // A tenant is created by onboarding it, with its first branch, owner and roles.
+      createEnabled={false}
+      toolbarEndContent={
+        <Button type="button" onClick={() => router.push("/admin/onboard")}>
+          <Plus className="mr-1.5 size-4" />
+          Add Tenant
+        </Button>
+      }
       enableRowSelection
       onEditSelected={(item) => router.push(`/tenants/${item.id}/edit`)}
       onDeleteSelected={handleDeleteSelected}
-      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
-        <CreateTenantForm
-          formId={formId}
-          onSuccess={onSuccess}
-          onLoadingChange={onLoadingChange}
-        />
-      )}
     />
   );
 }
