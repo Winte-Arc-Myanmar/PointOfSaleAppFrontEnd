@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { useCategoryTree } from "@/presentation/hooks/useCategories";
+import { ExcelTransferButtons } from "@/presentation/components/excel/ExcelTransferButtons";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getProductTableColumns } from "./product-table-columns";
 import { CreateProductForm } from "./CreateProductForm";
@@ -221,6 +222,7 @@ export function ProductList() {
       totalPages={getTotalPages(filteredProducts.length)}
       totalItems={filteredProducts.length}
       onPageChange={setPage}
+      toolbarEndContent={<ExcelTransferButtons kind="products" />}
       addLabel="Add Product"
       createTitle="Create Product"
       createSubmitText="Create Product"

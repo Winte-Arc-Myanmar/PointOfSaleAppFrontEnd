@@ -305,6 +305,11 @@ export const API_ENDPOINTS = {
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
     TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
   },
+  DATA_TRANSFER: {
+    TEMPLATE: (kind: string) => `/v1/data-transfer/${kind}/template`,
+    EXPORT: (kind: string) => `/v1/data-transfer/${kind}/export`,
+    IMPORT: (kind: string) => `/v1/data-transfer/${kind}/import`,
+  },
   UPLOADS: {
     LIST: "/v1/uploads",
     UPLOAD: "/v1/uploads",

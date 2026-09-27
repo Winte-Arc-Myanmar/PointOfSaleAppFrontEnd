@@ -136,6 +136,30 @@ export class HttpClient {
     return unwrap<T>(res.data);
   }
 
+  /** A file download, as it came. */
+  async getBlob(url: string, config?: AxiosRequestConfig): Promise<Blob> {
+    const res: AxiosResponse<Blob> = await this.client.get(url, {
+      ...config,
+      responseType: "blob",
+      timeout: 60000,
+    });
+    return res.data;
+  }
+
+  /** A file upload as multipart form data. */
+  async postForm<T>(
+    url: string,
+    form: FormData,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    const res: AxiosResponse<unknown> = await this.client.post(url, form, {
+      ...config,
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 60000,
+    });
+    return unwrap<T>(res.data);
+  }
+
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const res: AxiosResponse<unknown> = await this.client.delete(url, config);
     return unwrap<T>(res.data);
