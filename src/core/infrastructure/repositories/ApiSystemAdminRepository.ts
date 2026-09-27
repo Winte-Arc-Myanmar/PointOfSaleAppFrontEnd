@@ -35,5 +35,12 @@ export class ApiSystemAdminRepository implements ISystemAdminRepository {
   async assignRole(data: AssignRoleDto): Promise<void> {
     await this.httpClient.post(API_ENDPOINTS.SYSTEM_ADMIN.ASSIGN_ROLE, data);
   }
+
+  async getTenantModules(tenantId: string): Promise<string[]> {
+    const result = await this.httpClient.get<{ modules?: unknown }>(
+      API_ENDPOINTS.SYSTEM_ADMIN.TENANT_MODULES(tenantId),
+    );
+    return Array.isArray(result?.modules) ? result.modules.map(String) : [];
+  }
 }
 

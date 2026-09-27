@@ -292,6 +292,7 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/roles",
     DELETE: (id: string) => `/v1/roles/${id}`,
     ASSIGN_PERMISSIONS: (id: string) => `/v1/roles/${id}/permissions`,
+    AVAILABLE_PERMISSIONS: "/v1/roles/available-permissions",
   },
   PERMISSIONS: {
     LIST: "/v1/permissions",
@@ -302,6 +303,7 @@ export const API_ENDPOINTS = {
     CREATE_USER: "/v1/system-admin/users",
     ASSIGN_PERMISSIONS: "/v1/system-admin/roles/assign-permissions",
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
+    TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
   },
   UPLOADS: {
     LIST: "/v1/uploads",

@@ -16,4 +16,5 @@ export interface ISystemAdminRepository {
   createUser(data: SystemAdminCreateUserDto): Promise<void>;
   assignPermissions(data: AssignPermissionsDto): Promise<void>;
   assignRole(data: AssignRoleDto): Promise<void>;
+  getTenantModules(tenantId: string): Promise<string[]>;
 }

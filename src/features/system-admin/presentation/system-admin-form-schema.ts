@@ -59,6 +59,7 @@ export const systemAdminCreateUserSchema = createUserSchema.extend({
  * POST /api/v1/system-admin/roles/assign-permissions
  */
 export const assignPermissionsSchema = z.object({
+  tenantId: requiredId("Tenant"),
   roleId: requiredId("Role"),
   permissionIds: z
     .array(z.string().trim().min(1))
@@ -112,6 +113,7 @@ export const onboardTenantDefaultValues: OnboardTenantFormData = {
 };
 
 export const assignPermissionsDefaultValues: AssignPermissionsFormData = {
+  tenantId: "",
   roleId: "",
   permissionIds: [],
 };
