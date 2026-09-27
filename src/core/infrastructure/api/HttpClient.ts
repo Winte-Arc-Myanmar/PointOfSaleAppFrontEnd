@@ -11,6 +11,11 @@ import axios, {
 } from "axios";
 import { getSession, signOut } from "next-auth/react";
 import { API_CONFIG } from "./constants";
+import {
+  ACTING_TENANT_HEADER,
+  getActingTenantId,
+  isGlobalEndpoint,
+} from "@/lib/acting-tenant";
 
 /** Backend returns { success, message, data?, meta? }. Return data when present. */
 function unwrap<T>(body: unknown): T {
@@ -57,6 +62,10 @@ export class HttpClient {
           const session = await getSession();
           if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
+          }
+          const actingTenantId = getActingTenantId();
+          if (actingTenantId && !isGlobalEndpoint(config.url)) {
+            config.headers[ACTING_TENANT_HEADER] = actingTenantId;
           }
         }
         return config;
