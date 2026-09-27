@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateUser } from "@/presentation/hooks/useUsers";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
@@ -67,11 +67,17 @@ export function CreateUserForm({
     defaultValues: createUserDefaultValues,
   });
 
-  const filteredRoles = (options?.roles ?? []).filter((r) =>
-    tenantId ? r.tenantId === tenantId : true,
-  );
   const filteredBranches = (options?.branches ?? []).filter((b) =>
     tenantId ? b.tenantId === tenantId : true,
+  );
+  const chosenBranchId = useWatch({ control, name: "branchId" });
+  // A system admin has no tenant of their own: the branch decides whose user
+  // this is, and a role can only come from that same tenant.
+  const roleTenantId =
+    tenantId ??
+    filteredBranches.find((branch) => branch.id === chosenBranchId)?.tenantId;
+  const filteredRoles = (options?.roles ?? []).filter(
+    (r) => Boolean(roleTenantId) && r.tenantId === roleTenantId,
   );
 
   useEffect(() => {
@@ -212,12 +218,16 @@ export function CreateUserForm({
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}
-                disabled={isOptionsLoading}
+                disabled={isOptionsLoading || !roleTenantId}
               >
                 <SelectTrigger id="roleId">
                   <SelectValue
                     placeholder={
-                      isOptionsLoading ? "Loading roles..." : "Select role"
+                      isOptionsLoading
+                        ? "Loading roles..."
+                        : roleTenantId
+                          ? "Select role"
+                          : "Select a branch first"
                     }
                   />
                 </SelectTrigger>
