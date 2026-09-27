@@ -10,10 +10,19 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
+  DEFAULT_TENANT_TIMEZONE,
   onboardTenantDefaultValues,
   onboardTenantSchema,
   type OnboardTenantFormData,
 } from "./system-admin-form-schema";
+
+const TIMEZONES: string[] = (() => {
+  try {
+    return Intl.supportedValuesOf("timeZone");
+  } catch {
+    return [DEFAULT_TENANT_TIMEZONE];
+  }
+})();
 
 export function OnboardTenantForm() {
   const router = useRouter();
@@ -32,6 +41,7 @@ export function OnboardTenantForm() {
       {
         tenant: {
           name: data.tenant.name,
+          timezone: data.tenant.timezone,
           legalName: data.tenant.legalName,
           domain: data.tenant.domain,
           website: data.tenant.website,
@@ -86,6 +96,28 @@ export function OnboardTenantForm() {
             <Input id="tenant-legalName" {...register("tenant.legalName")} />
             {errors.tenant?.legalName && (
               <p className="text-sm text-red-600">{errors.tenant.legalName.message}</p>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="tenant-timezone">Timezone *</Label>
+            <select
+              id="tenant-timezone"
+              {...register("tenant.timezone")}
+              className="flex h-10 w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint dark:border-border dark:bg-background dark:text-foreground"
+            >
+              {TIMEZONES.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted">
+              The business day, order numbers and daily reports follow this timezone.
+            </p>
+            {errors.tenant?.timezone && (
+              <p className="text-sm text-red-600">{errors.tenant.timezone.message}</p>
             )}
           </div>
         </div>

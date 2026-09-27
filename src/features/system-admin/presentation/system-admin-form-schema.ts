@@ -12,17 +12,22 @@ const phoneField = requiredText("Phone").regex(
   "Enter a valid phone number, e.g. +1234567890",
 );
 
-const onboardTenantFields = createTenantSchema.pick({
-  name: true,
-  legalName: true,
-  domain: true,
-  website: true,
-  address: true,
-  city: true,
-  state: true,
-  country: true,
-  zipCode: true,
-});
+const onboardTenantFields = createTenantSchema
+  .pick({
+    name: true,
+    legalName: true,
+    domain: true,
+    website: true,
+    address: true,
+    city: true,
+    state: true,
+    country: true,
+    zipCode: true,
+  })
+  .extend({ timezone: z.string().trim().min(1, "Timezone is required") });
+
+/** Where most tenants are; the business day rolls over at its midnight. */
+export const DEFAULT_TENANT_TIMEZONE = "Asia/Yangon";
 
 const onboardOwnerFields = createUserSchema.pick({
   email: true,
@@ -86,6 +91,7 @@ export type AssignRoleFormData = z.infer<typeof assignRoleSchema>;
 export const onboardTenantDefaultValues: OnboardTenantFormData = {
   tenant: {
     name: "",
+    timezone: DEFAULT_TENANT_TIMEZONE,
     legalName: "",
     domain: "",
     website: "",
