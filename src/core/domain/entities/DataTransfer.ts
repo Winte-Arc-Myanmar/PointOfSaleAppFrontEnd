@@ -3,7 +3,7 @@
  * Domain layer - no framework dependencies.
  */
 
-export type SheetKind = "users" | "products" | "stock";
+export type SheetKind = "users" | "products" | "stock" | "spa-rooms" | "ktv-rooms";
 
 export type RowAction = "create" | "update" | "unchanged" | "error";
 

@@ -524,6 +524,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["users:read"],
       },
       {
+        href: "/data-transfer",
+        labelKey: "nav.importExport",
+        icon: FileSpreadsheet,
+        permissions: ["users:read", "products:read"],
+      },
+      {
         href: "/roles",
         labelKey: "nav.roles",
         icon: Shield,
