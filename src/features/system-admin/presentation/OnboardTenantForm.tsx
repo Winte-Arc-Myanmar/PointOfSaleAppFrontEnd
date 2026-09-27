@@ -16,9 +16,16 @@ import {
   type OnboardTenantFormData,
 } from "./system-admin-form-schema";
 
+// Browsers list Myanmar under its old name (Asia/Rangoon); keep the current one
+// first, or the dropdown would fall back to the first zone in the list.
 const TIMEZONES: string[] = (() => {
   try {
-    return Intl.supportedValuesOf("timeZone");
+    return [
+      DEFAULT_TENANT_TIMEZONE,
+      ...Intl.supportedValuesOf("timeZone").filter(
+        (zone) => zone !== DEFAULT_TENANT_TIMEZONE,
+      ),
+    ];
   } catch {
     return [DEFAULT_TENANT_TIMEZONE];
   }
