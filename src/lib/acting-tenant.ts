@@ -3,8 +3,8 @@
  * so the API answers as that tenant would see it.
  */
 
-/** Offer "All tenants" in the switcher. Off for now: an admin always picks one. */
-export const ALLOW_ALL_TENANTS = false;
+/** Offer "All tenants" in the switcher: no tenant header, so the API reads every tenant. */
+export const ALLOW_ALL_TENANTS = true;
 
 export const ACTING_TENANT_HEADER = "X-Tenant-Id";
 
