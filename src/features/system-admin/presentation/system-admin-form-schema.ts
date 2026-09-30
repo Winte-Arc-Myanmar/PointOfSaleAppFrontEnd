@@ -32,7 +32,6 @@ export const DEFAULT_TENANT_TIMEZONE = "Asia/Yangon";
 const onboardOwnerFields = createUserSchema.pick({
   email: true,
   password: true,
-  username: true,
   fullName: true,
   phoneNumber: true,
   jobTitle: true,
@@ -111,7 +110,6 @@ export const onboardTenantDefaultValues: OnboardTenantFormData = {
   owner: {
     email: "",
     password: "",
-    username: "",
     fullName: "",
     phoneNumber: "",
     jobTitle: "",

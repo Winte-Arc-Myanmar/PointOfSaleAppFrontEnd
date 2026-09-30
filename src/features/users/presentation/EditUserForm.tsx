@@ -48,7 +48,6 @@ export function EditUserForm({ userId }: { userId: string }) {
     defaultValues: {
       email: "",
       password: "",
-      username: "",
       fullName: "",
       phoneNumber: "",
       avatarUrl: "",
@@ -62,7 +61,6 @@ export function EditUserForm({ userId }: { userId: string }) {
     form.reset({
       email: user.email ?? "",
       password: "",
-      username: user.username ?? "",
       fullName: user.fullName,
       phoneNumber: user.phoneNumber ?? "",
       avatarUrl: user.avatarUrl ?? "",
@@ -75,7 +73,6 @@ export function EditUserForm({ userId }: { userId: string }) {
     setShowSuccess(false);
     const payload = {
       email: optionalText(data.email),
-      username: optionalText(data.username),
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,
       avatarUrl: optionalUrl(data.avatarUrl),
@@ -131,13 +128,6 @@ export function EditUserForm({ userId }: { userId: string }) {
             <Input id="fullName" {...form.register("fullName")} />
             {errors.fullName && (
               <p className="text-sm text-red-600">{errors.fullName.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
-            <Input id="username" {...form.register("username")} />
-            {errors.username && (
-              <p className="text-sm text-red-600">{errors.username.message}</p>
             )}
           </div>
         </div>

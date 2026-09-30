@@ -54,7 +54,7 @@ export function UserList() {
       : users.filter((u) =>
           [
             u.fullName,
-            u.username,
+            u.loginId ?? "",
             u.email,
             u.phoneNumber ?? "",
             u.jobTitle ?? "",

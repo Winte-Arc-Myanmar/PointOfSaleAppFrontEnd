@@ -26,7 +26,6 @@ export interface OnboardTenantDto {
   owner: {
     email?: string;
     password: string;
-    username?: string;
     fullName: string;
     phoneNumber?: string;
     jobTitle?: string;
@@ -36,7 +35,6 @@ export interface OnboardTenantDto {
 export interface SystemAdminCreateUserDto {
   email?: string;
   password: string;
-  username?: string;
   fullName: string;
   phoneNumber?: string;
   avatarUrl?: string;

@@ -25,13 +25,12 @@ export interface UserDto {
   updatedAt?: string;
 }
 
-/** PATCH body - email, password, username, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */
+/** PATCH body - email, password, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */
 export type UserUpdateDto = Partial<
   Pick<
     UserDto,
     | "email"
     | "password"
-    | "username"
     | "fullName"
     | "phoneNumber"
     | "avatarUrl"
