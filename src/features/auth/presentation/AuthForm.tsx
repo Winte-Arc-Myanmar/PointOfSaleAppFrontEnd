@@ -16,7 +16,7 @@ import { AppLoader } from "@/presentation/components/loader";
 import { useToast } from "@/presentation/providers/ToastProvider";
 
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
+  login: z.string().trim().min(1, "User ID is required"),
   password: z.string().min(1, "Password is required"),
   branchId: z.string().optional(),
 });
@@ -79,7 +79,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", branchId: "" },
+    defaultValues: { login: "", password: "", branchId: "" },
   });
 
   const registerForm = useForm<RegisterFormData>({
@@ -90,18 +90,16 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   async function handleLoginSubmit(data: LoginFormData) {
     setError(null);
     const branchIdValue = data.branchId?.trim() || undefined;
-    // type = "user" only when both tenantId and branchId are included; else "systemAdmin" (email + password only).
-    const type: UserType =
-      tenantId.length > 0 && branchIdValue ? "user" : "systemAdmin";
+    const type: UserType = data.login.includes("@") ? "systemAdmin" : "user";
 
     const credentialsPayload: Record<string, string> = {
-      email: data.email,
+      login: data.login,
       password: data.password,
       type,
     };
     if (type === "user") {
-      credentialsPayload.tenantId = tenantId;
-      credentialsPayload.branchId = branchIdValue!;
+      if (tenantId) credentialsPayload.tenantId = tenantId;
+      if (branchIdValue) credentialsPayload.branchId = branchIdValue;
     }
 
     const result = await signIn("credentials", {
@@ -113,7 +111,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       // Backend rejected (e.g. 401) → authorize() returned null → NextAuth sets result.error.
       setError(
         result.status === 401
-          ? "Invalid credentials. Check email, password, and Branch ID (required for standard users)."
+          ? "Invalid credentials. Check your User ID and password."
           : "Sign-in failed. Please try again."
       );
       return;
@@ -156,10 +154,10 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       }
       className="space-y-4"
     >
-      {isLogin && !tenantId ? (
+      {isLogin ? (
         <p className="text-xs text-muted">
-          Sign in with email and password as System Admin. Use your company link
-          for branch login.
+          Sign in with your User ID (e.g. SHW0001). System admins use their
+          email.
         </p>
       ) : null}
       {!isLogin ? (
@@ -179,30 +177,42 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
           )}
         </div>
       ) : null}
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          {...(isLogin
-            ? loginForm.register("email")
-            : registerForm.register("email"))}
-          placeholder="you@example.com"
-          autoComplete="email"
-        />
-        {(isLogin
-          ? loginForm.formState.errors.email
-          : registerForm.formState.errors.email) && (
-          <p className="text-sm text-red-400">
-            {
-              (isLogin
-                ? loginForm.formState.errors.email
-                : registerForm.formState.errors.email
-              )?.message
-            }
-          </p>
-        )}
-      </div>
+      {isLogin ? (
+        <div className="grid gap-2">
+          <Label htmlFor="login">User ID</Label>
+          <Input
+            id="login"
+            type="text"
+            {...loginForm.register("login")}
+            placeholder="SHW0001"
+            autoComplete="username"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          {loginForm.formState.errors.login && (
+            <p className="text-sm text-red-400">
+              {loginForm.formState.errors.login.message}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            {...registerForm.register("email")}
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+          {registerForm.formState.errors.email && (
+            <p className="text-sm text-red-400">
+              {registerForm.formState.errors.email.message}
+            </p>
+          )}
+        </div>
+      )}
       <div className="grid gap-2">
         <Label htmlFor="password">Password</Label>
         <Input

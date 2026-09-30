@@ -7,6 +7,8 @@ import type { Id } from "@/core/domain/types";
 
 export interface AppUser {
   id: Id;
+  /** What the user signs in with, e.g. SHW0001. */
+  loginId?: string;
   email: string;
   username: string;
   fullName: string;

@@ -68,6 +68,7 @@ export function ExcelTransferButtons({
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [saved, setSaved] = useState(false);
   const what = label ?? kind;
 
   const get = (which: "template" | "export") =>
@@ -91,6 +92,7 @@ export function ExcelTransferButtons({
     if (!chosen) return;
     setFile(chosen);
     setShowAll(false);
+    setSaved(false);
     preview.mutate(
       { kind, file: chosen },
       {
@@ -104,6 +106,7 @@ export function ExcelTransferButtons({
   const close = () => {
     setResult(null);
     setFile(null);
+    setSaved(false);
   };
 
   const save = () => {
@@ -120,6 +123,11 @@ export function ExcelTransferButtons({
           toast.success(
             `Saved: ${saved.summary.create} new, ${saved.summary.update} updated.`,
           );
+          if (kind === "users" && saved.summary.create > 0) {
+            setResult(saved);
+            setSaved(true);
+            return;
+          }
           close();
         },
         onError: (error) =>
@@ -188,22 +196,30 @@ export function ExcelTransferButtons({
         footer={
           <div className="flex w-full items-center justify-between gap-3">
             <p className="text-xs text-muted">
-              {summary?.error
-                ? "Fix the rows marked Error in the file and upload it again. Nothing is saved until every row is right."
-                : "Nothing has been saved yet."}
+              {saved
+                ? "Saved. Give each new user their User ID to sign in with."
+                : summary?.error
+                  ? "Fix the rows marked Error in the file and upload it again. Nothing is saved until every row is right."
+                  : "Nothing has been saved yet."}
             </p>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={close}>
-                Cancel
+            {saved ? (
+              <Button type="button" onClick={close}>
+                Done
               </Button>
-              <Button
-                type="button"
-                disabled={Boolean(summary?.error) || changes === 0 || commit.isPending}
-                onClick={save}
-              >
-                {commit.isPending ? "Saving..." : `Save ${changes} row${changes === 1 ? "" : "s"}`}
-              </Button>
-            </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={close}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={Boolean(summary?.error) || changes === 0 || commit.isPending}
+                  onClick={save}
+                >
+                  {commit.isPending ? "Saving..." : `Save ${changes} row${changes === 1 ? "" : "s"}`}
+                </Button>
+              </div>
+            )}
           </div>
         }
       >

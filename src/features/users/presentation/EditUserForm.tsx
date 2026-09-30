@@ -21,6 +21,7 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 import {
+  optionalText,
   optionalUrl,
   updateUserSchema,
   USER_PREFERRED_LANGUAGES,
@@ -59,9 +60,9 @@ export function EditUserForm({ userId }: { userId: string }) {
   useEffect(() => {
     if (!user) return;
     form.reset({
-      email: user.email,
+      email: user.email ?? "",
       password: "",
-      username: user.username,
+      username: user.username ?? "",
       fullName: user.fullName,
       phoneNumber: user.phoneNumber ?? "",
       avatarUrl: user.avatarUrl ?? "",
@@ -73,8 +74,8 @@ export function EditUserForm({ userId }: { userId: string }) {
   const onSubmit = (data: UpdateUserFormData) => {
     setShowSuccess(false);
     const payload = {
-      email: data.email,
-      username: data.username,
+      email: optionalText(data.email),
+      username: optionalText(data.username),
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,
       avatarUrl: optionalUrl(data.avatarUrl),
@@ -133,7 +134,7 @@ export function EditUserForm({ userId }: { userId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="username">Username *</Label>
+            <Label htmlFor="username">Username</Label>
             <Input id="username" {...form.register("username")} />
             {errors.username && (
               <p className="text-sm text-red-600">{errors.username.message}</p>
@@ -142,7 +143,7 @@ export function EditUserForm({ userId }: { userId: string }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...form.register("email")} />
             {errors.email && (
               <p className="text-sm text-red-600">{errors.email.message}</p>

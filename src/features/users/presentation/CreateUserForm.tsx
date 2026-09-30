@@ -23,6 +23,7 @@ import {
 import {
   createUserDefaultValues,
   createUserSchema,
+  optionalText,
   optionalUrl,
   USER_PREFERRED_LANGUAGES,
   type CreateUserFormData,
@@ -92,8 +93,13 @@ export function CreateUserForm({
   }, [filteredRoles, filteredBranches, getValues, setValue]);
 
   const onSubmit = (data: CreateUserFormData) => {
-    const onCreated = () => {
-      toast.success("User created.");
+    const onCreated = (created: { loginId?: string | null } | void) => {
+      toast.success(
+        created?.loginId
+          ? `They sign in with User ID ${created.loginId}.`
+          : "User created.",
+        created?.loginId ? "User created" : undefined,
+      );
       reset(createUserDefaultValues);
       onSuccess?.();
     };
@@ -102,9 +108,9 @@ export function CreateUserForm({
       (branch) => branch.id === data.branchId,
     );
     const payload = {
-      email: data.email,
+      email: optionalText(data.email),
       password: data.password,
-      username: data.username,
+      username: optionalText(data.username),
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,
       avatarUrl: optionalUrl(data.avatarUrl),
@@ -141,7 +147,7 @@ export function CreateUserForm({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="username">Username *</Label>
+          <Label htmlFor="username">Username</Label>
           <Input id="username" {...register("username")} placeholder="john_doe" />
           {errors.username && (
             <p className="text-sm text-red-600">{errors.username.message}</p>
@@ -150,7 +156,7 @@ export function CreateUserForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"

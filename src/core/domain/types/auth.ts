@@ -12,7 +12,8 @@ export interface BranchAccess {
 }
 
 export interface LoginCredentials {
-  email: string;
+  /** A system admin's email, or a user's User ID (e.g. SHW0001). */
+  login: string;
   password: string;
   type: UserType;
   tenantId?: string;
