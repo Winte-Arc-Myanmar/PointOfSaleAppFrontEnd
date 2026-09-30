@@ -12,13 +12,6 @@ const emailField = z
     message: "Invalid email",
   });
 
-const usernameField = z
-  .string()
-  .trim()
-  .refine((value) => value === "" || /^[a-zA-Z0-9._-]{3,32}$/.test(value), {
-    message: "Use 3–32 letters, numbers, dots, underscores, or hyphens",
-  });
-
 const phoneNumberField = requiredText("Phone number").regex(
   /^\+?[0-9]{7,15}$/,
   "Enter a valid phone number, e.g. +1234567890",
@@ -40,7 +33,6 @@ const passwordField = z
 export const createUserSchema = z.object({
   email: emailField,
   password: passwordField,
-  username: usernameField,
   fullName: requiredText("Full name"),
   phoneNumber: phoneNumberField,
   avatarUrl: avatarUrlField,
@@ -60,7 +52,6 @@ export const updateUserSchema = z.object({
     .refine((value) => value === "" || value.length >= 8, {
       message: "Password must be at least 8 characters",
     }),
-  username: usernameField,
   fullName: requiredText("Full name"),
   phoneNumber: phoneNumberField,
   avatarUrl: avatarUrlField,
@@ -74,7 +65,6 @@ export type UpdateUserFormData = z.infer<typeof updateUserSchema>;
 export const createUserDefaultValues: CreateUserFormData = {
   email: "",
   password: "",
-  username: "",
   fullName: "",
   phoneNumber: "",
   avatarUrl: "",

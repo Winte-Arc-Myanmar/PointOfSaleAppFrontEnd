@@ -110,7 +110,6 @@ export function CreateUserForm({
     const payload = {
       email: optionalText(data.email),
       password: data.password,
-      username: optionalText(data.username),
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,
       avatarUrl: optionalUrl(data.avatarUrl),
@@ -144,13 +143,6 @@ export function CreateUserForm({
           <Input id="fullName" {...register("fullName")} placeholder="John Doe" />
           {errors.fullName && (
             <p className="text-sm text-red-600">{errors.fullName.message}</p>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" {...register("username")} placeholder="john_doe" />
-          {errors.username && (
-            <p className="text-sm text-red-600">{errors.username.message}</p>
           )}
         </div>
       </div>

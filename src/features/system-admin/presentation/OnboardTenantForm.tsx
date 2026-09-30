@@ -70,7 +70,6 @@ export function OnboardTenantForm() {
         owner: {
           email: optionalText(data.owner.email),
           password: data.owner.password,
-          username: optionalText(data.owner.username),
           fullName: data.owner.fullName,
           phoneNumber: data.owner.phoneNumber,
           jobTitle: data.owner.jobTitle,
@@ -251,13 +250,6 @@ export function OnboardTenantForm() {
             <Input id="owner-fullName" {...register("owner.fullName")} />
             {errors.owner?.fullName && (
               <p className="text-sm text-red-600">{errors.owner.fullName.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="owner-username">Username</Label>
-            <Input id="owner-username" {...register("owner.username")} />
-            {errors.owner?.username && (
-              <p className="text-sm text-red-600">{errors.owner.username.message}</p>
             )}
           </div>
         </div>

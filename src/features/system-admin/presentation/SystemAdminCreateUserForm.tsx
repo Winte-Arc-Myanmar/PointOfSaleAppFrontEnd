@@ -50,7 +50,6 @@ export function SystemAdminCreateUserForm() {
       {
         email: optionalText(data.email),
         password: data.password,
-        username: optionalText(data.username),
         fullName: data.fullName,
         phoneNumber: data.phoneNumber,
         avatarUrl: optionalUrl(data.avatarUrl),
@@ -99,11 +98,6 @@ export function SystemAdminCreateUserForm() {
           <Label htmlFor="fullName">Full name *</Label>
           <Input id="fullName" {...form.register("fullName")} />
           {form.formState.errors.fullName && <p className="text-sm text-red-600">{form.formState.errors.fullName.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" {...form.register("username")} />
-          {form.formState.errors.username && <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>}
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

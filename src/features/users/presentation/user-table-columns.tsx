@@ -44,16 +44,6 @@ export function getUserTableColumns(
       ),
     },
     {
-      key: "username",
-      header: "Username",
-      className: "min-w-[100px] max-w-[160px]",
-      render: (u) => (
-        <span className="text-muted truncate" title={u.username}>
-          {u.username || "—"}
-        </span>
-      ),
-    },
-    {
       key: "email",
       header: "Email",
       className: "min-w-[160px] max-w-[240px]",
