@@ -5,9 +5,10 @@
 
 export interface UserDto {
   id?: string;
-  email: string;
+  loginId?: string | null;
+  email?: string;
   password?: string;
-  username: string;
+  username?: string;
   fullName: string;
   phoneNumber?: string;
   avatarUrl?: string;

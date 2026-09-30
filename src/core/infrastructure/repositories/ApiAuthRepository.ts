@@ -21,10 +21,7 @@ export class ApiAuthRepository implements IAuthRepository {
         API_ENDPOINTS.AUTH.SIGNIN,
         body
       );
-      return toAuthUser(data, {
-        email: credentials.email,
-        tenantId: credentials.tenantId,
-      });
+      return toAuthUser(data, { tenantId: credentials.tenantId });
     } catch (err) {
       console.error("[ApiAuthRepository.login]", err);
       return null;

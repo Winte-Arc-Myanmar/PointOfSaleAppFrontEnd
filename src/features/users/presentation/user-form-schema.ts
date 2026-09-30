@@ -5,12 +5,19 @@ export const USER_PREFERRED_LANGUAGES = ["EN", "MY"] as const;
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const emailField = requiredText("Email").email("Invalid email");
+const emailField = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || z.email().safeParse(value).success, {
+    message: "Invalid email",
+  });
 
-const usernameField = requiredText("Username").regex(
-  /^[a-zA-Z0-9._-]{3,32}$/,
-  "Use 3–32 letters, numbers, dots, underscores, or hyphens",
-);
+const usernameField = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^[a-zA-Z0-9._-]{3,32}$/.test(value), {
+    message: "Use 3–32 letters, numbers, dots, underscores, or hyphens",
+  });
 
 const phoneNumberField = requiredText("Phone number").regex(
   /^\+?[0-9]{7,15}$/,
@@ -76,6 +83,10 @@ export const createUserDefaultValues: CreateUserFormData = {
   branchId: "",
   preferredLanguage: "EN",
 };
+
+export function optionalText(value: string): string | undefined {
+  return value.trim() || undefined;
+}
 
 export function optionalUrl(value: string): string | undefined {
   const trimmed = value.trim();

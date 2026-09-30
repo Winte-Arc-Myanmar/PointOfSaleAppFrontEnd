@@ -24,9 +24,9 @@ export interface OnboardTenantDto {
     phone?: string;
   };
   owner: {
-    email: string;
+    email?: string;
     password: string;
-    username: string;
+    username?: string;
     fullName: string;
     phoneNumber?: string;
     jobTitle?: string;
@@ -34,9 +34,9 @@ export interface OnboardTenantDto {
 }
 
 export interface SystemAdminCreateUserDto {
-  email: string;
+  email?: string;
   password: string;
-  username: string;
+  username?: string;
   fullName: string;
   phoneNumber?: string;
   avatarUrl?: string;
@@ -45,6 +45,15 @@ export interface SystemAdminCreateUserDto {
   branchId: string;
   preferredLanguage?: string;
   tenantId: string;
+}
+
+export interface CreatedUserDto {
+  id?: string;
+  loginId?: string | null;
+}
+
+export interface OnboardTenantResultDto {
+  owner?: { id?: string; userId?: string | null };
 }
 
 export interface AssignPermissionsDto {
