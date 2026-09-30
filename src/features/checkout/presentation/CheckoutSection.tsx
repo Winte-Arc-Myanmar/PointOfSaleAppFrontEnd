@@ -716,7 +716,7 @@ export function CheckoutSection() {
     const result = await printOrderSlip(
       {
         title: "Order Slip",
-        businessName: "Vision AI POS",
+        businessName: "Linkits POS",
         orderNumber,
         orderType: orderTypeLabel,
         tableNumber: orderType === "dine-in" ? tableNumber : undefined,
@@ -1003,7 +1003,7 @@ export function CheckoutSection() {
                   type="button"
                   onClick={form.handleSubmit(onSubmit)}
                   disabled={checkout.isPending || items.fields.length === 0}
-                  className="h-12 md:h-14 text-base font-semibold bg-mint text-gloss-black hover:bg-mint-hover"
+                  className="h-12 md:h-14 text-base font-semibold bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
                 >
                   {checkout.isPending
                     ? "Processing..."

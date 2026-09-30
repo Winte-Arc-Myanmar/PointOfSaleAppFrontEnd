@@ -146,7 +146,7 @@ export function SidebarMenu({
             <button
               type="button"
               onClick={onClose}
-              className="flex size-9 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-[#54e3a1]/12 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground lg:hidden"
+              className="flex size-9 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-mint/10 hover:text-mint dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground lg:hidden"
               aria-label={t("common.close")}
             >
               <X className="size-5" strokeWidth={2} />
@@ -214,12 +214,12 @@ export function SidebarMenu({
             onClick={() => signOut({ callbackUrl: "/login" })}
             title={isCollapsed ? t("common.signOut") : undefined}
             className={cn(
-              "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
+              "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-mint/10 hover:text-mint dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
               isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
             )}
           >
             <LogOut
-              className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted"
+              className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-mint dark:text-muted"
               strokeWidth={2}
             />
             {!isCollapsed && <span>{t("common.signOut")}</span>}
@@ -258,7 +258,7 @@ function ExpandedGroup({
         className={cn(
           "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors",
           groupActive
-            ? "bg-mint/10 text-[#177a55] dark:text-foreground"
+            ? "bg-mint/10 text-mint dark:text-foreground"
             : "text-gray-800 hover:bg-mint/5 dark:text-foreground dark:hover:bg-mint/10",
         )}
         aria-expanded={isOpen}
@@ -294,16 +294,16 @@ function ExpandedGroup({
                     className={cn(
                       "group ml-2 flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm font-medium transition-all duration-200",
                       isActive
-                        ? "border-l-2 border-l-mint bg-mint/12 text-[#177a55] dark:text-foreground"
-                        : "border-l-2 border-l-transparent text-gray-700 hover:bg-mint/10 hover:text-[#177a55] dark:text-muted dark:hover:text-foreground",
+                        ? "border-l-2 border-l-mint bg-mint/12 text-mint dark:text-foreground"
+                        : "border-l-2 border-l-transparent text-gray-700 hover:bg-mint/10 hover:text-mint dark:text-muted dark:hover:text-foreground",
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-4 shrink-0",
                         isActive
-                          ? "text-[#2bc787] dark:text-mint"
-                          : "text-gray-600 group-hover:text-[#2bc787] dark:text-muted",
+                          ? "text-mint dark:text-mint"
+                          : "text-gray-600 group-hover:text-mint dark:text-muted",
                       )}
                       strokeWidth={isActive ? 2.5 : 2}
                     />
@@ -346,7 +346,7 @@ function CollapsedGroupButton({
         className={cn(
           "flex w-full items-center justify-center rounded-lg py-2.5 transition-colors",
           groupActive || isFlyoutOpen
-            ? "bg-mint/15 text-[#177a55] dark:text-mint"
+            ? "bg-mint/15 text-mint dark:text-mint"
             : "text-gray-700 hover:bg-mint/10 dark:text-muted",
         )}
         aria-expanded={isFlyoutOpen}
@@ -376,7 +376,7 @@ function CollapsedGroupButton({
                       className={cn(
                         "flex items-center gap-2 rounded-lg px-2 py-2 text-sm",
                         isActive
-                          ? "bg-mint/12 text-[#177a55] dark:text-foreground"
+                          ? "bg-mint/12 text-mint dark:text-foreground"
                           : "text-gray-700 hover:bg-mint/10 dark:text-muted",
                       )}
                     >

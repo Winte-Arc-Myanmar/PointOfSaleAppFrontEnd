@@ -143,7 +143,7 @@ export function ItemSalesChart({ range }: { range: DashboardRange }) {
                   <MoneyBarChart
                     data={items}
                     layout="vertical"
-                    bars={[{ key: "netSales", name: "Net sales", color: "#16a34a" }]}
+                    bars={[{ key: "netSales", name: "Net sales", color: "#0077e6" }]}
                   />
                 </ChartCard>
               ) : (

@@ -18,8 +18,8 @@ import {
 } from "recharts";
 
 export const CHART_COLORS = [
-  "#16a34a",
-  "#0f766e",
+  "#0077e6",
+  "#ff8a00",
   "#ca8a04",
   "#2563eb",
   "#c026d3",

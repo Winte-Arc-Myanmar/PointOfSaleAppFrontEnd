@@ -53,7 +53,7 @@ export function SalesSummaryChart({ range }: { range: DashboardRange }) {
               <MoneyBarChart
                 data={byDay}
                 bars={[
-                  { key: "netSales", name: "Net sales", color: "#16a34a" },
+                  { key: "netSales", name: "Net sales", color: "#0077e6" },
                   { key: "grandTotal", name: "Grand total", color: "#0f766e" },
                   { key: "refunds", name: "Refunds", color: "#dc2626" },
                 ]}
@@ -65,7 +65,7 @@ export function SalesSummaryChart({ range }: { range: DashboardRange }) {
           <div className="grid gap-6 lg:grid-cols-2">
             {byHour.length ? (
               <ChartCard title="Sales by hour">
-                <MoneyBarChart data={byHour} bars={[{ key: "netSales", name: "Net sales", color: "#16a34a" }]} />
+                <MoneyBarChart data={byHour} bars={[{ key: "netSales", name: "Net sales", color: "#0077e6" }]} />
               </ChartCard>
             ) : (
               <EmptyChart label="No hourly sales in this range." />

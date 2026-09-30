@@ -169,7 +169,7 @@ export function CardTierList() {
             <Button
               type="button"
               onClick={openCreate}
-              className="h-11 rounded-xl bg-mint px-5 text-gloss-black hover:bg-mint-hover"
+              className="h-11 rounded-xl bg-mint px-5 text-white hover:bg-mint-hover dark:text-gloss-black"
             >
               <Plus className="size-4" />
               Add Card Tier

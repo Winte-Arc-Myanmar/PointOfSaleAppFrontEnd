@@ -264,7 +264,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
     };
 
     pushCenter("KITCHEN ORDER", true);
-    pushCenter(slip.businessName || "Vision AI POS");
+    pushCenter(slip.businessName || "Linkits POS");
     push(("=").repeat(width));
     if (slip.orderNumber) push(`ORDER ${slip.orderNumber}`);
     if (slip.orderType) push(`TYPE ${slip.orderType.toUpperCase()}`);

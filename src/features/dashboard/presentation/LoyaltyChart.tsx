@@ -64,7 +64,7 @@ export function LoyaltyChart({ range }: { range: DashboardRange }) {
                   <MoneyBarChart
                     data={byType}
                     valueFormat="count"
-                    bars={[{ key: "points", name: "Points", color: "#16a34a" }]}
+                    bars={[{ key: "points", name: "Points", color: "#0077e6" }]}
                   />
                 </ChartCard>
               ) : (

@@ -15,7 +15,7 @@ interface AppLoaderProps {
   size?: LoaderSize;
 }
 
-const LOGO_SRC = "/logo.svg";
+const LOGO_SRC = "/logo.png";
 
 const SIZE_MAP = {
   xs: { logo: 24, imgClass: "h-6 w-6", ring0: 40, ringStep: 10, glow: 30, dotSize: "h-1 w-1", dotGap: "gap-1", py: "py-2", mt: "mt-2", textClass: "text-[10px]", msgClass: "text-[10px] mt-1", showRings: false, showGhost: false, showShimmer: true },
@@ -26,19 +26,19 @@ const SIZE_MAP = {
 
 const THEME_COLORS = {
   dark: {
-    ring: (opacity: number) => `rgba(173, 255, 195, ${opacity})`,
-    glowSoft: "rgba(173, 255, 195, 0.15)",
-    glowStrong: "rgba(173, 255, 195, 0.35)",
-    glowOuter: "rgba(173, 255, 195, 0.05)",
-    glowOuterStrong: "rgba(173, 255, 195, 0.12)",
+    ring: (opacity: number) => `rgba(94, 200, 255, ${opacity})`,
+    glowSoft: "rgba(94, 200, 255, 0.18)",
+    glowStrong: "rgba(255, 138, 0, 0.32)",
+    glowOuter: "rgba(94, 200, 255, 0.06)",
+    glowOuterStrong: "rgba(255, 138, 0, 0.12)",
     shimmer: "linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0.2) 60%, transparent 65%)",
   },
   light: {
-    ring: (opacity: number) => `rgba(16, 185, 129, ${opacity * 1.6})`,
-    glowSoft: "rgba(16, 185, 129, 0.12)",
-    glowStrong: "rgba(16, 185, 129, 0.28)",
-    glowOuter: "rgba(16, 185, 129, 0.06)",
-    glowOuterStrong: "rgba(16, 185, 129, 0.14)",
+    ring: (opacity: number) => `rgba(0, 119, 230, ${opacity * 1.4})`,
+    glowSoft: "rgba(0, 119, 230, 0.14)",
+    glowStrong: "rgba(255, 138, 0, 0.24)",
+    glowOuter: "rgba(0, 119, 230, 0.06)",
+    glowOuterStrong: "rgba(255, 138, 0, 0.1)",
     shimmer: "linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.35) 60%, transparent 65%)",
   },
 } as const;

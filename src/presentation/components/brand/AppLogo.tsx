@@ -5,9 +5,9 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SplitColorText } from "@/presentation/components/brand/SplitColorText";
 
-export const APP_NAME = "Vision AI Pos";
+export const APP_NAME = "Linkits POS";
 
-const LOGO_SRC = "/logo.svg";
+const LOGO_SRC = "/logo.png";
 
 const SIZE_CONFIG = {
   sidebar: {

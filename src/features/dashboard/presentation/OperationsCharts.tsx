@@ -75,7 +75,7 @@ export function SalesByCategoryChart({ range }: { range: DashboardRange }) {
     >
       {rows.length ? (
         <ChartCard title="Revenue by category">
-          <MoneyBarChart data={rows} bars={[{ key: "revenue", name: "Revenue", color: "#16a34a" }]} />
+          <MoneyBarChart data={rows} bars={[{ key: "revenue", name: "Revenue", color: "#0077e6" }]} />
         </ChartCard>
       ) : (
         <EmptyChart label="No category sales in this range." />
@@ -139,7 +139,7 @@ export function SalesByHourChart({ day }: { day: DashboardDay }) {
     >
       {rows.length ? (
         <ChartCard title="Revenue by hour">
-          <MoneyBarChart data={rows} bars={[{ key: "revenue", name: "Revenue", color: "#16a34a" }]} />
+          <MoneyBarChart data={rows} bars={[{ key: "revenue", name: "Revenue", color: "#0077e6" }]} />
         </ChartCard>
       ) : (
         <EmptyChart label="No hourly sales for this day." />
@@ -176,7 +176,7 @@ export function ServerPerformanceChart({ range }: { range: DashboardRange }) {
             data={rows}
             layout="vertical"
             bars={[
-              { key: "revenue", name: "Revenue", color: "#16a34a" },
+              { key: "revenue", name: "Revenue", color: "#0077e6" },
               { key: "tips", name: "Tips", color: "#ca8a04" },
             ]}
           />
@@ -223,7 +223,7 @@ export function ZReportChart({ day }: { day: DashboardDay }) {
           <div className="grid gap-6 lg:grid-cols-2">
             {payments.length ? (
               <ChartCard title="Payments">
-                <MoneyBarChart data={payments} bars={[{ key: "total", name: "Total", color: "#16a34a" }]} />
+                <MoneyBarChart data={payments} bars={[{ key: "total", name: "Total", color: "#0077e6" }]} />
               </ChartCard>
             ) : (
               <EmptyChart label="No payments recorded." />

@@ -1,14 +1,9 @@
 "use client";
 
-import { Suspense, useSyncExternalStore, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AppLoader } from "@/presentation/components/loader";
-
-const emptySubscribe = () => () => {};
-function useMounted() {
-  return useSyncExternalStore(emptySubscribe, () => true, () => false);
-}
 
 interface AuthPageLayoutProps {
   title?: string;
@@ -21,8 +16,6 @@ export function AuthPageLayout({
   subtitle,
   children,
 }: AuthPageLayoutProps) {
-  const mounted = useMounted();
-
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8"
@@ -36,17 +29,12 @@ export function AuthPageLayout({
           className="flex flex-col items-center text-center"
           suppressHydrationWarning
         >
-          {/* Logo only after client mount so Next/Image SVG renders (avoids SSR/hydration issues on login) */}
           <div className="flex min-h-24 w-full shrink-0 items-center justify-center sm:min-h-28">
-            {mounted ? (
-              <AppLogo
-                showName={true}
-                size="auth"
-                className="text-foreground"
-              />
-            ) : (
-              <div className="h-24 w-24 shrink-0 rounded-lg bg-mint/10 sm:h-28 sm:w-28" aria-hidden />
-            )}
+            <AppLogo
+              showName={true}
+              size="auth"
+              className="text-foreground"
+            />
           </div>
           {title && (
             <h1 className="panel-header mt-2 text-2xl tracking-tight text-foreground">

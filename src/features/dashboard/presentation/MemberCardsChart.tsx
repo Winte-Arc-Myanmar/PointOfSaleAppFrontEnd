@@ -58,7 +58,7 @@ export function MemberCardsChart({ range }: { range: DashboardRange }) {
                 <MoneyBarChart
                   data={byOutlet}
                   layout="vertical"
-                  bars={[{ key: "amount", name: "Spend", color: "#16a34a" }]}
+                  bars={[{ key: "amount", name: "Spend", color: "#0077e6" }]}
                 />
               </ChartCard>
             ) : (

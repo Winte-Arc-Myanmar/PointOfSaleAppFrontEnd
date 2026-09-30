@@ -5,7 +5,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { resolveMediaUrl } from "@/lib/media-url";
 
-const VISION_LOGO_SRC = "/logo.svg";
+const VISION_LOGO_SRC = "/logo.png";
 
 function resolveProductImageSrc(value: string | null | undefined): string {
   const imageUrl = value?.trim();
@@ -43,7 +43,7 @@ export function ProductCardImage({
         <div className="flex h-full w-full items-center justify-center bg-mint/5 p-5 dark:bg-mint/10">
           <Image
             src={VISION_LOGO_SRC}
-            alt="Vision AI POS logo"
+            alt="Linkits POS logo"
             width={80}
             height={80}
             className={cn("h-auto w-16 object-contain opacity-80", logoClassName)}

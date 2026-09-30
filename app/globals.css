@@ -3,15 +3,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-gloss-black: #252324;
+  --color-gloss-black: #101418;
   --color-matte-white: #ffffff;
-  --color-mint: #16a34a;
-  --color-mint-hover: #15803d;
+  /* Brand accent follows the Linkits mark: cyan primary, orange secondary */
+  --color-mint: #0077e6;
+  --color-mint-hover: #0062c4;
+  --color-ember: #ff8a00;
+  --color-ember-hover: #e07000;
   /* Theme-aware semantic colors (overridden by .dark below) */
   --color-background: #ffffff;
-  --color-foreground: #111827;
-  --color-muted: #374151;
-  --color-border: #d1d5db;
+  --color-foreground: #101418;
+  --color-muted: #3d4a57;
+  --color-border: #d5dee8;
   /* Futuristic design tokens (no new colors) */
   --radius-panel: 0.75rem;
   --radius-input: 0.5rem;
@@ -27,13 +30,15 @@
 
 /* Dark mode: next-themes adds .dark to <html> */
 .dark {
-  --color-matte-white: #252324;
-  --color-mint: #adffc3;
-  --color-mint-hover: #8effa8;
-  --color-background: #252324;
-  --color-foreground: #fdfbf9;
-  --color-muted: #9ca3af;
-  --color-border: rgba(173, 255, 195, 0.2);
+  --color-matte-white: #0e1318;
+  --color-mint: #5ec8ff;
+  --color-mint-hover: #8ad6ff;
+  --color-ember: #ff9a1f;
+  --color-ember-hover: #ffb24d;
+  --color-background: #0e1318;
+  --color-foreground: #f4f8fc;
+  --color-muted: #9aabbb;
+  --color-border: rgba(94, 200, 255, 0.22);
   --shadow-panel:
     0 16px 36px -20px rgb(0 0 0 / 0.55),
     0 10px 18px -16px rgb(0 0 0 / 0.38);
@@ -152,7 +157,7 @@ summary {
   animation: toast-out 0.25s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
 }
 
-/* Split-color text: top half = foreground, bottom half = animated mint water wave */
+/* Split-color text: top half = foreground, bottom half = Linkits cyan-to-orange wave */
 @keyframes mint-wave {
   0% {
     background-position:
@@ -180,14 +185,12 @@ summary {
     ),
     linear-gradient(
       90deg,
-      #adffc3 0%,
-      #4ae0a0 15%,
-      #5ee89c 30%,
-      #8bffc0 45%,
-      #4ae0a0 55%,
-      #adffc3 70%,
-      #5ee89c 85%,
-      #adffc3 100%
+      #5ec8ff 0%,
+      #0077e6 18%,
+      #ffb000 42%,
+      #ff6a00 58%,
+      #5ec8ff 78%,
+      #0077e6 100%
     );
   background-size:
     100% 100%,
@@ -196,7 +199,7 @@ summary {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: mint-wave 4s ease-in-out infinite;
-  filter: drop-shadow(0 0 4px rgba(173, 255, 195, 0.3));
+  filter: drop-shadow(0 0 4px rgba(0, 119, 230, 0.35));
 }
 
 /* Print only the receipt / thermal / reports container. */

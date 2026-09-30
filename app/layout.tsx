@@ -20,11 +20,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vision AI Pos",
-  description: "Point of Sale system powered by Vision AI",
+  title: "Linkits POS",
+  description: "Linkits point of sale",
   icons: {
-    icon: "/logo.svg",
-    apple: "/logo.svg",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
 };
 

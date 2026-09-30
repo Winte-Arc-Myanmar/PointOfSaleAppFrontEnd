@@ -45,7 +45,7 @@ export function OtherIncomeChart({ range }: { range: DashboardRange }) {
               <MoneyBarChart
                 data={byDay}
                 bars={[
-                  { key: "income", name: "Income", color: "#16a34a" },
+                  { key: "income", name: "Income", color: "#0077e6" },
                   { key: "expense", name: "Expense", color: "#dc2626" },
                 ]}
               />
@@ -70,7 +70,7 @@ export function OtherIncomeChart({ range }: { range: DashboardRange }) {
                 <MoneyBarChart
                   data={byMethod}
                   bars={[
-                    { key: "income", name: "Income", color: "#16a34a" },
+                    { key: "income", name: "Income", color: "#0077e6" },
                     { key: "expense", name: "Expense", color: "#ea580c" },
                   ]}
                 />
