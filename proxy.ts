@@ -9,6 +9,49 @@ import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 
 const publicPaths = ["/login", "/register"];
 
+/** Pages hidden on the Linkit branch. Direct address-bar visits are turned away. */
+const hiddenRoutePrefixes = [
+  "/tip-pools",
+  "/checkout",
+  "/sections",
+  "/table-sessions",
+  "/reservations",
+  "/printer-setup",
+  "/bundles",
+  "/recipes",
+  "/pricing-schedules",
+  "/branches",
+  "/vendors",
+  "/purchase-requisitions",
+  "/purchase-orders",
+  "/vendor-invoices",
+  "/transfer-orders",
+  "/transfer-order-lines",
+  "/grn-lines",
+  "/goods-received-notes",
+  "/landed-cost-allocations",
+  "/exchange-rates",
+  "/reconciliation-matches",
+  "/fixed-assets",
+  "/depreciation-schedules",
+  "/chart-of-accounts",
+  "/accounting-periods",
+  "/journal-entries",
+  "/journal-lines",
+  "/bank-statements",
+  "/bank-statement-lines",
+  "/tenants",
+  "/users",
+  "/roles",
+  "/admin",
+];
+
+function isHiddenRoute(pathname: string): boolean {
+  return hiddenRoutePrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 interface RoutePermission {
   prefix: string;
   permissions: string[];
@@ -117,6 +160,10 @@ export default auth((req) => {
   }
   if (isLoggedIn && pathname.startsWith("/login")) {
     return Response.redirect(new URL("/dashboard", req.nextUrl));
+  }
+
+  if (isLoggedIn && isHiddenRoute(pathname)) {
+    return Response.redirect(new URL("/products", req.nextUrl));
   }
 
   if (isLoggedIn && req.auth) {
