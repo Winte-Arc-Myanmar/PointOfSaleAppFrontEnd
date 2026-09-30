@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import { useAssignPermissions } from "@/presentation/hooks/useSystemAdmin";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useAssignPermissionsOptions } from "@/presentation/hooks/useSystemAdminAssignOptions";
+import { useGrantablePermissions } from "@/presentation/hooks/useGrantablePermissions";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -38,10 +40,17 @@ export function AssignPermissionsForm() {
   });
 
   const selectedPermissionIds = form.watch("permissionIds");
+  const tenantId = useWatch({ control: form.control, name: "tenantId" });
+  const isGrantable = useGrantablePermissions(tenantId);
+  const tenantRoles = (options?.roles ?? []).filter(
+    (role) => Boolean(tenantId) && role.tenantId === tenantId,
+  );
 
   const filteredPermissions = useMemo(() => {
     const query = permissionSearch.trim().toLowerCase();
-    const permissions = options?.permissions ?? [];
+    const permissions = isGrantable
+      ? (options?.permissions ?? []).filter(isGrantable)
+      : [];
 
     if (!query) return permissions;
 
@@ -49,7 +58,7 @@ export function AssignPermissionsForm() {
       const label = `${permission.module}:${permission.subject}:${permission.action}`;
       return label.toLowerCase().includes(query);
     });
-  }, [options?.permissions, permissionSearch]);
+  }, [isGrantable, options?.permissions, permissionSearch]);
 
   const togglePermission = (permissionId: string) => {
     const current = form.getValues("permissionIds");
@@ -72,7 +81,8 @@ export function AssignPermissionsForm() {
           setPermissionSearch("");
           setIsPermissionMenuOpen(false);
         },
-        onError: () => toast.error("Failed to assign permissions."),
+        onError: (error) =>
+          toast.error(getHttpErrorMessage(error, "Failed to assign permissions.")),
       }
     );
   };
@@ -83,6 +93,43 @@ export function AssignPermissionsForm() {
       className="max-w-3xl space-y-4"
     >
       <div className="grid max-w-xl gap-2">
+        <Label htmlFor="tenantId">Tenant *</Label>
+        <Controller
+          control={form.control}
+          name="tenantId"
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                field.onChange(value);
+                form.setValue("roleId", "");
+                form.setValue("permissionIds", []);
+              }}
+              disabled={isOptionsLoading}
+            >
+              <SelectTrigger id="tenantId">
+                <SelectValue
+                  placeholder={isOptionsLoading ? "Loading tenants..." : "Select tenant"}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {(options?.tenants ?? []).map((tenant) => (
+                  <SelectItem key={tenant.id} value={tenant.id}>
+                    {tenant.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.tenantId ? (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.tenantId.message}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="grid max-w-xl gap-2">
         <Label htmlFor="roleId">Role *</Label>
         <Controller
           control={form.control}
@@ -91,15 +138,21 @@ export function AssignPermissionsForm() {
             <Select
               value={field.value}
               onValueChange={field.onChange}
-              disabled={isOptionsLoading}
+              disabled={isOptionsLoading || !tenantId}
             >
               <SelectTrigger id="roleId">
                 <SelectValue
-                  placeholder={isOptionsLoading ? "Loading roles..." : "Select role"}
+                  placeholder={
+                    isOptionsLoading
+                      ? "Loading roles..."
+                      : tenantId
+                        ? "Select role"
+                        : "Select a tenant first"
+                  }
                 />
               </SelectTrigger>
               <SelectContent>
-                {(options?.roles ?? []).map((role) => (
+                {tenantRoles.map((role) => (
                   <SelectItem key={role.id} value={role.id}>
                     {role.name}
                   </SelectItem>
@@ -122,6 +175,7 @@ export function AssignPermissionsForm() {
             id="permission-trigger"
             type="button"
             onClick={() => setIsPermissionMenuOpen((open) => !open)}
+            disabled={!tenantId}
             className="flex h-11 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-left text-sm text-foreground transition hover:border-mint/40 focus:outline-none focus:ring-2 focus:ring-mint/30"
           >
             <span className="truncate pr-3 text-muted">
@@ -129,7 +183,9 @@ export function AssignPermissionsForm() {
                 ? `${selectedPermissionIds.length} permission${selectedPermissionIds.length === 1 ? "" : "s"} selected`
                 : isOptionsLoading
                   ? "Loading permissions..."
-                  : "Select permissions"}
+                  : tenantId
+                    ? "Select permissions"
+                    : "Select a tenant first"}
             </span>
             <ChevronDown
               className={cn(

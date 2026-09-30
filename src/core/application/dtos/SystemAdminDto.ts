@@ -5,6 +5,8 @@
 export interface OnboardTenantDto {
   tenant: {
     name: string;
+    /** IANA timezone the business day is counted in, e.g. Asia/Yangon. */
+    timezone: string;
     legalName?: string;
     domain?: string;
     website?: string;

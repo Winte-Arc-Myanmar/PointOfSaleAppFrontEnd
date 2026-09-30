@@ -11,6 +11,7 @@ import {
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { ExcelTransferButtons } from "@/presentation/components/excel/ExcelTransferButtons";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -196,6 +197,7 @@ export function InventoryLedgerList() {
           onPageChange={pagination.setPage}
           showTopContent={view === "expiring"}
           topContent={expiringFilter}
+          toolbarEndContent={<ExcelTransferButtons kind="stock" label="stock counts" />}
           addLabel="New entry"
           createTitle="New inventory ledger entry"
           createSubmitText="Create entry"

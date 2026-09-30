@@ -9,6 +9,9 @@ import type { IBranchService } from "@/core/domain/services/IBranchService";
 import type { ITenantService } from "@/core/domain/services/ITenantService";
 import { getPaginatedItems } from "./pagination";
 
+// A system admin sees every tenant's roles, far more than one page.
+const ALL = { page: 1, limit: 500 };
+
 export function useAssignPermissionsOptions() {
   return useQuery({
     queryKey: ["system-admin", "assign-permissions-options"],
@@ -17,14 +20,18 @@ export function useAssignPermissionsOptions() {
       const permissionService =
         container.resolve<IPermissionService>("permissionService");
 
-      const [rolesResult, permissionsResult] = await Promise.all([
-        roleService.getAll(),
+      const tenantService = container.resolve<ITenantService>("tenantService");
+
+      const [rolesResult, permissionsResult, tenantsResult] = await Promise.all([
+        roleService.getAll(ALL),
         permissionService.getAll(),
+        tenantService.getAll(ALL),
       ]);
 
       return {
         roles: getPaginatedItems(rolesResult),
         permissions: getPaginatedItems(permissionsResult),
+        tenants: getPaginatedItems(tenantsResult),
       };
     },
   });

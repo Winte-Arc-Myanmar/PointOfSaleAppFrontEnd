@@ -16,6 +16,8 @@ import { Shield, KeyRound, ListChecks, Search } from "lucide-react";
 import { useRole, useAssignRolePermissions } from "@/presentation/hooks/useRoles";
 import { usePermissionCatalog } from "@/presentation/hooks/usePermissionCatalog";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { useGrantablePermissions } from "@/presentation/hooks/useGrantablePermissions";
+import { getHttpErrorMessage } from "@/lib/http-error";
 
 function permissionLabel(p: { module: string; subject: string; action: string }) {
   return `${p.module}:${p.subject}:${p.action}`.toLowerCase();
@@ -25,7 +27,11 @@ export function RoleDetail({ roleId }: { roleId: string }) {
   const toast = useToast();
   const { data: role, isLoading, error } = useRole(roleId);
   const { data: permissionsData, isLoading: isPermLoading } = usePermissionCatalog();
-  const permissions = getPaginatedItems(permissionsData);
+  const isGrantable = useGrantablePermissions(role?.tenantId);
+  const permissions = useMemo(
+    () => (isGrantable ? getPaginatedItems(permissionsData).filter(isGrantable) : []),
+    [isGrantable, permissionsData],
+  );
   const assign = useAssignRolePermissions();
 
   const [query, setQuery] = useState("");
@@ -133,7 +139,10 @@ export function RoleDetail({ roleId }: { roleId: string }) {
                       { roleId: role.id, permissionIds: Array.from(selected) },
                       {
                         onSuccess: () => toast.success("Permissions assigned."),
-                        onError: () => toast.error("Failed to assign permissions."),
+                        onError: (error) =>
+                          toast.error(
+                            getHttpErrorMessage(error, "Failed to assign permissions."),
+                          ),
                       }
                     );
                   }}
@@ -144,7 +153,7 @@ export function RoleDetail({ roleId }: { roleId: string }) {
               </div>
             </div>
 
-            {isPermLoading ? (
+            {isPermLoading || !isGrantable ? (
               <div className="panel flex items-center justify-center min-h-48 rounded-xl bg-background/80">
                 <AppLoader fullScreen={false} showName={false} size="sm" message="Loading permissions..." />
               </div>

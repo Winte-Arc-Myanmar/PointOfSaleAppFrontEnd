@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { ExcelTransferButtons } from "@/presentation/components/excel/ExcelTransferButtons";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getUserRowActions } from "./user-row-actions";
 import { getUserTableColumns } from "./user-table-columns";
@@ -195,6 +196,7 @@ export function UserList() {
       totalPages={usersResult?.totalPages ?? pagination.getTotalPages(usersResult?.total)}
       totalItems={usersResult?.total ?? 0}
       onPageChange={pagination.setPage}
+      toolbarEndContent={<ExcelTransferButtons kind="users" />}
       addLabel="Add User"
       createTitle="Create User"
       createSubmitText="Create User"
