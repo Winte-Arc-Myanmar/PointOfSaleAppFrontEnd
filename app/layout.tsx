@@ -23,8 +23,11 @@ export const metadata: Metadata = {
   title: "Linkits POS",
   description: "Linkits point of sale",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/tab-icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
