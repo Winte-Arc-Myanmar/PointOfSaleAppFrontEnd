@@ -277,8 +277,13 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
       onRefund={() => {
         const amount = Number(refundAmount);
         if (!(amount > 0)) return toast.error("Enter a refund amount greater than 0.");
-        const maxRefundable = getPurchasedBalance(member);
-        if (amount > maxRefundable) {
+        if (member.isPostpaidSnapshot) {
+          return toast.error("A postpaid card cannot be refunded. Settle it at checkout.");
+        }
+        if (amount > member.walletBalance) {
+          return toast.error("Refund cannot be more than the card balance.");
+        }
+        if (amount > getPurchasedBalance(member)) {
           return toast.error(
             "Refund cannot exceed purchased balance. Promotional value cannot be paid out.",
           );
@@ -969,6 +974,11 @@ function CustomerMembershipActions({
         </DetailSection>
 
         <DetailSection title="Refund" icon={RotateCcw}>
+          {member.isPostpaidSnapshot ? (
+            <p className="text-sm text-muted">
+              Postpaid card: it cannot be refunded. Any balance is settled at checkout.
+            </p>
+          ) : (
           <div className="space-y-3">
             <div className="grid gap-2">
               <Label htmlFor="customer-refund-amount">Amount</Label>
@@ -1076,6 +1086,7 @@ function CustomerMembershipActions({
               {refundPending ? "Processing..." : "Refund"}
             </Button>
           </div>
+          )}
         </DetailSection>
 
         <DetailSection title="Card bind / unbind" icon={CreditCard}>
