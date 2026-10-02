@@ -3,19 +3,25 @@
 import { Label } from "@/presentation/components/ui/label";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
 
-export interface KdsPrinterPickerProps {
+export interface PrinterChecklistProps {
+  label: string;
+  hint: string;
+  emptyText: string;
   printers: KitchenPrinter[];
   value: string[];
   onChange: (printerIds: string[]) => void;
   locationSelected: boolean;
 }
 
-export function KdsPrinterPicker({
+export function PrinterChecklist({
+  label,
+  hint,
+  emptyText,
   printers,
   value,
   onChange,
   locationSelected,
-}: KdsPrinterPickerProps) {
+}: PrinterChecklistProps) {
   const toggle = (printerId: string) =>
     onChange(
       value.includes(printerId) ? value.filter((id) => id !== printerId) : [...value, printerId]
@@ -23,15 +29,12 @@ export function KdsPrinterPicker({
 
   return (
     <div className="space-y-2">
-      <Label>Printers</Label>
-      <p className="text-xs text-muted">
-        Tickets for this station go to every printer picked here, e.g. two printers, or a
-        printer and an LED board. Leave empty for a screen-only station.
-      </p>
+      <Label>{label}</Label>
+      <p className="text-xs text-muted">{hint}</p>
       {!locationSelected ? (
         <p className="text-sm text-muted">Select a location first.</p>
       ) : printers.length === 0 ? (
-        <p className="text-sm text-muted">No KDS printers at this location.</p>
+        <p className="text-sm text-muted">{emptyText}</p>
       ) : (
         <div className="max-h-48 overflow-y-auto rounded-md border border-border p-3 space-y-2">
           {printers.map((printer) => {

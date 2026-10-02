@@ -12,9 +12,13 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
 export function PosRegisterDetail({ registerId }: { registerId: string }) {
   const { data: reg, isLoading, error } = usePosRegister(registerId);
+  const { data: printersData } = useKitchenPrinters({ page: 1, limit: 200 });
+  const printers = getPaginatedItems(printersData);
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading register..." />;
   if (error || !reg) {
@@ -34,7 +38,14 @@ export function PosRegisterDetail({ registerId }: { registerId: string }) {
     { label: "Tenant ID", value: safeText(reg.tenantId), mono: true },
     { label: "Location ID", value: safeText(reg.locationId), mono: true },
     { label: "MAC address", value: safeText(reg.macAddress), mono: true },
+    { label: "Checkout printers", value: printerNames(reg.checkoutPrinterIds, "checkout") },
+    { label: "Finance printers", value: printerNames(reg.financePrinterIds, "finance") },
   ];
+
+  function printerNames(ids: string[], sector: string) {
+    if (ids.length === 0) return `Outlet's ${sector} printers`;
+    return ids.map((id) => printers.find((p) => String(p.id) === id)?.name ?? id).join(", ");
+  }
 
   const recordRows = [
     { label: "Created at", value: formatDate(reg.createdAt ?? undefined) },

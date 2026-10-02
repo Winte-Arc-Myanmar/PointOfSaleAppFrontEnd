@@ -8,6 +8,8 @@ export function toPosRegister(dto: PosRegisterDto & { id: string }): PosRegister
     locationId: dto.locationId ?? "",
     name: dto.name ?? "",
     macAddress: dto.macAddress ?? "",
+    checkoutPrinterIds: Array.isArray(dto.checkoutPrinterIds) ? dto.checkoutPrinterIds.map(String) : [],
+    financePrinterIds: Array.isArray(dto.financePrinterIds) ? dto.financePrinterIds.map(String) : [],
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,
   };
