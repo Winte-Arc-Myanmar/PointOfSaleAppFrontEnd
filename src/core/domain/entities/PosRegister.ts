@@ -6,6 +6,8 @@ export interface PosRegister {
   locationId: string;
   name: string;
   macAddress: string;
+  checkoutPrinterIds: string[];
+  financePrinterIds: string[];
   createdAt?: string | null;
   updatedAt?: string | null;
 }
