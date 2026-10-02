@@ -15,6 +15,7 @@ import { DetailSection } from "@/presentation/components/detail";
 import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { formatPrinterAddress } from "@/features/kitchen-printers/presentation/printer-address";
 
 export function KitchenPrinterConnection({
   defaultPrinterId,
@@ -31,7 +32,7 @@ export function KitchenPrinterConnection({
     sortBy: "name",
     sortOrder: "asc",
   });
-  const printers = printersResult?.items ?? [];
+  const printers = (printersResult?.items ?? []).filter((printer) => printer.ipAddress);
   const selectedId =
     defaultPrinterId ?? preferences.kitchen.printerId ?? "";
   const selectedPrinter = printers.find(
@@ -69,7 +70,7 @@ export function KitchenPrinterConnection({
           <SelectContent>
             {printers.map((printer) => (
               <SelectItem key={String(printer.id)} value={String(printer.id)}>
-                {printer.name} ({printer.ipAddress}:{printer.port})
+                {printer.name} ({formatPrinterAddress(printer)})
               </SelectItem>
             ))}
           </SelectContent>
@@ -83,7 +84,7 @@ export function KitchenPrinterConnection({
             {selectedPrinter ? (
               <>
                 <p className="font-mono text-sm text-foreground">
-                  {selectedPrinter.ipAddress}:{selectedPrinter.port}
+                  {formatPrinterAddress(selectedPrinter)}
                 </p>
                 <p className="text-sm text-muted">
                   Status: {selectedPrinter.isActive ? "Active" : "Inactive"}

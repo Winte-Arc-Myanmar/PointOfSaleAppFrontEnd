@@ -5,8 +5,8 @@ export interface KitchenPrinterDto {
   tenantId: string;
   locationId: string;
   name: string;
-  ipAddress: string;
-  port: number;
+  ipAddress: string | null;
+  port: number | null;
   sectors?: PrinterSector[];
   isActive: boolean;
   deletedAt?: string | null;

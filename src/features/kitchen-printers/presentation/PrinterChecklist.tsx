@@ -2,6 +2,7 @@
 
 import { Label } from "@/presentation/components/ui/label";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
+import { formatPrinterAddress } from "./printer-address";
 
 export interface PrinterChecklistProps {
   label: string;
@@ -48,11 +49,9 @@ export function PrinterChecklist({
                   onChange={() => toggle(id)}
                 />
                 <span>{printer.name}</span>
-                {printer.ipAddress && (
-                  <span className="font-mono text-xs text-muted">
-                    {printer.ipAddress}:{printer.port}
-                  </span>
-                )}
+                <span className="font-mono text-xs text-muted">
+                  {formatPrinterAddress(printer)}
+                </span>
                 {!printer.isActive && <span className="text-xs text-muted">(inactive)</span>}
               </label>
             );
