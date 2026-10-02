@@ -27,6 +27,7 @@ import {
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
 import { PrinterSectorPicker } from "./PrinterSectorPicker";
+import { ipAddressField, portField, toAddressPayload } from "./printer-address";
 
 const REDIRECT_DELAY_MS = 1500;
 const LIST_LIMIT = 200;
@@ -34,14 +35,8 @@ const LIST_LIMIT = 200;
 const schema = z.object({
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
-  ipAddress: z
-    .string()
-    .min(1, "IP address is required")
-    .regex(
-      /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$/,
-      "Enter a valid IPv4 address"
-    ),
-  port: z.number().int().min(1).max(65535),
+  ipAddress: ipAddressField,
+  port: portField,
   sectors: z.array(z.enum(PRINTER_SECTORS)).min(1, "Pick at least one sector"),
   isActive: z.boolean(),
 });
@@ -63,7 +58,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
       locationId: "",
       name: "",
       ipAddress: "",
-      port: 9100,
+      port: "",
       sectors: ["KDS"],
       isActive: true,
     },
@@ -80,8 +75,8 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
       form.reset({
         locationId: printer.locationId,
         name: printer.name,
-        ipAddress: printer.ipAddress,
-        port: printer.port,
+        ipAddress: printer.ipAddress ?? "",
+        port: printer.port ? String(printer.port) : "",
         sectors: printer.sectors,
         isActive: printer.isActive,
       });
@@ -96,8 +91,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
         data: {
           locationId: data.locationId,
           name: data.name.trim(),
-          ipAddress: data.ipAddress.trim(),
-          port: data.port,
+          ...toAddressPayload(data.ipAddress, data.port),
           sectors: data.sectors,
           isActive: data.isActive,
         },
@@ -181,8 +175,13 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="ipAddress">IP address</Label>
-            <Input id="ipAddress" {...form.register("ipAddress")} className="font-mono" />
+            <Label htmlFor="ipAddress">IP address (network printers only)</Label>
+            <Input
+              id="ipAddress"
+              {...form.register("ipAddress")}
+              placeholder="Leave empty for USB / Bluetooth"
+              className="font-mono"
+            />
             {form.formState.errors.ipAddress && (
               <p className="text-sm text-red-600">{form.formState.errors.ipAddress.message}</p>
             )}
@@ -190,7 +189,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
 
           <div className="grid gap-2">
             <Label htmlFor="port">Port</Label>
-            <Input id="port" type="number" {...form.register("port", { valueAsNumber: true })} />
+            <Input id="port" type="number" {...form.register("port")} placeholder="9100" />
             {form.formState.errors.port && (
               <p className="text-sm text-red-600">{form.formState.errors.port.message}</p>
             )}

@@ -29,6 +29,7 @@ import {
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KitchenPrinterConnection } from "@/presentation/components/printer/KitchenPrinterConnection";
 import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
+import { formatPrinterAddress } from "./printer-address";
 
 export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
   const toast = useToast();
@@ -48,8 +49,7 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
         ? [
             { label: "Printer ID", value: safeText(printer.id), mono: true },
             { label: "Name", value: safeText(printer.name) },
-            { label: "IP address", value: safeText(printer.ipAddress), mono: true },
-            { label: "Port", value: String(printer.port), mono: true },
+            { label: "Address", value: formatPrinterAddress(printer), mono: true },
             {
               label: "Sectors",
               value: printer.sectors.map((s) => PRINTER_SECTOR_LABELS[s]).join(", "),
@@ -108,7 +108,7 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
         </DetailSection>
       </div>
 
-      <KitchenPrinterConnection defaultPrinterId={String(printer.id)} />
+      {printer.ipAddress && <KitchenPrinterConnection defaultPrinterId={String(printer.id)} />}
 
       <DetailSection title="Category routing" icon={FolderTree}>
         <p className="text-sm text-muted mb-4">

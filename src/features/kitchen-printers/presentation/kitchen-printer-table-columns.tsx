@@ -1,6 +1,7 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
 import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
+import { formatPrinterAddress } from "./printer-address";
 
 type KitchenPrinterTableColumnOptions = {
   onView?: (printer: KitchenPrinter) => void;
@@ -48,15 +49,9 @@ export function getKitchenPrinterTableColumns(
     },
     {
       key: "ipAddress",
-      header: "IP address",
-      className: "min-w-[140px]",
-      render: (p) => <span className="font-mono text-xs">{p.ipAddress}</span>,
-    },
-    {
-      key: "port",
-      header: "Port",
-      className: "min-w-[80px]",
-      render: (p) => <span className="font-mono text-xs">{p.port}</span>,
+      header: "Address",
+      className: "min-w-[160px]",
+      render: (p) => <span className="font-mono text-xs">{formatPrinterAddress(p)}</span>,
     },
     {
       key: "isActive",
