@@ -20,12 +20,19 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
+import { PrinterChecklist } from "@/features/kitchen-printers/presentation/PrinterChecklist";
+import { printersFor } from "@/features/kitchen-printers/presentation/printers-for";
+
+const NO_PRINTERS: string[] = [];
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
   macAddress: z.string().min(1, "MAC address is required"),
+  checkoutPrinterIds: z.array(z.string()),
+  financePrinterIds: z.array(z.string()),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -35,6 +42,8 @@ const defaultValues: FormData = {
   locationId: "",
   name: "",
   macAddress: "",
+  checkoutPrinterIds: [],
+  financePrinterIds: [],
 };
 
 export interface CreatePosRegisterFormProps {
@@ -54,6 +63,8 @@ export function CreatePosRegisterForm({
   const tenants = getPaginatedItems(tenantsData);
   const { data: locationsData } = useLocations({ page: 1, limit: 200 });
   const locations = getPaginatedItems(locationsData);
+  const { data: printersData } = useKitchenPrinters({ page: 1, limit: 200 });
+  const printers = getPaginatedItems(printersData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -70,6 +81,17 @@ export function CreatePosRegisterForm({
     [locations, tenantId]
   );
 
+  const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
+  const checkoutPrinterIds = useWatch({ control: form.control, name: "checkoutPrinterIds" }) ?? NO_PRINTERS;
+  const financePrinterIds = useWatch({ control: form.control, name: "financePrinterIds" }) ?? NO_PRINTERS;
+  const printerOptions = useMemo(
+    () => ({
+      CHECKOUT: printersFor(printers, "CHECKOUT", selectedLocationId, checkoutPrinterIds),
+      FINANCE: printersFor(printers, "FINANCE", selectedLocationId, financePrinterIds),
+    }),
+    [printers, selectedLocationId, checkoutPrinterIds, financePrinterIds]
+  );
+
   const onSubmit = (data: FormData) => {
     create.mutate(
       {
@@ -77,6 +99,8 @@ export function CreatePosRegisterForm({
         locationId: data.locationId,
         name: data.name,
         macAddress: data.macAddress,
+        checkoutPrinterIds: data.checkoutPrinterIds,
+        financePrinterIds: data.financePrinterIds,
       },
       {
         onSuccess: () => {
@@ -175,6 +199,26 @@ export function CreatePosRegisterForm({
           </p>
         </div>
       </div>
+
+      <PrinterChecklist
+        label="Checkout printers"
+        hint="Where this till prints the bill. Leave empty to use the outlet's checkout printers."
+        emptyText="No checkout printers at this location."
+        printers={printerOptions.CHECKOUT}
+        value={checkoutPrinterIds}
+        onChange={(ids) => form.setValue("checkoutPrinterIds", ids, { shouldDirty: true })}
+        locationSelected={Boolean(selectedLocationId)}
+      />
+
+      <PrinterChecklist
+        label="Finance printers"
+        hint="Where this till prints the finance copy. Leave empty to use the outlet's finance printers."
+        emptyText="No finance printers at this location."
+        printers={printerOptions.FINANCE}
+        value={financePrinterIds}
+        onChange={(ids) => form.setValue("financePrinterIds", ids, { shouldDirty: true })}
+        locationSelected={Boolean(selectedLocationId)}
+      />
 
       {!formId && (
         <Button type="submit" disabled={create.isPending}>

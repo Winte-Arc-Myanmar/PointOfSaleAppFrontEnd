@@ -25,7 +25,8 @@ import {
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KdsCategoryRoutingPicker } from "./KdsCategoryRoutingPicker";
-import { KdsPrinterPicker } from "./KdsPrinterPicker";
+import { PrinterChecklist } from "@/features/kitchen-printers/presentation/PrinterChecklist";
+import { printersFor } from "@/features/kitchen-printers/presentation/printers-for";
 
 const REDIRECT_DELAY_MS = 1500;
 const LIST_LIMIT = 200;
@@ -87,12 +88,7 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
   );
 
   const printerOptions = useMemo(
-    () =>
-      printers.filter(
-        (printer) =>
-          printerIds.includes(String(printer.id)) ||
-          (printer.sectors.includes("KDS") && printer.locationId === selectedLocationId),
-      ),
+    () => printersFor(printers, "KDS", selectedLocationId, printerIds),
     [printers, printerIds, selectedLocationId],
   );
 
@@ -227,7 +223,10 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
           onChange={(ids) => form.setValue("categoryIds", ids, { shouldDirty: true })}
         />
 
-        <KdsPrinterPicker
+        <PrinterChecklist
+          label="Printers"
+          hint="Tickets for this station go to every printer picked here, e.g. two printers, or a printer and an LED board. Leave empty for a screen-only station."
+          emptyText="No KDS printers at this location."
           printers={printerOptions}
           value={printerIds}
           onChange={(ids) => form.setValue("printerIds", ids, { shouldDirty: true })}
