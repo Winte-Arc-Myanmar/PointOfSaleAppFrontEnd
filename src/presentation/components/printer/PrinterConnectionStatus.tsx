@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatPrinterAddress } from "@/features/kitchen-printers/presentation/printer-address";
 import { AlertCircle, CheckCircle2, Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { useBluetoothPrinter } from "@/presentation/hooks/useBluetoothPrinter";
@@ -76,7 +77,7 @@ export function PrinterConnectionStatus() {
             <p className="font-medium">Kitchen</p>
             <p className="text-muted">
               {kitchenPrinter
-                ? `${kitchenPrinter.name} · ${kitchenPrinter.ipAddress}:${kitchenPrinter.port}`
+                ? `${kitchenPrinter.name} · ${formatPrinterAddress(kitchenPrinter)}`
                 : "No kitchen printer assigned"}
             </p>
           </div>

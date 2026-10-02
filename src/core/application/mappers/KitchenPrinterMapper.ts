@@ -11,8 +11,8 @@ export function toKitchenPrinter(dto: KitchenPrinterDto & { id: string }): Kitch
     tenantId: dto.tenantId ?? "",
     locationId: dto.locationId ?? "",
     name: dto.name ?? "",
-    ipAddress: dto.ipAddress ?? "",
-    port: Number(dto.port) || 9100,
+    ipAddress: dto.ipAddress || null,
+    port: dto.ipAddress && dto.port ? Number(dto.port) : null,
     sectors: Array.isArray(dto.sectors)
       ? dto.sectors.filter((s): s is PrinterSector => PRINTER_SECTORS.includes(s))
       : ["KDS"],
