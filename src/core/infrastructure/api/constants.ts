@@ -150,15 +150,15 @@ export const API_ENDPOINTS = {
     },
   },
   KITCHEN_PRINTERS: {
-    LIST: "/v1/kitchen-printers",
-    BY_ID: (id: string) => `/v1/kitchen-printers/${id}`,
-    CREATE: "/v1/kitchen-printers",
-    UPDATE: (id: string) => `/v1/kitchen-printers/${id}`,
-    DELETE: (id: string) => `/v1/kitchen-printers/${id}`,
+    LIST: "/v1/printers",
+    BY_ID: (id: string) => `/v1/printers/${id}`,
+    CREATE: "/v1/printers",
+    UPDATE: (id: string) => `/v1/printers/${id}`,
+    DELETE: (id: string) => `/v1/printers/${id}`,
     CATEGORIES: {
-      ATTACH: (id: string) => `/v1/kitchen-printers/${id}/categories`,
+      ATTACH: (id: string) => `/v1/printers/${id}/categories`,
       DETACH: (id: string, categoryId: string) =>
-        `/v1/kitchen-printers/${id}/categories/${categoryId}`,
+        `/v1/printers/${id}/categories/${categoryId}`,
     },
   },
   TABLE_SESSIONS: {
