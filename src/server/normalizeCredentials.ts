@@ -7,7 +7,7 @@ import type { UserType } from "@/core/domain/types/auth";
 import type { LoginCredentials } from "@/core/domain/types/auth";
 
 export interface RawLoginCredentials {
-  email?: unknown;
+  login?: unknown;
   password?: unknown;
   type?: unknown;
   tenantId?: unknown;
@@ -31,9 +31,9 @@ export function normalizeLoginCredentials(
 ): LoginCredentials | null {
   if (!raw) return null;
 
-  const email = raw.email != null ? String(raw.email).trim() : "";
+  const login = raw.login != null ? String(raw.login).trim() : "";
   const password = raw.password != null ? String(raw.password) : "";
-  if (!email || !password) return null;
+  if (!login || !password) return null;
 
   const typeRaw = raw.type != null ? String(raw.type).trim() : "";
   let type: UserType;
@@ -47,7 +47,7 @@ export function normalizeLoginCredentials(
   const branchId = type === "user" && branchIdRaw ? branchIdRaw : undefined;
 
   return {
-    email,
+    login,
     password,
     type,
     ...(tenantId && { tenantId }),

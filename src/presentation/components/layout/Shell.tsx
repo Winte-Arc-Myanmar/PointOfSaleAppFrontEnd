@@ -30,7 +30,7 @@ const routeTitles: Record<string, string> = {
   "/dining-zones": "Dining Zones",
   "/dining-tables": "Dining Tables",
   "/sections": "Sections",
-  "/kitchen-printers": "Kitchen Printers",
+  "/kitchen-printers": "Printers",
   "/printer-setup": "Printer Setup",
   "/table-sessions": "Table Sessions",
   "/kds-stations": "KDS Stations",
@@ -47,6 +47,7 @@ const routeTitles: Record<string, string> = {
   "/uom-classes": "UOM Classes",
   "/uoms": "UOMs",
   "/roles": "Roles",
+  "/data-transfer": "Import / Export",
   "/admin/onboard": "Onboard tenant",
   "/admin/create-user": "Create user",
   "/admin/assign-permissions": "Assign permissions",
@@ -98,7 +99,7 @@ function getTitle(pathname: string): string {
     return "Edit section";
   if (pathname.startsWith("/sections/")) return "Section";
   if (pathname.startsWith("/kitchen-printers/") && pathname.endsWith("/edit"))
-    return "Edit kitchen printer";
+    return "Edit printer";
   if (pathname.startsWith("/kitchen-printers/")) return "Kitchen printer";
   if (pathname.startsWith("/table-sessions/") && pathname.endsWith("/edit"))
     return "Edit table session";

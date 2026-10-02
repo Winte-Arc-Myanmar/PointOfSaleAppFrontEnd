@@ -10,16 +10,34 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
+  DEFAULT_TENANT_TIMEZONE,
   onboardTenantDefaultValues,
   onboardTenantSchema,
   type OnboardTenantFormData,
 } from "./system-admin-form-schema";
+import { optionalText } from "@/features/users/presentation/user-form-schema";
+
+// Browsers list Myanmar under its old name (Asia/Rangoon); keep the current one
+// first, or the dropdown would fall back to the first zone in the list.
+const TIMEZONES: string[] = (() => {
+  try {
+    return [
+      DEFAULT_TENANT_TIMEZONE,
+      ...Intl.supportedValuesOf("timeZone").filter(
+        (zone) => zone !== DEFAULT_TENANT_TIMEZONE,
+      ),
+    ];
+  } catch {
+    return [DEFAULT_TENANT_TIMEZONE];
+  }
+})();
 
 export function OnboardTenantForm() {
   const router = useRouter();
   const onboard = useOnboardTenant();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [ownerLoginId, setOwnerLoginId] = useState<string | null>(null);
   const form = useForm<OnboardTenantFormData>({
     resolver: zodResolver(onboardTenantSchema),
     defaultValues: onboardTenantDefaultValues,
@@ -32,6 +50,7 @@ export function OnboardTenantForm() {
       {
         tenant: {
           name: data.tenant.name,
+          timezone: data.tenant.timezone,
           legalName: data.tenant.legalName,
           domain: data.tenant.domain,
           website: data.tenant.website,
@@ -49,20 +68,21 @@ export function OnboardTenantForm() {
           phone: data.branch.phone,
         },
         owner: {
-          email: data.owner.email,
+          email: optionalText(data.owner.email),
           password: data.owner.password,
-          username: data.owner.username,
           fullName: data.owner.fullName,
           phoneNumber: data.owner.phoneNumber,
           jobTitle: data.owner.jobTitle,
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (result) => {
           toast.success("Tenant onboarded.");
+          const loginId = result?.owner?.userId ?? null;
+          setOwnerLoginId(loginId);
           setShowSuccess(true);
           form.reset(onboardTenantDefaultValues);
-          setTimeout(() => router.push("/tenants"), 1500);
+          if (!loginId) setTimeout(() => router.push("/tenants"), 1500);
         },
         onError: () => toast.error("Failed to onboard tenant."),
       },
@@ -86,6 +106,28 @@ export function OnboardTenantForm() {
             <Input id="tenant-legalName" {...register("tenant.legalName")} />
             {errors.tenant?.legalName && (
               <p className="text-sm text-red-600">{errors.tenant.legalName.message}</p>
+            )}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="tenant-timezone">Timezone *</Label>
+            <select
+              id="tenant-timezone"
+              {...register("tenant.timezone")}
+              className="flex h-10 w-full rounded-lg border border-gray-400 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint dark:border-border dark:bg-background dark:text-foreground"
+            >
+              {TIMEZONES.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted">
+              The business day, order numbers and daily reports follow this timezone.
+            </p>
+            {errors.tenant?.timezone && (
+              <p className="text-sm text-red-600">{errors.tenant.timezone.message}</p>
             )}
           </div>
         </div>
@@ -210,17 +252,10 @@ export function OnboardTenantForm() {
               <p className="text-sm text-red-600">{errors.owner.fullName.message}</p>
             )}
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="owner-username">Username *</Label>
-            <Input id="owner-username" {...register("owner.username")} />
-            {errors.owner?.username && (
-              <p className="text-sm text-red-600">{errors.owner.username.message}</p>
-            )}
-          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="owner-email">Email *</Label>
+            <Label htmlFor="owner-email">Email</Label>
             <Input id="owner-email" type="email" {...register("owner.email")} />
             {errors.owner?.email && (
               <p className="text-sm text-red-600">{errors.owner.email.message}</p>
@@ -261,11 +296,22 @@ export function OnboardTenantForm() {
         </div>
       </fieldset>
 
-      {showSuccess && (
-        <p className="text-sm text-green-600 font-medium">
-          Tenant onboarded successfully. Redirecting...
-        </p>
-      )}
+      {showSuccess &&
+        (ownerLoginId ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3 text-sm">
+            <span>
+              Tenant onboarded. The owner signs in with User ID{" "}
+              <span className="font-mono font-semibold">{ownerLoginId}</span>
+            </span>
+            <Button type="button" variant="outline" size="sm" onClick={() => router.push("/tenants")}>
+              Go to tenants
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-green-600 font-medium">
+            Tenant onboarded successfully. Redirecting...
+          </p>
+        ))}
       {onboard.isError && (
         <p className="text-sm text-red-600">Failed to onboard tenant. Please try again.</p>
       )}

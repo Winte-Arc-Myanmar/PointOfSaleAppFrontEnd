@@ -9,6 +9,8 @@ export interface KdsStationDto {
   name: string;
   displayColor: string;
   routingRules: KdsStationRoutingRulesDto;
+  printerIds?: string[];
+  printerId?: string | null;
   deletedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -16,10 +18,10 @@ export interface KdsStationDto {
 
 export type KdsStationCreateDto = Pick<
   KdsStationDto,
-  "tenantId" | "locationId" | "name" | "displayColor" | "routingRules"
+  "tenantId" | "locationId" | "name" | "displayColor" | "routingRules" | "printerIds"
 >;
 
 export type KdsStationUpdateDto = Pick<
   KdsStationDto,
-  "locationId" | "name" | "displayColor" | "routingRules"
+  "locationId" | "name" | "displayColor" | "routingRules" | "printerIds"
 >;

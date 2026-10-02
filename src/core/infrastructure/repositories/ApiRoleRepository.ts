@@ -70,6 +70,17 @@ export class ApiRoleRepository implements IRoleRepository {
     await this.httpClient.delete(API_ENDPOINTS.ROLES.DELETE(id));
   }
 
+  async getAvailablePermissionIds(): Promise<string[]> {
+    const result = await this.httpClient.get<unknown>(
+      API_ENDPOINTS.ROLES.AVAILABLE_PERMISSIONS,
+    );
+    return Array.isArray(result)
+      ? result
+          .map((item) => (item as { id?: unknown })?.id)
+          .filter((id): id is string => typeof id === "string")
+      : [];
+  }
+
   async assignPermissions(roleId: string, permissionIds: string[]): Promise<void> {
     const body: AssignRolePermissionsDto = { roleId, permissionIds };
     await this.httpClient.post(API_ENDPOINTS.ROLES.ASSIGN_PERMISSIONS(roleId), body);

@@ -17,8 +17,9 @@ export function toAppUser(dto: UserDto & { id: string }): AppUser {
 
   return {
     id: dto.id,
-    email: dto.email,
-    username: dto.username,
+    loginId: dto.loginId ?? undefined,
+    email: dto.email ?? "",
+    username: dto.username ?? "",
     fullName: dto.fullName,
     phoneNumber: dto.phoneNumber,
     avatarUrl: dto.avatarUrl,
@@ -40,8 +41,8 @@ export function toAppUser(dto: UserDto & { id: string }): AppUser {
 export function toUserDto(user: Partial<AppUser>): UserDto {
   return {
     ...(user.id && { id: user.id }),
-    email: user.email ?? "",
-    username: user.username ?? "",
+    email: user.email || undefined,
+    username: user.username || undefined,
     fullName: user.fullName ?? "",
     phoneNumber: user.phoneNumber,
     avatarUrl: user.avatarUrl,

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateUser } from "@/presentation/hooks/useUsers";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
@@ -23,6 +23,7 @@ import {
 import {
   createUserDefaultValues,
   createUserSchema,
+  optionalText,
   optionalUrl,
   USER_PREFERRED_LANGUAGES,
   type CreateUserFormData,
@@ -67,11 +68,17 @@ export function CreateUserForm({
     defaultValues: createUserDefaultValues,
   });
 
-  const filteredRoles = (options?.roles ?? []).filter((r) =>
-    tenantId ? r.tenantId === tenantId : true,
-  );
   const filteredBranches = (options?.branches ?? []).filter((b) =>
     tenantId ? b.tenantId === tenantId : true,
+  );
+  const chosenBranchId = useWatch({ control, name: "branchId" });
+  // A system admin has no tenant of their own: the branch decides whose user
+  // this is, and a role can only come from that same tenant.
+  const roleTenantId =
+    tenantId ??
+    filteredBranches.find((branch) => branch.id === chosenBranchId)?.tenantId;
+  const filteredRoles = (options?.roles ?? []).filter(
+    (r) => Boolean(roleTenantId) && r.tenantId === roleTenantId,
   );
 
   useEffect(() => {
@@ -86,8 +93,13 @@ export function CreateUserForm({
   }, [filteredRoles, filteredBranches, getValues, setValue]);
 
   const onSubmit = (data: CreateUserFormData) => {
-    const onCreated = () => {
-      toast.success("User created.");
+    const onCreated = (created: { loginId?: string | null } | void) => {
+      toast.success(
+        created?.loginId
+          ? `They sign in with User ID ${created.loginId}.`
+          : "User created.",
+        created?.loginId ? "User created" : undefined,
+      );
       reset(createUserDefaultValues);
       onSuccess?.();
     };
@@ -96,9 +108,8 @@ export function CreateUserForm({
       (branch) => branch.id === data.branchId,
     );
     const payload = {
-      email: data.email,
+      email: optionalText(data.email),
       password: data.password,
-      username: data.username,
       fullName: data.fullName,
       phoneNumber: data.phoneNumber,
       avatarUrl: optionalUrl(data.avatarUrl),
@@ -134,17 +145,10 @@ export function CreateUserForm({
             <p className="text-sm text-red-600">{errors.fullName.message}</p>
           )}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username *</Label>
-          <Input id="username" {...register("username")} placeholder="john_doe" />
-          {errors.username && (
-            <p className="text-sm text-red-600">{errors.username.message}</p>
-          )}
-        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
@@ -212,12 +216,16 @@ export function CreateUserForm({
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}
-                disabled={isOptionsLoading}
+                disabled={isOptionsLoading || !roleTenantId}
               >
                 <SelectTrigger id="roleId">
                   <SelectValue
                     placeholder={
-                      isOptionsLoading ? "Loading roles..." : "Select role"
+                      isOptionsLoading
+                        ? "Loading roles..."
+                        : roleTenantId
+                          ? "Select role"
+                          : "Select a branch first"
                     }
                   />
                 </SelectTrigger>

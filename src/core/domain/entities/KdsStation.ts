@@ -11,6 +11,7 @@ export interface KdsStation {
   name: string;
   displayColor: string;
   routingRules: KdsStationRoutingRules;
+  printerIds: string[];
   deletedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;

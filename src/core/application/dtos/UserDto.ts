@@ -5,9 +5,10 @@
 
 export interface UserDto {
   id?: string;
-  email: string;
+  loginId?: string | null;
+  email?: string;
   password?: string;
-  username: string;
+  username?: string;
   fullName: string;
   phoneNumber?: string;
   avatarUrl?: string;
@@ -24,13 +25,12 @@ export interface UserDto {
   updatedAt?: string;
 }
 
-/** PATCH body - email, password, username, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */
+/** PATCH body - email, password, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */
 export type UserUpdateDto = Partial<
   Pick<
     UserDto,
     | "email"
     | "password"
-    | "username"
     | "fullName"
     | "phoneNumber"
     | "avatarUrl"

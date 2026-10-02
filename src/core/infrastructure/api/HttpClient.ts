@@ -11,6 +11,11 @@ import axios, {
 } from "axios";
 import { getSession, signOut } from "next-auth/react";
 import { API_CONFIG } from "./constants";
+import {
+  ACTING_TENANT_HEADER,
+  getActingTenantId,
+  isGlobalEndpoint,
+} from "@/lib/acting-tenant";
 
 /** Backend returns { success, message, data?, meta? }. Return data when present. */
 function unwrap<T>(body: unknown): T {
@@ -57,6 +62,10 @@ export class HttpClient {
           const session = await getSession();
           if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
+          }
+          const actingTenantId = getActingTenantId();
+          if (actingTenantId && !isGlobalEndpoint(config.url)) {
+            config.headers[ACTING_TENANT_HEADER] = actingTenantId;
           }
         }
         return config;
@@ -124,6 +133,30 @@ export class HttpClient {
       data,
       config,
     );
+    return unwrap<T>(res.data);
+  }
+
+  /** A file download, as it came. */
+  async getBlob(url: string, config?: AxiosRequestConfig): Promise<Blob> {
+    const res: AxiosResponse<Blob> = await this.client.get(url, {
+      ...config,
+      responseType: "blob",
+      timeout: 60000,
+    });
+    return res.data;
+  }
+
+  /** A file upload as multipart form data. */
+  async postForm<T>(
+    url: string,
+    form: FormData,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    const res: AxiosResponse<unknown> = await this.client.post(url, form, {
+      ...config,
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 60000,
+    });
     return unwrap<T>(res.data);
   }
 

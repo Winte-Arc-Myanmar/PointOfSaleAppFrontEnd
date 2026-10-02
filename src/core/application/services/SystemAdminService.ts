@@ -34,4 +34,8 @@ export class SystemAdminService implements ISystemAdminService {
   assignRole(data: AssignRoleDto) {
     return this.repo.assignRole(data);
   }
+
+  getTenantModules(tenantId: string) {
+    return this.repo.getTenantModules(tenantId);
+  }
 }

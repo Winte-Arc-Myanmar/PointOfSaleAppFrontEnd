@@ -53,15 +53,15 @@ export function KitchenPrinterList() {
         onEdit: (printer) => router.push(`/kitchen-printers/${printer.id}/edit`),
         onDelete: async (printer) => {
           const ok = await confirm({
-            title: "Delete kitchen printer",
+            title: "Delete printer",
             description: `Delete "${printer.name}"? This cannot be undone.`,
             confirmLabel: "Delete",
             variant: "destructive",
           });
           if (ok) {
             remove.mutate(String(printer.id), {
-              onSuccess: () => toast.success("Kitchen printer deleted."),
-              onError: () => toast.error("Failed to delete kitchen printer."),
+              onSuccess: () => toast.success("Printer deleted."),
+              onError: () => toast.error("Failed to delete printer."),
             });
           }
         },
@@ -80,7 +80,7 @@ export function KitchenPrinterList() {
   async function handleDeleteSelected(items: KitchenPrinter[]) {
     if (items.length === 0) return;
     const ok = await confirm({
-      title: "Delete kitchen printers",
+      title: "Delete printers",
       description: `Delete ${items.length} selected printer(s)? This cannot be undone.`,
       confirmLabel: "Delete",
       variant: "destructive",
@@ -90,9 +90,9 @@ export function KitchenPrinterList() {
       for (const item of items) {
         await remove.mutateAsync(String(item.id));
       }
-      toast.success(`${items.length} kitchen printer(s) deleted.`);
+      toast.success(`${items.length} printer(s) deleted.`);
     } catch {
-      toast.error("Failed to delete some kitchen printers.");
+      toast.error("Failed to delete some printers.");
     }
   }
 
@@ -102,14 +102,14 @@ export function KitchenPrinterList() {
       columns={columns}
       actions={actions}
       isLoading={isLoading}
-      loadingText="Loading kitchen printers..."
-      emptyText={search ? "No kitchen printers match your search." : "No kitchen printers yet."}
+      loadingText="Loading printers..."
+      emptyText={search ? "No printers match your search." : "No printers yet."}
       topContent={
         <div className="mb-4">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search kitchen printers..."
+            placeholder="Search printers..."
             className="sm:w-[360px]"
           />
         </div>
@@ -117,7 +117,7 @@ export function KitchenPrinterList() {
       error={
         error
           ? {
-              message: "Failed to load kitchen printers.",
+              message: "Failed to load printers.",
               onRetry: () => refetch(),
             }
           : undefined
@@ -127,9 +127,9 @@ export function KitchenPrinterList() {
       totalPages={printersResult?.totalPages ?? pagination.getTotalPages(printersResult?.total)}
       totalItems={printersResult?.total ?? 0}
       onPageChange={pagination.setPage}
-      addLabel="Add Kitchen Printer"
-      createTitle="Create Kitchen Printer"
-      createSubmitText="Create Kitchen Printer"
+      addLabel="Add Printer"
+      createTitle="Create Printer"
+      createSubmitText="Create Printer"
       createLoadingText="Creating..."
       createFormId={CREATE_KITCHEN_PRINTER_FORM_ID}
       createMaxWidth="2xl"

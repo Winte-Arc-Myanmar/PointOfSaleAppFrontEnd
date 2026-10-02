@@ -13,6 +13,11 @@ export function toKdsStation(dto: KdsStationDto & { id: string }): KdsStation {
     name: dto.name ?? "",
     displayColor: dto.displayColor ?? "#FF5733",
     routingRules: { categoryIds },
+    printerIds: Array.isArray(dto.printerIds)
+      ? dto.printerIds.map(String)
+      : dto.printerId
+        ? [String(dto.printerId)]
+        : [],
     deletedAt: dto.deletedAt ?? null,
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,

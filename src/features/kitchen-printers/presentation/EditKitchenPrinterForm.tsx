@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
+import { PrinterSectorPicker } from "./PrinterSectorPicker";
 
 const REDIRECT_DELAY_MS = 1500;
 const LIST_LIMIT = 200;
@@ -40,6 +42,7 @@ const schema = z.object({
       "Enter a valid IPv4 address"
     ),
   port: z.number().int().min(1).max(65535),
+  sectors: z.array(z.enum(PRINTER_SECTORS)).min(1, "Pick at least one sector"),
   isActive: z.boolean(),
 });
 
@@ -61,6 +64,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
       name: "",
       ipAddress: "",
       port: 9100,
+      sectors: ["KDS"],
       isActive: true,
     },
   });
@@ -78,6 +82,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
         name: printer.name,
         ipAddress: printer.ipAddress,
         port: printer.port,
+        sectors: printer.sectors,
         isActive: printer.isActive,
       });
     }
@@ -93,16 +98,17 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
           name: data.name.trim(),
           ipAddress: data.ipAddress.trim(),
           port: data.port,
+          sectors: data.sectors,
           isActive: data.isActive,
         },
       },
       {
         onSuccess: () => {
-          toast.success("Kitchen printer updated.");
+          toast.success("Printer updated.");
           setShowSuccess(true);
           setTimeout(() => router.push(`/kitchen-printers/${printerId}`), REDIRECT_DELAY_MS);
         },
-        onError: () => toast.error("Failed to update kitchen printer."),
+        onError: () => toast.error("Failed to update printer."),
       }
     );
   };
@@ -111,9 +117,9 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
   if (error || !printer) {
     return (
       <div className="space-y-4">
-        <p className="text-red-500">Kitchen printer not found.</p>
+        <p className="text-red-500">Printer not found.</p>
         <Link href="/kitchen-printers">
-          <Button variant="outline">Back to Kitchen Printers</Button>
+          <Button variant="outline">Back to Printers</Button>
         </Link>
       </div>
     );
@@ -128,7 +134,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
           </Button>
         </Link>
         <div>
-          <h1 className="text-xl font-semibold">Edit kitchen printer</h1>
+          <h1 className="text-xl font-semibold">Edit printer</h1>
           <p className="text-sm text-muted">{printer.name}</p>
         </div>
       </div>
@@ -212,6 +218,18 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
             )}
           />
         </div>
+
+        <Controller
+          control={form.control}
+          name="sectors"
+          render={({ field }) => (
+            <PrinterSectorPicker
+              value={field.value}
+              onChange={field.onChange}
+              error={form.formState.errors.sectors?.message}
+            />
+          )}
+        />
 
         <div className="flex gap-2">
           <Button type="submit" disabled={update.isPending}>
