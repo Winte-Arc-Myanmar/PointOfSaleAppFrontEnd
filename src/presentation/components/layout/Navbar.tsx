@@ -6,6 +6,7 @@ import { Menu, PanelLeftClose, PanelLeft, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/language/LanguageSwitcher";
+import { TenantSwitcher } from "./TenantSwitcher";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { APP_VERSION_LABEL } from "@/lib/app-version";
 
@@ -81,6 +82,7 @@ export function Navbar({
         >
           {APP_VERSION_LABEL}
         </span>
+        <TenantSwitcher className="hidden items-center gap-2 md:flex" />
         <LanguageSwitcher />
         {displayName && (
           <div className="hidden items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-sm text-gray-900 dark:border-transparent dark:bg-mint/10 dark:text-foreground sm:flex">

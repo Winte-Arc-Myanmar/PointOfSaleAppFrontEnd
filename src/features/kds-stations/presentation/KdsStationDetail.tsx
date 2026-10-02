@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FolderTree, Info, Monitor, UtensilsCrossed } from "lucide-react";
 import { useKdsStation } from "@/presentation/hooks/useKdsStations";
 import { useCategories } from "@/presentation/hooks/useCategories";
+import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { useSections } from "@/presentation/hooks/useSections";
 import { useTableSessions } from "@/presentation/hooks/useTableSessions";
@@ -36,7 +37,9 @@ export function KdsStationDetail({ stationId }: { stationId: string }) {
   const { data: zonesData } = useDiningZones({ page: 1, limit: 200, sortBy: "sortOrder", sortOrder: "asc" });
   const { data: tablesData } = useDiningTables({ page: 1, limit: 200, sortBy: "tableNumber", sortOrder: "asc" });
 
+  const { data: printersData } = useKitchenPrinters({ page: 1, limit: 200 });
   const categories = getPaginatedItems(categoriesResult);
+  const printers = getPaginatedItems(printersData);
   const locations = getPaginatedItems(locationsData);
   const sections = getPaginatedItems(sectionsData);
   const openSessions = getPaginatedItems(openSessionsData);
@@ -105,10 +108,18 @@ export function KdsStationDetail({ stationId }: { stationId: string }) {
               ),
             },
             { label: "Location", value: location?.name || safeText(station.locationId) },
+            {
+              label: "Printers",
+              value: station.printerIds.length
+                ? station.printerIds
+                    .map((id) => printers.find((p) => String(p.id) === id)?.name ?? id)
+                    .join(", ")
+                : "None (screen only)",
+            },
             { label: "Tenant ID", value: safeText(station.tenantId), mono: true },
           ]
         : [],
-    [location, station],
+    [location, station, printers],
   );
 
   const recordRows = useMemo(

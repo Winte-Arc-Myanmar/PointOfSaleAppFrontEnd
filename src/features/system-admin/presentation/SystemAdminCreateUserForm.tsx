@@ -20,6 +20,7 @@ import {
 } from "@/presentation/components/ui/select";
 import {
   createUserDefaultValues,
+  optionalText,
   optionalUrl,
   USER_PREFERRED_LANGUAGES,
 } from "@/features/users/presentation/user-form-schema";
@@ -34,6 +35,7 @@ export function SystemAdminCreateUserForm() {
   const toast = useToast();
   const { data: options, isLoading: isOptionsLoading } = useSystemAdminCreateUserOptions();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [createdLoginId, setCreatedLoginId] = useState<string | null>(null);
   const form = useForm<SystemAdminCreateUserFormData>({
     resolver: zodResolver(systemAdminCreateUserSchema),
     defaultValues: {
@@ -46,9 +48,8 @@ export function SystemAdminCreateUserForm() {
     setShowSuccess(false);
     createUser.mutate(
       {
-        email: data.email,
+        email: optionalText(data.email),
         password: data.password,
-        username: data.username,
         fullName: data.fullName,
         phoneNumber: data.phoneNumber,
         avatarUrl: optionalUrl(data.avatarUrl),
@@ -59,11 +60,12 @@ export function SystemAdminCreateUserForm() {
         preferredLanguage: data.preferredLanguage,
       },
       {
-        onSuccess: () => {
+        onSuccess: (created) => {
           toast.success("User created.");
+          setCreatedLoginId(created?.loginId ?? null);
           setShowSuccess(true);
           form.reset();
-          setTimeout(() => router.push("/users"), 1500);
+          if (!created?.loginId) setTimeout(() => router.push("/users"), 1500);
         },
         onError: () => toast.error("Failed to create user."),
       }
@@ -97,15 +99,10 @@ export function SystemAdminCreateUserForm() {
           <Input id="fullName" {...form.register("fullName")} />
           {form.formState.errors.fullName && <p className="text-sm text-red-600">{form.formState.errors.fullName.message}</p>}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username *</Label>
-          <Input id="username" {...form.register("username")} />
-          {form.formState.errors.username && <p className="text-sm text-red-600">{form.formState.errors.username.message}</p>}
-        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" {...form.register("email")} />
           {form.formState.errors.email && <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>}
         </div>
@@ -254,7 +251,20 @@ export function SystemAdminCreateUserForm() {
         </div>
       </div>
 
-      {showSuccess && <p className="text-sm text-green-600 font-medium">User created successfully. Redirecting...</p>}
+      {showSuccess &&
+        (createdLoginId ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3 text-sm">
+            <span>
+              User created. They sign in with User ID{" "}
+              <span className="font-mono font-semibold">{createdLoginId}</span>
+            </span>
+            <Button type="button" variant="outline" size="sm" onClick={() => router.push("/users")}>
+              Back to users
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-green-600 font-medium">User created successfully. Redirecting...</p>
+        ))}
       {createUser.isError && <p className="text-sm text-red-600">Failed to create user. Please try again.</p>}
 
       <Button type="submit" disabled={createUser.isPending}>

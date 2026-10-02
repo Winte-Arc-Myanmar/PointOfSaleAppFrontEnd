@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
+import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
 
 type KitchenPrinterTableColumnOptions = {
   onView?: (printer: KitchenPrinter) => void;
@@ -27,6 +28,23 @@ export function getKitchenPrinterTableColumns(
         ) : (
           <span className="font-medium text-foreground">{p.name}</span>
         ),
+    },
+    {
+      key: "sectors",
+      header: "Sectors",
+      className: "min-w-[160px]",
+      render: (p) => (
+        <div className="flex flex-wrap gap-1">
+          {p.sectors.map((sector) => (
+            <span
+              key={sector}
+              className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium"
+            >
+              {PRINTER_SECTOR_LABELS[sector]}
+            </span>
+          ))}
+        </div>
+      ),
     },
     {
       key: "ipAddress",

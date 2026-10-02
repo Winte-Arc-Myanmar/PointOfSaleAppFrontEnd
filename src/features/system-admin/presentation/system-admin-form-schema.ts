@@ -12,22 +12,26 @@ const phoneField = requiredText("Phone").regex(
   "Enter a valid phone number, e.g. +1234567890",
 );
 
-const onboardTenantFields = createTenantSchema.pick({
-  name: true,
-  legalName: true,
-  domain: true,
-  website: true,
-  address: true,
-  city: true,
-  state: true,
-  country: true,
-  zipCode: true,
-});
+const onboardTenantFields = createTenantSchema
+  .pick({
+    name: true,
+    legalName: true,
+    domain: true,
+    website: true,
+    address: true,
+    city: true,
+    state: true,
+    country: true,
+    zipCode: true,
+  })
+  .extend({ timezone: z.string().trim().min(1, "Timezone is required") });
+
+/** Where most tenants are; the business day rolls over at its midnight. */
+export const DEFAULT_TENANT_TIMEZONE = "Asia/Yangon";
 
 const onboardOwnerFields = createUserSchema.pick({
   email: true,
   password: true,
-  username: true,
   fullName: true,
   phoneNumber: true,
   jobTitle: true,
@@ -59,6 +63,7 @@ export const systemAdminCreateUserSchema = createUserSchema.extend({
  * POST /api/v1/system-admin/roles/assign-permissions
  */
 export const assignPermissionsSchema = z.object({
+  tenantId: requiredId("Tenant"),
   roleId: requiredId("Role"),
   permissionIds: z
     .array(z.string().trim().min(1))
@@ -85,6 +90,7 @@ export type AssignRoleFormData = z.infer<typeof assignRoleSchema>;
 export const onboardTenantDefaultValues: OnboardTenantFormData = {
   tenant: {
     name: "",
+    timezone: DEFAULT_TENANT_TIMEZONE,
     legalName: "",
     domain: "",
     website: "",
@@ -104,7 +110,6 @@ export const onboardTenantDefaultValues: OnboardTenantFormData = {
   owner: {
     email: "",
     password: "",
-    username: "",
     fullName: "",
     phoneNumber: "",
     jobTitle: "",
@@ -112,6 +117,7 @@ export const onboardTenantDefaultValues: OnboardTenantFormData = {
 };
 
 export const assignPermissionsDefaultValues: AssignPermissionsFormData = {
+  tenantId: "",
   roleId: "",
   permissionIds: [],
 };

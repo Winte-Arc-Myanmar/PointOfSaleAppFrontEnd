@@ -18,7 +18,9 @@ export function toSigninRequestDto(credentials: LoginCredentials): SigninRequest
   const type: "user" | "system_admin" =
     credentials.type === "systemAdmin" ? "system_admin" : "user";
   const body: SigninRequestDto = {
-    email: credentials.email,
+    ...(type === "system_admin"
+      ? { email: credentials.login }
+      : { userId: credentials.login }),
     password: credentials.password,
     type,
   };
@@ -43,7 +45,6 @@ function toBranchAccess(dto: BranchAccessDto): BranchAccess {
 }
 
 export interface ToAuthUserFallbacks {
-  email?: string;
   tenantId?: string;
 }
 
@@ -67,7 +68,7 @@ export function toAuthUser(
 
   return {
     id: user?.id,
-    email: user?.email ?? fallbacks?.email ?? "",
+    email: user?.email ?? user?.userId ?? "",
     name: user?.fullName ?? user?.name ?? null,
     image: user?.image,
     accessToken: token,

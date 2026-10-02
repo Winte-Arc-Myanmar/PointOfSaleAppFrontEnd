@@ -13,6 +13,15 @@ export function getUserTableColumns(
 
   return [
     {
+      key: "loginId",
+      header: "User ID",
+      sortable: true,
+      className: "min-w-[90px] max-w-[120px]",
+      render: (u) => (
+        <span className="font-mono text-foreground">{u.loginId ?? "—"}</span>
+      ),
+    },
+    {
       key: "fullName",
       header: "Full name",
       sortable: true,
@@ -35,22 +44,12 @@ export function getUserTableColumns(
       ),
     },
     {
-      key: "username",
-      header: "Username",
-      className: "min-w-[100px] max-w-[160px]",
-      render: (u) => (
-        <span className="text-muted truncate" title={u.username}>
-          {u.username}
-        </span>
-      ),
-    },
-    {
       key: "email",
       header: "Email",
       className: "min-w-[160px] max-w-[240px]",
       render: (u) => (
         <span className="text-muted truncate" title={u.email}>
-          {u.email}
+          {u.email || "—"}
         </span>
       ),
     },

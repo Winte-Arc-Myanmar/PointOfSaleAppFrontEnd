@@ -5,7 +5,8 @@
 
 /** Request body for POST /auth/signin. */
 export interface SigninRequestDto {
-  email: string;
+  email?: string;
+  userId?: string;
   password: string;
   type: "user" | "system_admin";
   tenantId?: string;
@@ -15,7 +16,8 @@ export interface SigninRequestDto {
 /** User object in signin response. */
 export interface SigninUserDto {
   id?: string;
-  email?: string;
+  userId?: string | null;
+  email?: string | null;
   fullName?: string | null;
   name?: string | null;
   image?: string | null;

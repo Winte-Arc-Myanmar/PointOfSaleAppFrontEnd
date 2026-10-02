@@ -33,6 +33,7 @@ import { ApiCounterOrderRepository } from "../repositories/ApiCounterOrderReposi
 import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedgerRepository";
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
+import { ApiDataTransferRepository } from "../repositories/ApiDataTransferRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
 import { ApiVendorRepository } from "../repositories/ApiVendorRepository";
 import { ApiCustomerRepository } from "../repositories/ApiCustomerRepository";
@@ -67,6 +68,7 @@ import { CounterOrderService } from "@/core/application/services/CounterOrderSer
 import { InventoryLedgerService } from "@/core/application/services/InventoryLedgerService";
 import { SystemAdminService } from "@/core/application/services/SystemAdminService";
 import { RoleService } from "@/core/application/services/RoleService";
+import { DataTransferService } from "@/core/application/services/DataTransferService";
 import { PermissionService } from "@/core/application/services/PermissionService";
 import { VendorService } from "@/core/application/services/VendorService";
 import { CustomerService } from "@/core/application/services/CustomerService";
@@ -211,6 +213,7 @@ import type { ICounterOrderService } from "@/core/domain/services/ICounterOrderS
 import type { IInventoryLedgerService } from "@/core/domain/services/IInventoryLedgerService";
 import type { ISystemAdminService } from "@/core/domain/services/ISystemAdminService";
 import type { IRoleService } from "@/core/domain/services/IRoleService";
+import type { IDataTransferService } from "@/core/domain/services/IDataTransferService";
 import type { IPermissionService } from "@/core/domain/services/IPermissionService";
 import type { IVendorService } from "@/core/domain/services/IVendorService";
 import type { ICustomerService } from "@/core/domain/services/ICustomerService";
@@ -368,6 +371,9 @@ class Container {
     const systemAdminService = new SystemAdminService(systemAdminRepository);
     const roleRepository = new ApiRoleRepository(httpClient);
     const roleService = new RoleService(roleRepository);
+    const dataTransferService = new DataTransferService(
+      new ApiDataTransferRepository(httpClient),
+    );
     const permissionRepository = new ApiPermissionRepository(httpClient);
     const permissionService = new PermissionService(permissionRepository);
     const vendorRepository = new ApiVendorRepository(httpClient);
@@ -573,6 +579,7 @@ class Container {
     this.register<ISystemAdminService>("systemAdminService", systemAdminService);
     this.register<IRoleRepository>("roleRepository", roleRepository);
     this.register<IRoleService>("roleService", roleService);
+    this.register<IDataTransferService>("dataTransferService", dataTransferService);
     this.register<IPermissionRepository>("permissionRepository", permissionRepository);
     this.register<IPermissionService>("permissionService", permissionService);
     this.register<IVendorRepository>("vendorRepository", vendorRepository);

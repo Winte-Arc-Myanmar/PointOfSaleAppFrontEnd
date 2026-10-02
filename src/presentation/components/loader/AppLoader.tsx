@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { motion, type Easing } from "framer-motion";
 import Image from "next/image";
 import { useTheme } from "next-themes";
@@ -43,6 +44,13 @@ const THEME_COLORS = {
   },
 } as const;
 
+const noSubscription = () => () => {};
+
+/** False while hydrating, so the first client render matches the server's. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(noSubscription, () => true, () => false);
+}
+
 const ringVariants = {
   animate: (i: number) => ({
     rotate: i % 2 === 0 ? 360 : -360,
@@ -74,7 +82,8 @@ export function AppLoader({
   size: sizeProp,
 }: AppLoaderProps) {
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
+  // The server cannot know the theme; draw its version until hydration is done.
+  const isDark = useHydrated() && resolvedTheme === "dark";
   const colors = isDark ? THEME_COLORS.dark : THEME_COLORS.light;
 
   const size = sizeProp ?? (fullScreen ? "lg" : "md");

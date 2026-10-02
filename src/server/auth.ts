@@ -15,7 +15,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        login: { label: "User ID or email", type: "text" },
         password: { label: "Password", type: "password" },
         type: { label: "Type", type: "text" },
         tenantId: { label: "Tenant ID", type: "text" },

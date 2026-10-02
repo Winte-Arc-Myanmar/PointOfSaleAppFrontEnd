@@ -19,8 +19,7 @@ export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
   const profileRows = user
     ? [
-        { label: "User ID", value: safeText(user.id), mono: true },
-        { label: "Username", value: safeText(user.username) },
+        { label: "User ID", value: safeText(user.loginId), mono: true },
         { label: "Full name", value: safeText(user.fullName) },
         {
           label: "Email",

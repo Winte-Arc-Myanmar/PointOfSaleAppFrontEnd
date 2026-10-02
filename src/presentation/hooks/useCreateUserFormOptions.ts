@@ -7,6 +7,8 @@ import type { IBranchService } from "@/core/domain/services/IBranchService";
 import { getPaginatedItems } from "./pagination";
 
 const QUERY_KEY = ["create-user-form-options"];
+// A system admin sees every tenant's roles and branches, far more than one page.
+const ALL = { page: 1, limit: 500 };
 
 export function useCreateUserFormOptions() {
   return useQuery({
@@ -16,8 +18,8 @@ export function useCreateUserFormOptions() {
       const branchService = container.resolve<IBranchService>("branchService");
 
       const [rolesResult, branchesResult] = await Promise.all([
-        roleService.getAll(),
-        branchService.getAll(),
+        roleService.getAll(ALL),
+        branchService.getAll(ALL),
       ]);
 
       return {

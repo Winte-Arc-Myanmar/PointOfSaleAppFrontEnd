@@ -5,12 +5,12 @@ export const USER_PREFERRED_LANGUAGES = ["EN", "MY"] as const;
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const emailField = requiredText("Email").email("Invalid email");
-
-const usernameField = requiredText("Username").regex(
-  /^[a-zA-Z0-9._-]{3,32}$/,
-  "Use 3–32 letters, numbers, dots, underscores, or hyphens",
-);
+const emailField = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || z.email().safeParse(value).success, {
+    message: "Invalid email",
+  });
 
 const phoneNumberField = requiredText("Phone number").regex(
   /^\+?[0-9]{7,15}$/,
@@ -33,7 +33,6 @@ const passwordField = z
 export const createUserSchema = z.object({
   email: emailField,
   password: passwordField,
-  username: usernameField,
   fullName: requiredText("Full name"),
   phoneNumber: phoneNumberField,
   avatarUrl: avatarUrlField,
@@ -53,7 +52,6 @@ export const updateUserSchema = z.object({
     .refine((value) => value === "" || value.length >= 8, {
       message: "Password must be at least 8 characters",
     }),
-  username: usernameField,
   fullName: requiredText("Full name"),
   phoneNumber: phoneNumberField,
   avatarUrl: avatarUrlField,
@@ -67,7 +65,6 @@ export type UpdateUserFormData = z.infer<typeof updateUserSchema>;
 export const createUserDefaultValues: CreateUserFormData = {
   email: "",
   password: "",
-  username: "",
   fullName: "",
   phoneNumber: "",
   avatarUrl: "",
@@ -76,6 +73,10 @@ export const createUserDefaultValues: CreateUserFormData = {
   branchId: "",
   preferredLanguage: "EN",
 };
+
+export function optionalText(value: string): string | undefined {
+  return value.trim() || undefined;
+}
 
 export function optionalUrl(value: string): string | undefined {
   const trimmed = value.trim();
