@@ -10,6 +10,7 @@ import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { useCategories } from "@/presentation/hooks/useCategories";
+import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
@@ -21,8 +22,10 @@ import {
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KdsCategoryRoutingPicker } from "./KdsCategoryRoutingPicker";
+import { KdsPrinterPicker } from "./KdsPrinterPicker";
 
 const LIST_LIMIT = 200;
+const NO_PRINTERS: string[] = [];
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
@@ -32,6 +35,7 @@ const schema = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "Use a valid hex color like #FF5733"),
   categoryIds: z.array(z.string()),
+  printerIds: z.array(z.string()),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -42,6 +46,7 @@ const defaultValues: FormData = {
   name: "",
   displayColor: "#FF5733",
   categoryIds: [],
+  printerIds: [],
 };
 
 export interface CreateKdsStationFormProps {
@@ -64,6 +69,8 @@ export function CreateKdsStationForm({
   const tenants = getPaginatedItems(tenantsData);
   const locations = getPaginatedItems(locationsData);
   const categories = getPaginatedItems(categoriesData);
+  const { data: printersData } = useKitchenPrinters({ page: 1, limit: LIST_LIMIT });
+  const printers = getPaginatedItems(printersData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -76,6 +83,8 @@ export function CreateKdsStationForm({
   const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
   const colorValue = useWatch({ control: form.control, name: "displayColor" });
   const categoryIds = useWatch({ control: form.control, name: "categoryIds" }) ?? [];
+  const printerIds = useWatch({ control: form.control, name: "printerIds" }) ?? NO_PRINTERS;
+  const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
 
   const filteredLocations = useMemo(
     () =>
@@ -92,6 +101,16 @@ export function CreateKdsStationForm({
         name: category.name,
       })),
     [categories],
+  );
+
+  const printerOptions = useMemo(
+    () =>
+      printers.filter(
+        (printer) =>
+          printerIds.includes(String(printer.id)) ||
+          (printer.sectors.includes("KDS") && printer.locationId === selectedLocationId),
+      ),
+    [printers, printerIds, selectedLocationId],
   );
 
   useEffect(() => {
@@ -117,6 +136,7 @@ export function CreateKdsStationForm({
         name: data.name.trim(),
         displayColor: data.displayColor.toUpperCase(),
         routingRules: { categoryIds: data.categoryIds },
+        printerIds: data.printerIds,
       },
       {
         onSuccess: () => {
@@ -233,6 +253,13 @@ export function CreateKdsStationForm({
         categories={categoryOptions}
         value={categoryIds}
         onChange={(ids) => form.setValue("categoryIds", ids, { shouldDirty: true })}
+      />
+
+      <KdsPrinterPicker
+        printers={printerOptions}
+        value={printerIds}
+        onChange={(ids) => form.setValue("printerIds", ids, { shouldDirty: true })}
+        locationSelected={Boolean(selectedLocationId)}
       />
     </form>
   );
