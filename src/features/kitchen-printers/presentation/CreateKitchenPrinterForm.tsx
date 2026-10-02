@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
+import { PrinterSectorPicker } from "./PrinterSectorPicker";
 
 const LIST_LIMIT = 200;
 
@@ -34,6 +36,7 @@ const schema = z.object({
       "Enter a valid IPv4 address"
     ),
   port: z.number().int().min(1).max(65535),
+  sectors: z.array(z.enum(PRINTER_SECTORS)).min(1, "Pick at least one sector"),
   isActive: z.boolean(),
 });
 
@@ -45,6 +48,7 @@ const defaultValues: FormData = {
   name: "",
   ipAddress: "",
   port: 9100,
+  sectors: ["KDS"],
   isActive: true,
 };
 
@@ -107,18 +111,19 @@ export function CreateKitchenPrinterForm({
         name: data.name.trim(),
         ipAddress: data.ipAddress.trim(),
         port: data.port,
+        sectors: data.sectors,
         isActive: data.isActive,
       },
       {
         onSuccess: () => {
-          toast.success("Kitchen printer created.");
+          toast.success("Printer created.");
           form.reset({
             ...defaultValues,
             tenantId: lockedTenantId ?? form.getValues("tenantId"),
           });
           onSuccess?.();
         },
-        onError: () => toast.error("Failed to create kitchen printer."),
+        onError: () => toast.error("Failed to create printer."),
       }
     );
   };
@@ -241,6 +246,18 @@ export function CreateKitchenPrinterForm({
           )}
         </div>
       </div>
+
+      <Controller
+        control={form.control}
+        name="sectors"
+        render={({ field }) => (
+          <PrinterSectorPicker
+            value={field.value}
+            onChange={field.onChange}
+            error={form.formState.errors.sectors?.message}
+          />
+        )}
+      />
     </form>
   );
 }

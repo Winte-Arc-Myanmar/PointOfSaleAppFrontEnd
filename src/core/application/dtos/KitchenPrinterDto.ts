@@ -1,3 +1,5 @@
+import type { PrinterSector } from "@/core/domain/entities/KitchenPrinter";
+
 export interface KitchenPrinterDto {
   id?: string;
   tenantId: string;
@@ -5,6 +7,7 @@ export interface KitchenPrinterDto {
   name: string;
   ipAddress: string;
   port: number;
+  sectors?: PrinterSector[];
   isActive: boolean;
   deletedAt?: string | null;
   createdAt?: string | null;
@@ -13,12 +16,12 @@ export interface KitchenPrinterDto {
 
 export type KitchenPrinterCreateDto = Pick<
   KitchenPrinterDto,
-  "tenantId" | "locationId" | "name" | "ipAddress" | "port" | "isActive"
+  "tenantId" | "locationId" | "name" | "ipAddress" | "port" | "sectors" | "isActive"
 >;
 
 export type KitchenPrinterUpdateDto = Pick<
   KitchenPrinterDto,
-  "locationId" | "name" | "ipAddress" | "port" | "isActive"
+  "locationId" | "name" | "ipAddress" | "port" | "sectors" | "isActive"
 >;
 
 export type KitchenPrinterRouteCategoryDto = {

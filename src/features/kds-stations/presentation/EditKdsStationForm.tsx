@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { useCategories } from "@/presentation/hooks/useCategories";
+import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { useKdsStation, useUpdateKdsStation } from "@/presentation/hooks/useKdsStations";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
@@ -24,9 +25,11 @@ import {
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KdsCategoryRoutingPicker } from "./KdsCategoryRoutingPicker";
+import { KdsPrinterPicker } from "./KdsPrinterPicker";
 
 const REDIRECT_DELAY_MS = 1500;
 const LIST_LIMIT = 200;
+const NO_PRINTERS: string[] = [];
 
 const schema = z.object({
   locationId: z.string().min(1, "Location is required"),
@@ -35,6 +38,7 @@ const schema = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, "Use a valid hex color like #FF5733"),
   categoryIds: z.array(z.string()),
+  printerIds: z.array(z.string()),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -48,6 +52,8 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
   const { data: categoriesData } = useCategories({ page: 1, limit: LIST_LIMIT });
   const locations = getPaginatedItems(locationsData);
   const categories = getPaginatedItems(categoriesData);
+  const { data: printersData } = useKitchenPrinters({ page: 1, limit: LIST_LIMIT });
+  const printers = getPaginatedItems(printersData);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<FormData>({
@@ -57,11 +63,14 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
       name: "",
       displayColor: "#FF5733",
       categoryIds: [],
+      printerIds: [],
     },
   });
 
   const colorValue = useWatch({ control: form.control, name: "displayColor" });
   const categoryIds = useWatch({ control: form.control, name: "categoryIds" }) ?? [];
+  const printerIds = useWatch({ control: form.control, name: "printerIds" }) ?? NO_PRINTERS;
+  const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
 
   const filteredLocations = useMemo(
     () => locations.filter((location) => (station ? location.tenantId === station.tenantId : true)),
@@ -77,6 +86,16 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
     [categories],
   );
 
+  const printerOptions = useMemo(
+    () =>
+      printers.filter(
+        (printer) =>
+          printerIds.includes(String(printer.id)) ||
+          (printer.sectors.includes("KDS") && printer.locationId === selectedLocationId),
+      ),
+    [printers, printerIds, selectedLocationId],
+  );
+
   useEffect(() => {
     if (station) {
       form.reset({
@@ -84,6 +103,7 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
         name: station.name,
         displayColor: station.displayColor || "#FF5733",
         categoryIds: station.routingRules.categoryIds,
+        printerIds: station.printerIds,
       });
     }
   }, [station, form]);
@@ -98,6 +118,7 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
           name: data.name.trim(),
           displayColor: data.displayColor.toUpperCase(),
           routingRules: { categoryIds: data.categoryIds },
+          printerIds: data.printerIds,
         },
       },
       {
@@ -204,6 +225,13 @@ export function EditKdsStationForm({ stationId }: { stationId: string }) {
           categories={categoryOptions}
           value={categoryIds}
           onChange={(ids) => form.setValue("categoryIds", ids, { shouldDirty: true })}
+        />
+
+        <KdsPrinterPicker
+          printers={printerOptions}
+          value={printerIds}
+          onChange={(ids) => form.setValue("printerIds", ids, { shouldDirty: true })}
+          locationSelected={Boolean(selectedLocationId)}
         />
 
         <div className="flex gap-2">

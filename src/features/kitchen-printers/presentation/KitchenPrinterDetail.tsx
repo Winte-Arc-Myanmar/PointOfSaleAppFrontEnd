@@ -28,6 +28,7 @@ import {
 } from "@/presentation/components/detail";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KitchenPrinterConnection } from "@/presentation/components/printer/KitchenPrinterConnection";
+import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
 
 export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
   const toast = useToast();
@@ -49,6 +50,10 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
             { label: "Name", value: safeText(printer.name) },
             { label: "IP address", value: safeText(printer.ipAddress), mono: true },
             { label: "Port", value: String(printer.port), mono: true },
+            {
+              label: "Sectors",
+              value: printer.sectors.map((s) => PRINTER_SECTOR_LABELS[s]).join(", "),
+            },
             {
               label: "Status",
               value: printer.isActive ? "Active" : "Inactive",
@@ -72,14 +77,14 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
   );
 
   if (isLoading) {
-    return <AppLoader fullScreen={false} size="md" message="Loading kitchen printer..." />;
+    return <AppLoader fullScreen={false} size="md" message="Loading printer..." />;
   }
   if (error || !printer) {
     return (
       <div className="space-y-4">
-        <p className="text-red-500">Kitchen printer not found or failed to load.</p>
+        <p className="text-red-500">Printer not found or failed to load.</p>
         <Link href="/kitchen-printers">
-          <Button variant="outline">Back to Kitchen Printers</Button>
+          <Button variant="outline">Back to Printers</Button>
         </Link>
       </div>
     );
@@ -89,7 +94,7 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
     <div className="space-y-6">
       <DetailPageHeader
         backHref="/kitchen-printers"
-        backLabel="Kitchen Printers"
+        backLabel="Printers"
         title={safeText(printer.name)}
         editHref={`/kitchen-printers/${printer.id}/edit`}
       />
