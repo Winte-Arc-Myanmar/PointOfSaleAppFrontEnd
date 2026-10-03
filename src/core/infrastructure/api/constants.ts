@@ -307,6 +307,15 @@ export const API_ENDPOINTS = {
     TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
   },
   VENUE_SETTINGS: "/v1/venue-settings",
+  SPA_PACKAGES: {
+    LIST: "/v1/spa-packages",
+    BY_ID: (id: string) => `/v1/spa-packages/${id}`,
+  },
+  SPA_ROOMS: {
+    LIST: "/v1/spa-rooms",
+    BY_ID: (id: string) => `/v1/spa-rooms/${id}`,
+    READY: (id: string) => `/v1/spa-rooms/${id}/ready`,
+  },
   KTV_ROOMS: {
     LIST: "/v1/ktv-rooms",
     BY_ID: (id: string) => `/v1/ktv-rooms/${id}`,

@@ -36,6 +36,7 @@ import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
 import { ApiDataTransferRepository } from "../repositories/ApiDataTransferRepository";
 import { ApiVenueSettingRepository } from "../repositories/ApiVenueSettingRepository";
 import { ApiKtvRoomRepository } from "../repositories/ApiKtvRoomRepository";
+import { ApiSpaRepository } from "../repositories/ApiSpaRepository";
 import type { IVenueSettingRepository } from "@/core/domain/repositories/IVenueSettingRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
 import { ApiVendorRepository } from "../repositories/ApiVendorRepository";
@@ -568,6 +569,7 @@ class Container {
       new ApiVenueSettingRepository(httpClient),
     );
     this.register<ApiKtvRoomRepository>("ktvRoomRepository", new ApiKtvRoomRepository(httpClient));
+    this.register<ApiSpaRepository>("spaRepository", new ApiSpaRepository(httpClient));
     this.register<IPermissionRepository>("permissionRepository", permissionRepository);
     this.register<IPermissionService>("permissionService", permissionService);
     this.register<IVendorRepository>("vendorRepository", vendorRepository);
