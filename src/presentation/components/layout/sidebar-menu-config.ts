@@ -96,6 +96,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
     labelKey: "nav.groupPosOperation",
     icon: ShoppingCart,
     items: [
+      {
+        href: "/venue-setup",
+        labelKey: "nav.venueSetup",
+        icon: SlidersHorizontal,
+        permissions: ["pos:venue-setting:write"],
+      },
       // {
       //   href: "/checkout",
       //   labelKey: "nav.checkout",

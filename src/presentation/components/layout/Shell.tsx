@@ -17,6 +17,7 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
 
 const routeTitles: Record<string, string> = {
+  "/venue-setup": "Venue setup",
   "/products": "Products",
   "/recipes": "Recipes",
   "/bundles": "Bundles",

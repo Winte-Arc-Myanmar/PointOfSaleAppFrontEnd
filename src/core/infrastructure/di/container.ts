@@ -34,6 +34,8 @@ import { ApiInventoryLedgerRepository } from "../repositories/ApiInventoryLedger
 import { ApiSystemAdminRepository } from "../repositories/ApiSystemAdminRepository";
 import { ApiRoleRepository } from "../repositories/ApiRoleRepository";
 import { ApiDataTransferRepository } from "../repositories/ApiDataTransferRepository";
+import { ApiVenueSettingRepository } from "../repositories/ApiVenueSettingRepository";
+import type { IVenueSettingRepository } from "@/core/domain/repositories/IVenueSettingRepository";
 import { ApiPermissionRepository } from "../repositories/ApiPermissionRepository";
 import { ApiVendorRepository } from "../repositories/ApiVendorRepository";
 import { ApiCustomerRepository } from "../repositories/ApiCustomerRepository";
@@ -580,6 +582,10 @@ class Container {
     this.register<IRoleRepository>("roleRepository", roleRepository);
     this.register<IRoleService>("roleService", roleService);
     this.register<IDataTransferService>("dataTransferService", dataTransferService);
+    this.register<IVenueSettingRepository>(
+      "venueSettingRepository",
+      new ApiVenueSettingRepository(httpClient),
+    );
     this.register<IPermissionRepository>("permissionRepository", permissionRepository);
     this.register<IPermissionService>("permissionService", permissionService);
     this.register<IVendorRepository>("vendorRepository", vendorRepository);
