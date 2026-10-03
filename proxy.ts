@@ -150,6 +150,25 @@ function checkPermission(
   return required.some((p) => entry.permissions.includes(p));
 }
 
+/** Where a signed-in user lands: the dashboard if allowed, else the first page they may open. */
+const landingOrder = ["/dashboard", "/products", ...permissionRoutes.map((r) => r.prefix)];
+const NO_ACCESS = "/no-access";
+
+function landingFor(
+  userType: UserType | undefined,
+  access: BranchAccess[] | undefined,
+  activeBranch: string | undefined
+): string {
+  for (const path of landingOrder) {
+    if (isHiddenRoute(path)) continue;
+    const route = permissionRoutes.find((r) => path.startsWith(r.prefix));
+    if (!route || checkPermission(userType, access, activeBranch, route.permissions)) {
+      return path;
+    }
+  }
+  return NO_ACCESS;
+}
+
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const pathname = req.nextUrl.pathname;
@@ -158,22 +177,25 @@ export default auth((req) => {
   if (!isLoggedIn && !isPublic) {
     return Response.redirect(new URL("/login", req.nextUrl));
   }
-  if (isLoggedIn && pathname.startsWith("/login")) {
-    return Response.redirect(new URL("/dashboard", req.nextUrl));
-  }
-
-  if (isLoggedIn && isHiddenRoute(pathname)) {
-    return Response.redirect(new URL("/products", req.nextUrl));
-  }
-
   if (isLoggedIn && req.auth) {
     const userType = (req.auth.user as { type?: UserType } | undefined)?.type;
     const activeBranch = req.auth.activeBranch;
     const access = req.auth.access;
+    // Never redirect a page to itself: a user allowed nowhere ends on /no-access.
+    const goTo = (target: string) =>
+      target === pathname ? undefined : Response.redirect(new URL(target, req.nextUrl));
+
+    if (pathname.startsWith("/login")) {
+      return goTo(landingFor(userType, access, activeBranch));
+    }
+
+    if (isHiddenRoute(pathname)) {
+      return goTo(landingFor(userType, access, activeBranch));
+    }
 
     if (pathname.startsWith("/admin")) {
       if (userType !== "systemAdmin") {
-        return Response.redirect(new URL("/products", req.nextUrl));
+        return goTo(landingFor(userType, access, activeBranch));
       }
       return undefined;
     }
@@ -181,7 +203,7 @@ export default auth((req) => {
     for (const route of permissionRoutes) {
       if (pathname.startsWith(route.prefix)) {
         if (!checkPermission(userType, access, activeBranch, route.permissions)) {
-          return Response.redirect(new URL("/products", req.nextUrl));
+          return goTo(landingFor(userType, access, activeBranch));
         }
         break;
       }
