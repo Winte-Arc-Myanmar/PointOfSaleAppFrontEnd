@@ -4,32 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { usePaymentMethod, useUpdatePaymentMethod } from "@/presentation/hooks/usePaymentMethods";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import { useTenants } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
-import { Input } from "@/presentation/components/ui/input";
-import { Label } from "@/presentation/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/presentation/components/ui/select";
 import { AppLoader } from "@/presentation/components/loader";
-import { getPaginatedItems } from "@/presentation/hooks/pagination";
-
-const schema = z.object({
-  tenantId: z.string().min(1, "Tenant is required"),
-  name: z.string().min(1, "Name is required"),
-  glAccountId: z.string().min(1, "GL account ID is required"),
-});
-
-type FormData = z.infer<typeof schema>;
+import { apiErrorMessage } from "@/lib/api-error";
+import {
+  PaymentMethodFields,
+  paymentMethodFieldsSchema,
+  type PaymentMethodFieldValues,
+} from "./PaymentMethodFields";
 
 const REDIRECT_DELAY_MS = 1500;
 
@@ -38,34 +24,37 @@ export function EditPaymentMethodForm({ paymentMethodId }: { paymentMethodId: st
   const toast = useToast();
   const update = useUpdatePaymentMethod();
   const { data: method, isLoading, error } = usePaymentMethod(paymentMethodId);
-  const { data: tenantsData } = useTenants();
-  const tenants = getPaginatedItems(tenantsData);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { tenantId: "", name: "", glAccountId: "" },
+  const form = useForm<PaymentMethodFieldValues>({
+    resolver: zodResolver(paymentMethodFieldsSchema),
+    defaultValues: { name: "", kind: "OTHER", glAccountId: "", isActive: true },
   });
+  const kind = useWatch({ control: form.control, name: "kind" });
 
   useEffect(() => {
     if (method) {
       form.reset({
-        tenantId: method.tenantId,
         name: method.name,
+        kind: method.kind,
         glAccountId: method.glAccountId,
+        isActive: method.isActive,
       });
     }
   }, [method, form]);
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: PaymentMethodFieldValues) => {
+    if (!method) return;
     setShowSuccess(false);
     update.mutate(
       {
         id: paymentMethodId,
         data: {
-          tenantId: data.tenantId,
-          name: data.name,
-          glAccountId: data.glAccountId,
+          tenantId: method.tenantId,
+          name: data.name.trim(),
+          kind: data.kind,
+          isActive: data.isActive,
+          glAccountId: data.glAccountId || null,
         },
       },
       {
@@ -77,7 +66,8 @@ export function EditPaymentMethodForm({ paymentMethodId }: { paymentMethodId: st
             REDIRECT_DELAY_MS
           );
         },
-        onError: () => toast.error("Failed to update payment method."),
+        onError: (err) =>
+          toast.error(apiErrorMessage(err, "Failed to update payment method.")),
       }
     );
   };
@@ -106,47 +96,17 @@ export function EditPaymentMethodForm({ paymentMethodId }: { paymentMethodId: st
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label>Tenant</Label>
-            <Controller
-              control={form.control}
-              name="tenantId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select tenant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tenants.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Name</Label>
-            <Input {...form.register("name")} />
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          <Label>GL account ID</Label>
-          <Input className="font-mono text-sm" {...form.register("glAccountId")} />
-        </div>
+        <PaymentMethodFields
+          control={form.control}
+          register={form.register}
+          errors={form.formState.errors}
+          kind={kind}
+        />
 
         {showSuccess && (
           <p className="text-sm text-green-600 font-medium">
             Payment method updated successfully. Redirecting...
           </p>
-        )}
-        {update.isError && (
-          <p className="text-sm text-red-600">Failed to update payment method.</p>
         )}
 
         <div className="flex gap-2">
@@ -163,4 +123,3 @@ export function EditPaymentMethodForm({ paymentMethodId }: { paymentMethodId: st
     </div>
   );
 }
-

@@ -139,18 +139,22 @@ export class ApiMembershipMemberRepository implements IMembershipMemberRepositor
 
   async register(data: MembershipRegisterRequest): Promise<MembershipMember> {
     const body: MembershipRegisterDto = {
-      tierId: data.tierId ?? data.cardTemplateId ?? "",
-      guestName: data.customerName ?? "",
-      guestPhone: data.phone ?? "",
-      guestIdNumber: data.guestIdNumber,
+      tierId: data.tierId,
       locationId: data.locationId,
-      posSessionId: data.posSessionId,
       cards: data.cards,
-      payment: {
-        paymentMethodId: data.payment.paymentMethodId,
-        amount: toApiDecimalStringFixed4(data.payment.amount),
-        ...(data.payment.reference ? { reference: data.payment.reference } : {}),
-      },
+      ...(data.customerId ? { customerId: data.customerId } : {}),
+      ...(data.customer ? { customer: data.customer } : {}),
+      ...(data.guestIdNumber ? { guestIdNumber: data.guestIdNumber } : {}),
+      ...(data.payment
+        ? {
+            posSessionId: data.posSessionId,
+            payment: {
+              paymentMethodId: data.payment.paymentMethodId,
+              amount: toApiDecimalStringFixed4(data.payment.amount),
+              ...(data.payment.reference ? { reference: data.payment.reference } : {}),
+            },
+          }
+        : {}),
       ...(data.idempotencyKey ? { idempotencyKey: data.idempotencyKey } : {}),
     };
     const raw = await this.httpClient.post<unknown>(
