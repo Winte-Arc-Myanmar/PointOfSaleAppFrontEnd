@@ -5,6 +5,8 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { apiErrorMessage } from "@/lib/api-error";
+import { SystemAdminIssueNotice } from "./SystemAdminIssueNotice";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { useCardTiers } from "@/presentation/hooks/useCardTiers";
 import { useTenants } from "@/presentation/hooks/useTenants";
@@ -227,20 +229,22 @@ export function RegisterMembershipForm({
       },
       {
         onSuccess: () => {
-          toast.success("Membership registered.");
+          toast.success("Guest card issued.");
           form.reset({
             ...defaultValues,
             tenantId: lockedTenantId ?? form.getValues("tenantId"),
           });
           onSuccess?.();
         },
-        onError: () => toast.error("Failed to register membership."),
+        onError: (error) =>
+          toast.error(apiErrorMessage(error, "Failed to issue the guest card.")),
       },
     );
   };
 
   return (
     <form id={formId} onSubmit={form.handleSubmit(submit)} className="space-y-4">
+      <SystemAdminIssueNotice />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="tenantId">Tenant</Label>

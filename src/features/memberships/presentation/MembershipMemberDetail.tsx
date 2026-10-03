@@ -63,6 +63,8 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
+import { apiErrorMessage } from "@/lib/api-error";
+import { SystemAdminIssueNotice } from "./SystemAdminIssueNotice";
 
 export function MembershipMemberDetail({ membershipId }: { membershipId: string }) {
   const toast = useToast();
@@ -160,7 +162,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           setTopupNote("");
           void refetch();
         },
-        onError: () => toast.error("Topup failed."),
+        onError: (error) => toast.error(apiErrorMessage(error, "Topup failed.")),
       },
     );
   }
@@ -203,7 +205,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           setRefundReason("");
           void refetch();
         },
-        onError: () => toast.error("Refund failed."),
+        onError: (error) => toast.error(apiErrorMessage(error, "Refund failed.")),
       },
     );
   }
@@ -220,7 +222,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           void refetch();
           void refetchCards();
         },
-        onError: () => toast.error("Failed to bind card."),
+        onError: (error) => toast.error(apiErrorMessage(error, "Failed to bind card.")),
       },
     );
   }
@@ -241,7 +243,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           void refetch();
           void refetchCards();
         },
-        onError: () => toast.error("Failed to unbind card."),
+        onError: (error) => toast.error(apiErrorMessage(error, "Failed to unbind card.")),
       },
     );
   }
@@ -250,12 +252,13 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
     <div className="space-y-6">
       <DetailPageHeader
         backHref="/memberships"
-        backLabel="Memberships"
+        backLabel="Guest Wallets"
         title={member.customerName}
       />
+      <SystemAdminIssueNotice />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <DetailSection title="Membership overview" icon={Info}>
+        <DetailSection title="Wallet overview" icon={Info}>
           <DetailRows rows={overviewRows} />
         </DetailSection>
 
@@ -526,7 +529,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                   void refetch();
                   void refetchSettlementQuote();
                 },
-                onError: () => toast.error("Failed to begin settlement."),
+                onError: (error) => toast.error(apiErrorMessage(error, "Failed to begin settlement.")),
               })
             }
             onCancelSettlement={() =>
@@ -536,7 +539,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                   void refetch();
                   void refetchSettlementQuote();
                 },
-                onError: () => toast.error("Failed to cancel settlement."),
+                onError: (error) => toast.error(apiErrorMessage(error, "Failed to cancel settlement.")),
               })
             }
             onSettle={async (data) => {
@@ -557,7 +560,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                     void refetchSettlementQuote();
                     void refetchAudit();
                   },
-                  onError: () => toast.error("Failed to settle wallet."),
+                  onError: (error) => toast.error(apiErrorMessage(error, "Failed to settle wallet.")),
                 },
               );
             }}
@@ -594,7 +597,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                               void refetch();
                               void refetchCards();
                             },
-                            onError: () => toast.error("Failed to report lost card."),
+                            onError: (error) => toast.error(apiErrorMessage(error, "Failed to report lost card.")),
                           },
                         )
                       }
@@ -614,7 +617,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                               void refetch();
                               void refetchCards();
                             },
-                            onError: () => toast.error("Failed to unbind card."),
+                            onError: (error) => toast.error(apiErrorMessage(error, "Failed to unbind card.")),
                           },
                         )
                       }
@@ -656,7 +659,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                       void refetch();
                       void refetchCards();
                     },
-                    onError: () => toast.error("Failed to replace card."),
+                    onError: (error) => toast.error(apiErrorMessage(error, "Failed to replace card.")),
                   },
                 );
               }}
@@ -673,7 +676,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                     if (!card) return toast.error("No active card with that UID.");
                     toast.success(`Found ${card.cardUid} on wallet ${card.walletId}.`);
                   },
-                  onError: () => toast.error("Card lookup failed."),
+                  onError: (error) => toast.error(apiErrorMessage(error, "Card lookup failed.")),
                 });
               }}
             />
@@ -689,7 +692,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                     if (!card) return toast.error("No active card with that UID.");
                     toast.success(`Found ${card.cardUid} on wallet ${card.walletId}.`);
                   },
-                  onError: () => toast.error("Card lookup failed."),
+                  onError: (error) => toast.error(apiErrorMessage(error, "Card lookup failed.")),
                 });
               }}
             >
@@ -774,7 +777,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                     toast.success("Wallet voided.");
                     void refetch();
                   },
-                  onError: () => toast.error("Failed to void wallet."),
+                  onError: (error) => toast.error(apiErrorMessage(error, "Failed to void wallet.")),
                 },
               );
             }}
