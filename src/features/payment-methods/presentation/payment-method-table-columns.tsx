@@ -1,6 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PaymentMethod } from "@/core/domain/entities/PaymentMethod";
-import { PAYMENT_METHOD_KIND_LABELS } from "./payment-method-kinds";
+import { paymentMethodKindLabel } from "./payment-method-kinds";
 
 type PaymentMethodTableColumnOptions = {
   onView?: (method: PaymentMethod) => void;
@@ -37,7 +37,7 @@ export function getPaymentMethodTableColumns(
       key: "kind",
       header: "Type",
       className: "min-w-[120px]",
-      render: (m) => <span className="text-sm">{PAYMENT_METHOD_KIND_LABELS[m.kind].label}</span>,
+      render: (m) => <span className="text-sm">{paymentMethodKindLabel(m.kind).label}</span>,
     },
     {
       key: "isActive",
