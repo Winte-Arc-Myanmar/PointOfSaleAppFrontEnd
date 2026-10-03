@@ -1,0 +1,71 @@
+/**
+ * The admin names pages by short permissions ("products:read"); the API grants
+ * module:subject:action ("inventory:product:read"). Each short name holds when the
+ * user has the backend permission it stands for.
+ */
+export const BACKEND_PERMISSIONS: Record<string, string[]> = {
+  "accounting-periods:read": ["finance:accounting-period:read"],
+  "bank-statement-lines:read": ["finance:bank-statement-line:read"],
+  "bank-statements:read": ["finance:bank-statement:read"],
+  "branches:read": ["iam:branch:read"],
+  "bundles:read": ["inventory:bundle:read"],
+  "card-tiers:read": ["guestcard:card-tier:read"],
+  "categories:read": ["inventory:category:read"],
+  "chart-of-accounts:read": ["finance:chart-of-account:read"],
+  "counter-orders:read": ["sales:checkout:read"],
+  "customer-interactions:read": ["sales:customer-interaction:read"],
+  "customers:read": ["sales:customer:read"],
+  "depreciation-schedules:read": ["finance:depreciation-schedule:read"],
+  "dining-tables:read": ["hospitality:dining-table:read"],
+  "dining-zones:read": ["hospitality:dining-zone:read"],
+  "discount-reasons:read": ["sales:discount-reason:read"],
+  "exchange-rates:read": ["finance:exchange-rate:read"],
+  "fixed-assets:read": ["finance:fixed-asset:read"],
+  "goods-received-notes:read": ["procurement:goods-received-note:read"],
+  "grn-lines:read": ["procurement:grn-line:read"],
+  "inventory-ledger:read": ["inventory:inventory-ledger:read"],
+  "journal-entries:read": ["finance:journal-entry:read"],
+  "journal-lines:read": ["finance:journal-line:read"],
+  "kds-stations:read": ["hospitality:kds-station:read"],
+  "kds-tickets:read": ["hospitality:kds-ticket:read"],
+  "kitchen-printers:read": ["hospitality:kitchen-printer:read"],
+  "landed-cost-allocations:read": ["procurement:landed-cost-allocation:read"],
+  "locations:read": ["inventory:location:read"],
+  "loyalty-ledger:read": ["sales:loyalty-ledger:read"],
+  "membership-card-templates:read": ["guestcard:card-tier:read"],
+  "modifier-groups:read": ["inventory:modifier-group:read"],
+  "payment-methods:read": ["pos:payment-method:read"],
+  "pos-registers:read": ["pos:register:read"],
+  "pos-sessions:read": ["pos:session:read"],
+  "pricing-schedules:read": ["inventory:pricing-schedule:read"],
+  "products:read": ["inventory:product:read"],
+  "promotion-rules:read": ["sales:promotion-rule:read"],
+  "purchase-orders:read": ["procurement:purchase-order:read"],
+  "purchase-requisitions:read": ["procurement:purchase-requisition:read"],
+  "recipes:read": ["inventory:recipe:read"],
+  "reconciliation-matches:read": ["finance:reconciliation-match:read"],
+  "reports:read": ["reports:report:read"],
+  "reservations:read": ["hospitality:reservation:read"],
+  "roles:read": ["iam:role:read"],
+  "sales-orders:read": ["sales:sales-order:read"],
+  "sections:read": ["hospitality:section:read"],
+  "table-sessions:read": ["hospitality:table-session:read"],
+  "tax-rates:read": ["finance:tax-rate:read"],
+  "tenants:read": ["iam:tenant:read"],
+  "tip-pools:read": ["hospitality:tip-pool:read"],
+  "transfer-order-lines:read": ["logistics:transfer-order-line:read"],
+  "transfer-orders:read": ["logistics:transfer-order:read"],
+  "uom:read": ["inventory:uom:read"],
+  "uploads:read": ["common:upload:read"],
+  "users:read": ["iam:user:read"],
+  "vendor-invoices:read": ["procurement:vendor-invoice:read"],
+  "vendors:read": ["procurement:vendor:read"],
+  "void-reasons:read": ["sales:void-reason:read"],
+  "waitlist:read": ["hospitality:waitlist:read"],
+};
+
+/** Whether a user's permissions include `required`, under its own or its backend name. */
+export function holdsPermission(granted: string[], required: string): boolean {
+  if (granted.includes(required)) return true;
+  return (BACKEND_PERMISSIONS[required] ?? []).some((p) => granted.includes(p));
+}
