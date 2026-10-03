@@ -7,6 +7,7 @@ export interface VenueSetting {
   ktvEnabled: boolean;
   ktvMenuOrdering: boolean;
   paymentTiming: RoomPaymentTiming;
+  roomCardOnly: boolean;
   updatedAt: string | null;
 }
 

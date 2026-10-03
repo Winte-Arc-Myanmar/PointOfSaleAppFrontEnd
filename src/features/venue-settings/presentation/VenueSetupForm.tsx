@@ -71,7 +71,7 @@ const TIMING: { value: RoomPaymentTiming; title: string; hint: string }[] = [
   {
     value: "PAY_AT_END",
     title: "Pay at the end",
-    hint: "The bill stays open while the guest is here and is paid in full when the room is closed, by cash, card, member card or any payment method you use.",
+    hint: "The bill stays open while the guest is here and is paid in full when the room is closed.",
   },
 ];
 
@@ -101,10 +101,11 @@ export function VenueSetupForm() {
     ktvEnabled: saved.ktvEnabled,
     ktvMenuOrdering: saved.ktvMenuOrdering,
     paymentTiming: saved.paymentTiming,
+    roomCardOnly: saved.roomCardOnly ?? true,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
-  const changed = (Object.keys(draft) as (keyof Draft)[]).filter((k) => draft[k] !== saved[k]);
+  const changed = (Object.keys(edits) as (keyof Draft)[]).filter((k) => draft[k] !== saved[k]);
 
   const save = () => {
     const patch = Object.fromEntries(changed.map((k) => [k, draft[k]])) as VenueSettingUpdate;
@@ -175,11 +176,21 @@ export function VenueSetupForm() {
           })}
         </div>
         {draft.paymentTiming === "PAY_AT_END" ? (
-          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-            Open-bill ordering is still being finished. Until it is released, the POS keeps taking
-            payment when ordering.
-          </p>
-        ) : null}
+          <div className="divide-y divide-border">
+            <SwitchRow
+              title="Member card only"
+              hint={
+                draft.roomCardOnly
+                  ? "The bill is paid by tapping the member card."
+                  : "The bill can be paid by cash, card, member card or any payment method you use, or split between them."
+              }
+              checked={draft.roomCardOnly}
+              onChange={(v) => set({ roomCardOnly: v })}
+            />
+          </div>
+        ) : (
+          <p className="text-xs text-muted">Paying when ordering is always by member card.</p>
+        )}
       </section>
 
       <div className="flex items-center gap-3">
