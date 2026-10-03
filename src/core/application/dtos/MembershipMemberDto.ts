@@ -68,6 +68,11 @@ export interface MembershipCardDto {
   replacedByCardId?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  wallet?: {
+    walletNumber?: string;
+    guestName?: string;
+    guestPhone?: string | null;
+  };
 }
 
 export interface MembershipRegisterDto {

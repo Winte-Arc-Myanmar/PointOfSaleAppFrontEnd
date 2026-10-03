@@ -44,9 +44,15 @@ export function getGuestCardTableColumns(
     {
       key: "walletId",
       header: "Wallet",
-      render: (row) => (
-        <span className="font-mono text-xs text-muted">{row.walletId || "—"}</span>
-      ),
+      render: (row) =>
+        row.wallet ? (
+          <span className="text-sm">
+            <span className="font-medium">{row.wallet.guestName}</span>
+            <span className="ml-2 font-mono text-xs text-muted">{row.wallet.walletNumber}</span>
+          </span>
+        ) : (
+          <span className="font-mono text-xs text-muted">{row.walletId || "—"}</span>
+        ),
     },
     {
       key: "issuedAt",

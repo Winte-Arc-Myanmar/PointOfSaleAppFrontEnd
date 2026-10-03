@@ -41,9 +41,16 @@ export function getMembershipMemberTableColumns(
       key: "cardNumber",
       header: "Card",
       render: (row) => (
-        <span className="font-mono text-xs text-muted">
-          {row.cardNumber ?? "Unbound"}
-        </span>
+        row.cardNumber ? (
+          <span className="font-mono text-xs">
+            {row.cardNumber}
+            {(row.activeCardCount ?? 0) > 1 ? (
+              <span className="ml-1 text-muted">+{(row.activeCardCount ?? 0) - 1}</span>
+            ) : null}
+          </span>
+        ) : (
+          <span className="text-xs text-amber-700 dark:text-amber-300">No card</span>
+        )
       ),
     },
     {

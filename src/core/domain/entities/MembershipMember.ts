@@ -23,6 +23,11 @@ export interface MembershipGuestCard {
   replacedByCardId?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  wallet?: {
+    walletNumber: string;
+    guestName: string;
+    guestPhone: string | null;
+  } | null;
 }
 
 export interface MembershipSettlementBlocker {
@@ -59,6 +64,7 @@ export interface MembershipMember {
   cardTemplateName: string;
   tier: string;
   cardNumber: string | null;
+  activeCardCount?: number;
   cardBindStatus: MembershipCardBindStatus;
   walletBalance: number;
   purchasedBalance?: number;
