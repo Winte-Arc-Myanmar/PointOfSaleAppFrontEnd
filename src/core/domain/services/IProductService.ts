@@ -14,4 +14,5 @@ export interface IProductService {
   create(data: Omit<ProductDto, "id">): Promise<Product>;
   update(id: string, data: Omit<ProductDto, "id">): Promise<Product>;
   delete(id: string): Promise<void>;
+  setAvailability(id: string, isAvailable: boolean): Promise<Product>;
 }

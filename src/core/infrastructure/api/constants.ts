@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/products",
     UPDATE: (id: string) => `/v1/products/${id}`,
     DELETE: (id: string) => `/v1/products/${id}`,
+    AVAILABILITY: (id: string) => `/v1/products/${id}/availability`,
     VARIANTS: (productId: string) => ({
       LIST: `/v1/products/${productId}/variants`,
       BY_ID: (variantId: string) =>
