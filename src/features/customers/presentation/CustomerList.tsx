@@ -254,11 +254,11 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
             type="button"
             variant="outline"
             onClick={() => setRegisterOpen(true)}
-            aria-label="Register membership"
-            title="Register membership"
+            aria-label="Issue guest card"
+            title="Issue guest card"
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            Register membership
+            Issue guest card
           </Button>
         }
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
@@ -272,7 +272,7 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
       <FormModal
         isOpen={registerOpen}
         onClose={() => setRegisterOpen(false)}
-        title="Membership Registration"
+        title="Issue a guest card"
         formId={REGISTER_MEMBERSHIP_FORM_ID}
         formContent={
           <RegisterMembershipForm
@@ -281,8 +281,8 @@ export function CustomerList({ showSearch = true }: CustomerListProps) {
             onLoadingChange={setRegisterLoading}
           />
         }
-        submitText="Register"
-        loadingText="Registering..."
+        submitText="Issue card"
+        loadingText="Issuing..."
         isLoading={registerLoading}
         maxWidth="2xl"
       />

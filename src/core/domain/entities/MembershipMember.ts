@@ -125,20 +125,21 @@ export interface MembershipReplaceCardRequest {
 
 export interface MembershipRegisterRequest {
   tenantId: string;
-  customerId?: string;
-  cardTemplateId?: string;
-  tierId?: string;
-  customerName?: string;
-  phone?: string;
-  guestIdNumber?: string;
+  tierId: string;
   locationId: string;
-  posSessionId: string;
+  /** A guest already on file. */
+  customerId?: string;
+  /** A new guest, saved as a customer while issuing. */
+  customer?: { name: string; phone?: string };
+  guestIdNumber?: string;
   cards: Array<{
     cardUid: string;
     label?: string;
     roomNumber?: string;
   }>;
-  payment: {
+  /** Only when the guest pays for the tier's preload now. */
+  posSessionId?: string;
+  payment?: {
     paymentMethodId: string;
     amount: number;
     reference?: string;

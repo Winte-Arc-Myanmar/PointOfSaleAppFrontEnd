@@ -163,14 +163,14 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
             </p>
             <Button type="button" onClick={() => setRegisterOpen(true)}>
               <UserPlus className="size-4" />
-              Register membership
+              Issue guest card
             </Button>
           </div>
         </DetailSection>
         <FormModal
           isOpen={registerOpen}
           onClose={() => setRegisterOpen(false)}
-          title="Membership Registration"
+          title="Issue a guest card"
           formId="customer-register-membership-form"
           formContent={
             <RegisterMembershipForm
@@ -184,8 +184,8 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
               onLoadingChange={setRegisterLoading}
             />
           }
-          submitText="Register"
-          loadingText="Registering..."
+          submitText="Issue card"
+          loadingText="Issuing..."
           isLoading={registerLoading}
           maxWidth="2xl"
         />

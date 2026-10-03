@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PaymentMethod } from "@/core/domain/entities/PaymentMethod";
+import { PAYMENT_METHOD_KIND_LABELS } from "./payment-method-kinds";
 
 type PaymentMethodTableColumnOptions = {
   onView?: (method: PaymentMethod) => void;
@@ -33,22 +34,18 @@ export function getPaymentMethodTableColumns(
         ),
     },
     {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[180px] max-w-[240px]",
-      render: (m) => (
-        <span className="font-mono text-xs text-muted truncate" title={m.tenantId}>
-          {m.tenantId}
-        </span>
-      ),
+      key: "kind",
+      header: "Type",
+      className: "min-w-[120px]",
+      render: (m) => <span className="text-sm">{PAYMENT_METHOD_KIND_LABELS[m.kind].label}</span>,
     },
     {
-      key: "glAccountId",
-      header: "GL account ID",
-      className: "min-w-[180px] max-w-[240px]",
+      key: "isActive",
+      header: "Status",
+      className: "min-w-[90px]",
       render: (m) => (
-        <span className="font-mono text-xs text-muted truncate" title={m.glAccountId}>
-          {m.glAccountId}
+        <span className={m.isActive ? "text-sm text-emerald-700" : "text-sm text-muted"}>
+          {m.isActive ? "Active" : "Inactive"}
         </span>
       ),
     },

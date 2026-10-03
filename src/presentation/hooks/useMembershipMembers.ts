@@ -59,15 +59,7 @@ function invalidateMembershipQueries(
 export function useRegisterMembership() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (
-      data: MembershipRegisterRequest & {
-        customerName?: string;
-        phone?: string;
-        email?: string;
-        cardTemplateName?: string;
-        tier?: string;
-      },
-    ) => service().register(data),
+    mutationFn: (data: MembershipRegisterRequest) => service().register(data),
     onSuccess: () => invalidateMembershipQueries(queryClient),
   });
 }
