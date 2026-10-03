@@ -127,6 +127,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["pos:venue-setting:write"],
       },
       {
+        href: "/ktv-rooms",
+        labelKey: "nav.ktvRooms",
+        icon: TvMinimal,
+        permissions: ["hospitality:ktv-room:read"],
+      },
+      {
         href: "/checkout",
         labelKey: "nav.checkout",
         icon: ShoppingCart,

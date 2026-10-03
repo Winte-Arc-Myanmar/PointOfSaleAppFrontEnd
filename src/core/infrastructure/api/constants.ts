@@ -307,6 +307,11 @@ export const API_ENDPOINTS = {
     TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
   },
   VENUE_SETTINGS: "/v1/venue-settings",
+  KTV_ROOMS: {
+    LIST: "/v1/ktv-rooms",
+    BY_ID: (id: string) => `/v1/ktv-rooms/${id}`,
+    READY: (id: string) => `/v1/ktv-rooms/${id}/ready`,
+  },
   DATA_TRANSFER: {
     TEMPLATE: (kind: string) => `/v1/data-transfer/${kind}/template`,
     EXPORT: (kind: string) => `/v1/data-transfer/${kind}/export`,
