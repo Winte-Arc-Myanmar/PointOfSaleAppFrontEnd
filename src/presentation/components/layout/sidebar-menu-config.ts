@@ -108,6 +108,18 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         icon: TvMinimal,
         permissions: ["hospitality:ktv-room:read"],
       },
+      {
+        href: "/spa-packages",
+        labelKey: "nav.spaPackages",
+        icon: Sparkles,
+        permissions: ["hospitality:spa-package:read"],
+      },
+      {
+        href: "/spa-rooms",
+        labelKey: "nav.spaRooms",
+        icon: Sparkles,
+        permissions: ["hospitality:spa-room:read"],
+      },
       // {
       //   href: "/checkout",
       //   labelKey: "nav.checkout",
