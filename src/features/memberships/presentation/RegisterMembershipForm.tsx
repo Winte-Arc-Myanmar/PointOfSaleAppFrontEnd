@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import type { CardTier } from "@/core/domain/entities/CardTier";
-import { PAYMENT_METHOD_KIND_LABELS } from "@/features/payment-methods/presentation/payment-method-kinds";
+import { paymentMethodKindLabel } from "@/features/payment-methods/presentation/payment-method-kinds";
 import { cn } from "@/lib/utils";
 
 type GuestMode = "new" | "existing";
@@ -426,7 +426,7 @@ export function RegisterMembershipForm({
                     <SelectContent>
                       {methods.map((m) => (
                         <SelectItem key={String(m.id)} value={String(m.id)}>
-                          {m.name} ({PAYMENT_METHOD_KIND_LABELS[m.kind].label})
+                          {m.name} ({paymentMethodKindLabel(m.kind).label})
                         </SelectItem>
                       ))}
                     </SelectContent>
