@@ -34,6 +34,10 @@ import {
 } from "./plain/OperationsPanels";
 import { OtherIncomePanel } from "./plain/OtherIncomePanel";
 import { SalesSummaryPanel } from "./plain/SalesSummaryPanel";
+import { BarCategoriesPanel } from "./pos/BarCategoriesPanel";
+import { KtvSessionsPanel } from "./pos/KtvSessionsPanel";
+import { PosBillsPanel } from "./pos/PosBillsPanel";
+import { SpaMenuPanel } from "./pos/SpaMenuPanel";
 
 const ALL_OUTLETS = "__all__";
 
@@ -178,6 +182,15 @@ export function ReportsDashboard() {
       <div data-print-reports className="space-y-8">
         {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryPanel range={range} /> : null}
         {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesPanel range={range} /> : null}
+        {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryPanel range={range} posType="SPA" /> : null}
+        {!rangeInvalid && tab === "spa-bills" && range ? <PosBillsPanel range={range} posType="SPA" /> : null}
+        {!rangeInvalid && tab === "spa-menu" && range ? <SpaMenuPanel range={range} /> : null}
+        {!rangeInvalid && tab === "ktv-summary" && range ? <SalesSummaryPanel range={range} posType="KTV" /> : null}
+        {!rangeInvalid && tab === "ktv-bills" && range ? <PosBillsPanel range={range} posType="KTV" /> : null}
+        {!rangeInvalid && tab === "ktv-sessions" && range ? <KtvSessionsPanel range={range} /> : null}
+        {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryPanel range={range} posType="BAR" /> : null}
+        {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsPanel range={range} posType="BAR" /> : null}
+        {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesPanel range={range} /> : null}
         {!rangeInvalid && tab === "other-income" && range ? <OtherIncomePanel range={range} /> : null}
         {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsPanel range={range} /> : null}
         {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyPointsPanel range={range} /> : null}

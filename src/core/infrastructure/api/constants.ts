@@ -574,6 +574,11 @@ export const API_ENDPOINTS = {
     SALES_BY_HOUR: "/v1/reports/sales-by-hour",
     SERVER_PERFORMANCE: "/v1/reports/server-performance",
     Z_REPORT: "/v1/reports/z-report",
+    POS_SUMMARY: "/v1/reports/pos-summary",
+    POS_BILLS: "/v1/reports/pos-bills",
+    BAR_CATEGORIES: "/v1/reports/bar-categories",
+    SPA_MENU: "/v1/reports/spa-menu",
+    KTV_SESSIONS: "/v1/reports/ktv-sessions",
   },
   /**
    * Standard AI connection (to be implemented on the backend).

@@ -114,6 +114,7 @@ export function useSalesSummary(params: GetBusinessDateReportParams | null) {
       params?.from,
       params?.to,
       params?.locationId,
+      params?.posType,
     ],
     queryFn: () => {
       const service = container.resolve<IReportService>("reportService");

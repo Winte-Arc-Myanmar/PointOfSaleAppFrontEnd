@@ -1,3 +1,4 @@
+import type { PosType } from "@/core/domain/entities/PosReport";
 import type {
   DailySalesSummary,
   ItemSalesReport,
@@ -33,6 +34,8 @@ export interface GetBusinessDateReportParams {
   to?: string;
   /** Omit to include every outlet the user can see. */
   locationId?: string;
+  /** One POS (SPA, KTV or BAR); omit for every sale. */
+  posType?: PosType;
 }
 
 export const ITEM_SALES_SORT_FIELDS = [
