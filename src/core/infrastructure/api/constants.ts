@@ -306,6 +306,7 @@ export const API_ENDPOINTS = {
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
     TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
   },
+  VENUE_SETTINGS: "/v1/venue-settings",
   DATA_TRANSFER: {
     TEMPLATE: (kind: string) => `/v1/data-transfer/${kind}/template`,
     EXPORT: (kind: string) => `/v1/data-transfer/${kind}/export`,

@@ -56,6 +56,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/discount-reasons", permissions: ["discount-reasons:read"] },
   { prefix: "/void-reasons", permissions: ["void-reasons:read"] },
   { prefix: "/pos-registers", permissions: ["pos-registers:read"] },
+  { prefix: "/venue-setup", permissions: ["pos:venue-setting:write"] },
   { prefix: "/pos-sessions", permissions: ["pos-sessions:read"] },
   { prefix: "/payment-methods", permissions: ["payment-methods:read"] },
   { prefix: "/chart-of-accounts", permissions: ["chart-of-accounts:read"] },
