@@ -48,7 +48,6 @@ export function MembershipMemberList() {
   });
 
   const members = result?.items ?? [];
-  const usingDemoData = members.some((m) => String(m.id).startsWith("mm-"));
 
   const filtered = useMemo(
     () =>
@@ -77,12 +76,12 @@ export function MembershipMemberList() {
       columns={columns}
       actions={[]}
       isLoading={isLoading}
-      loadingText="Loading memberships..."
-      emptyText="No memberships match your filters."
+      loadingText="Loading wallets..."
+      emptyText="No wallets match your filters."
       error={
         error
           ? {
-              message: "Failed to load memberships.",
+              message: "Failed to load wallets.",
               onRetry: () => refetch(),
             }
           : undefined
@@ -93,10 +92,10 @@ export function MembershipMemberList() {
       totalItems={result?.total ?? 0}
       onPageChange={pagination.setPage}
       showActionBar={false}
-      addLabel="Register Membership"
-      createTitle="Membership Registration"
-      createSubmitText="Register"
-      createLoadingText="Registering..."
+      addLabel="Issue Guest Card"
+      createTitle="Issue a guest card"
+      createSubmitText="Issue card"
+      createLoadingText="Issuing..."
       createFormId={CREATE_FORM_ID}
       createMaxWidth="2xl"
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
@@ -111,34 +110,29 @@ export function MembershipMemberList() {
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-muted">
-              Membership / Customer
+              Guest cards
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground">
               Guest Wallets
             </h1>
             <p className="max-w-2xl text-sm leading-6 text-muted">
-              Issue wallets, manage topup/refund, and bind or close guest cards.
+              A wallet holds the guest&apos;s money; its cards are what the guest taps.
+              Issuing a guest card creates the wallet and its card together.
             </p>
-            {usingDemoData ? (
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                Showing demo memberships until live membership APIs return data.
-              </p>
-            ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="rounded-full border border-border bg-background/80 px-4 py-2 text-sm text-muted">
-              {filtered.length} members
-              {usingDemoData ? " · demo" : ""}
+              {filtered.length} wallets
             </div>
             <Button
               type="button"
               onClick={openCreate}
               className="h-11 rounded-xl bg-mint px-5 text-white hover:bg-mint-hover dark:text-gloss-black"
-              aria-label="Register membership"
-              title="Register membership"
+              aria-label="Issue guest card"
+              title="Issue guest card"
             >
               <UserPlus className="size-4" />
-              Register
+              Issue Guest Card
             </Button>
           </div>
         </div>
@@ -148,7 +142,7 @@ export function MembershipMemberList() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search by name, phone, email, or card..."
+            placeholder="Search by name, phone, wallet number or card UID..."
             className="h-11"
           />
           <div className="min-w-[200px]">
@@ -173,9 +167,9 @@ export function MembershipMemberList() {
       tableContentClassName="px-5 pb-5"
       tablePanelHeader={
         <div className="border-b border-border px-5 py-5">
-          <h2 className="text-lg font-semibold text-foreground">Members</h2>
+          <h2 className="text-lg font-semibold text-foreground">Wallets</h2>
           <p className="mt-1 text-sm text-muted">
-            Open a member to topup, refund, bind/unbind, or close the card.
+            Open a wallet to top up, refund, add or remove cards, or close it.
           </p>
         </div>
       }
