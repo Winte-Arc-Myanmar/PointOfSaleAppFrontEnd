@@ -31,6 +31,7 @@ export interface Product {
   trackingType: string;
   imageUrl?: string | null;
   isTaxable?: boolean;
+  isAvailable: boolean;
   taxRateId?: string | null;
   /** Resolved when API embeds `taxRate` on product */
   taxRateName?: string;

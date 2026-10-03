@@ -16,5 +16,6 @@ export interface ProductDto {
   trackingType: string;
   imageUrl?: string | null;
   isTaxable?: boolean;
+  isAvailable?: boolean;
   taxRateId?: string | null;
 }

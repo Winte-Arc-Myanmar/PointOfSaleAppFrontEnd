@@ -32,4 +32,8 @@ export class ProductService implements IProductService {
   async delete(id: string): Promise<void> {
     return this.productRepository.delete(id);
   }
+
+  async setAvailability(id: string, isAvailable: boolean): Promise<Product> {
+    return this.productRepository.setAvailability(id, isAvailable);
+  }
 }
