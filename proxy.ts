@@ -6,6 +6,7 @@
 
 import { auth } from "@/server/auth";
 import type { UserType, BranchAccess } from "@/core/domain/types/auth";
+import { holdsPermission } from "@/core/domain/services/permission-names";
 
 const publicPaths = ["/login", "/register"];
 
@@ -59,7 +60,7 @@ interface RoutePermission {
 
 const permissionRoutes: RoutePermission[] = [
   { prefix: "/customers", permissions: ["customers:read"] },
-  { prefix: "/guest-cards", permissions: ["customers:read"] },
+  { prefix: "/guest-cards", permissions: ["guestcard:card:read"] },
   { prefix: "/vendors", permissions: ["vendors:read"] },
   { prefix: "/loyalty-ledger", permissions: ["loyalty-ledger:read"] },
   {
@@ -147,7 +148,7 @@ function checkPermission(
   if (!access || !activeBranch) return false;
   const entry = access.find((a) => a.branchId === activeBranch);
   if (!entry) return false;
-  return required.some((p) => entry.permissions.includes(p));
+  return required.some((p) => holdsPermission(entry.permissions, p));
 }
 
 /** Where a signed-in user lands: the dashboard if allowed, else the first page they may open. */

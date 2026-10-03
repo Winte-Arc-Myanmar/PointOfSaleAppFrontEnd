@@ -4,6 +4,7 @@
  */
 
 import type { UserType, BranchAccess } from "@/core/domain/types/auth";
+import { holdsPermission } from "./permission-names";
 
 /** Returns the access entry for the user's active branch. */
 export function getActiveBranchAccess(
@@ -25,7 +26,7 @@ export function hasPermissions(
   if (required.length === 0) return true;
   const entry = getActiveBranchAccess(access, activeBranch);
   if (!entry) return false;
-  return required.every((p) => entry.permissions.includes(p));
+  return required.every((p) => holdsPermission(entry.permissions, p));
 }
 
 /** True if the user has at least ONE of the listed permissions. */
@@ -39,7 +40,7 @@ export function hasAnyPermission(
   if (required.length === 0) return true;
   const entry = getActiveBranchAccess(access, activeBranch);
   if (!entry) return false;
-  return required.some((p) => entry.permissions.includes(p));
+  return required.some((p) => holdsPermission(entry.permissions, p));
 }
 
 /** True if the user has at least ONE of the listed roles on their active branch. */
