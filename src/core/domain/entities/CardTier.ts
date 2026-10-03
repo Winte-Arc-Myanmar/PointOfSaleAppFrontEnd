@@ -17,6 +17,8 @@ export interface CardTier {
   preloadFunding: CardTierPreloadFunding;
   discountBps: number;
   isPostpaid: boolean;
+  /** Whether a card of this tier must be issued to a named customer. */
+  customerRequirement?: "NONE" | "OPTIONAL" | "REQUIRED";
   validityDays: number;
   isActive: boolean;
   deletedAt?: string | null;

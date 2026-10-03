@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, Trash2 } from "lucide-react";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { apiErrorMessage } from "@/lib/api-error";
 import { SystemAdminIssueNotice } from "./SystemAdminIssueNotice";
 import { useCustomers } from "@/presentation/hooks/useCustomers";
 import { useCardTiers } from "@/presentation/hooks/useCardTiers";
-import { useTenants } from "@/presentation/hooks/useTenants";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
+import { usePosRegisters } from "@/presentation/hooks/usePosRegisters";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { useRegisterMembership } from "@/presentation/hooks/useMembershipMembers";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -28,42 +27,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import type { CardTier } from "@/core/domain/entities/CardTier";
+import { PAYMENT_METHOD_KIND_LABELS } from "@/features/payment-methods/presentation/payment-method-kinds";
+import { cn } from "@/lib/utils";
 
-const cardSchema = z.object({
-  cardUid: z.string().min(1, "Card UID is required"),
-  label: z.string(),
-  roomNumber: z.string(),
-});
+type GuestMode = "new" | "existing";
+type CardRow = { cardUid: string; roomNumber: string };
+type Errors = Partial<Record<string, string>>;
 
-const schema = z.object({
-  tenantId: z.string().min(1, "Tenant is required"),
-  customerId: z.string().min(1, "Customer is required"),
-  tierId: z.string().min(1, "Card tier is required"),
-  guestIdNumber: z.string(),
-  locationId: z.string().min(1, "Location is required"),
-  posSessionId: z.string().min(1, "POS session is required"),
-  paymentMethodId: z.string().min(1, "Payment method is required"),
-  paymentReference: z.string(),
-  cards: z.array(cardSchema).min(1, "At least one card is required"),
-  amount: z.number().min(0, "Amount must be zero or greater"),
-  idempotencyKey: z.string(),
-});
+const newIdempotencyKey = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`;
 
-type FormData = z.infer<typeof schema>;
+function needsPayment(tier: CardTier | undefined): boolean {
+  return Boolean(
+    tier && !tier.isPostpaid && tier.preloadAmount > 0 && tier.preloadFunding === "PURCHASED",
+  );
+}
 
-const defaultValues: FormData = {
-  tenantId: "",
-  customerId: "",
-  tierId: "",
-  guestIdNumber: "",
-  locationId: "",
-  posSessionId: "",
-  paymentMethodId: "",
-  paymentReference: "",
-  cards: [{ cardUid: "", label: "Guest 1", roomNumber: "" }],
-  amount: 0,
-  idempotencyKey: "",
-};
+function FieldError({ message }: { message?: string }) {
+  return message ? <p className="text-sm text-red-600">{message}</p> : null;
+}
+
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3 rounded-xl border border-border p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <span className="flex size-6 items-center justify-center rounded-full bg-mint/20 text-xs">
+          {n}
+        </span>
+        {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
 
 export function RegisterMembershipForm({
   formId,
@@ -79,161 +78,161 @@ export function RegisterMembershipForm({
   defaultTenantId?: string;
 }) {
   const { tenantId: lockedTenantId } = usePermissions();
+  const tenantId = lockedTenantId ?? defaultTenantId ?? "";
   const toast = useToast();
+  const { formatPrice } = useCurrency();
   const registerMembership = useRegisterMembership();
-  const { data: tenantsData } = useTenants();
-  const tenants = getPaginatedItems(tenantsData);
+
+  const { data: tiersData } = useCardTiers({ page: 1, limit: 200 }, { enabled: Boolean(tenantId) });
   const { data: customersData } = useCustomers({ page: 1, limit: 200 });
-  const customers = getPaginatedItems(customersData);
   const { data: locationsData } = useLocations({ page: 1, limit: 200 });
-  const locations = getPaginatedItems(locationsData);
-  const { data: posSessionsData } = usePosSessions({ page: 1, limit: 200 });
-  const posSessions = getPaginatedItems(posSessionsData);
-  const { data: paymentMethodsData } = usePaymentMethods({ page: 1, limit: 200 });
-  const paymentMethods = getPaginatedItems(paymentMethodsData);
-  const lockCustomer = Boolean(defaultCustomerId);
+  const { data: sessionsData } = usePosSessions({ page: 1, limit: 200 });
+  const { data: registersData } = usePosRegisters({ page: 1, limit: 200 });
+  const { data: methodsData } = usePaymentMethods({ page: 1, limit: 200 });
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      ...defaultValues,
-      tenantId: lockedTenantId ?? defaultTenantId ?? "",
-      customerId: defaultCustomerId ?? "",
-    },
-  });
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "cards",
-  });
+  const inTenant = <T extends { tenantId?: string }>(items: T[]) =>
+    items.filter((item) => !tenantId || !item.tenantId || String(item.tenantId) === tenantId);
 
-  const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
+  const tiers = inTenant(tiersData?.items ?? [])
+    .filter((t) => t.isActive && !t.deletedAt)
+    .sort((a, b) => a.rank - b.rank);
+  const customers = inTenant(getPaginatedItems(customersData));
+  const locations = inTenant(getPaginatedItems(locationsData)).filter((l) => !l.deletedAt);
+  const registers = inTenant(getPaginatedItems(registersData));
+  const openSessions = inTenant(getPaginatedItems(sessionsData)).filter(
+    (s) => s.status === "OPEN",
+  );
+  const methods = inTenant(getPaginatedItems(methodsData)).filter((m) => m.isActive);
 
-  const {
-    data: cardTiersData,
-    isLoading: cardTiersLoading,
-    isError: cardTiersError,
-  } = useCardTiers(
-    {
-      page: 1,
-      limit: 200,
-    },
-    { enabled: Boolean(selectedTenantId) },
-  );
-  const cardTiers = cardTiersData?.items ?? [];
+  const [tierId, setTierId] = useState("");
+  const [guestMode, setGuestMode] = useState<GuestMode>(defaultCustomerId ? "existing" : "new");
+  const [customerId, setCustomerId] = useState(defaultCustomerId ?? "");
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestIdNumber, setGuestIdNumber] = useState("");
+  const [cards, setCards] = useState<CardRow[]>([{ cardUid: "", roomNumber: "" }]);
+  const [chosenLocationId, setLocationId] = useState("");
+  const [chosenPaymentMethodId, setPaymentMethodId] = useState("");
+  const [chosenPosSessionId, setPosSessionId] = useState("");
+  const [reference, setReference] = useState("");
+  const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey);
+  const [errors, setErrors] = useState<Errors>({});
 
-  const filteredCustomers = useMemo(
-    () =>
-      customers.filter((c) =>
-        selectedTenantId ? String(c.tenantId) === String(selectedTenantId) : true,
-      ),
-    [customers, selectedTenantId],
-  );
+  const tier = tiers.find((t) => String(t.id) === tierId);
+  const payNow = needsPayment(tier);
+  const registerLocation = (registerId: string) =>
+    registers.find((r) => String(r.id) === String(registerId))?.locationId;
 
-  const filteredTiers = useMemo(() => {
-    if (!selectedTenantId) return [];
-    return cardTiers
-      .filter((tier) => tier.isActive && !tier.deletedAt)
-      .filter(
-        (tier) =>
-          !tier.tenantId ||
-          String(tier.tenantId) === String(selectedTenantId),
-      )
-      .sort((a, b) => a.rank - b.rank);
-  }, [cardTiers, selectedTenantId]);
-  const filteredLocations = useMemo(
-    () =>
-      locations.filter((item) =>
-        selectedTenantId ? String(item.tenantId) === String(selectedTenantId) : true,
-      ),
-    [locations, selectedTenantId],
-  );
-  const filteredPaymentMethods = useMemo(
-    () =>
-      paymentMethods.filter((item) =>
-        selectedTenantId ? String(item.tenantId) === String(selectedTenantId) : true,
-      ),
-    [paymentMethods, selectedTenantId],
-  );
-  const filteredPosSessions = useMemo(
-    () =>
-      posSessions.filter((item) =>
-        selectedTenantId ? String(item.tenantId) === String(selectedTenantId) : true,
-      ),
-    [posSessions, selectedTenantId],
-  );
+  // Defaults, until the user picks: the only location (or the one with the only open
+  // till), that location's only open till, and Cash.
+  const openTillLocations = [
+    ...new Set(openSessions.map((s) => registerLocation(s.registerId)).filter(Boolean)),
+  ];
+  const locationId =
+    chosenLocationId ||
+    (locations.length === 1
+      ? String(locations[0].id)
+      : openTillLocations.length === 1
+        ? String(openTillLocations[0])
+        : "");
+  const sessionsHere = openSessions.filter((s) => registerLocation(s.registerId) === locationId);
+  const posSessionId = sessionsHere.some((s) => String(s.id) === chosenPosSessionId)
+    ? chosenPosSessionId
+    : sessionsHere.length === 1
+      ? String(sessionsHere[0].id)
+      : "";
+  const paymentMethodId =
+    chosenPaymentMethodId ||
+    String((methods.find((m) => m.kind === "CASH") ?? methods[0])?.id ?? "");
+  const method = methods.find((m) => String(m.id) === paymentMethodId);
+  const referenceRequired = method?.kind === "MOBILE_WALLET";
+  const showReference =
+    method && ["MOBILE_WALLET", "BANK_TRANSFER", "CARD"].includes(method.kind);
 
   useEffect(() => {
     onLoadingChange?.(registerMembership.isPending);
   }, [registerMembership.isPending, onLoadingChange]);
 
-  useEffect(() => {
-    if (lockedTenantId) form.setValue("tenantId", lockedTenantId);
-    else if (defaultTenantId) form.setValue("tenantId", defaultTenantId);
-  }, [lockedTenantId, defaultTenantId, form]);
+  const describeTier = (t: CardTier) => {
+    const parts: string[] = [];
+    if (t.isPostpaid) parts.push("Guest pays everything at the end");
+    else if (t.preloadAmount > 0 && t.preloadFunding === "PURCHASED")
+      parts.push(`Guest pays ${formatPrice(t.preloadAmount)} up front`);
+    else if (t.preloadAmount > 0) parts.push(`Starts with ${formatPrice(t.preloadAmount)} free credit`);
+    else parts.push("Starts empty, top up later");
+    if (t.discountBps > 0) parts.push(`${t.discountBps / 100}% off`);
+    if (t.validityDays > 0) parts.push(`valid ${t.validityDays} days`);
+    return parts.join(" · ");
+  };
 
-  useEffect(() => {
-    if (defaultCustomerId) form.setValue("customerId", defaultCustomerId);
-  }, [defaultCustomerId, form]);
-
-  useEffect(() => {
-    const currentTierId = form.getValues("tierId");
-    if (
-      currentTierId &&
-      !filteredTiers.some((tier) => String(tier.id) === String(currentTierId))
-    ) {
-      form.setValue("tierId", "");
+  const validate = (): Errors => {
+    const e: Errors = {};
+    if (!tierId) e.tier = tiers.length ? "Choose a card type." : "Create a card type first.";
+    if (guestMode === "existing" && !customerId) e.guest = "Choose the guest, or switch to New guest.";
+    if (guestMode === "new" && !guestName.trim() && tier?.customerRequirement === "REQUIRED")
+      e.guest = "This card type needs the guest's name.";
+    if (!locationId) e.location = "Choose where the card is issued.";
+    const uids = cards.map((c) => c.cardUid.trim());
+    uids.forEach((uid, i) => {
+      if (!uid) e[`card-${i}`] = "Tap the card on the reader, or type its number.";
+      else if (uids.indexOf(uid) !== i) e[`card-${i}`] = "This card is listed twice.";
+    });
+    if (payNow) {
+      if (!paymentMethodId) e.method = "Choose how the guest pays.";
+      if (!posSessionId)
+        e.session = sessionsHere.length
+          ? "Choose the till taking the money."
+          : "No till is open here. Open a POS session first.";
+      if (referenceRequired && !reference.trim()) e.reference = "Enter the transaction ID.";
     }
-  }, [filteredTiers, form]);
+    return e;
+  };
 
-  useEffect(() => {
-    const nextKey =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}`;
-    if (!form.getValues("idempotencyKey")) {
-      form.setValue("idempotencyKey", nextKey);
-    }
-  }, [form]);
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length > 0 || !tier) return;
 
-  const submit = (data: FormData) => {
-    const selectedCustomer = filteredCustomers.find(
-      (c) => String(c.id) === String(data.customerId),
-    );
-    const selectedTier = filteredTiers.find(
-      (t) => String(t.id) === String(data.tierId),
-    );
+    const customer =
+      guestMode === "new" && guestName.trim()
+        ? { name: guestName.trim(), ...(guestPhone.trim() ? { phone: guestPhone.trim() } : {}) }
+        : undefined;
+
     registerMembership.mutate(
       {
-        tenantId: data.tenantId,
-        customerId: data.customerId,
-        tierId: data.tierId,
-        customerName: selectedCustomer?.name,
-        phone: selectedCustomer?.phone,
-        email: selectedCustomer?.email,
-        guestIdNumber: data.guestIdNumber.trim() || undefined,
-        locationId: data.locationId,
-        posSessionId: data.posSessionId,
-        cards: data.cards.map((card, index) => ({
-          cardUid: card.cardUid.trim(),
-          label: card.label.trim() || `Guest ${index + 1}`,
-          roomNumber: card.roomNumber.trim() || undefined,
+        tenantId,
+        tierId,
+        locationId,
+        ...(guestMode === "existing" ? { customerId } : {}),
+        ...(customer ? { customer } : {}),
+        guestIdNumber: guestIdNumber.trim() || undefined,
+        cards: cards.map((c, i) => ({
+          cardUid: c.cardUid.trim(),
+          label: `Guest ${i + 1}`,
+          roomNumber: c.roomNumber.trim() || undefined,
         })),
-        payment: {
-          paymentMethodId: data.paymentMethodId,
-          amount: data.amount || selectedTier?.preloadAmount || 0,
-          reference: data.paymentReference.trim() || undefined,
-        },
-        idempotencyKey: data.idempotencyKey.trim() || undefined,
-        cardTemplateName: selectedTier?.name,
-        tier: selectedTier?.name,
+        ...(payNow
+          ? {
+              posSessionId,
+              payment: {
+                paymentMethodId,
+                amount: tier.preloadAmount,
+                reference: reference.trim() || undefined,
+              },
+            }
+          : {}),
+        idempotencyKey,
       },
       {
         onSuccess: () => {
           toast.success("Guest card issued.");
-          form.reset({
-            ...defaultValues,
-            tenantId: lockedTenantId ?? form.getValues("tenantId"),
-          });
+          setCards([{ cardUid: "", roomNumber: "" }]);
+          setGuestName("");
+          setGuestPhone("");
+          setGuestIdNumber("");
+          setReference("");
+          setIdempotencyKey(newIdempotencyKey());
           onSuccess?.();
         },
         onError: (error) =>
@@ -242,286 +241,273 @@ export function RegisterMembershipForm({
     );
   };
 
+  const updateCard = (index: number, patch: Partial<CardRow>) =>
+    setCards((rows) => rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+
   return (
-    <form id={formId} onSubmit={form.handleSubmit(submit)} className="space-y-4">
+    <form id={formId} onSubmit={submit} className="space-y-4" noValidate>
       <SystemAdminIssueNotice />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select tenant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="customerId">Customer</Label>
-          <Controller
-            control={form.control}
-            name="customerId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={!selectedTenantId || lockCustomer}
-              >
-                <SelectTrigger id="customerId">
-                  <SelectValue
-                    placeholder={
-                      !selectedTenantId ? "Select tenant first" : "Select customer"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCustomers.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="tierId">Card tier</Label>
-          <Controller
-            control={form.control}
-            name="tierId"
-            render={({ field }) => (
-              <Select
-                value={field.value || undefined}
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  const tier = filteredTiers.find((t) => String(t.id) === value);
-                  if (tier && !form.getValues("amount")) {
-                    form.setValue("amount", tier.preloadAmount);
-                  }
-                }}
-                disabled={!selectedTenantId || cardTiersLoading}
-              >
-                <SelectTrigger id="tierId">
-                  <SelectValue
-                    placeholder={
-                      !selectedTenantId
-                        ? "Select tenant first"
-                        : cardTiersLoading
-                          ? "Loading card tiers..."
-                          : cardTiersError
-                            ? "Failed to load card tiers"
-                            : filteredTiers.length === 0
-                              ? "No card tiers available"
-                              : "Select card tier"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {filteredTiers.map((t) => (
-                    <SelectItem key={String(t.id)} value={String(t.id)}>
-                      {t.name} (rank {t.rank})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {cardTiersError ? (
-            <p className="text-xs text-red-500">
-              Could not load card tiers. Check Card Tiers in the menu or try again.
-            </p>
-          ) : null}
-          {!cardTiersLoading &&
-          selectedTenantId &&
-          !cardTiersError &&
-          filteredTiers.length === 0 ? (
-            <p className="text-xs text-muted">
-              No active card tiers for this tenant. Create one under Card Tiers first.
-            </p>
-          ) : null}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="guestIdNumber">Guest ID Number (optional)</Label>
-          <Input id="guestIdNumber" {...form.register("guestIdNumber")} />
-        </div>
-      </div>
+      <Step n={1} title="Card type">
+        {tiers.length === 0 ? (
+          <p className="text-sm text-muted">
+            No card types yet.{" "}
+            <Link href="/card-tiers" className="text-mint underline">
+              Create one in Card Tiers
+            </Link>
+            , e.g. &quot;Prepaid&quot;.
+          </p>
+        ) : (
+          <Select value={tierId} onValueChange={setTierId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a card type" />
+            </SelectTrigger>
+            <SelectContent>
+              {tiers.map((t) => (
+                <SelectItem key={String(t.id)} value={String(t.id)}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {tier ? <p className="text-sm text-muted">{describeTier(tier)}</p> : null}
+        <FieldError message={errors.tier} />
+      </Step>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="locationId">Location</Label>
-          <Controller
-            control={form.control}
-            name="locationId"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={!selectedTenantId}>
-                <SelectTrigger id="locationId">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredLocations.map((location) => (
-                    <SelectItem key={location.id} value={String(location.id)}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
+      <Step n={2} title="Guest">
+        <div className="inline-flex rounded-lg border border-border p-1 text-sm">
+          {(["new", "existing"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setGuestMode(mode)}
+              className={cn(
+                "rounded-md px-3 py-1.5",
+                guestMode === mode ? "bg-mint text-gloss-black" : "text-muted",
+              )}
+            >
+              {mode === "new" ? "New guest" : "Existing customer"}
+            </button>
+          ))}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="posSessionId">POS Session</Label>
-          <Controller
-            control={form.control}
-            name="posSessionId"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={!selectedTenantId}>
-                <SelectTrigger id="posSessionId">
-                  <SelectValue placeholder="Select POS session" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredPosSessions.map((session) => (
-                    <SelectItem key={String(session.id)} value={String(session.id)}>
-                      {String(session.id)} ({session.status})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="paymentMethodId">Payment Method</Label>
-          <Controller
-            control={form.control}
-            name="paymentMethodId"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={!selectedTenantId}>
-                <SelectTrigger id="paymentMethodId">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredPaymentMethods.map((pm) => (
-                    <SelectItem key={String(pm.id)} value={String(pm.id)}>
-                      {pm.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label>Cards</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              append({
-                cardUid: "",
-                label: `Guest ${fields.length + 1}`,
-                roomNumber: "",
-              })
-            }
-          >
-            <Plus className="size-4" />
-            Add card
-          </Button>
-        </div>
-        {fields.map((field, index) => (
-          <div
-            key={field.id}
-            className="grid grid-cols-1 gap-3 rounded-lg border border-border p-3 sm:grid-cols-4"
-          >
-            <div className="grid gap-2 sm:col-span-1">
-              <Label htmlFor={`cards.${index}.cardUid`}>Card UID</Label>
-              <Controller
-                control={form.control}
-                name={`cards.${index}.cardUid`}
-                render={({ field }) => (
-                  <CardUidField
-                    id={`cards.${index}.cardUid`}
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="04A3B2C1"
-                  />
-                )}
-              />
-            </div>
-            <div className="grid gap-2 sm:col-span-1">
-              <Label htmlFor={`cards.${index}.label`}>Label</Label>
+        {guestMode === "new" ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid gap-1">
+              <Label htmlFor="guestName">
+                Name{tier?.customerRequirement === "REQUIRED" ? "" : " (optional)"}
+              </Label>
               <Input
-                id={`cards.${index}.label`}
-                {...form.register(`cards.${index}.label`)}
-                placeholder={`Guest ${index + 1}`}
+                id="guestName"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Aung Aung"
               />
             </div>
-            <div className="grid gap-2 sm:col-span-1">
-              <Label htmlFor={`cards.${index}.roomNumber`}>Room</Label>
+            <div className="grid gap-1">
+              <Label htmlFor="guestPhone">Phone (optional)</Label>
               <Input
-                id={`cards.${index}.roomNumber`}
-                {...form.register(`cards.${index}.roomNumber`)}
-                placeholder="304"
+                id="guestPhone"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                placeholder="09 ..."
               />
-            </div>
-            <div className="flex items-end sm:col-span-1">
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={fields.length <= 1}
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="size-4" />
-                Remove
-              </Button>
             </div>
           </div>
-        ))}
-      </div>
+        ) : (
+          <Select value={customerId} onValueChange={setCustomerId} disabled={Boolean(defaultCustomerId)}>
+            <SelectTrigger>
+              <SelectValue placeholder={customers.length ? "Choose the customer" : "No customers yet"} />
+            </SelectTrigger>
+            <SelectContent>
+              {customers.map((c) => (
+                <SelectItem key={String(c.id)} value={String(c.id)}>
+                  {c.name}
+                  {c.phone ? ` · ${c.phone}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <FieldError message={errors.guest} />
+      </Step>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="amount">Amount</Label>
+      <Step n={3} title="Card">
+        {cards.map((card, index) => (
+          <div key={index} className="space-y-1">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_140px_auto]">
+              <CardUidField
+                value={card.cardUid}
+                onChange={(value) => updateCard(index, { cardUid: value })}
+                placeholder="Tap the card or type its number"
+              />
+              <Input
+                value={card.roomNumber}
+                onChange={(e) => updateCard(index, { roomNumber: e.target.value })}
+                placeholder="Room (optional)"
+              />
+              {cards.length > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove this card"
+                  onClick={() => setCards((rows) => rows.filter((_, i) => i !== index))}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              ) : null}
+            </div>
+            <FieldError message={errors[`card-${index}`]} />
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setCards((rows) => [...rows, { cardUid: "", roomNumber: "" }])}
+        >
+          <Plus className="size-4" />
+          Another card on the same wallet
+        </Button>
+      </Step>
+
+      <Step n={4} title="Payment">
+        {locations.length > 1 || !locationId ? (
+          <div className="grid gap-1">
+            <Label>Where is the card issued?</Label>
+            <Select value={locationId} onValueChange={setLocationId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose the location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((l) => (
+                  <SelectItem key={String(l.id)} value={String(l.id)}>
+                    {l.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError message={errors.location} />
+          </div>
+        ) : null}
+
+        {!tier ? (
+          <p className="text-sm text-muted">Choose a card type to see what the guest pays.</p>
+        ) : !payNow ? (
+          <p className="text-sm text-muted">
+            {tier.isPostpaid
+              ? "Nothing to pay now. The guest pays everything at the end."
+              : tier.preloadAmount > 0
+                ? `Nothing to pay. The card starts with ${formatPrice(tier.preloadAmount)} free credit.`
+                : "Nothing to pay now. The card starts empty; top it up later from the wallet page."}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm">
+              The guest pays <span className="font-semibold">{formatPrice(tier.preloadAmount)}</span> now.
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid gap-1">
+                <Label>Paid by</Label>
+                {methods.length === 0 ? (
+                  <p className="text-sm text-muted">
+                    No payment methods yet.{" "}
+                    <Link href="/payment-methods" className="text-mint underline">
+                      Add Cash first
+                    </Link>
+                    .
+                  </p>
+                ) : (
+                  <Select value={paymentMethodId} onValueChange={setPaymentMethodId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose how the guest pays" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {methods.map((m) => (
+                        <SelectItem key={String(m.id)} value={String(m.id)}>
+                          {m.name} ({PAYMENT_METHOD_KIND_LABELS[m.kind].label})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <FieldError message={errors.method} />
+              </div>
+              {showReference ? (
+                <div className="grid gap-1">
+                  <Label htmlFor="reference">
+                    Transaction ID{referenceRequired ? "" : " (optional)"}
+                  </Label>
+                  <Input
+                    id="reference"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    placeholder="e.g. KBZ-99182736"
+                  />
+                  <FieldError message={errors.reference} />
+                </div>
+              ) : null}
+            </div>
+            {locationId && sessionsHere.length === 0 ? (
+              <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+                No till is open at this location, so the money has nowhere to go.{" "}
+                <Link href="/pos-sessions" className="underline">
+                  Open a POS session
+                </Link>{" "}
+                first, then come back.
+              </p>
+            ) : sessionsHere.length > 1 ? (
+              <div className="grid gap-1">
+                <Label>Which till takes the money?</Label>
+                <Select value={posSessionId} onValueChange={setPosSessionId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose the till" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessionsHere.map((s) => (
+                      <SelectItem key={String(s.id)} value={String(s.id)}>
+                        {registers.find((r) => String(r.id) === String(s.registerId))?.name ?? "Till"}
+                        {s.openedAt ? ` · opened ${new Date(s.openedAt).toLocaleTimeString()}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : sessionsHere.length === 1 ? (
+              <p className="text-sm text-muted">
+                Goes into the open till:{" "}
+                {registers.find((r) => String(r.id) === String(sessionsHere[0].registerId))?.name ??
+                  "Till"}
+                .
+              </p>
+            ) : null}
+            {sessionsHere.length !== 0 ? <FieldError message={errors.session} /> : null}
+          </div>
+        )}
+      </Step>
+
+      <details className="rounded-xl border border-border p-4 text-sm">
+        <summary className="cursor-pointer font-medium">More options</summary>
+        <div className="mt-3 grid gap-1">
+          <Label htmlFor="guestIdNumber">Guest ID / passport number (optional)</Label>
           <Input
-            id="amount"
-            type="number"
-            min={0}
-            step="0.01"
-            {...form.register("amount", { valueAsNumber: true })}
+            id="guestIdNumber"
+            value={guestIdNumber}
+            onChange={(e) => setGuestIdNumber(e.target.value)}
           />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="paymentReference">Payment Reference (optional)</Label>
-          <Input id="paymentReference" {...form.register("paymentReference")} placeholder="KBZ-99182736" />
-        </div>
-      </div>
+      </details>
 
-      <div className="grid gap-2">
-        <Label htmlFor="idempotencyKey">Idempotency Key</Label>
-        <Input id="idempotencyKey" {...form.register("idempotencyKey")} />
-      </div>
+      {Object.keys(errors).length > 0 ? (
+        <p className="text-sm font-medium text-red-600">Please fix the highlighted items above.</p>
+      ) : null}
+
+      {!formId && (
+        <Button type="submit" disabled={registerMembership.isPending}>
+          {registerMembership.isPending ? "Issuing..." : "Issue card"}
+        </Button>
+      )}
     </form>
   );
 }

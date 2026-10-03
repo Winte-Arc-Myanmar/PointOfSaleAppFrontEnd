@@ -12,6 +12,7 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import { PAYMENT_METHOD_KIND_LABELS } from "./payment-method-kinds";
 
 export function PaymentMethodDetail({ paymentMethodId }: { paymentMethodId: string }) {
   const { data: method, isLoading, error } = usePaymentMethod(paymentMethodId);
@@ -32,7 +33,9 @@ export function PaymentMethodDetail({ paymentMethodId }: { paymentMethodId: stri
     { label: "Payment method ID", value: safeText(method.id), mono: true },
     { label: "Name", value: safeText(method.name) },
     { label: "Tenant ID", value: safeText(method.tenantId), mono: true },
-    { label: "GL account ID", value: safeText(method.glAccountId), mono: true },
+    { label: "Type", value: PAYMENT_METHOD_KIND_LABELS[method.kind].label },
+    { label: "Status", value: method.isActive ? "Active" : "Inactive" },
+    { label: "Accounting account", value: method.glAccountId ? safeText(method.glAccountId) : "None", mono: Boolean(method.glAccountId) },
   ];
 
   const recordRows = [

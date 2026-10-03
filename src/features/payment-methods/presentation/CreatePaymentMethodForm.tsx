@@ -1,14 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  useWatch,
+  type Control,
+  type UseFormRegister,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { apiErrorMessage } from "@/lib/api-error";
+import {
+  PaymentMethodFields,
+  paymentMethodFieldsSchema,
+  type PaymentMethodFieldValues,
+} from "./PaymentMethodFields";
 import { useCreatePaymentMethod } from "@/presentation/hooks/usePaymentMethods";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
-import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
   Select,
@@ -19,10 +31,8 @@ import {
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 
-const schema = z.object({
+const schema = paymentMethodFieldsSchema.extend({
   tenantId: z.string().min(1, "Tenant is required"),
-  name: z.string().min(1, "Name is required"),
-  glAccountId: z.string().min(1, "GL account ID is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -30,7 +40,9 @@ type FormData = z.infer<typeof schema>;
 const defaultValues: FormData = {
   tenantId: "",
   name: "",
+  kind: "CASH",
   glAccountId: "",
+  isActive: true,
 };
 
 export interface CreatePaymentMethodFormProps {
@@ -46,13 +58,19 @@ export function CreatePaymentMethodForm({
 }: CreatePaymentMethodFormProps) {
   const create = useCreatePaymentMethod();
   const toast = useToast();
+  const { tenantId: lockedTenantId } = usePermissions();
   const { data: tenantsData } = useTenants();
   const tenants = getPaginatedItems(tenantsData);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: { ...defaultValues, tenantId: lockedTenantId ?? "" },
   });
+  const kind = useWatch({ control: form.control, name: "kind" });
+
+  useEffect(() => {
+    if (lockedTenantId) form.setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, form]);
 
   useEffect(() => {
     onLoadingChange?.(create.isPending ?? false);
@@ -62,23 +80,26 @@ export function CreatePaymentMethodForm({
     create.mutate(
       {
         tenantId: data.tenantId,
-        name: data.name,
-        glAccountId: data.glAccountId,
+        name: data.name.trim(),
+        kind: data.kind,
+        isActive: data.isActive,
+        glAccountId: data.glAccountId || null,
       },
       {
         onSuccess: () => {
           toast.success("Payment method created.");
-          form.reset(defaultValues);
+          form.reset({ ...defaultValues, tenantId: lockedTenantId ?? "" });
           onSuccess?.();
         },
-        onError: () => toast.error("Failed to create payment method."),
+        onError: (error) =>
+          toast.error(apiErrorMessage(error, "Failed to create payment method.")),
       }
     );
   };
 
   return (
     <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {!lockedTenantId ? (
         <div className="grid gap-2">
           <Label>Tenant</Label>
           <Controller
@@ -103,16 +124,14 @@ export function CreatePaymentMethodForm({
             <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
           )}
         </div>
-        <div className="grid gap-2">
-          <Label>Name</Label>
-          <Input {...form.register("name")} placeholder="Cash" />
-        </div>
-      </div>
+      ) : null}
 
-      <div className="grid gap-2">
-        <Label>GL account ID</Label>
-        <Input className="font-mono text-sm" {...form.register("glAccountId")} placeholder="uuid" />
-      </div>
+      <PaymentMethodFields
+        control={form.control as unknown as Control<PaymentMethodFieldValues>}
+        register={form.register as unknown as UseFormRegister<PaymentMethodFieldValues>}
+        errors={form.formState.errors}
+        kind={kind}
+      />
 
       {!formId && (
         <Button type="submit" disabled={create.isPending}>
@@ -122,4 +141,3 @@ export function CreatePaymentMethodForm({
     </form>
   );
 }
-
