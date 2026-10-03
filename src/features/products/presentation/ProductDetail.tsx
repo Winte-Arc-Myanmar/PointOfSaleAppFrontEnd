@@ -36,6 +36,7 @@ import {
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { AvailabilityToggle } from "./AvailabilityToggle";
 
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
@@ -93,6 +94,16 @@ export function ProductDetail({ productId }: { productId: string }) {
         { label: "Product ID", value: safeText(product.id), mono: true },
         { label: "Base SKU", value: safeText(product.baseSku), mono: true },
         { label: "Base price", value: safeText(product.basePrice) },
+        {
+          label: "Availability",
+          value: (
+            <AvailabilityToggle
+              productId={String(product.id)}
+              productName={product.name}
+              isAvailable={product.isAvailable}
+            />
+          ),
+        },
         { label: "Tracking type", value: safeText(product.trackingType) },
         { label: "Tenant ID", value: safeText(product.tenantId), mono: true },
       ]

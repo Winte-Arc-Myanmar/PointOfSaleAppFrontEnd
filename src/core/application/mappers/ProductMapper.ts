@@ -89,6 +89,7 @@ export function toProduct(dto: ProductDtoRaw): Product {
       dto.image ??
       undefined,
     isTaxable: dto.isTaxable,
+    isAvailable: dto.isAvailable !== false,
     taxRateId: dto.taxRateId ?? dto.taxRate?.id ?? undefined,
     taxRateName: dto.taxRate?.name,
     taxRateRatePercentage:

@@ -73,3 +73,19 @@ export function useDeleteProduct() {
     },
   });
 }
+
+export function useSetProductAvailability() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isAvailable }: { id: string; isAvailable: boolean }) => {
+      const productService = container.resolve<IProductService>("productService");
+      return productService.setAvailability(id, isAvailable);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: [...PRODUCTS_QUERY_KEY, variables.id],
+      });
+    },
+  });
+}

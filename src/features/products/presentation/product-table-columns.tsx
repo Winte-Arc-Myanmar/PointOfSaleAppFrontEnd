@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Product } from "@/core/domain/entities/Product";
+import { AvailabilityToggle } from "./AvailabilityToggle";
 
 type ProductTableColumnOptions = {
   onView?: (product: Product) => void;
@@ -31,6 +32,18 @@ export function getProductTableColumns(
             {p.name}
           </span>
         )
+      ),
+    },
+    {
+      key: "isAvailable",
+      header: "Availability",
+      className: "min-w-[130px]",
+      render: (p) => (
+        <AvailabilityToggle
+          productId={String(p.id)}
+          productName={p.name}
+          isAvailable={p.isAvailable}
+        />
       ),
     },
     {
