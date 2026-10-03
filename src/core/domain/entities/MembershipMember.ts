@@ -64,7 +64,7 @@ export interface MembershipMember {
   cardTemplateName: string;
   tier: string;
   cardNumber: string | null;
-  activeCardCount: number;
+  activeCardCount?: number;
   cardBindStatus: MembershipCardBindStatus;
   walletBalance: number;
   purchasedBalance?: number;

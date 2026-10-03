@@ -44,8 +44,8 @@ export function getMembershipMemberTableColumns(
         row.cardNumber ? (
           <span className="font-mono text-xs">
             {row.cardNumber}
-            {row.activeCardCount > 1 ? (
-              <span className="ml-1 text-muted">+{row.activeCardCount - 1}</span>
+            {(row.activeCardCount ?? 0) > 1 ? (
+              <span className="ml-1 text-muted">+{(row.activeCardCount ?? 0) - 1}</span>
             ) : null}
           </span>
         ) : (
