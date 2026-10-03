@@ -119,12 +119,13 @@ export class ApiReportRepository implements IReportRepository {
 
   async getSalesSummary(params: GetBusinessDateReportParams) {
     const dto = await this.httpClient.get<SalesSummaryDto>(
-      API_ENDPOINTS.REPORTS.SALES_SUMMARY,
+      params.posType ? API_ENDPOINTS.REPORTS.POS_SUMMARY : API_ENDPOINTS.REPORTS.SALES_SUMMARY,
       {
         params: definedParams({
           from: params.from,
           to: params.to,
           locationId: params.locationId,
+          posType: params.posType,
         }),
       },
     );

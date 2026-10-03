@@ -16,9 +16,16 @@ import {
 } from "./dashboard-columns";
 import { ReportPanel, Subsection, SummaryCard } from "./dashboard-ui";
 import type { DashboardRange } from "./types";
+import type { PosType } from "@/core/domain/entities/PosReport";
 
-export function SalesSummaryPanel({ range }: { range: DashboardRange }) {
-  const query = useSalesSummary(range);
+const POS_TITLE: Record<PosType, string> = {
+  SPA: "SPA sales summary",
+  KTV: "KTV sales summary",
+  BAR: "Bar sales summary",
+};
+
+export function SalesSummaryPanel({ range, posType }: { range: DashboardRange; posType?: PosType }) {
+  const query = useSalesSummary({ ...range, posType });
   const data = query.data;
   const dayColumns = useMemo(() => getSalesSummaryDayColumns(), []);
   const hourColumns = useMemo(() => getSalesSummaryHourColumns(), []);
@@ -29,8 +36,14 @@ export function SalesSummaryPanel({ range }: { range: DashboardRange }) {
 
   return (
     <ReportPanel
-      title="Sales summary"
-      description="Sales filed on each business date, with refunds on the day they were made. Guest-card top-ups are deposits and do not appear here."
+      title={posType ? POS_TITLE[posType] : "Sales summary"}
+      description={
+        posType === "BAR"
+          ? "Sales at the bar and every other till that isn't SPA or KTV, with refunds on the day they were made."
+          : posType
+            ? `Sales of the ${posType} POS on each business date, with refunds on the day they were made.`
+            : "Sales filed on each business date, with refunds on the day they were made. Guest-card top-ups are deposits and do not appear here."
+      }
       isLoading={query.isLoading}
       isFetching={query.isFetching}
       error={query.error}
