@@ -99,6 +99,16 @@ export class ApiProductRepository implements IProductRepository {
   async delete(id: string): Promise<void> {
     await this.httpClient.delete(API_ENDPOINTS.PRODUCTS.DELETE(id));
   }
+
+  async setAvailability(id: string, isAvailable: boolean): Promise<Product> {
+    const dto = await this.httpClient.patch<ProductDto>(
+      API_ENDPOINTS.PRODUCTS.AVAILABILITY(id),
+      { isAvailable },
+    );
+    return toProduct({ ...dto, id: dto?.id ?? id } as ProductDto & {
+      id: string;
+    });
+  }
 }
 
 

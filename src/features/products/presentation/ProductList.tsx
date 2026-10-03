@@ -27,6 +27,8 @@ import type { Category } from "@/core/domain/entities/Category";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
+import { AvailabilityToggle } from "./AvailabilityToggle";
+import { cn } from "@/lib/utils";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
 const PAGE_SIZE = 16;
@@ -76,6 +78,7 @@ export function ProductList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
+  const [availability, setAvailability] = useState<"all" | "available" | "unavailable">("all");
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const { page, setPage, reset: resetPage, getTotalPages } = pagination;
   const {
@@ -126,15 +129,20 @@ export function ProductList() {
             .includes(q),
         );
 
-    if (selectedCategoryId === "__all__") return searchedProducts;
+    const byAvailability =
+      availability === "all"
+        ? searchedProducts
+        : searchedProducts.filter((p) => p.isAvailable === (availability === "available"));
+
+    if (selectedCategoryId === "__all__") return byAvailability;
 
     const allowedCategoryIds =
       categoryFamilyMap.get(selectedCategoryId) ?? new Set([selectedCategoryId]);
 
-    return searchedProducts.filter((p) =>
+    return byAvailability.filter((p) =>
       allowedCategoryIds.has(String(p.categoryId)),
     );
-  }, [categoryFamilyMap, productsResult?.items, search, selectedCategoryId]);
+  }, [availability, categoryFamilyMap, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
     return flattenCategoryTree(categoryTree).map((category) => ({
@@ -159,7 +167,7 @@ export function ProductList() {
 
   useEffect(() => {
     resetPage(1);
-  }, [selectedCategoryId, resetPage]);
+  }, [selectedCategoryId, availability, resetPage]);
 
   const columns = useMemo(
     () =>
@@ -179,8 +187,8 @@ export function ProductList() {
       emptyText={
         search.trim()
           ? "No products match your search."
-          : selectedCategoryId !== "__all__"
-            ? "No products match this category."
+          : selectedCategoryId !== "__all__" || availability !== "all"
+            ? "No products match these filters."
             : "No products yet."
       }
       topContent={
@@ -205,6 +213,19 @@ export function ProductList() {
                   {category.label}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={availability}
+            onValueChange={(value) => setAvailability(value as typeof availability)}
+          >
+            <SelectTrigger className="sm:w-[180px]">
+              <SelectValue placeholder="Availability" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All items</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="unavailable">Unavailable</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -237,7 +258,7 @@ export function ProductList() {
       gridContentClassName="pr-0"
       renderGridItem={(product) => {
         return (
-          <article className="flex h-full flex-col">
+          <article className={cn("flex h-full flex-col", !product.isAvailable && "opacity-60")}>
             <button
               type="button"
               aria-label={`View ${product.name} details`}
@@ -269,6 +290,13 @@ export function ProductList() {
                   currencyByTenantId.get(String(product.tenantId)) ?? "MMK",
                 )}
               </p>
+              <div className="mt-auto pt-2">
+                <AvailabilityToggle
+                  productId={String(product.id)}
+                  productName={product.name}
+                  isAvailable={product.isAvailable}
+                />
+              </div>
             </div>
           </article>
         );
