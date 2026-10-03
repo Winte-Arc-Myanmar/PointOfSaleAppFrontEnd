@@ -58,6 +58,8 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/pos-registers", permissions: ["pos-registers:read"] },
   { prefix: "/venue-setup", permissions: ["pos:venue-setting:write"] },
   { prefix: "/ktv-rooms", permissions: ["hospitality:ktv-room:read"] },
+  { prefix: "/spa-packages", permissions: ["hospitality:spa-package:read"] },
+  { prefix: "/spa-rooms", permissions: ["hospitality:spa-room:read"] },
   { prefix: "/pos-sessions", permissions: ["pos-sessions:read"] },
   { prefix: "/payment-methods", permissions: ["payment-methods:read"] },
   { prefix: "/chart-of-accounts", permissions: ["chart-of-accounts:read"] },
