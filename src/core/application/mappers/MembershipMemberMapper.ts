@@ -25,7 +25,10 @@ function parseDecimal(val: unknown): number {
 export function toMembershipMember(
   dto: MembershipMemberDto & { id: string },
 ): MembershipMember {
-  const firstCard = Array.isArray(dto.cards) ? dto.cards[0] : undefined;
+  const activeCards = Array.isArray(dto.cards)
+    ? dto.cards.filter((card) => !card.status || card.status === "ACTIVE")
+    : [];
+  const firstCard = activeCards[0];
   const tierName = dto.tierNameSnapshot ?? dto.tier ?? dto.cardTemplate?.tier ?? "BRONZE";
   return {
     id: dto.id,
@@ -40,6 +43,7 @@ export function toMembershipMember(
     cardTemplateName: dto.cardTemplateName ?? dto.tierNameSnapshot ?? dto.cardTemplate?.name ?? "",
     tier: tierName,
     cardNumber: dto.cardNumber ?? firstCard?.cardUid ?? null,
+    activeCardCount: activeCards.length || (dto.cardNumber ? 1 : 0),
     cardBindStatus:
       dto.cardBindStatus ??
       ((dto.cardNumber ?? firstCard?.cardUid) ? "BOUND" : "UNBOUND"),
@@ -86,6 +90,13 @@ export function toMembershipGuestCard(dto: MembershipCardDto): MembershipGuestCa
     replacedByCardId: dto.replacedByCardId ?? null,
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,
+    wallet: dto.wallet
+      ? {
+          walletNumber: dto.wallet.walletNumber ?? "",
+          guestName: dto.wallet.guestName ?? "",
+          guestPhone: dto.wallet.guestPhone ?? null,
+        }
+      : null,
   };
 }
 

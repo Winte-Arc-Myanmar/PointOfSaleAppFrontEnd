@@ -403,21 +403,6 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/card-tiers/${id}`,
     DELETE: (id: string) => `/v1/card-tiers/${id}`,
   },
-  MEMBERSHIP_CARD_CATEGORIES: {
-    LIST: "/v1/membership-card-categories",
-    TREE: "/v1/membership-card-categories/tree",
-    BY_ID: (id: string) => `/v1/membership-card-categories/${id}`,
-    CREATE: "/v1/membership-card-categories",
-    UPDATE: (id: string) => `/v1/membership-card-categories/${id}`,
-    DELETE: (id: string) => `/v1/membership-card-categories/${id}`,
-  },
-  MEMBERSHIP_CARD_TEMPLATES: {
-    LIST: "/v1/membership-card-templates",
-    BY_ID: (id: string) => `/v1/membership-card-templates/${id}`,
-    CREATE: "/v1/membership-card-templates",
-    UPDATE: (id: string) => `/v1/membership-card-templates/${id}`,
-    DELETE: (id: string) => `/v1/membership-card-templates/${id}`,
-  },
   MEMBERSHIPS: {
     LIST: "/v1/guest-wallets",
     BY_ID: (id: string) => `/v1/guest-wallets/${id}`,
