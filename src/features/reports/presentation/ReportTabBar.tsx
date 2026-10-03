@@ -15,6 +15,33 @@ export const REPORT_TAB_GROUPS = [
     ],
   },
   {
+    id: "spa",
+    label: "SPA",
+    tabs: [
+      { id: "spa-summary", label: "Summary" },
+      { id: "spa-bills", label: "Bills" },
+      { id: "spa-menu", label: "By menu" },
+    ],
+  },
+  {
+    id: "ktv",
+    label: "KTV",
+    tabs: [
+      { id: "ktv-summary", label: "Summary" },
+      { id: "ktv-bills", label: "Bills" },
+      { id: "ktv-sessions", label: "Sessions" },
+    ],
+  },
+  {
+    id: "bar",
+    label: "Bar",
+    tabs: [
+      { id: "bar-summary", label: "Summary" },
+      { id: "bar-bills", label: "Bills" },
+      { id: "bar-categories", label: "By category" },
+    ],
+  },
+  {
     id: "members",
     label: "Till & members",
     tabs: [
