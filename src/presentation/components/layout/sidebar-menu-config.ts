@@ -121,6 +121,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
     icon: ShoppingCart,
     items: [
       {
+        href: "/venue-setup",
+        labelKey: "nav.venueSetup",
+        icon: SlidersHorizontal,
+        permissions: ["pos:venue-setting:write"],
+      },
+      {
         href: "/checkout",
         labelKey: "nav.checkout",
         icon: ShoppingCart,
