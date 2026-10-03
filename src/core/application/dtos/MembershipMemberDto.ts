@@ -77,17 +77,17 @@ export interface MembershipCardDto {
 
 export interface MembershipRegisterDto {
   tierId: string;
-  guestName: string;
-  guestPhone: string;
+  customerId?: string;
+  customer?: { name: string; phone?: string };
   guestIdNumber?: string;
   locationId: string;
-  posSessionId: string;
+  posSessionId?: string;
   cards: Array<{
     cardUid: string;
     label?: string;
     roomNumber?: string;
   }>;
-  payment: {
+  payment?: {
     paymentMethodId: string;
     amount: string;
     reference?: string;

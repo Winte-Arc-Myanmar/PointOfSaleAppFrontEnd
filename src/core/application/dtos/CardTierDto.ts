@@ -12,6 +12,7 @@ export interface CardTierDto {
   preloadFunding: string;
   discountBps: number;
   isPostpaid: boolean;
+  customerRequirement?: "NONE" | "OPTIONAL" | "REQUIRED";
   validityDays: number;
   isActive: boolean;
   deletedAt?: string | null;

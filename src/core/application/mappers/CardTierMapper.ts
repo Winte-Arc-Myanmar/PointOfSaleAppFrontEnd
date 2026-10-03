@@ -61,6 +61,7 @@ export function toCardTier(dto: CardTierDto & { id: string }): CardTier {
     preloadFunding: dto.preloadFunding ?? "PURCHASED",
     discountBps: toNumber(dto.discountBps),
     isPostpaid: Boolean(dto.isPostpaid),
+    customerRequirement: dto.customerRequirement ?? "NONE",
     validityDays: toNumber(dto.validityDays),
     isActive: resolveIsActive(raw),
     deletedAt:
