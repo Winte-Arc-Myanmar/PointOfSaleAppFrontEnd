@@ -6,29 +6,23 @@ export function toPromotionRule(dto: PromotionRuleDto & { id: string }): Promoti
     id: dto.id,
     tenantId: dto.tenantId ?? "",
     name: dto.name ?? "",
-    eligibilityCriteria: dto.eligibilityCriteria ?? {},
-    rewardAction: dto.rewardAction ?? { type: "", value: 0 },
-    priorityLevel: typeof dto.priorityLevel === "number" ? dto.priorityLevel : Number(dto.priorityLevel) || 0,
-    isStackable: !!dto.isStackable,
-    startDate: dto.startDate ?? "",
-    endDate: dto.endDate ?? "",
-    deletedAt: dto.deletedAt ?? null,
+    discountType: dto.discountType ?? "PERCENT_OFF",
+    discountValue: Number(dto.discountValue) || 0,
+    appliesTo: dto.appliesTo ?? "ALL_ITEMS",
+    categoryIds: dto.categoryIds ?? [],
+    variantIds: dto.variantIds ?? [],
+    items: dto.items ?? [],
+    posTypes: dto.posTypes ?? [],
+    locationIds: dto.locationIds ?? [],
+    startsOn: dto.startsOn ?? null,
+    endsOn: dto.endsOn ?? null,
+    daysOfWeek: dto.daysOfWeek ?? [],
+    startTime: dto.startTime ?? null,
+    endTime: dto.endTime ?? null,
+    priorityLevel: Number(dto.priorityLevel) || 0,
+    isActive: dto.isActive !== false,
+    runningNow: !!dto.runningNow,
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,
   };
 }
-
-export function toPromotionRuleDto(rule: Partial<PromotionRule>): PromotionRuleDto {
-  return {
-    ...(rule.id && { id: rule.id }),
-    tenantId: rule.tenantId ?? "",
-    name: rule.name ?? "",
-    eligibilityCriteria: rule.eligibilityCriteria ?? {},
-    rewardAction: rule.rewardAction ?? { type: "PERCENTAGE_DISCOUNT", value: 0 },
-    priorityLevel: rule.priorityLevel ?? 0,
-    isStackable: rule.isStackable ?? false,
-    startDate: rule.startDate ?? new Date().toISOString(),
-    endDate: rule.endDate ?? new Date().toISOString(),
-  };
-}
-

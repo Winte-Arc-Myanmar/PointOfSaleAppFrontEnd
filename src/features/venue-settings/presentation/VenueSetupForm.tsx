@@ -102,6 +102,7 @@ export function VenueSetupForm() {
     ktvMenuOrdering: saved.ktvMenuOrdering,
     paymentTiming: saved.paymentTiming,
     roomCardOnly: saved.roomCardOnly ?? true,
+    maxPromotionsPerItem: saved.maxPromotionsPerItem ?? 1,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
@@ -191,6 +192,36 @@ export function VenueSetupForm() {
         ) : (
           <p className="text-xs text-muted">Paying when ordering is always by member card.</p>
         )}
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
+        <h2 className="text-base font-semibold">Promotions</h2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium">Promotions one item can get at once</p>
+            <p className="text-xs text-muted">
+              When more are running, the highest priority wins, then the biggest saving. With 2 or more, each comes off
+              what the one before left. The member card discount always comes on top.
+            </p>
+          </div>
+          <div role="radiogroup" aria-label="Promotions per item" className="flex gap-1">
+            {[1, 2, 3].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={draft.maxPromotionsPerItem === n}
+                onClick={() => set({ maxPromotionsPerItem: n })}
+                className={cn(
+                  "size-10 rounded-lg border text-sm font-medium",
+                  draft.maxPromotionsPerItem === n ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <div className="flex items-center gap-3">

@@ -15,7 +15,7 @@ export function getPromotionRuleRowActions(
   if (config.onEdit) actions.push({ label: "Edit", onClick: config.onEdit });
   if (config.onDelete) {
     actions.push({
-      label: "Delete",
+      label: "Remove",
       onClick: config.onDelete,
       variant: "destructive",
     });
