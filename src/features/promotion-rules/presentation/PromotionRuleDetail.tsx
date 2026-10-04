@@ -1,90 +1,103 @@
 "use client";
 
 import Link from "next/link";
-import { Tag, Info, Calendar } from "lucide-react";
+import { Calendar, Info, Tag } from "lucide-react";
 import { usePromotionRule } from "@/presentation/hooks/usePromotionRules";
+import { useCategories } from "@/presentation/hooks/useCategories";
+import { useLocations } from "@/presentation/hooks/useLocations";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import { Button } from "@/presentation/components/ui/button";
 import {
-  DetailSection,
-  DetailRows,
   DetailPageHeader,
-  safeText,
+  DetailRows,
+  DetailSection,
   formatDate,
+  safeText,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import {
+  datesLabel,
+  daysLabel,
+  discountLabel,
+  hoursLabel,
+  POS_LABEL,
+  scopeLabel,
+  STATUS_LABEL,
+  statusOf,
+} from "./promotion-text";
 
 export function PromotionRuleDetail({ ruleId }: { ruleId: string }) {
   const { data: rule, isLoading, error } = usePromotionRule(ruleId);
+  const { formatPrice } = useCurrency();
+  const { data: categoriesData } = useCategories({ page: 1, limit: 500 });
+  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
 
-  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading rule..." />;
+  if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading..." />;
   if (error || !rule) {
     return (
       <div className="space-y-4">
-        <p className="text-red-500">Promotion rule not found or failed to load.</p>
+        <p className="text-red-500">Promotion not found.</p>
         <Link href="/promotion-rules">
-          <Button variant="outline">Back to Promotion Rules</Button>
+          <Button variant="outline">Back to promotions</Button>
         </Link>
       </div>
     );
   }
 
-  const overviewRows = [
-    { label: "Rule ID", value: safeText(rule.id), mono: true },
-    { label: "Name", value: safeText(rule.name) },
-    { label: "Tenant ID", value: safeText(rule.tenantId), mono: true },
-    { label: "Priority", value: String(rule.priorityLevel ?? 0) },
-    { label: "Stackable", value: rule.isStackable ? "Yes" : "No" },
+  const categoryNames = new Map(getPaginatedItems(categoriesData).map((c) => [String(c.id), c.name]));
+  const locationNames = new Map(getPaginatedItems(locationsData).map((l) => [String(l.id), l.name]));
+
+  const whatRows = [
+    { label: "Discount", value: discountLabel(rule, formatPrice) },
+    {
+      label: "Applies to",
+      value: scopeLabel(rule, (id) => categoryNames.get(id) ?? "Unknown category"),
+    },
+    {
+      label: "POS",
+      value: rule.posTypes.length ? rule.posTypes.map((p) => POS_LABEL[p]).join(", ") : "Every POS",
+    },
+    {
+      label: "Outlets",
+      value: rule.locationIds.length
+        ? rule.locationIds.map((id) => locationNames.get(id) ?? "Unknown outlet").join(", ")
+        : "Every outlet",
+    },
   ];
 
-  const rewardRows = [
-    { label: "Type", value: safeText(rule.rewardAction?.type) },
-    { label: "Value", value: String(rule.rewardAction?.value ?? 0) },
-  ];
-
-  const datesRows = [
-    { label: "Start date", value: formatDate(rule.startDate) },
-    { label: "End date", value: formatDate(rule.endDate) },
+  const whenRows = [
+    { label: "Status", value: STATUS_LABEL[statusOf(rule)] },
+    { label: "Dates", value: datesLabel(rule) ?? "No end date" },
+    { label: "Days", value: daysLabel(rule.daysOfWeek) },
+    { label: "Hours", value: hoursLabel(rule) },
+    { label: "Priority", value: String(rule.priorityLevel) },
   ];
 
   const recordRows = [
-    { label: "Created at", value: formatDate(rule.createdAt ?? undefined) },
-    { label: "Updated at", value: formatDate(rule.updatedAt ?? undefined) },
-    ...(rule.deletedAt ? [{ label: "Deleted at", value: formatDate(rule.deletedAt) }] : []),
+    { label: "Created", value: formatDate(rule.createdAt ?? undefined) },
+    { label: "Updated", value: formatDate(rule.updatedAt ?? undefined) },
   ];
 
   return (
     <div className="space-y-6">
       <DetailPageHeader
         backHref="/promotion-rules"
-        backLabel="Promotion rules"
+        backLabel="Promotions"
         title={safeText(rule.name)}
         editHref={`/promotion-rules/${rule.id}/edit`}
       />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <DetailSection title="Overview" icon={Tag}>
-          <DetailRows rows={overviewRows} />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <DetailSection title="What it takes off" icon={Tag}>
+          <DetailRows rows={whatRows} />
         </DetailSection>
-
-        <DetailSection title="Reward" icon={Tag}>
-          <DetailRows rows={rewardRows} />
+        <DetailSection title="When it runs" icon={Calendar}>
+          <DetailRows rows={whenRows} />
         </DetailSection>
-
-        <DetailSection title="Dates" icon={Calendar}>
-          <DetailRows rows={datesRows} />
-        </DetailSection>
-
-        <DetailSection title="Record info" icon={Info}>
+        <DetailSection title="Record" icon={Info}>
           <DetailRows rows={recordRows} />
-        </DetailSection>
-
-        <DetailSection title="Eligibility criteria" icon={Tag} className="lg:col-span-2">
-          <pre className="text-xs font-mono text-foreground overflow-auto rounded bg-muted/50 p-3">
-            {JSON.stringify(rule.eligibilityCriteria ?? {}, null, 2)}
-          </pre>
         </DetailSection>
       </div>
     </div>
   );
 }
-

@@ -2,7 +2,7 @@ import type { IPromotionRuleService } from "@/core/domain/services/IPromotionRul
 import type { IPromotionRuleRepository } from "@/core/domain/repositories/IPromotionRuleRepository";
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { GetPromotionRulesParams } from "@/core/domain/repositories/IPromotionRuleRepository";
-import type { PromotionRuleDto } from "../dtos/PromotionRuleDto";
+import type { PromotionRuleDto, PromotionRuleInput } from "../dtos/PromotionRuleDto";
 import type { PaginatedResult } from "@/core/domain/types/pagination";
 
 
@@ -18,14 +18,14 @@ export class PromotionRuleService implements IPromotionRuleService {
   }
 
   create(
-    data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">
+    data: PromotionRuleInput
   ): Promise<PromotionRule> {
     return this.promotionRuleRepository.create(data);
   }
 
   update(
     id: string,
-    data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">
+    data: PromotionRuleInput
   ): Promise<PromotionRule> {
     return this.promotionRuleRepository.update(id, data);
   }

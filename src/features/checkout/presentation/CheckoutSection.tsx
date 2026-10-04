@@ -349,18 +349,12 @@ export function CheckoutSection() {
   }, [orderType]);
 
   const activePromotionRules = useMemo(() => {
-    const now = Date.now();
     return (selectedTenantId
       ? allPromotionRules.filter(
           (rule) => String(rule.tenantId) === String(selectedTenantId),
         )
       : allPromotionRules
-    ).filter((rule) => {
-      const start = Date.parse(rule.startDate);
-      const end = Date.parse(rule.endDate);
-      if (!Number.isFinite(start) || !Number.isFinite(end)) return true;
-      return start <= now && now <= end;
-    });
+    ).filter((rule) => rule.isActive && rule.runningNow);
   }, [allPromotionRules, selectedTenantId]);
 
   const selectedPromotionRule = useMemo(() => {
@@ -680,20 +674,11 @@ export function CheckoutSection() {
 
   function formatPromotionRuleMeta(rule: PromotionRule | null): string | null {
     if (!rule) return null;
-    const rewardType = rule.rewardAction?.type ?? "";
-    const rewardValue = Number(rule.rewardAction?.value ?? 0);
-    if (rewardType === "PERCENTAGE_DISCOUNT") {
-      return `${rewardValue}% off from Promotion Rules`;
-    }
-    if (rewardType === "FIXED_AMOUNT_DISCOUNT") {
-      return `${formatPrice(rewardValue)} off from Promotion Rules`;
-    }
-    if (rewardType === "FIXED_PRICE") {
-      return `Fixed price ${formatPrice(rewardValue)} from Promotion Rules`;
-    }
-    return rewardType
-      ? `${rewardType} from Promotion Rules`
-      : "Bound to Promotion Rules";
+    const off =
+      rule.discountType === "PERCENT_OFF"
+        ? `${rule.discountValue}% off`
+        : `${formatPrice(rule.discountValue)} off each`;
+    return `${off}, applied automatically at payment`;
   }
 
   async function handleThermalOrderSlipPrint(options: {
