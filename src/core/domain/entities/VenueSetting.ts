@@ -8,6 +8,7 @@ export interface VenueSetting {
   ktvMenuOrdering: boolean;
   paymentTiming: RoomPaymentTiming;
   roomCardOnly: boolean;
+  maxPromotionsPerItem: number;
   updatedAt: string | null;
 }
 

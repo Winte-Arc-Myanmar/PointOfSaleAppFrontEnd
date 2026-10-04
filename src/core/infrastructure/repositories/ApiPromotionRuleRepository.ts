@@ -3,7 +3,7 @@ import type {
   GetPromotionRulesParams,
 } from "@/core/domain/repositories/IPromotionRuleRepository";
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
-import type { PromotionRuleDto } from "@/core/application/dtos/PromotionRuleDto";
+import type { PromotionRuleDto, PromotionRuleInput } from "@/core/application/dtos/PromotionRuleDto";
 import { toPromotionRule } from "@/core/application/mappers/PromotionRuleMapper";
 import type { PaginatedResult } from "@/core/domain/types/pagination";
 import type { HttpClient } from "../api/HttpClient";
@@ -49,7 +49,7 @@ export class ApiPromotionRuleRepository implements IPromotionRuleRepository {
   }
 
   async create(
-    data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">
+    data: PromotionRuleInput
   ): Promise<PromotionRule> {
     const dto = await this.httpClient.post<PromotionRuleDto>(
       API_ENDPOINTS.PROMOTION_RULES.CREATE,
@@ -61,7 +61,7 @@ export class ApiPromotionRuleRepository implements IPromotionRuleRepository {
 
   async update(
     id: string,
-    data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">
+    data: PromotionRuleInput
   ): Promise<PromotionRule> {
     const dto = await this.httpClient.patch<PromotionRuleDto>(
       API_ENDPOINTS.PROMOTION_RULES.UPDATE(id),

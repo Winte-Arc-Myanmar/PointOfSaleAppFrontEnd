@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type { IPromotionRuleService } from "@/core/domain/services/IPromotionRuleService";
-import type { PromotionRuleDto } from "@/core/application/dtos/PromotionRuleDto";
+import type { PromotionRuleDto, PromotionRuleInput } from "@/core/application/dtos/PromotionRuleDto";
 import type { GetPromotionRulesParams } from "@/core/domain/repositories/IPromotionRuleRepository";
 
 const PROMOTION_RULES_QUERY_KEY = ["promotion-rules"];
@@ -44,7 +44,7 @@ export function useCreatePromotionRule() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (
-      data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">
+      data: PromotionRuleInput
     ) => {
       const service = container.resolve<IPromotionRuleService>(
         "promotionRuleService"
@@ -65,7 +65,7 @@ export function useUpdatePromotionRule() {
       data,
     }: {
       id: string;
-      data: Omit<PromotionRuleDto, "id" | "deletedAt" | "createdAt" | "updatedAt">;
+      data: PromotionRuleInput;
     }) => {
       const service = container.resolve<IPromotionRuleService>(
         "promotionRuleService"
