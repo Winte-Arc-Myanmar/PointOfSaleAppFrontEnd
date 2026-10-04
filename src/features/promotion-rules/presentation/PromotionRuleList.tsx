@@ -12,6 +12,9 @@ import {
   usePromotionRules,
 } from "@/presentation/hooks/usePromotionRules";
 import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
+import { useCurrency } from "@/presentation/providers/CurrencyProvider";
+import { useCategories } from "@/presentation/hooks/useCategories";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { CreatePromotionRuleForm } from "./CreatePromotionRuleForm";
 import { getPromotionRuleRowActions } from "./promotion-rule-row-actions";
 import { getPromotionRuleTableColumns } from "./promotion-rule-table-columns";
@@ -55,15 +58,15 @@ export function PromotionRuleList() {
         onEdit: (r) => router.push(`/promotion-rules/${r.id}/edit`),
         onDelete: async (r) => {
           const ok = await confirm({
-            title: "Delete promotion rule",
-            description: `Delete "${r.name}"? This cannot be undone.`,
-            confirmLabel: "Delete",
+            title: "Remove promotion",
+            description: `Remove "${r.name}"? It stops applying. Past sales still show what it took off.`,
+            confirmLabel: "Remove",
             variant: "destructive",
           });
           if (ok) {
             del.mutate(String(r.id), {
-              onSuccess: () => toast.success("Promotion rule deleted."),
-              onError: () => toast.error("Failed to delete promotion rule."),
+              onSuccess: () => toast.success(`${r.name} removed.`),
+              onError: () => toast.error("Couldn't remove the promotion."),
             });
           }
         },
@@ -71,13 +74,16 @@ export function PromotionRuleList() {
     [router, confirm, del, toast]
   );
 
-  const columns = useMemo(
-    () =>
-      getPromotionRuleTableColumns({
-        onView: (r) => router.push(`/promotion-rules/${r.id}`),
-      }),
-    [router],
-  );
+  const { formatPrice } = useCurrency();
+  const { data: categoriesData } = useCategories({ page: 1, limit: 500 });
+  const columns = useMemo(() => {
+    const names = new Map(getPaginatedItems(categoriesData).map((c) => [String(c.id), c.name]));
+    return getPromotionRuleTableColumns({
+      onView: (r) => router.push(`/promotion-rules/${r.id}`),
+      formatPrice,
+      categoryName: (id) => names.get(id) ?? "Unknown category",
+    });
+  }, [router, formatPrice, categoriesData]);
 
   return (
     <EntityListWithCreateModal<PromotionRule>
@@ -85,12 +91,12 @@ export function PromotionRuleList() {
       columns={columns}
       actions={actions}
       isLoading={isLoading}
-      loadingText="Loading promotion rules..."
-      emptyText={search ? "No rules match your search." : "No promotion rules yet."}
+      loadingText="Loading promotions..."
+      emptyText={search ? "No promotions match your search." : "No promotions yet. Add one, e.g. Happy hour drinks 20% off."}
       error={
         error
           ? {
-              message: "Failed to load promotion rules.",
+              message: "Couldn't load promotions.",
               onRetry: () => refetch(),
             }
           : undefined
@@ -100,7 +106,7 @@ export function PromotionRuleList() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search promotion rules..."
+            placeholder="Search promotions..."
           />
         </div>
       }
@@ -109,10 +115,10 @@ export function PromotionRuleList() {
       totalPages={rulesResult?.totalPages ?? pagination.getTotalPages(rulesResult?.total)}
       totalItems={rulesResult?.total ?? 0}
       onPageChange={pagination.setPage}
-      addLabel="New Rule"
-      createTitle="Create Promotion Rule"
-      createSubmitText="Create Rule"
-      createLoadingText="Creating..."
+      addLabel="Add promotion"
+      createTitle="Add a promotion"
+      createSubmitText="Add promotion"
+      createLoadingText="Adding..."
       createFormId={CREATE_FORM_ID}
       createMaxWidth="2xl"
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
