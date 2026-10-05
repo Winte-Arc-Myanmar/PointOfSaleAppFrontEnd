@@ -10,6 +10,8 @@ export interface PromotionRuleDto {
   name: string;
   discountType: PromotionDiscountType;
   discountValue: string | number;
+  buyUnits?: number | null;
+  freeUnits?: number | null;
   appliesTo: PromotionScope;
   categoryIds?: string[];
   variantIds?: string[];
@@ -32,7 +34,10 @@ export interface PromotionRuleDto {
 export interface PromotionRuleInput {
   name: string;
   discountType: PromotionDiscountType;
-  discountValue: number;
+  /** Left out for FREE_TIME. */
+  discountValue?: number;
+  buyUnits?: number;
+  freeUnits?: number;
   appliesTo: PromotionScope;
   categoryIds: string[];
   variantIds: string[];

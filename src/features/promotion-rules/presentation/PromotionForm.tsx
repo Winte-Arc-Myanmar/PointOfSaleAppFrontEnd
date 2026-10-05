@@ -32,6 +32,12 @@ import { KIND_LABEL } from "@/features/products/presentation/product-kind-text";
 
 type Errors = Partial<Record<"name" | "value" | "scope" | "hours" | "dates", string>>;
 
+const DISCOUNT_TYPES = [
+  { value: "PERCENT_OFF", title: "Percent off", hint: "e.g. 20% off" },
+  { value: "AMOUNT_OFF", title: "Amount off", hint: "Money off each item" },
+  { value: "FREE_TIME", title: "Free time", hint: "Buy 1 hour, get 1 free" },
+] as const;
+
 const FieldError = ({ message }: { message?: string }) =>
   message ? <p className="text-sm text-red-600">{message}</p> : null;
 
@@ -90,9 +96,9 @@ function Tiles<T extends string>({
   );
 }
 
-function AddItem({ onAdd }: { onAdd: (item: PromotionItem) => void }) {
+function AddItem({ onAdd, timeOnly }: { onAdd: (item: PromotionItem) => void; timeOnly: boolean }) {
   const { data: productsData } = useProducts({ page: 1, limit: 500 });
-  const products = productsData?.items ?? [];
+  const products = (productsData?.items ?? []).filter((p) => !timeOnly || p.soldBy === "TIME");
   const [productId, setProductId] = useState("");
   const [chosenVariantId, setVariantId] = useState("");
   const { data: variantsData } = useProductVariants(productId || null, { page: 1, limit: 50 });
@@ -199,7 +205,10 @@ export function PromotionForm({
 
   const [name, setName] = useState(rule?.name ?? "");
   const [discountType, setDiscountType] = useState<PromotionDiscountType>(rule?.discountType ?? "PERCENT_OFF");
-  const [value, setValue] = useState(rule ? String(rule.discountValue) : "");
+  const [value, setValue] = useState(rule && rule.discountType !== "FREE_TIME" ? String(rule.discountValue) : "");
+  const [buyUnits, setBuyUnits] = useState(String(rule?.buyUnits ?? 1));
+  const [freeUnits, setFreeUnits] = useState(String(rule?.freeUnits ?? 1));
+  const freeTime = discountType === "FREE_TIME";
   const [appliesTo, setAppliesTo] = useState<PromotionScope>(rule?.appliesTo ?? "CATEGORIES");
   const [categoryIds, setCategoryIds] = useState<string[]>(rule?.categoryIds ?? []);
   const [items, setItems] = useState<PromotionItem[]>(rule?.items ?? []);
@@ -223,7 +232,13 @@ export function PromotionForm({
     const e: Errors = {};
     const amount = Number(value);
     if (!name.trim()) e.name = "Give the promotion a name, e.g. Happy hour drinks.";
-    if (!(amount > 0)) e.value = "Enter how much it takes off.";
+    const buy = Number(buyUnits);
+    const free = Number(freeUnits);
+    if (freeTime) {
+      if (!(Number.isInteger(buy) && buy >= 1 && Number.isInteger(free) && free >= 1)) {
+        e.value = "Enter whole numbers: how many are bought, and how many are free.";
+      }
+    } else if (!(amount > 0)) e.value = "Enter how much it takes off.";
     else if (discountType === "PERCENT_OFF" && amount > 100) e.value = "A percent off can be at most 100.";
     if (appliesTo === "CATEGORIES" && !categoryIds.length) e.scope = "Choose at least one category.";
     if (appliesTo === "ITEMS" && !items.length) e.scope = "Add at least one item.";
@@ -234,7 +249,7 @@ export function PromotionForm({
     onSubmit({
       name: name.trim(),
       discountType,
-      discountValue: amount,
+      ...(freeTime ? { buyUnits: buy, freeUnits: free } : { discountValue: amount }),
       appliesTo,
       categoryIds: appliesTo === "CATEGORIES" ? categoryIds : [],
       variantIds: appliesTo === "ITEMS" ? items.map((i) => i.variantId) : [],
@@ -265,14 +280,9 @@ export function PromotionForm({
 
       <section className="space-y-3">
         <p className="text-sm font-medium">Discount</p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
-          <div className="grid grid-cols-2 gap-2">
-            {(
-              [
-                { value: "PERCENT_OFF", title: "Percent off", hint: "e.g. 20% off" },
-                { value: "AMOUNT_OFF", title: "Amount off", hint: "Money off each item" },
-              ] as const
-            ).map((o) => (
+        <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {DISCOUNT_TYPES.map((o) => (
               <button
                 key={o.value}
                 type="button"
@@ -289,20 +299,36 @@ export function PromotionForm({
               </button>
             ))}
           </div>
-          <div className="grid gap-1">
-            <Label htmlFor="promo-value">{discountType === "PERCENT_OFF" ? "Percent" : "Amount"}</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="promo-value"
-                type="number"
-                min={0}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder={discountType === "PERCENT_OFF" ? "20" : "1000"}
-              />
-              {discountType === "PERCENT_OFF" ? <span className="text-sm text-muted">%</span> : null}
+          {freeTime ? (
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="grid gap-1">
+                <Label htmlFor="promo-buy">Buy</Label>
+                <Input id="promo-buy" type="number" min={1} className="w-24" value={buyUnits} onChange={(e) => setBuyUnits(e.target.value)} />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="promo-free">Get free</Label>
+                <Input id="promo-free" type="number" min={1} className="w-24" value={freeUnits} onChange={(e) => setFreeUnits(e.target.value)} />
+              </div>
+              <p className="pb-2 text-sm text-muted">
+                Units of the product&apos;s time, e.g. hours. Buying {Number(buyUnits) || 1} adds {Number(freeUnits) || 1} free.
+              </p>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-1 sm:w-[180px]">
+              <Label htmlFor="promo-value">{discountType === "PERCENT_OFF" ? "Percent" : "Amount"}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="promo-value"
+                  type="number"
+                  min={0}
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder={discountType === "PERCENT_OFF" ? "20" : "1000"}
+                />
+                {discountType === "PERCENT_OFF" ? <span className="text-sm text-muted">%</span> : null}
+              </div>
+            </div>
+          )}
         </div>
         <FieldError message={errors.value} />
       </section>
@@ -314,8 +340,16 @@ export function PromotionForm({
           onChange={setAppliesTo}
           options={[
             { value: "CATEGORIES", title: "Categories", hint: "Sub-categories included" },
-            { value: "ITEMS", title: "Chosen products", hint: "Items, services or rentals you pick" },
-            { value: "ALL_ITEMS", title: "Everything", hint: "All items and services; not rentals" },
+            {
+              value: "ITEMS",
+              title: "Chosen products",
+              hint: freeTime ? "Products sold by time, e.g. KTV hours" : "Items, services or rentals you pick",
+            },
+            {
+              value: "ALL_ITEMS",
+              title: "Everything",
+              hint: freeTime ? "Everything sold by time" : "All items and services; not rentals",
+            },
           ]}
         />
         {appliesTo === "CATEGORIES" ? (
@@ -358,6 +392,7 @@ export function PromotionForm({
               </div>
             ) : null}
             <AddItem
+              timeOnly={freeTime}
               onAdd={(item) =>
                 setItems((current) =>
                   current.some((i) => i.variantId === item.variantId) ? current : [...current, item],
