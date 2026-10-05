@@ -28,8 +28,7 @@ import type { PromotionRuleInput } from "@/core/application/dtos/PromotionRuleDt
 import type { PosType } from "@/core/domain/entities/PosReport";
 import { cn } from "@/lib/utils";
 import { DAYS, POS_LABEL } from "./promotion-text";
-
-const HIDDEN_CATEGORIES = ["Spa Rooms", "KTV Rooms"];
+import { KIND_LABEL } from "@/features/products/presentation/product-kind-text";
 
 type Errors = Partial<Record<"name" | "value" | "scope" | "hours" | "dates", string>>;
 
@@ -93,9 +92,7 @@ function Tiles<T extends string>({
 
 function AddItem({ onAdd }: { onAdd: (item: PromotionItem) => void }) {
   const { data: productsData } = useProducts({ page: 1, limit: 500 });
-  const products = (productsData?.items ?? []).filter(
-    (p) => !HIDDEN_CATEGORIES.includes(p.categoryName ?? ""),
-  );
+  const products = productsData?.items ?? [];
   const [productId, setProductId] = useState("");
   const [chosenVariantId, setVariantId] = useState("");
   const { data: variantsData } = useProductVariants(productId || null, { page: 1, limit: 50 });
@@ -125,12 +122,12 @@ function AddItem({ onAdd }: { onAdd: (item: PromotionItem) => void }) {
           }}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Choose an item" />
+            <SelectValue placeholder="Choose a product" />
           </SelectTrigger>
           <SelectContent>
             {products.map((p) => (
               <SelectItem key={String(p.id)} value={String(p.id)}>
-                {p.name}
+                {p.kind === "ITEM" ? p.name : `${p.name} · ${KIND_LABEL[p.kind]}`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -182,7 +179,6 @@ export function PromotionForm({
     const all = getPaginatedItems(categoriesData).filter(
       (c) =>
         !c.deletedAt &&
-        !HIDDEN_CATEGORIES.includes(c.name) &&
         (!tenantId || String(c.tenantId) === tenantId),
     );
     const byParent = new Map<string | null, typeof all>();
@@ -229,7 +225,7 @@ export function PromotionForm({
     if (!name.trim()) e.name = "Give the promotion a name, e.g. Happy hour drinks.";
     if (!(amount > 0)) e.value = "Enter how much it takes off.";
     else if (discountType === "PERCENT_OFF" && amount > 100) e.value = "A percent off can be at most 100.";
-    if (appliesTo === "CATEGORIES" && !categoryIds.length) e.scope = "Choose at least one menu category.";
+    if (appliesTo === "CATEGORIES" && !categoryIds.length) e.scope = "Choose at least one category.";
     if (appliesTo === "ITEMS" && !items.length) e.scope = "Add at least one item.";
     if (!allDay && startTime === endTime) e.hours = "The start and end time cannot be the same.";
     if (startsOn && endsOn && endsOn < startsOn) e.dates = "The end date is before the start date.";
@@ -317,9 +313,9 @@ export function PromotionForm({
           value={appliesTo}
           onChange={setAppliesTo}
           options={[
-            { value: "CATEGORIES", title: "Menu categories", hint: "Sub-categories included" },
-            { value: "ITEMS", title: "Chosen items", hint: "Only the items you pick" },
-            { value: "ALL_ITEMS", title: "Whole menu", hint: "Everything except room time" },
+            { value: "CATEGORIES", title: "Categories", hint: "Sub-categories included" },
+            { value: "ITEMS", title: "Chosen products", hint: "Items, services or rentals you pick" },
+            { value: "ALL_ITEMS", title: "Everything", hint: "All items and services; not rentals" },
           ]}
         />
         {appliesTo === "CATEGORIES" ? (
@@ -335,7 +331,7 @@ export function PromotionForm({
                 </Chip>
               ))
             ) : (
-              <p className="text-sm text-muted">No menu categories yet.</p>
+              <p className="text-sm text-muted">No categories yet.</p>
             )}
           </div>
         ) : null}

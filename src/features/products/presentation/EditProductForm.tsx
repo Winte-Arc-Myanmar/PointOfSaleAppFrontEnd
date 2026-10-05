@@ -20,6 +20,9 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
+import { ProductKindFields } from "./ProductKindFields";
+import { DEFAULT_TERMS, termsError } from "./product-kind-text";
+import type { ProductTerms } from "@/core/domain/entities/Product";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 
@@ -35,6 +38,10 @@ const schema = z.object({
   imageUrl: z.string(),
   isTaxable: z.boolean(),
   taxRateId: z.string(),
+  terms: z.custom<ProductTerms>().superRefine((terms, ctx) => {
+    const message = termsError(terms);
+    if (message) ctx.addIssue({ code: "custom", message });
+  }),
 });
 
 type ProductFormData = z.infer<typeof schema>;
@@ -63,6 +70,7 @@ export function EditProductForm({ productId }: { productId: string }) {
       imageUrl: "",
       isTaxable: true,
       taxRateId: "",
+      terms: DEFAULT_TERMS,
     },
   });
 
@@ -83,6 +91,16 @@ export function EditProductForm({ productId }: { productId: string }) {
         imageUrl: product.imageUrl ?? "",
         isTaxable: product.isTaxable ?? true,
         taxRateId: product.taxRateId ?? "",
+        terms: {
+          kind: product.kind,
+          soldAt: product.soldAt,
+          soldBy: product.soldBy,
+          timeBlockMinutes: product.timeBlockMinutes,
+          minimumBlocks: product.minimumBlocks,
+          rents: product.rents,
+          rentalPlaceIds: product.rentalPlaceIds,
+          askWhoServed: product.askWhoServed,
+        },
       });
     }
   }, [product, form]);
@@ -140,6 +158,7 @@ export function EditProductForm({ productId }: { productId: string }) {
           isTaxable: data.isTaxable,
           imageUrl: imageUrl || null,
           taxRateId: taxRateId || null,
+          ...data.terms,
         },
       },
       {
@@ -330,6 +349,18 @@ export function EditProductForm({ productId }: { productId: string }) {
             </p>
           )}
         </div>
+        <Controller
+          control={form.control}
+          name="terms"
+          render={({ field }) => (
+            <ProductKindFields
+              value={field.value}
+              onChange={field.onChange}
+              tenantId={selectedTenantId}
+              error={form.formState.errors.terms?.message}
+            />
+          )}
+        />
         <Controller
           control={form.control}
           name="imageUrl"

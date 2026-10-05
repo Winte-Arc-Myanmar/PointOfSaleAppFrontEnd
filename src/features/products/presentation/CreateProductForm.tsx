@@ -18,6 +18,9 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
+import { ProductKindFields } from "./ProductKindFields";
+import { DEFAULT_TERMS, termsError } from "./product-kind-text";
+import type { ProductTerms } from "@/core/domain/entities/Product";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,6 +34,10 @@ const schema = z.object({
   imageUrl: z.string(),
   isTaxable: z.boolean(),
   taxRateId: z.string(),
+  terms: z.custom<ProductTerms>().superRefine((terms, ctx) => {
+    const message = termsError(terms);
+    if (message) ctx.addIssue({ code: "custom", message });
+  }),
 });
 
 export type ProductFormData = z.infer<typeof schema>;
@@ -47,6 +54,7 @@ const defaultValues: ProductFormData = {
   imageUrl: "",
   isTaxable: true,
   taxRateId: "",
+  terms: DEFAULT_TERMS,
 };
 
 export interface CreateProductFormProps {
@@ -129,6 +137,7 @@ export function CreateProductForm({
         isTaxable: data.isTaxable,
         imageUrl: imageUrl || null,
         taxRateId: taxRateId || null,
+        ...data.terms,
       },
       {
         onSuccess: () => {
@@ -289,6 +298,18 @@ export function CreateProductForm({
           <p className="text-sm text-red-600">{errors.categoryId.message}</p>
         )}
       </div>
+      <Controller
+        control={control}
+        name="terms"
+        render={({ field }) => (
+          <ProductKindFields
+            value={field.value}
+            onChange={field.onChange}
+            tenantId={selectedTenantId}
+            error={errors.terms?.message}
+          />
+        )}
+      />
       <Controller
         control={control}
         name="imageUrl"
