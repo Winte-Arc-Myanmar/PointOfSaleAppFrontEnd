@@ -57,7 +57,7 @@ export function discountLabel(
 }
 
 export function scopeLabel(rule: PromotionRule, categoryName: (id: string) => string): string {
-  if (rule.appliesTo === "ALL_ITEMS") return "Whole menu";
+  if (rule.appliesTo === "ALL_ITEMS") return "Everything except rentals";
   if (rule.appliesTo === "CATEGORIES") {
     return rule.categoryIds.map(categoryName).join(", ") || "No categories";
   }
