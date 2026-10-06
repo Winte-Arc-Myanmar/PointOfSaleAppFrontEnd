@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { useUpdateVenueSettings, useVenueSettings } from "@/presentation/hooks/useVenueSettings";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
@@ -62,21 +63,14 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-const TIMING: { value: RoomPaymentTiming; title: string; hint: string }[] = [
-  {
-    value: "PAY_WHEN_ORDERING",
-    title: "Pay when ordering",
-    hint: "Starting a room, adding time and every food or drink order is paid on the spot, by tapping the member card.",
-  },
-  {
-    value: "PAY_AT_END",
-    title: "Pay at the end",
-    hint: "The bill stays open while the guest is here and is paid in full when the room is closed.",
-  },
-];
+const TIMING = [
+  { value: "PAY_WHEN_ORDERING", title: "shopSettings.payEachTime", hint: "shopSettings.payEachTimeHint" },
+  { value: "PAY_AT_END", title: "shopSettings.payWhenLeaving", hint: "shopSettings.payWhenLeavingHint" },
+] as const satisfies readonly { value: RoomPaymentTiming; title: string; hint: string }[];
 
 export function VenueSetupForm() {
   const toast = useToast();
+  const { t } = useLanguage();
   const { data: saved, isLoading, error, refetch } = useVenueSettings();
   const update = useUpdateVenueSettings();
   const [edits, setEdits] = useState<Partial<Draft>>({});
@@ -87,9 +81,9 @@ export function VenueSetupForm() {
   if (error || !saved) {
     return (
       <div className="space-y-3">
-        <p className="text-red-500">{apiErrorMessage(error, "Couldn't load the venue setup.")}</p>
+        <p className="text-red-500">{apiErrorMessage(error, t("shopSettings.couldNotLoad"))}</p>
         <Button variant="outline" onClick={() => refetch()}>
-          Try again
+          {t("shopSettings.tryAgain")}
         </Button>
       </div>
     );
@@ -113,40 +107,40 @@ export function VenueSetupForm() {
     update.mutate(patch, {
       onSuccess: () => {
         setEdits({});
-        toast.success("Venue setup saved.");
+        toast.success(t("shopSettings.saved"));
       },
-      onError: (err) => toast.error(apiErrorMessage(err, "Couldn't save the venue setup.")),
+      onError: (err) => toast.error(apiErrorMessage(err, t("shopSettings.couldNotSave"))),
     });
   };
 
   return (
     <div className="max-w-2xl space-y-5">
-      <Card title="SPA">
+      <Card title={t("shopSettings.spaCard")}>
         <SwitchRow
-          title="Use SPA rooms"
-          hint="Turn off if your business has no SPA. Staff and tablets can't start a treatment."
+          title={t("shopSettings.hasSpa")}
+          hint={t("shopSettings.hasSpaHint")}
           checked={draft.spaEnabled}
           onChange={(v) => set({ spaEnabled: v })}
         />
         <SwitchRow
-          title="Guests can order food and drinks during a treatment"
-          hint="Turn off to sell treatments only."
+          title={t("shopSettings.spaFood")}
+          hint={t("shopSettings.spaFoodHint")}
           checked={draft.spaMenuOrdering}
           disabled={!draft.spaEnabled}
           onChange={(v) => set({ spaMenuOrdering: v })}
         />
       </Card>
 
-      <Card title="KTV">
+      <Card title={t("shopSettings.ktvCard")}>
         <SwitchRow
-          title="Use KTV rooms"
-          hint="Turn off if your business has no KTV. Staff and tablets can't start a room."
+          title={t("shopSettings.hasKtv")}
+          hint={t("shopSettings.hasKtvHint")}
           checked={draft.ktvEnabled}
           onChange={(v) => set({ ktvEnabled: v })}
         />
         <SwitchRow
-          title="Guests can order food and drinks"
-          hint="Turn off to sell room time only. The room tablet then shows no menu."
+          title={t("shopSettings.ktvFood")}
+          hint={t("shopSettings.ktvFoodHint")}
           checked={draft.ktvMenuOrdering}
           disabled={!draft.ktvEnabled}
           onChange={(v) => set({ ktvMenuOrdering: v })}
@@ -154,7 +148,7 @@ export function VenueSetupForm() {
       </Card>
 
       <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-        <h2 className="text-base font-semibold">When do guests pay?</h2>
+        <h2 className="text-base font-semibold">{t("shopSettings.whenPay")}</h2>
         <div role="radiogroup" className="grid gap-3 sm:grid-cols-2">
           {TIMING.map((option) => {
             const selected = draft.paymentTiming === option.value;
@@ -170,8 +164,8 @@ export function VenueSetupForm() {
                   selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
                 )}
               >
-                <p className="text-sm font-semibold">{option.title}</p>
-                <p className="mt-1 text-xs text-muted">{option.hint}</p>
+                <p className="text-sm font-semibold">{t(option.title)}</p>
+                <p className="mt-1 text-xs text-muted">{t(option.hint)}</p>
               </button>
             );
           })}
@@ -179,32 +173,25 @@ export function VenueSetupForm() {
         {draft.paymentTiming === "PAY_AT_END" ? (
           <div className="divide-y divide-border">
             <SwitchRow
-              title="Member card only"
-              hint={
-                draft.roomCardOnly
-                  ? "The bill is paid by tapping the member card."
-                  : "The bill can be paid by cash, card, member card or any payment method you use, or split between them."
-              }
+              title={t("shopSettings.cardOnly")}
+              hint={draft.roomCardOnly ? t("shopSettings.cardOnlyOn") : t("shopSettings.cardOnlyOff")}
               checked={draft.roomCardOnly}
               onChange={(v) => set({ roomCardOnly: v })}
             />
           </div>
         ) : (
-          <p className="text-xs text-muted">Paying when ordering is always by member card.</p>
+          <p className="text-xs text-muted">{t("shopSettings.eachTimeIsCard")}</p>
         )}
       </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-        <h2 className="text-base font-semibold">Promotions</h2>
+        <h2 className="text-base font-semibold">{t("shopSettings.promotions")}</h2>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium">Promotions one item can get at once</p>
-            <p className="text-xs text-muted">
-              When more are running, the highest priority wins, then the biggest saving. With 2 or more, each comes off
-              what the one before left. The member card discount always comes on top.
-            </p>
+            <p className="text-sm font-medium">{t("shopSettings.promotionsPerItem")}</p>
+            <p className="text-xs text-muted">{t("shopSettings.promotionsPerItemHint")}</p>
           </div>
-          <div role="radiogroup" aria-label="Promotions per item" className="flex gap-1">
+          <div role="radiogroup" aria-label={t("shopSettings.promotionsPerItem")} className="flex gap-1">
             {[1, 2, 3].map((n) => (
               <button
                 key={n}
@@ -226,9 +213,9 @@ export function VenueSetupForm() {
 
       <div className="flex items-center gap-3">
         <Button type="button" onClick={save} disabled={changed.length === 0 || update.isPending}>
-          {update.isPending ? "Saving..." : "Save changes"}
+          {update.isPending ? t("shopSettings.saving") : t("shopSettings.save")}
         </Button>
-        {changed.length === 0 ? <span className="text-xs text-muted">No unsaved changes</span> : null}
+        {changed.length === 0 ? <span className="text-xs text-muted">{t("shopSettings.noChanges")}</span> : null}
       </div>
     </div>
   );
