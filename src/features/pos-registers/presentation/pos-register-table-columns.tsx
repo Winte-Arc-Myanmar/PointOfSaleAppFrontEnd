@@ -1,14 +1,22 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
-import type { PosRegister } from "@/core/domain/entities/PosRegister";
+import type { PosKind, PosRegister } from "@/core/domain/entities/PosRegister";
+import type { TranslationKey } from "@/presentation/i18n/translations";
+
+const KIND_LABEL: Record<PosKind, TranslationKey> = {
+  BAR: "shifts.restaurant",
+  KTV: "shifts.ktv",
+  SPA: "shifts.spa",
+};
 
 type PosRegisterTableColumnOptions = {
   onView?: (register: PosRegister) => void;
+  t: (key: TranslationKey) => string;
 };
 
 export function getPosRegisterTableColumns(
-  options: PosRegisterTableColumnOptions = {},
+  options: PosRegisterTableColumnOptions,
 ): DataTableColumn<PosRegister>[] {
-  const { onView } = options;
+  const { onView, t } = options;
 
   return [
     {
@@ -31,6 +39,17 @@ export function getPosRegisterTableColumns(
             {r.name}
           </span>
         ),
+    },
+    {
+      key: "sellsAt",
+      header: t("shifts.sellsAt"),
+      className: "min-w-[160px]",
+      render: (r) => (
+        <span className="text-muted">
+          {r.sellsAt.map((kind) => t(KIND_LABEL[kind])).join(" + ")}
+          {r.shiftRule === "DAILY" ? ` · ${t("shifts.daily")}` : ""}
+        </span>
+      ),
     },
     {
       key: "locationId",

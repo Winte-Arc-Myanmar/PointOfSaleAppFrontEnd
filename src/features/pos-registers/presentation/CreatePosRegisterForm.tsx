@@ -23,7 +23,7 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { PrinterChecklist } from "@/features/kitchen-printers/presentation/PrinterChecklist";
 import { printersFor } from "@/features/kitchen-printers/presentation/printers-for";
-import { TillModeField } from "./TillModeField";
+import { PosDeviceSetupFields } from "./PosDeviceSetupFields";
 
 const NO_PRINTERS: string[] = [];
 
@@ -32,7 +32,8 @@ const schema = z.object({
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
   macAddress: z.string().min(1, "MAC address is required"),
-  mode: z.enum(["CASHIER", "ROOM"]),
+  sellsAt: z.array(z.enum(["BAR", "KTV", "SPA"])).min(1, "Pick at least one"),
+  shiftRule: z.enum(["PER_LOGIN", "DAILY"]),
   checkoutPrinterIds: z.array(z.string()),
   financePrinterIds: z.array(z.string()),
 });
@@ -44,7 +45,8 @@ const defaultValues: FormData = {
   locationId: "",
   name: "",
   macAddress: "",
-  mode: "CASHIER",
+  sellsAt: ["BAR", "KTV", "SPA"],
+  shiftRule: "PER_LOGIN",
   checkoutPrinterIds: [],
   financePrinterIds: [],
 };
@@ -85,6 +87,8 @@ export function CreatePosRegisterForm({
   );
 
   const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
+  const sellsAt = useWatch({ control: form.control, name: "sellsAt" });
+  const shiftRule = useWatch({ control: form.control, name: "shiftRule" });
   const checkoutPrinterIds = useWatch({ control: form.control, name: "checkoutPrinterIds" }) ?? NO_PRINTERS;
   const financePrinterIds = useWatch({ control: form.control, name: "financePrinterIds" }) ?? NO_PRINTERS;
   const printerOptions = useMemo(
@@ -102,7 +106,8 @@ export function CreatePosRegisterForm({
         locationId: data.locationId,
         name: data.name,
         macAddress: data.macAddress,
-        mode: data.mode,
+        sellsAt: data.sellsAt,
+        shiftRule: data.shiftRule,
         checkoutPrinterIds: data.checkoutPrinterIds,
         financePrinterIds: data.financePrinterIds,
       },
@@ -204,10 +209,12 @@ export function CreatePosRegisterForm({
         </div>
       </div>
 
-      <Controller
-        control={form.control}
-        name="mode"
-        render={({ field }) => <TillModeField value={field.value} onChange={field.onChange} />}
+      <PosDeviceSetupFields
+        sellsAt={sellsAt}
+        onSellsAtChange={(kinds) => form.setValue("sellsAt", kinds, { shouldDirty: true, shouldValidate: true })}
+        shiftRule={shiftRule}
+        onShiftRuleChange={(rule) => form.setValue("shiftRule", rule, { shouldDirty: true })}
+        error={form.formState.errors.sellsAt?.message}
       />
 
       <PrinterChecklist
