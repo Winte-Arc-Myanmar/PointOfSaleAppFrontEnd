@@ -316,6 +316,10 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/v1/spa-rooms/${id}`,
     READY: (id: string) => `/v1/spa-rooms/${id}/ready`,
   },
+  HOSTESSES: {
+    LIST: "/v1/hostesses",
+    BY_ID: (id: string) => `/v1/hostesses/${id}`,
+  },
   KTV_ROOMS: {
     LIST: "/v1/ktv-rooms",
     BY_ID: (id: string) => `/v1/ktv-rooms/${id}`,
@@ -579,6 +583,7 @@ export const API_ENDPOINTS = {
     BAR_CATEGORIES: "/v1/reports/bar-categories",
     SPA_MENU: "/v1/reports/spa-menu",
     KTV_SESSIONS: "/v1/reports/ktv-sessions",
+    HOSTESSES: "/v1/reports/hostesses",
   },
   /**
    * Standard AI connection (to be implemented on the backend).
