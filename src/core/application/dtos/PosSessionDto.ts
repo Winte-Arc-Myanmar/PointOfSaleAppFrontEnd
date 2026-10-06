@@ -10,6 +10,9 @@ export interface PosSessionDto {
   cashierId: string;
   register?: { name?: string | null } | null;
   cashier?: { fullName?: string | null } | null;
+  totalSales?: unknown;
+  netTotal?: unknown;
+  salesCount?: number;
   openedAt?: string | null;
   closedAt?: string | null;
   openingCashFloat: number;

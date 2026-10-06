@@ -65,37 +65,22 @@ export function getPosSessionTableColumns({
         ),
     },
     {
-      key: "openingCashFloat",
-      header: t("shifts.float"),
-      className: "min-w-[100px] text-right",
-      render: (s) => <span className="text-muted">{money(s.openingCashFloat)}</span>,
+      key: "salesCount",
+      header: t("shifts.salesCount"),
+      className: "min-w-[80px] text-right",
+      render: (s) => <span className="text-muted tabular-nums">{s.salesCount ?? 0}</span>,
     },
     {
-      key: "expectedClosingCash",
-      header: t("shifts.expected"),
-      className: "min-w-[100px] text-right",
-      render: (s) => <span className="text-muted">{s.status === "OPEN" ? "—" : money(s.expectedClosingCash)}</span>,
-    },
-    {
-      key: "actualClosingCash",
-      header: t("shifts.counted"),
-      className: "min-w-[100px] text-right",
-      render: (s) => <span className="text-muted">{money(s.actualClosingCash)}</span>,
-    },
-    {
-      key: "cashVariance",
-      header: t("shifts.difference"),
+      key: "totalSales",
+      header: t("shifts.sales"),
       className: "min-w-[110px] text-right",
-      render: (s) => {
-        const v = s.cashVariance;
-        if (v == null) return <span className="text-muted">—</span>;
-        if (v === 0) return <span className="text-muted">{t("shifts.exact")}</span>;
-        return (
-          <span className={v < 0 ? "font-medium text-red-600" : "font-medium text-amber-600"}>
-            {t(v < 0 ? "shifts.short" : "shifts.over")} {money(Math.abs(v))}
-          </span>
-        );
-      },
+      render: (s) => <span className="text-muted tabular-nums">{money(s.totalSales)}</span>,
+    },
+    {
+      key: "netTotal",
+      header: t("shifts.net"),
+      className: "min-w-[110px] text-right",
+      render: (s) => <span className="font-medium text-foreground tabular-nums">{money(s.netTotal)}</span>,
     },
   ];
 }
