@@ -10,14 +10,28 @@ export function useProductLabels() {
   const { formatPrice } = useCurrency();
 
   const priceWithUnit = (product: Product) => {
+    const price = formatPrice(product.basePrice);
+    if (product.soldBy !== "TIME") {
+      return product.kind === "RENTAL"
+        ? `${price} · ${t("addProduct.unitFixed")}`
+        : t("addProduct.perUnit").replace("{price}", price).replace("{unit}", t("addProduct.unitCall"));
+    }
+    const minutes = product.timeBlockMinutes ?? 60;
     const unit =
-      product.soldBy !== "TIME"
-        ? t("addProduct.unitCall")
-        : product.timeBlockMinutes === 30
-          ? t("addProduct.unitHalfHour")
-          : t("addProduct.unitHour");
-    return t("addProduct.perUnit").replace("{price}", formatPrice(product.basePrice)).replace("{unit}", unit);
+      minutes === 30
+        ? t("addProduct.unitHalfHour")
+        : minutes === 60
+          ? t("addProduct.unitHour")
+          : t("addProduct.unitHours").replace("{count}", String(minutes / 60));
+    return t("addProduct.perUnit").replace("{price}", price).replace("{unit}", unit);
   };
+
+  /** Short tags for how a charge works: on a clock, added by itself. */
+  const chargeTags = (product: Product) =>
+    [
+      product.chargeMode === "CLOCK" ? t("addProduct.clockTag") : null,
+      product.autoApply ? t("addProduct.autoTag") : null,
+    ].filter(Boolean) as string[];
 
   const placeKind = (product: Product) =>
     t(
@@ -40,5 +54,5 @@ export function useProductLabels() {
     );
   };
 
-  return { priceWithUnit, placeKind, placesOf };
+  return { priceWithUnit, placeKind, placesOf, chargeTags };
 }

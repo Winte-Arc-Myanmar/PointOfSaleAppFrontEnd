@@ -10,6 +10,8 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 export type ProductKind = "ITEM" | "SERVICE" | "RENTAL";
 export type SoldBy = "EACH" | "TIME";
 export type RentalPlace = "KTV_ROOM" | "SPA_ROOM" | "TABLE";
+/** PAY_FIRST: blocks paid up front. CLOCK: time runs until the bill closes. */
+export type ChargeMode = "PAY_FIRST" | "CLOCK";
 
 /** How a product is classified and sold. */
 export interface ProductTerms {
@@ -25,6 +27,10 @@ export interface ProductTerms {
   rentalPlaceIds: string[];
   /** SERVICE: the till asks which staff member gave it. */
   askWhoServed: boolean;
+  /** RENTAL sold by time: paid up front or on a running clock. */
+  chargeMode: ChargeMode | null;
+  /** RENTAL of tables or SPA rooms: added by itself when the place opens. */
+  autoApply: boolean;
 }
 
 export interface Product extends ProductTerms {
