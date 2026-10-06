@@ -31,9 +31,12 @@ import { useTenants } from "@/presentation/hooks/useTenants";
 import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 import { AvailabilityToggle } from "./AvailabilityToggle";
 import { cn } from "@/lib/utils";
-import type { ProductKind } from "@/core/domain/entities/Product";
 import type { PosType } from "@/core/domain/entities/PosReport";
-import { AREA_LABEL, KIND_LABEL, soldByLabel } from "./product-kind-text";
+import { AREA_LABEL } from "./product-kind-text";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
+import type { TranslationKey } from "@/presentation/i18n/translations";
+import type { DataTableColumn } from "@/presentation/components/data-table";
+import { useProductLabels } from "./quick/useProductLabels";
 
 const PAGE_SIZE = 16;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -81,13 +84,45 @@ function buildCategoryFamilyMap(categories: Category[]) {
 export const isMenuProduct = (p: Product) =>
   p.kind === "ITEM" || (p.kind === "SERVICE" && !p.askWhoServed && p.categoryName !== "Spa Packages");
 
-export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
+export const isHostessService = (p: Product) => p.kind === "SERVICE" && p.askWhoServed;
+export const isCharge = (p: Product) => p.kind === "RENTAL";
+
+/** One tab of Items & services: which products it shows and where its Add goes. */
+export type ProductScope = "menu" | "hostess" | "charges";
+
+const SCOPES: Record<
+  ProductScope,
+  { show: (p: Product) => boolean; addHref: string; addLabel: TranslationKey; empty: TranslationKey; note?: TranslationKey }
+> = {
+  menu: { show: isMenuProduct, addHref: "/products/new", addLabel: "addProduct.newMenu", empty: "addProduct.noMatch" },
+  hostess: {
+    show: isHostessService,
+    addHref: "/products/new/hostess",
+    addLabel: "addProduct.newHostess",
+    empty: "addProduct.emptyHostess",
+    note: "addProduct.hostessNote",
+  },
+  charges: {
+    show: isCharge,
+    addHref: "/products/new/rate",
+    addLabel: "addProduct.newRate",
+    empty: "addProduct.emptyCharges",
+    note: "addProduct.chargesNote",
+  },
+};
+
+export function ProductList({ scope }: { scope: ProductScope }) {
+  const config = SCOPES[scope];
+  const isMenu = scope === "menu";
+  const { t } = useLanguage();
+  const { priceWithUnit, placeKind, placesOf } = useProductLabels();
+  const [chargedBy, setChargedBy] = useState<"all" | "TIME" | "EACH">("all");
+  const [place, setPlace] = useState<"all" | "KTV_ROOM" | "SPA_ROOM" | "TABLE">("all");
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
   const [availability, setAvailability] = useState<"all" | "available" | "unavailable">("all");
-  const [kind, setKind] = useState<ProductKind | "all">("all");
   const [area, setArea] = useState<PosType | "all">("all");
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const { page, setPage, reset: resetPage, getTotalPages } = pagination;
@@ -141,9 +176,10 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
 
     const byAvailability = searchedProducts.filter(
       (p) =>
-        (!menuOnly || isMenuProduct(p)) &&
+        config.show(p) &&
+        (chargedBy === "all" || p.soldBy === chargedBy) &&
+        (place === "all" || p.rents === place) &&
         (availability === "all" || p.isAvailable === (availability === "available")) &&
-        (kind === "all" || p.kind === kind) &&
         (area === "all" || !p.soldAt.length || p.soldAt.includes(area)),
     );
 
@@ -155,7 +191,7 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
     return byAvailability.filter((p) =>
       allowedCategoryIds.has(String(p.categoryId)),
     );
-  }, [area, availability, categoryFamilyMap, kind, menuOnly, productsResult?.items, search, selectedCategoryId]);
+  }, [area, availability, categoryFamilyMap, chargedBy, config, place, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
     return flattenCategoryTree(categoryTree).map((category) => ({
@@ -180,15 +216,60 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
 
   useEffect(() => {
     resetPage(1);
-  }, [selectedCategoryId, availability, kind, area, resetPage]);
+  }, [selectedCategoryId, availability, area, chargedBy, place, resetPage]);
 
-  const columns = useMemo(
-    () =>
-      getProductTableColumns({
-        onView: (p) => router.push(`/products/${p.id}`),
-      }),
-    [router],
-  );
+  const columns = useMemo<DataTableColumn<Product>[]>(() => {
+    if (isMenu) return getProductTableColumns({ onView: (p) => router.push(`/products/${p.id}`) });
+    return [
+      {
+        key: "name",
+        header: t("addProduct.colName"),
+        render: (p) => (
+          <button
+            type="button"
+            className="text-left font-medium hover:text-mint"
+            onClick={() => router.push(`/products/${p.id}/edit`)}
+          >
+            {p.name}
+          </button>
+        ),
+      },
+      ...(scope === "charges"
+        ? [
+            {
+              key: "rents",
+              header: t("addProduct.colFor"),
+              render: (p: Product) => (
+                <span className="text-sm">
+                  {placeKind(p)} <span className="text-muted">· {placesOf(p)}</span>
+                </span>
+              ),
+            },
+          ]
+        : []),
+      {
+        key: "basePrice",
+        header: t("addProduct.colPrice"),
+        render: (p) => <span className="text-sm font-medium">{priceWithUnit(p)}</span>,
+      },
+      ...(scope === "charges"
+        ? [
+            {
+              key: "minimumBlocks",
+              header: t("addProduct.colMinimum"),
+              render: (p: Product) => <span className="text-sm">{p.minimumBlocks ?? 1}</span>,
+            },
+          ]
+        : []),
+      {
+        key: "isAvailable",
+        header: t("addProduct.available"),
+        render: (p) => (
+          <AvailabilityToggle productId={String(p.id)} productName={p.name} isAvailable={p.isAvailable} />
+        ),
+      },
+    ];
+  }, [isMenu, placeKind, placesOf, priceWithUnit, router, scope, t]);
 
   return (
     <EntityListWithCreateModal<Product>
@@ -198,20 +279,53 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
       isLoading={isLoading}
       loadingText="Loading products..."
       emptyText={
-        search.trim()
-          ? "No products match your search."
-          : selectedCategoryId !== "__all__" || availability !== "all" || kind !== "all" || area !== "all"
-            ? "No products match these filters."
-            : "No products yet."
+        search.trim() ||
+        selectedCategoryId !== "__all__" ||
+        availability !== "all" ||
+        area !== "all" ||
+        chargedBy !== "all" ||
+        place !== "all"
+          ? t("addProduct.noMatch")
+          : isMenu
+            ? "No products yet."
+            : t(config.empty)
       }
       topContent={
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mb-4 space-y-3">
+        {config.note ? <p className="max-w-3xl text-xs text-muted">{t(config.note)}</p> : null}
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search products..."
-            className="sm:w-[360px]"
+            placeholder={t("addProduct.search")}
+            className="sm:w-[300px]"
           />
+          {scope === "hostess" ? (
+            <Select value={chargedBy} onValueChange={(value) => setChargedBy(value as typeof chargedBy)}>
+              <SelectTrigger className="sm:w-[180px]">
+                <SelectValue placeholder={t("addProduct.chargedHow")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("addProduct.allOfThem")}</SelectItem>
+                <SelectItem value="TIME">{t("addProduct.perHour")}</SelectItem>
+                <SelectItem value="EACH">{t("addProduct.perCall")}</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : null}
+          {scope === "charges" ? (
+            <Select value={place} onValueChange={(value) => setPlace(value as typeof place)}>
+              <SelectTrigger className="sm:w-[220px]">
+                <SelectValue placeholder={t("addProduct.rentsWhat")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("addProduct.allOfThem")}</SelectItem>
+                <SelectItem value="KTV_ROOM">{t("addProduct.ktvRoom")}</SelectItem>
+                <SelectItem value="SPA_ROOM">{t("addProduct.spaRoom")}</SelectItem>
+                <SelectItem value="TABLE">{t("addProduct.tableOrRoom")}</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : null}
+          {isMenu ? (
           <Select
             value={selectedCategoryId}
             onValueChange={setSelectedCategoryId}
@@ -228,6 +342,7 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
               ))}
             </SelectContent>
           </Select>
+          ) : null}
           <Select
             value={availability}
             onValueChange={(value) => setAvailability(value as typeof availability)}
@@ -236,26 +351,12 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
               <SelectValue placeholder="Availability" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All items</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="unavailable">Unavailable</SelectItem>
+              <SelectItem value="all">{t("addProduct.allAvailability")}</SelectItem>
+              <SelectItem value="available">{t("addProduct.available")}</SelectItem>
+              <SelectItem value="unavailable">{t("addProduct.unavailable")}</SelectItem>
             </SelectContent>
           </Select>
-          {menuOnly ? null : (
-          <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
-            <SelectTrigger className="sm:w-[160px]">
-              <SelectValue placeholder="Kind" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All kinds</SelectItem>
-              {(Object.keys(KIND_LABEL) as ProductKind[]).map((k) => (
-                <SelectItem key={k} value={k}>
-                  {KIND_LABEL[k]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          )}
+          {isMenu ? (
           <Select value={area} onValueChange={(value) => setArea(value as typeof area)}>
             <SelectTrigger className="sm:w-[190px]">
               <SelectValue placeholder="Sold at" />
@@ -269,6 +370,8 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
               ))}
             </SelectContent>
           </Select>
+          ) : null}
+        </div>
         </div>
       }
       error={
@@ -286,18 +389,18 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
       onPageChange={setPage}
       toolbarEndContent={
         <div className="flex items-center gap-2">
-          <ExcelTransferButtons kind="products" />
-          <Link href="/products/new">
+          {isMenu ? <ExcelTransferButtons kind="products" /> : null}
+          <Link href={config.addHref}>
             <Button>
               <Plus className="mr-1 h-4 w-4" />
-              Add Product
+              {t(config.addLabel)}
             </Button>
           </Link>
         </div>
       }
       createEnabled={false}
       enableGridView
-      showViewModeToggle={false}
+      showViewModeToggle
       defaultViewMode="grid"
       gridClassName="grid-cols-1 justify-items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
       gridCardClassName="w-full max-w-[210px] rounded-xl border border-border bg-background/90 p-0 shadow-sm"
@@ -321,13 +424,14 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
 
             <div className="flex flex-1 flex-col p-2.5">
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
-                {product.categoryName ?? "Uncategorized"}
+                {isMenu
+                  ? (product.categoryName ?? "Uncategorized")
+                  : scope === "charges"
+                    ? placeKind(product)
+                    : t("addProduct.hostessTab")}
               </p>
-              {product.kind !== "ITEM" ? (
-                <p className="mt-1 text-[11px] font-medium text-mint">
-                  {KIND_LABEL[product.kind]}
-                  {product.soldBy === "TIME" ? ` · ${soldByLabel(product)}` : ""}
-                </p>
+              {scope === "charges" ? (
+                <p className="mt-1 text-[11px] font-medium text-mint">{placesOf(product)}</p>
               ) : null}
               <button
                 type="button"
@@ -337,10 +441,9 @@ export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
                 {product.name}
               </button>
               <p className="mt-1.5 text-sm font-semibold text-foreground">
-                {formatPrice(
-                  product.basePrice,
-                  currencyByTenantId.get(String(product.tenantId)) ?? "MMK",
-                )}
+                {isMenu
+                  ? formatPrice(product.basePrice, currencyByTenantId.get(String(product.tenantId)) ?? "MMK")
+                  : priceWithUnit(product)}
               </p>
               <div className="mt-auto pt-2">
                 <AvailabilityToggle
