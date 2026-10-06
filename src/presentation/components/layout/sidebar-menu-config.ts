@@ -49,6 +49,7 @@ import {
   Ticket,
   Truck,
   TvMinimal,
+  MicVocal,
   Upload,
   UserCog,
   UserRound,
@@ -131,6 +132,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.ktvRooms",
         icon: TvMinimal,
         permissions: ["hospitality:ktv-room:read"],
+      },
+      {
+        href: "/hostesses",
+        labelKey: "nav.hostesses",
+        icon: MicVocal,
+        permissions: ["hospitality:hostess:read"],
       },
       {
         href: "/spa-packages",

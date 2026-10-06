@@ -155,3 +155,36 @@ export interface KtvSessionReport {
   byRoom: KtvRoomSummary[];
   sessions: KtvSessionRow[];
 }
+
+export interface HostessCallRow {
+  businessDate: string;
+  soldAt: string;
+  orderNumber: string;
+  roomNumber: string | null;
+  hostessId: string;
+  hostessName: string;
+  nickname: string | null;
+  service: string;
+  quantity: string;
+  hours: string;
+  free: boolean;
+  netSales: string;
+}
+
+export interface HostessSummary {
+  hostessId: string;
+  hostessName: string;
+  nickname: string | null;
+  calls: number;
+  freeCalls: number;
+  hours: string;
+  netSales: string;
+}
+
+export interface HostessReport {
+  from: string;
+  to: string;
+  totals: { calls: number; hostesses: number; hours: string; netSales: string };
+  byHostess: HostessSummary[];
+  calls: HostessCallRow[];
+}
