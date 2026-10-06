@@ -19,6 +19,7 @@ import type { TranslationKey } from "@/presentation/i18n/translations";
 const routeTitles: Record<string, string> = {
   "/venue-setup": "Venue setup",
   "/ktv-rooms": "KTV rooms",
+  "/hostesses": "Hostesses",
   "/spa-packages": "SPA packages",
   "/spa-rooms": "SPA rooms",
   "/products": "Products",
@@ -103,6 +104,7 @@ function getTitle(pathname: string): string {
     return "Edit section";
   if (pathname.startsWith("/sections/")) return "Section";
   if (pathname.startsWith("/ktv-rooms/")) return "Edit KTV room";
+  if (pathname.startsWith("/hostesses/")) return "Edit hostess";
   if (pathname.startsWith("/spa-packages/")) return "Edit SPA package";
   if (pathname.startsWith("/spa-rooms/")) return "Edit SPA room";
   if (pathname.startsWith("/kitchen-printers/") && pathname.endsWith("/edit"))
