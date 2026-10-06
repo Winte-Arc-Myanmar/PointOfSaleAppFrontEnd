@@ -30,7 +30,7 @@ import type { Product } from "@/core/domain/entities/Product";
 import type { PosType } from "@/core/domain/entities/PosReport";
 import { ProductImageField } from "../ProductImageField";
 import { PlacePicker } from "../ProductKindFields";
-import { autoSku, pickUom, quickTerms, type QuickType } from "./quick-product";
+import { autoSku, pickUom, quickTerms, TAB_OF, type QuickType } from "./quick-product";
 
 const NONE = "__none__";
 
@@ -87,7 +87,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const [taxRateId, setTaxRateId] = useState(product?.taxRateId ?? "");
   const [soldAt, setSoldAt] = useState<PosType[]>(product?.soldAt ?? []);
   const [perHour, setPerHour] = useState(product ? product.soldBy === "TIME" : true);
-  const [rents, setRents] = useState<"KTV_ROOM" | "TABLE">(product?.rents === "TABLE" ? "TABLE" : "KTV_ROOM");
+  const [rents, setRents] = useState<"KTV_ROOM" | "SPA_ROOM" | "TABLE">(product?.rents ?? "KTV_ROOM");
   const [placeIds, setPlaceIds] = useState<string[]>(product?.rentalPlaceIds ?? []);
   const [blockMinutes, setBlockMinutes] = useState(product?.timeBlockMinutes ?? 60);
   const [minimumBlocks, setMinimumBlocks] = useState(String(product?.minimumBlocks ?? 1));
@@ -148,7 +148,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     const done = {
       onSuccess: () => {
         toast.success(t("addProduct.saved"));
-        router.push("/products");
+        router.push(TAB_OF[type]);
       },
       onError: (error: unknown) => toast.error(apiErrorMessage(error, t("addProduct.couldNotSave"))),
     };
@@ -161,7 +161,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   return (
     <form onSubmit={submit} className="max-w-2xl space-y-6" noValidate>
       <div className="flex items-center gap-4">
-        <Link href={product ? "/products" : "/products/new"}>
+        <Link href={TAB_OF[type]}>
           <Button type="button" variant="ghost" size="icon" aria-label={t("addProduct.back")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -242,7 +242,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
           <div className="space-y-2">
             <p className="text-sm font-medium">{t("addProduct.rentsWhat")}</p>
             <div className="flex flex-wrap gap-2">
-              {(["KTV_ROOM", "TABLE"] as const).map((place) => (
+              {(["KTV_ROOM", "SPA_ROOM", "TABLE"] as const).map((place) => (
                 <Choice
                   key={place}
                   selected={rents === place}
@@ -251,14 +251,26 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
                     setRents(place);
                   }}
                 >
-                  {t(place === "KTV_ROOM" ? "addProduct.ktvRoom" : "addProduct.table")}
+                  {t(
+                    place === "KTV_ROOM"
+                      ? "addProduct.ktvRoom"
+                      : place === "SPA_ROOM"
+                        ? "addProduct.spaRoom"
+                        : "addProduct.tableOrRoom",
+                  )}
                 </Choice>
               ))}
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">
-              {t(rents === "KTV_ROOM" ? "addProduct.whichRooms" : "addProduct.whichTables")}
+              {t(
+                rents === "KTV_ROOM"
+                  ? "addProduct.whichRooms"
+                  : rents === "SPA_ROOM"
+                    ? "addProduct.whichSpaRooms"
+                    : "addProduct.whichTables",
+              )}
             </p>
             <PlacePicker rents={rents} tenantId={tenant} value={placeIds} onChange={setPlaceIds} />
           </div>
@@ -347,7 +359,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
           {isSaving ? t("addProduct.saving") : t("addProduct.save")}
         </Button>
         <Link
-          href={product ? `/products/${product.id}/edit/advanced` : "/products/new/advanced"}
+          href={product ? `/products/${product.id}/edit/advanced` : `/products/new/advanced`}
           className="text-sm text-muted underline"
         >
           {t("addProduct.advanced")}
