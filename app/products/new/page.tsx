@@ -1,10 +1,10 @@
 import { Shell } from "@/presentation/components/layout/Shell";
-import { AddProductChooser } from "@/features/products/presentation/quick/AddProductChooser";
+import { QuickProductForm } from "@/features/products/presentation/quick/QuickProductForm";
 
 export default function NewProductPage() {
   return (
     <Shell>
-      <AddProductChooser />
+      <QuickProductForm type="menu" />
     </Shell>
   );
 }
