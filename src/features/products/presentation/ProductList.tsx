@@ -21,7 +21,9 @@ import { useCategoryTree } from "@/presentation/hooks/useCategories";
 import { ExcelTransferButtons } from "@/presentation/components/excel/ExcelTransferButtons";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getProductTableColumns } from "./product-table-columns";
-import { CreateProductForm } from "./CreateProductForm";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { Button } from "@/presentation/components/ui/button";
 import type { Product } from "@/core/domain/entities/Product";
 import type { Category } from "@/core/domain/entities/Category";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
@@ -33,7 +35,6 @@ import type { ProductKind } from "@/core/domain/entities/Product";
 import type { PosType } from "@/core/domain/entities/PosReport";
 import { AREA_LABEL, KIND_LABEL, soldByLabel } from "./product-kind-text";
 
-const CREATE_PRODUCT_FORM_ID = "create-product-form";
 const PAGE_SIZE = 16;
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -276,13 +277,18 @@ export function ProductList() {
       totalPages={getTotalPages(filteredProducts.length)}
       totalItems={filteredProducts.length}
       onPageChange={setPage}
-      toolbarEndContent={<ExcelTransferButtons kind="products" />}
-      addLabel="Add Product"
-      createTitle="Create Product"
-      createSubmitText="Create Product"
-      createLoadingText="Creating..."
-      createFormId={CREATE_PRODUCT_FORM_ID}
-      createMaxWidth="2xl"
+      toolbarEndContent={
+        <div className="flex items-center gap-2">
+          <ExcelTransferButtons kind="products" />
+          <Link href="/products/new">
+            <Button>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Product
+            </Button>
+          </Link>
+        </div>
+      }
+      createEnabled={false}
       enableGridView
       showViewModeToggle={false}
       defaultViewMode="grid"
@@ -355,13 +361,6 @@ export function ProductList() {
           onError: () => toast.error("Failed to delete product."),
         });
       }}
-      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
-        <CreateProductForm
-          formId={formId}
-          onSuccess={onSuccess}
-          onLoadingChange={onLoadingChange}
-        />
-      )}
     />
   );
 }
