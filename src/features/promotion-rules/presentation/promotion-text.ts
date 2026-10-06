@@ -48,16 +48,21 @@ export function scheduleLabel(rule: PromotionRule): string {
 }
 
 export function discountLabel(
-  rule: Pick<PromotionRule, "discountType" | "discountValue">,
+  rule: Pick<PromotionRule, "discountType" | "discountValue" | "buyUnits" | "freeUnits">,
   formatPrice: (value: number) => string,
 ): string {
+  if (rule.discountType === "FREE_TIME") {
+    return `Buy ${rule.buyUnits ?? 1}, get ${rule.freeUnits ?? 1} free`;
+  }
   return rule.discountType === "PERCENT_OFF"
     ? `${rule.discountValue}% off`
     : `${formatPrice(rule.discountValue)} off each`;
 }
 
 export function scopeLabel(rule: PromotionRule, categoryName: (id: string) => string): string {
-  if (rule.appliesTo === "ALL_ITEMS") return "Whole menu";
+  if (rule.appliesTo === "ALL_ITEMS") {
+    return rule.discountType === "FREE_TIME" ? "Everything sold by time" : "Everything except rentals";
+  }
   if (rule.appliesTo === "CATEGORIES") {
     return rule.categoryIds.map(categoryName).join(", ") || "No categories";
   }

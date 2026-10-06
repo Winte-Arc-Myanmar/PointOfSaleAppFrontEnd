@@ -100,6 +100,14 @@ export function toProduct(dto: ProductDtoRaw): Product {
       dto.taxRate?.isPriceInclusive != null
         ? Boolean(dto.taxRate.isPriceInclusive)
         : undefined,
+    kind: dto.kind ?? "ITEM",
+    soldAt: dto.soldAt ?? [],
+    soldBy: dto.soldBy ?? "EACH",
+    timeBlockMinutes: dto.timeBlockMinutes ?? null,
+    minimumBlocks: dto.minimumBlocks ?? null,
+    rents: dto.rents ?? null,
+    rentalPlaceIds: dto.rentalPlaceIds ?? [],
+    askWhoServed: dto.askWhoServed ?? false,
     deletedAt: dto.deletedAt ?? undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,

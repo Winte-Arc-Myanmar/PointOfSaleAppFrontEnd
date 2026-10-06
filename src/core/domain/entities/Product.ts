@@ -4,8 +4,30 @@
  */
 
 import type { Id } from "@/core/domain/types";
+import type { PosType } from "@/core/domain/entities/PosReport";
 
-export interface Product {
+/** Goods, something a person does, or the use of a place. */
+export type ProductKind = "ITEM" | "SERVICE" | "RENTAL";
+export type SoldBy = "EACH" | "TIME";
+export type RentalPlace = "KTV_ROOM" | "SPA_ROOM" | "TABLE";
+
+/** How a product is classified and sold. */
+export interface ProductTerms {
+  kind: ProductKind;
+  /** POS areas it is sold at; empty means every area. */
+  soldAt: PosType[];
+  soldBy: SoldBy;
+  /** TIME: minutes one unit buys (60 = per hour) and the fewest units sold. */
+  timeBlockMinutes: number | null;
+  minimumBlocks: number | null;
+  /** RENTAL: the kind of place, and which of them; empty means all. */
+  rents: RentalPlace | null;
+  rentalPlaceIds: string[];
+  /** SERVICE: the till asks which staff member gave it. */
+  askWhoServed: boolean;
+}
+
+export interface Product extends ProductTerms {
   id: Id;
   name: string;
   tenantId: string;

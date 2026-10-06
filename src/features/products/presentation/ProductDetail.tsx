@@ -37,6 +37,7 @@ import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { AvailabilityToggle } from "./AvailabilityToggle";
+import { KIND_LABEL, PLACE_LABEL, soldAtLabel, soldByLabel } from "./product-kind-text";
 
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
@@ -104,6 +105,28 @@ export function ProductDetail({ productId }: { productId: string }) {
             />
           ),
         },
+        { label: "Kind", value: KIND_LABEL[product.kind] },
+        { label: "Sold at", value: soldAtLabel(product.soldAt) },
+        {
+          label: "Sold by",
+          value:
+            product.soldBy === "TIME" && (product.minimumBlocks ?? 1) > 1
+              ? `${soldByLabel(product)}, at least ${product.minimumBlocks}`
+              : soldByLabel(product),
+        },
+        ...(product.rents
+          ? [
+              {
+                label: "Rents",
+                value: product.rentalPlaceIds.length
+                  ? `${product.rentalPlaceIds.length} chosen ${PLACE_LABEL[product.rents]}${product.rentalPlaceIds.length === 1 ? "" : "s"}`
+                  : `Every ${PLACE_LABEL[product.rents]}`,
+              },
+            ]
+          : []),
+        ...(product.kind === "SERVICE"
+          ? [{ label: "Ask who served", value: product.askWhoServed ? "Yes" : "No" }]
+          : []),
         { label: "Tracking type", value: safeText(product.trackingType) },
         { label: "Tenant ID", value: safeText(product.tenantId), mono: true },
       ]

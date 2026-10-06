@@ -29,6 +29,9 @@ import { useTenants } from "@/presentation/hooks/useTenants";
 import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
 import { AvailabilityToggle } from "./AvailabilityToggle";
 import { cn } from "@/lib/utils";
+import type { ProductKind } from "@/core/domain/entities/Product";
+import type { PosType } from "@/core/domain/entities/PosReport";
+import { AREA_LABEL, KIND_LABEL, soldByLabel } from "./product-kind-text";
 
 const CREATE_PRODUCT_FORM_ID = "create-product-form";
 const PAGE_SIZE = 16;
@@ -79,6 +82,8 @@ export function ProductList() {
   const [search, setSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
   const [availability, setAvailability] = useState<"all" | "available" | "unavailable">("all");
+  const [kind, setKind] = useState<ProductKind | "all">("all");
+  const [area, setArea] = useState<PosType | "all">("all");
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const { page, setPage, reset: resetPage, getTotalPages } = pagination;
   const {
@@ -129,10 +134,12 @@ export function ProductList() {
             .includes(q),
         );
 
-    const byAvailability =
-      availability === "all"
-        ? searchedProducts
-        : searchedProducts.filter((p) => p.isAvailable === (availability === "available"));
+    const byAvailability = searchedProducts.filter(
+      (p) =>
+        (availability === "all" || p.isAvailable === (availability === "available")) &&
+        (kind === "all" || p.kind === kind) &&
+        (area === "all" || !p.soldAt.length || p.soldAt.includes(area)),
+    );
 
     if (selectedCategoryId === "__all__") return byAvailability;
 
@@ -142,7 +149,7 @@ export function ProductList() {
     return byAvailability.filter((p) =>
       allowedCategoryIds.has(String(p.categoryId)),
     );
-  }, [availability, categoryFamilyMap, productsResult?.items, search, selectedCategoryId]);
+  }, [area, availability, categoryFamilyMap, kind, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
     return flattenCategoryTree(categoryTree).map((category) => ({
@@ -167,7 +174,7 @@ export function ProductList() {
 
   useEffect(() => {
     resetPage(1);
-  }, [selectedCategoryId, availability, resetPage]);
+  }, [selectedCategoryId, availability, kind, area, resetPage]);
 
   const columns = useMemo(
     () =>
@@ -187,7 +194,7 @@ export function ProductList() {
       emptyText={
         search.trim()
           ? "No products match your search."
-          : selectedCategoryId !== "__all__" || availability !== "all"
+          : selectedCategoryId !== "__all__" || availability !== "all" || kind !== "all" || area !== "all"
             ? "No products match these filters."
             : "No products yet."
       }
@@ -226,6 +233,32 @@ export function ProductList() {
               <SelectItem value="all">All items</SelectItem>
               <SelectItem value="available">Available</SelectItem>
               <SelectItem value="unavailable">Unavailable</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
+            <SelectTrigger className="sm:w-[160px]">
+              <SelectValue placeholder="Kind" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All kinds</SelectItem>
+              {(Object.keys(KIND_LABEL) as ProductKind[]).map((k) => (
+                <SelectItem key={k} value={k}>
+                  {KIND_LABEL[k]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={area} onValueChange={(value) => setArea(value as typeof area)}>
+            <SelectTrigger className="sm:w-[190px]">
+              <SelectValue placeholder="Sold at" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Sold anywhere</SelectItem>
+              {(Object.keys(AREA_LABEL) as PosType[]).map((a) => (
+                <SelectItem key={a} value={a}>
+                  {AREA_LABEL[a]}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -277,6 +310,12 @@ export function ProductList() {
               <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
                 {product.categoryName ?? "Uncategorized"}
               </p>
+              {product.kind !== "ITEM" ? (
+                <p className="mt-1 text-[11px] font-medium text-mint">
+                  {KIND_LABEL[product.kind]}
+                  {product.soldBy === "TIME" ? ` · ${soldByLabel(product)}` : ""}
+                </p>
+              ) : null}
               <button
                 type="button"
                 className="mt-1 line-clamp-2 text-left text-[13px] font-semibold leading-snug text-foreground transition-colors hover:text-mint"
