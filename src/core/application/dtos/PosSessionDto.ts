@@ -8,6 +8,11 @@ export interface PosSessionDto {
   tenantId: string;
   registerId: string;
   cashierId: string;
+  register?: { name?: string | null } | null;
+  cashier?: { fullName?: string | null } | null;
+  totalSales?: unknown;
+  netTotal?: unknown;
+  salesCount?: number;
   openedAt?: string | null;
   closedAt?: string | null;
   openingCashFloat: number;
@@ -19,7 +24,7 @@ export interface PosSessionDto {
 }
 
 export interface ClosePosSessionRequestDto {
-  actualClosingCash: number;
+  actualClosingCash?: number;
 }
 
 export interface PosSessionPaymentBreakdownItemDto {

@@ -109,7 +109,9 @@ export class ApiPosSessionRepository implements IPosSessionRepository {
   async close(id: string, data: ClosePosSessionRequestDto): Promise<PosSessionSummary> {
     const dto = await this.httpClient.post<PosSessionSummaryDto>(
       API_ENDPOINTS.POS_SESSIONS.CLOSE(id),
-      { actualClosingCash: toApiDecimalStringFixed4((data as any).actualClosingCash) }
+      data.actualClosingCash == null
+        ? {}
+        : { actualClosingCash: toApiDecimalStringFixed4(data.actualClosingCash) }
     );
     return toPosSessionSummary(dto as any);
   }

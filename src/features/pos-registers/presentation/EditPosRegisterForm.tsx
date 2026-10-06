@@ -27,6 +27,7 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { PrinterChecklist } from "@/features/kitchen-printers/presentation/PrinterChecklist";
 import { printersFor } from "@/features/kitchen-printers/presentation/printers-for";
+import { PosDeviceSetupFields } from "./PosDeviceSetupFields";
 
 const NO_PRINTERS: string[] = [];
 
@@ -35,6 +36,8 @@ const schema = z.object({
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
   macAddress: z.string().min(1, "MAC address is required"),
+  sellsAt: z.array(z.enum(["BAR", "KTV", "SPA"])).min(1, "Pick at least one"),
+  shiftRule: z.enum(["PER_LOGIN", "DAILY"]),
   checkoutPrinterIds: z.array(z.string()),
   financePrinterIds: z.array(z.string()),
 });
@@ -63,6 +66,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
       locationId: "",
       name: "",
       macAddress: "",
+      sellsAt: ["BAR", "KTV", "SPA"],
+      shiftRule: "PER_LOGIN",
       checkoutPrinterIds: [],
       financePrinterIds: [],
     },
@@ -75,6 +80,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
         locationId: reg.locationId,
         name: reg.name,
         macAddress: reg.macAddress,
+        sellsAt: reg.sellsAt,
+        shiftRule: reg.shiftRule,
         checkoutPrinterIds: reg.checkoutPrinterIds,
         financePrinterIds: reg.financePrinterIds,
       });
@@ -88,6 +95,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
   );
 
   const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
+  const sellsAt = useWatch({ control: form.control, name: "sellsAt" });
+  const shiftRule = useWatch({ control: form.control, name: "shiftRule" });
   const checkoutPrinterIds = useWatch({ control: form.control, name: "checkoutPrinterIds" }) ?? NO_PRINTERS;
   const financePrinterIds = useWatch({ control: form.control, name: "financePrinterIds" }) ?? NO_PRINTERS;
   const printerOptions = useMemo(
@@ -108,6 +117,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
           locationId: data.locationId,
           name: data.name,
           macAddress: data.macAddress,
+          sellsAt: data.sellsAt,
+          shiftRule: data.shiftRule,
           checkoutPrinterIds: data.checkoutPrinterIds,
           financePrinterIds: data.financePrinterIds,
         },
@@ -222,6 +233,14 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
           </p>
         )}
         {update.isError && <p className="text-sm text-red-600">Failed to update POS register.</p>}
+
+      <PosDeviceSetupFields
+        sellsAt={sellsAt}
+        onSellsAtChange={(kinds) => form.setValue("sellsAt", kinds, { shouldDirty: true, shouldValidate: true })}
+        shiftRule={shiftRule}
+        onShiftRuleChange={(rule) => form.setValue("shiftRule", rule, { shouldDirty: true })}
+        error={form.formState.errors.sellsAt?.message}
+      />
 
       <PrinterChecklist
           label="Checkout printers"
