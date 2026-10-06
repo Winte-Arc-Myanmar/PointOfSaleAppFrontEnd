@@ -17,7 +17,7 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
 
 const routeTitles: Record<string, string> = {
-  "/venue-setup": "Venue setup",
+  "/venue-setup": "Shop settings",
   "/ktv-rooms": "KTV rooms",
   "/hostesses": "Hostesses",
   "/spa-packages": "SPA packages",
@@ -244,6 +244,15 @@ function getTitle(pathname: string): string {
   return routeTitles[pathname] ?? "";
 }
 
+/** Pages whose header follows the chosen language. */
+const translatedTitles: Record<string, TranslationKey> = {
+  "/venue-setup": "nav.venueSetup",
+  "/products/new": "addProduct.chooseTitle",
+  "/products/new/menu": "addProduct.newMenu",
+  "/products/new/hostess": "addProduct.newHostess",
+  "/products/new/rate": "addProduct.newRate",
+};
+
 interface ShellProps {
   children: ReactNode;
 }
@@ -283,7 +292,7 @@ export function Shell({ children }: ShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openTabs, setOpenTabs] = useState<MenuTabItem[]>([]);
   const [tabsLoaded, setTabsLoaded] = useState(false);
-  const title = getTitle(pathname);
+  const title = translatedTitles[pathname] ? t(translatedTitles[pathname]) : getTitle(pathname);
   const activeMenu = useMemo(() => getMenuBase(pathname), [pathname]);
 
   useEffect(() => {
