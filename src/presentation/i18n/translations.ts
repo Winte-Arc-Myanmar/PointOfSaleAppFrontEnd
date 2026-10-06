@@ -276,6 +276,11 @@ export const translations = {
       remove: "Remove",
       removeConfirm: "Remove {name}? Past bills keep it.",
       removed: "Removed.",
+      search: "Search...",
+      allAvailability: "Available or not",
+      available: "Available",
+      unavailable: "Not available",
+      noMatch: "Nothing matches your search or filters.",
     },
     shopSettings: {
       description: "How your shop runs its rooms and takes payment. Changes show on the POS and room tablets straight away.",
@@ -608,6 +613,11 @@ export const translations = {
       remove: "ဖယ်ရှားမည်",
       removeConfirm: "{name} ကို ဖယ်ရှားမလား? ယခင် ဘေလ်များတွင် ဆက်ရှိနေပါမည်။",
       removed: "ဖယ်ရှားပြီးပါပြီ။",
+      search: "ရှာရန်...",
+      allAvailability: "ရနိုင်/မရနိုင် အားလုံး",
+      available: "ရနိုင်သည်",
+      unavailable: "မရနိုင်ပါ",
+      noMatch: "ရှာဖွေမှု သို့မဟုတ် စစ်ထုတ်မှုနှင့် ကိုက်ညီသည် မရှိပါ။",
     },
     shopSettings: {
       description: "ဆိုင်က အခန်းများကို ဘယ်လို လည်ပတ်ပြီး ငွေ ဘယ်လို ကောက်သလဲ။ ပြောင်းလဲမှုများ POS နှင့် အခန်း Tablet တွင် ချက်ချင်း ပေါ်ပါမည်။",
