@@ -247,8 +247,8 @@ function getTitle(pathname: string): string {
 /** Pages whose header follows the chosen language. */
 const translatedTitles: Record<string, TranslationKey> = {
   "/venue-setup": "nav.venueSetup",
-  "/products/new": "addProduct.chooseTitle",
-  "/products/new/menu": "addProduct.newMenu",
+  "/products": "nav.products",
+  "/products/new": "addProduct.newMenu",
   "/products/new/hostess": "addProduct.newHostess",
   "/products/new/rate": "addProduct.newRate",
 };

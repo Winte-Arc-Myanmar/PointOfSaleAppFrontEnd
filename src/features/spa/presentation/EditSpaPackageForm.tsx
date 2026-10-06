@@ -23,7 +23,7 @@ export function EditSpaPackageForm({ packageId }: { packageId: string }) {
     return (
       <div className="space-y-4">
         <p className="text-red-500">{apiErrorMessage(error, "Package not found.")}</p>
-        <Link href="/spa-packages">
+        <Link href="/products?tab=spa">
           <Button variant="outline">Back to SPA packages</Button>
         </Link>
       </div>
@@ -33,7 +33,7 @@ export function EditSpaPackageForm({ packageId }: { packageId: string }) {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/spa-packages">
+        <Link href="/products?tab=spa">
           <Button variant="ghost" size="icon" aria-label="Back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -51,7 +51,7 @@ export function EditSpaPackageForm({ packageId }: { packageId: string }) {
             {
               onSuccess: () => {
                 toast.success("Package saved.");
-                router.push("/spa-packages");
+                router.push("/products?tab=spa");
               },
               onError: (err) => toast.error(apiErrorMessage(err, "Couldn't save the package.")),
             },
@@ -62,7 +62,7 @@ export function EditSpaPackageForm({ packageId }: { packageId: string }) {
         <Button type="submit" form={FORM_ID} disabled={update.isPending}>
           {update.isPending ? "Saving..." : "Save changes"}
         </Button>
-        <Link href="/spa-packages">
+        <Link href="/products?tab=spa">
           <Button type="button" variant="outline">
             Cancel
           </Button>
