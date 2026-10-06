@@ -108,6 +108,8 @@ export function toProduct(dto: ProductDtoRaw): Product {
     rents: dto.rents ?? null,
     rentalPlaceIds: dto.rentalPlaceIds ?? [],
     askWhoServed: dto.askWhoServed ?? false,
+    chargeMode: dto.chargeMode ?? null,
+    autoApply: dto.autoApply ?? false,
     deletedAt: dto.deletedAt ?? undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,

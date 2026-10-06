@@ -90,6 +90,15 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const [rents, setRents] = useState<"KTV_ROOM" | "SPA_ROOM" | "TABLE">(product?.rents ?? "KTV_ROOM");
   const [placeIds, setPlaceIds] = useState<string[]>(product?.rentalPlaceIds ?? []);
   const [blockMinutes, setBlockMinutes] = useState(product?.timeBlockMinutes ?? 60);
+  const [mode, setMode] = useState<"PAY_FIRST" | "CLOCK" | "FIXED">(
+    product?.kind === "RENTAL" && product.soldBy === "EACH"
+      ? "FIXED"
+      : product?.chargeMode === "CLOCK"
+        ? "CLOCK"
+        : "PAY_FIRST",
+  );
+  const [autoApply, setAutoApply] = useState(product?.autoApply ?? false);
+  const isSession = blockMinutes !== 30 && blockMinutes !== 60;
   const [minimumBlocks, setMinimumBlocks] = useState(String(product?.minimumBlocks ?? 1));
   const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
 
@@ -122,6 +131,8 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
       rentalPlaceIds: placeIds,
       blockMinutes,
       minimumBlocks: Number(minimumBlocks) || 1,
+      mode,
+      autoApply,
     });
     const shared = {
       name: name.trim(),
@@ -202,7 +213,11 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
         </div>
         <div className="grid gap-1">
           <Label htmlFor="quick-price">
-            {type === "menu" || (type === "hostess" && !perHour) ? t("addProduct.price") : t("addProduct.pricePerHour")}
+            {type === "menu" || (type === "hostess" && !perHour) || (type === "rate" && mode === "FIXED")
+              ? t("addProduct.price")
+              : type === "rate" && blockMinutes !== 60
+                ? `${t("addProduct.price")} / ${blockMinutes === 30 ? t("addProduct.unitHalfHour") : t("addProduct.unitHours").replace("{count}", String(blockMinutes / 60))}`
+                : t("addProduct.pricePerHour")}
           </Label>
           <Input
             id="quick-price"
@@ -274,17 +289,68 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
             </p>
             <PlacePicker rents={rents} tenantId={tenant} value={placeIds} onChange={setPlaceIds} />
           </div>
+          {rents !== "KTV_ROOM" ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{t("addProduct.chargedHow")}</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {(
+                  [
+                    ["PAY_FIRST", "addProduct.payFirst", "addProduct.payFirstHint"],
+                    ["CLOCK", "addProduct.runningClock", "addProduct.runningClockHint"],
+                    ["FIXED", "addProduct.fixedFee", "addProduct.fixedFeeHint"],
+                  ] as const
+                ).map(([value, title, hint]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={mode === value}
+                    onClick={() => {
+                      setMode(value);
+                      if (value !== "PAY_FIRST" && isSession) setBlockMinutes(60);
+                    }}
+                    className={cn(
+                      "rounded-lg border p-3 text-left",
+                      mode === value ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+                    )}
+                  >
+                    <span className="block text-sm font-medium">{t(title)}</span>
+                    <span className="block text-xs text-muted">{t(hint)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {mode !== "FIXED" || rents === "KTV_ROOM" ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <p className="text-sm font-medium">{t("addProduct.chargeEvery")}</p>
               <div className="flex flex-wrap gap-2">
-                <Choice selected={blockMinutes === 60} onClick={() => setBlockMinutes(60)}>
-                  {t("addProduct.perHour")}
-                </Choice>
                 <Choice selected={blockMinutes === 30} onClick={() => setBlockMinutes(30)}>
                   {t("addProduct.perHalfHour")}
                 </Choice>
+                <Choice selected={blockMinutes === 60} onClick={() => setBlockMinutes(60)}>
+                  {t("addProduct.perHour")}
+                </Choice>
+                {mode === "PAY_FIRST" || rents === "KTV_ROOM" ? (
+                  <Choice selected={isSession} onClick={() => setBlockMinutes(180)}>
+                    {t("addProduct.session")}
+                  </Choice>
+                ) : null}
               </div>
+              {isSession ? (
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="quick-session">{t("addProduct.sessionHours")}</Label>
+                  <Input
+                    id="quick-session"
+                    type="number"
+                    min={1}
+                    max={24}
+                    value={blockMinutes / 60}
+                    onChange={(e) => setBlockMinutes(Math.max(1, Math.min(24, Number(e.target.value) || 1)) * 60)}
+                    className="w-20"
+                  />
+                </div>
+              ) : null}
             </div>
             <div className="grid gap-1">
               <Label htmlFor="quick-minimum">{t("addProduct.minimumHours")}</Label>
@@ -299,6 +365,21 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
               />
             </div>
           </div>
+          ) : null}
+          {rents !== "KTV_ROOM" ? (
+            <label className="flex cursor-pointer items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border border-input"
+                checked={autoApply}
+                onChange={(e) => setAutoApply(e.target.checked)}
+              />
+              <span>
+                <span className="block font-medium">{t("addProduct.autoApply")}</span>
+                <span className="block text-xs text-muted">{t("addProduct.autoApplyHint")}</span>
+              </span>
+            </label>
+          ) : null}
         </section>
       ) : null}
 

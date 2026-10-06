@@ -115,7 +115,7 @@ export function ProductList({ scope }: { scope: ProductScope }) {
   const config = SCOPES[scope];
   const isMenu = scope === "menu";
   const { t } = useLanguage();
-  const { priceWithUnit, placeKind, placesOf } = useProductLabels();
+  const { priceWithUnit, placeKind, placesOf, chargeTags } = useProductLabels();
   const [chargedBy, setChargedBy] = useState<"all" | "TIME" | "EACH">("all");
   const [place, setPlace] = useState<"all" | "KTV_ROOM" | "SPA_ROOM" | "TABLE">("all");
   const router = useRouter();
@@ -241,7 +241,7 @@ export function ProductList({ scope }: { scope: ProductScope }) {
               header: t("addProduct.colFor"),
               render: (p: Product) => (
                 <span className="text-sm">
-                  {placeKind(p)} <span className="text-muted">· {placesOf(p)}</span>
+                  {placeKind(p)} <span className="text-muted">· {[placesOf(p), ...chargeTags(p)].join(" · ")}</span>
                 </span>
               ),
             },
@@ -269,7 +269,7 @@ export function ProductList({ scope }: { scope: ProductScope }) {
         ),
       },
     ];
-  }, [isMenu, placeKind, placesOf, priceWithUnit, router, scope, t]);
+  }, [chargeTags, isMenu, placeKind, placesOf, priceWithUnit, router, scope, t]);
 
   return (
     <EntityListWithCreateModal<Product>
@@ -431,7 +431,9 @@ export function ProductList({ scope }: { scope: ProductScope }) {
                     : t("addProduct.hostessTab")}
               </p>
               {scope === "charges" ? (
-                <p className="mt-1 text-[11px] font-medium text-mint">{placesOf(product)}</p>
+                <p className="mt-1 text-[11px] font-medium text-mint">
+                  {[placesOf(product), ...chargeTags(product)].join(" · ")}
+                </p>
               ) : null}
               <button
                 type="button"
