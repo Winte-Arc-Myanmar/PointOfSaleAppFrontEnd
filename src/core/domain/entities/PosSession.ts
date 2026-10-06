@@ -9,6 +9,9 @@ export interface PosSession {
   cashierId: string;
   registerName?: string | null;
   cashierName?: string | null;
+  totalSales?: number;
+  netTotal?: number;
+  salesCount?: number;
   openedAt?: string | null;
   closedAt?: string | null;
   openingCashFloat: number;
