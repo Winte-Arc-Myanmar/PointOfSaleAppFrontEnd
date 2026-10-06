@@ -24,7 +24,7 @@ export interface PosSessionDto {
 }
 
 export interface ClosePosSessionRequestDto {
-  actualClosingCash: number;
+  actualClosingCash?: number;
 }
 
 export interface PosSessionPaymentBreakdownItemDto {
