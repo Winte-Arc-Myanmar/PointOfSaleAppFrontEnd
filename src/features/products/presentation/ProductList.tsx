@@ -77,7 +77,11 @@ function buildCategoryFamilyMap(categories: Category[]) {
   return map;
 }
 
-export function ProductList() {
+/** Food & drink and other things sold each: not hostess services, room charges or SPA packages. */
+export const isMenuProduct = (p: Product) =>
+  p.kind === "ITEM" || (p.kind === "SERVICE" && !p.askWhoServed && p.categoryName !== "Spa Packages");
+
+export function ProductList({ menuOnly = false }: { menuOnly?: boolean }) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -137,6 +141,7 @@ export function ProductList() {
 
     const byAvailability = searchedProducts.filter(
       (p) =>
+        (!menuOnly || isMenuProduct(p)) &&
         (availability === "all" || p.isAvailable === (availability === "available")) &&
         (kind === "all" || p.kind === kind) &&
         (area === "all" || !p.soldAt.length || p.soldAt.includes(area)),
@@ -150,7 +155,7 @@ export function ProductList() {
     return byAvailability.filter((p) =>
       allowedCategoryIds.has(String(p.categoryId)),
     );
-  }, [area, availability, categoryFamilyMap, kind, productsResult?.items, search, selectedCategoryId]);
+  }, [area, availability, categoryFamilyMap, kind, menuOnly, productsResult?.items, search, selectedCategoryId]);
 
   const categoryOptions = useMemo(() => {
     return flattenCategoryTree(categoryTree).map((category) => ({
@@ -236,6 +241,7 @@ export function ProductList() {
               <SelectItem value="unavailable">Unavailable</SelectItem>
             </SelectContent>
           </Select>
+          {menuOnly ? null : (
           <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
             <SelectTrigger className="sm:w-[160px]">
               <SelectValue placeholder="Kind" />
@@ -249,6 +255,7 @@ export function ProductList() {
               ))}
             </SelectContent>
           </Select>
+          )}
           <Select value={area} onValueChange={(value) => setArea(value as typeof area)}>
             <SelectTrigger className="sm:w-[190px]">
               <SelectValue placeholder="Sold at" />

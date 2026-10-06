@@ -5,6 +5,7 @@ import { Label } from "@/presentation/components/ui/label";
 import { useKtvRooms } from "@/presentation/hooks/useKtvRooms";
 import { useSpaRooms } from "@/presentation/hooks/useSpa";
 import { useDiningTables } from "@/presentation/hooks/useDiningTables";
+import { useDiningZones } from "@/presentation/hooks/useDiningZones";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import type { ProductTerms, RentalPlace } from "@/core/domain/entities/Product";
 import type { PosType } from "@/core/domain/entities/PosReport";
@@ -92,12 +93,69 @@ function SpaRoomPicker({ tenantId, ...props }: PickerProps) {
   return <PlaceChips {...props} places={places} isLoading={isLoading} emptyText="No SPA rooms yet." />;
 }
 
-function TablePicker({ tenantId, ...props }: PickerProps) {
+/** Tables grouped by their room (zone); a room's name picks all of its tables, e.g. a VIP room. */
+function TablePicker({ tenantId, value, onChange }: PickerProps) {
+  const { t } = useLanguage();
   const { data, isLoading } = useDiningTables({ page: 1, limit: 500 });
-  const places = getPaginatedItems(data)
-    .filter((t) => !tenantId || String(t.tenantId) === tenantId)
-    .map((t) => ({ id: String(t.id), label: t.tableNumber }));
-  return <PlaceChips {...props} places={places} isLoading={isLoading} emptyText="No tables yet." />;
+  const { data: zonesData } = useDiningZones({ page: 1, limit: 200 });
+  const tables = getPaginatedItems(data).filter((tb) => !tenantId || String(tb.tenantId) === tenantId);
+  const zones = getPaginatedItems(zonesData);
+  const zoneName = (id: string) => zones.find((z) => String(z.id) === id)?.name ?? "";
+  const groups = [...new Set(tables.map((tb) => String(tb.zoneId ?? "")))].map((zoneId) => ({
+    zoneId,
+    name: zoneName(zoneId),
+    tables: tables.filter((tb) => String(tb.zoneId ?? "") === zoneId),
+  }));
+
+  if (isLoading) return <p className="text-sm text-muted">…</p>;
+  if (!tables.length) return <p className="text-sm text-muted">No tables yet.</p>;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Chip selected={value.length === 0} onClick={() => onChange([])}>
+          {t("addProduct.allOfThem")}
+        </Chip>
+      </div>
+      {groups.map((group) => {
+        const ids = group.tables.map((tb) => String(tb.id));
+        const whole = ids.length > 0 && ids.every((id) => value.includes(id));
+        return (
+          <div key={group.zoneId || "none"} className="space-y-1">
+            {group.name ? (
+              <button
+                type="button"
+                aria-pressed={whole}
+                onClick={() =>
+                  onChange(
+                    whole ? value.filter((id) => !ids.includes(id)) : [...new Set([...value, ...ids])],
+                  )
+                }
+                className={cn(
+                  "text-xs font-semibold uppercase tracking-wide",
+                  whole ? "text-mint" : "text-muted hover:text-mint",
+                )}
+              >
+                {group.name}
+              </button>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {group.tables.map((tb) => (
+                <Chip
+                  key={String(tb.id)}
+                  selected={value.includes(String(tb.id))}
+                  onClick={() => onChange(toggle(value, String(tb.id)))}
+                >
+                  {tb.tableNumber}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      {groups.some((g) => g.name) ? <p className="text-xs text-muted">{t("addProduct.zoneHint")}</p> : null}
+    </div>
+  );
 }
 
 const PICKERS: Record<RentalPlace, (props: PickerProps) => React.ReactElement> = {

@@ -116,12 +116,6 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["hospitality:hostess:read"],
       },
       {
-        href: "/spa-packages",
-        labelKey: "nav.spaPackages",
-        icon: Sparkles,
-        permissions: ["hospitality:spa-package:read"],
-      },
-      {
         href: "/spa-rooms",
         labelKey: "nav.spaRooms",
         icon: Sparkles,

@@ -10,7 +10,7 @@ export const isQuickType = (value: string): value is QuickType =>
 
 /** Which simple form fits a product; null when only the advanced form does (e.g. a SPA package). */
 export function quickTypeOf(product: Product): QuickType | null {
-  if (product.kind === "RENTAL" && (product.rents === "KTV_ROOM" || product.rents === "TABLE")) return "rate";
+  if (product.kind === "RENTAL" && product.rents) return "rate";
   if (product.kind === "SERVICE" && product.askWhoServed) return "hostess";
   if (product.kind === "ITEM") return "menu";
   return null;
@@ -22,7 +22,7 @@ export function quickTerms(
   choice: {
     soldAt: ProductTerms["soldAt"];
     perHour: boolean;
-    rents: "KTV_ROOM" | "TABLE";
+    rents: "KTV_ROOM" | "SPA_ROOM" | "TABLE";
     rentalPlaceIds: string[];
     blockMinutes: number;
     minimumBlocks: number;
@@ -43,7 +43,7 @@ export function quickTerms(
   if (type === "rate") {
     return {
       kind: "RENTAL",
-      soldAt: [choice.rents === "KTV_ROOM" ? "KTV" : "BAR"],
+      soldAt: [{ KTV_ROOM: "KTV", SPA_ROOM: "SPA", TABLE: "BAR" }[choice.rents] as "KTV" | "SPA" | "BAR"],
       soldBy: "TIME",
       timeBlockMinutes: choice.blockMinutes,
       minimumBlocks: Math.max(1, choice.minimumBlocks),
@@ -83,3 +83,10 @@ export function pickUom<T extends { name: string; abbreviation?: string | null }
     matches(/^(each|ea|pc|pcs|piece|pieces|unit|units|nos?)$/i) ??
     uoms[0];
 }
+
+/** The tab of Items & services each simple form belongs to. */
+export const TAB_OF: Record<QuickType, string> = {
+  menu: "/products",
+  hostess: "/products?tab=hostess",
+  rate: "/products?tab=charges",
+};
