@@ -8,6 +8,8 @@ export interface PosSessionDto {
   tenantId: string;
   registerId: string;
   cashierId: string;
+  register?: { name?: string | null } | null;
+  cashier?: { fullName?: string | null } | null;
   openedAt?: string | null;
   closedAt?: string | null;
   openingCashFloat: number;

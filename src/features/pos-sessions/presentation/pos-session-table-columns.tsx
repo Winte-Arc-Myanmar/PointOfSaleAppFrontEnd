@@ -1,72 +1,101 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { PosSession } from "@/core/domain/entities/PosSession";
+import type { TranslationKey } from "@/presentation/i18n/translations";
 
 function money(n: number | null | undefined): string {
   if (typeof n !== "number" || !Number.isFinite(n)) return "—";
-  return n.toFixed(2);
+  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function when(iso: string | null | undefined): string {
+  return iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }) : "—";
 }
 
 type PosSessionTableColumnOptions = {
   onView?: (session: PosSession) => void;
+  t: (key: TranslationKey) => string;
 };
 
-export function getPosSessionTableColumns(
-  options: PosSessionTableColumnOptions = {},
-): DataTableColumn<PosSession>[] {
-  const { onView } = options;
-
+export function getPosSessionTableColumns({
+  onView,
+  t,
+}: PosSessionTableColumnOptions): DataTableColumn<PosSession>[] {
   return [
     {
-      key: "status",
-      header: "Status",
-      sortable: true,
-      className: "min-w-[80px] max-w-[110px]",
-      render: (s) =>
-        onView ? (
+      key: "registerId",
+      header: t("shifts.till"),
+      className: "min-w-[140px] max-w-[220px]",
+      render: (s) => {
+        const name = s.registerName ?? s.registerId;
+        return onView ? (
           <button
             type="button"
-            className="text-muted truncate text-left hover:text-mint transition-colors"
-            title={s.status}
+            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            title={name}
             onClick={() => onView(s)}
           >
-            {s.status}
+            {name}
           </button>
         ) : (
-          <span className="text-muted">{s.status}</span>
-        ),
-    },
-    {
-      key: "registerId",
-      header: "Register",
-      className: "min-w-[140px] max-w-[220px]",
-      render: (s) => (
-        <span className="font-mono text-xs text-muted truncate" title={s.registerId}>
-          {s.registerId}
-        </span>
-      ),
+          <span className="font-medium text-foreground truncate">{name}</span>
+        );
+      },
     },
     {
       key: "cashierId",
-      header: "Cashier",
-      className: "min-w-[140px] max-w-[220px]",
-      render: (s) => (
-        <span className="font-mono text-xs text-muted truncate" title={s.cashierId}>
-          {s.cashierId}
-        </span>
-      ),
+      header: t("shifts.staff"),
+      className: "min-w-[120px] max-w-[200px]",
+      render: (s) => <span className="text-muted truncate">{s.cashierName ?? s.cashierId}</span>,
+    },
+    {
+      key: "openedAt",
+      header: t("shifts.opened"),
+      className: "min-w-[120px]",
+      render: (s) => <span className="text-muted">{when(s.openedAt)}</span>,
+    },
+    {
+      key: "closedAt",
+      header: t("shifts.closed"),
+      className: "min-w-[120px]",
+      render: (s) =>
+        s.status === "OPEN" ? (
+          <span className="rounded-full bg-mint/15 px-2 py-0.5 text-xs font-medium text-mint">{t("shifts.open")}</span>
+        ) : (
+          <span className="text-muted">{when(s.closedAt)}</span>
+        ),
     },
     {
       key: "openingCashFloat",
-      header: "Opening float",
-      className: "min-w-[110px] max-w-[140px]",
+      header: t("shifts.float"),
+      className: "min-w-[100px] text-right",
       render: (s) => <span className="text-muted">{money(s.openingCashFloat)}</span>,
     },
     {
       key: "expectedClosingCash",
-      header: "Expected close",
-      className: "min-w-[110px] max-w-[140px]",
-      render: (s) => <span className="text-muted">{money(s.expectedClosingCash)}</span>,
+      header: t("shifts.expected"),
+      className: "min-w-[100px] text-right",
+      render: (s) => <span className="text-muted">{s.status === "OPEN" ? "—" : money(s.expectedClosingCash)}</span>,
+    },
+    {
+      key: "actualClosingCash",
+      header: t("shifts.counted"),
+      className: "min-w-[100px] text-right",
+      render: (s) => <span className="text-muted">{money(s.actualClosingCash)}</span>,
+    },
+    {
+      key: "cashVariance",
+      header: t("shifts.difference"),
+      className: "min-w-[110px] text-right",
+      render: (s) => {
+        const v = s.cashVariance;
+        if (v == null) return <span className="text-muted">—</span>;
+        if (v === 0) return <span className="text-muted">{t("shifts.exact")}</span>;
+        return (
+          <span className={v < 0 ? "font-medium text-red-600" : "font-medium text-amber-600"}>
+            {t(v < 0 ? "shifts.short" : "shifts.over")} {money(Math.abs(v))}
+          </span>
+        );
+      },
     },
   ];
 }
-

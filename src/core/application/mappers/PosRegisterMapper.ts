@@ -8,6 +8,7 @@ export function toPosRegister(dto: PosRegisterDto & { id: string }): PosRegister
     locationId: dto.locationId ?? "",
     name: dto.name ?? "",
     macAddress: dto.macAddress ?? "",
+    mode: dto.mode === "ROOM" ? "ROOM" : "CASHIER",
     checkoutPrinterIds: Array.isArray(dto.checkoutPrinterIds) ? dto.checkoutPrinterIds.map(String) : [],
     financePrinterIds: Array.isArray(dto.financePrinterIds) ? dto.financePrinterIds.map(String) : [],
     createdAt: dto.createdAt ?? null,
@@ -22,6 +23,7 @@ export function toPosRegisterDto(register: Partial<PosRegister>): PosRegisterDto
     locationId: register.locationId ?? "",
     name: register.name ?? "",
     macAddress: register.macAddress ?? "",
+    ...(register.mode && { mode: register.mode }),
   };
 }
 

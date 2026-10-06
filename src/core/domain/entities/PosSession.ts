@@ -7,6 +7,8 @@ export interface PosSession {
   tenantId: string;
   registerId: string;
   cashierId: string;
+  registerName?: string | null;
+  cashierName?: string | null;
   openedAt?: string | null;
   closedAt?: string | null;
   openingCashFloat: number;
