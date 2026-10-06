@@ -44,6 +44,8 @@ export const DEFAULT_TERMS: ProductTerms = {
   rents: null,
   rentalPlaceIds: [],
   askWhoServed: false,
+  chargeMode: null,
+  autoApply: false,
 };
 
 export function soldAtLabel(soldAt: PosType[]): string {

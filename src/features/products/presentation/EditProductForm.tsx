@@ -100,6 +100,8 @@ export function EditProductForm({ productId }: { productId: string }) {
           rents: product.rents,
           rentalPlaceIds: product.rentalPlaceIds,
           askWhoServed: product.askWhoServed,
+          chargeMode: product.chargeMode,
+          autoApply: product.autoApply,
         },
       });
     }

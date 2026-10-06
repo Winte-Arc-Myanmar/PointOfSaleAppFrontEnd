@@ -26,6 +26,9 @@ export function quickTerms(
     rentalPlaceIds: string[];
     blockMinutes: number;
     minimumBlocks: number;
+    /** Room / table charge: paid first, on a clock, or a fixed fee. */
+    mode: "PAY_FIRST" | "CLOCK" | "FIXED";
+    autoApply: boolean;
   },
 ): ProductTerms {
   if (type === "hostess") {
@@ -38,18 +41,26 @@ export function quickTerms(
       rents: null,
       rentalPlaceIds: [],
       askWhoServed: true,
+      chargeMode: null,
+      autoApply: false,
     };
   }
   if (type === "rate") {
+    // A KTV room is always paid first and picked with the room.
+    const ktv = choice.rents === "KTV_ROOM";
+    const mode = ktv ? "PAY_FIRST" : choice.mode;
+    const fixed = mode === "FIXED";
     return {
       kind: "RENTAL",
       soldAt: [{ KTV_ROOM: "KTV", SPA_ROOM: "SPA", TABLE: "BAR" }[choice.rents] as "KTV" | "SPA" | "BAR"],
-      soldBy: "TIME",
-      timeBlockMinutes: choice.blockMinutes,
-      minimumBlocks: Math.max(1, choice.minimumBlocks),
+      soldBy: fixed ? "EACH" : "TIME",
+      timeBlockMinutes: fixed ? null : choice.blockMinutes,
+      minimumBlocks: fixed ? null : Math.max(1, choice.minimumBlocks),
       rents: choice.rents,
       rentalPlaceIds: choice.rentalPlaceIds,
       askWhoServed: false,
+      chargeMode: fixed ? null : mode,
+      autoApply: ktv ? false : choice.autoApply,
     };
   }
   return {
@@ -61,6 +72,8 @@ export function quickTerms(
     rents: null,
     rentalPlaceIds: [],
     askWhoServed: false,
+    chargeMode: null,
+    autoApply: false,
   };
 }
 
