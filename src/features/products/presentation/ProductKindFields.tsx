@@ -181,6 +181,7 @@ export function ProductKindFields({
   tenantId: string;
   error?: string | null;
 }) {
+  const { t } = useLanguage();
   const set = (patch: Partial<ProductTerms>) => onChange({ ...value, ...patch });
   const Picker = value.rents ? PICKERS[value.rents] : null;
 
@@ -303,6 +304,30 @@ export function ProductKindFields({
           </div>
         ) : null}
       </div>
+
+      {value.kind === "RENTAL" && value.rents && value.rents !== "KTV_ROOM" ? (
+        <div className="space-y-2">
+          {value.soldBy === "TIME" ? (
+            <div className="flex flex-wrap gap-2">
+              <Chip selected={value.chargeMode !== "CLOCK"} onClick={() => set({ chargeMode: "PAY_FIRST" })}>
+                {t("addProduct.payFirst")}
+              </Chip>
+              <Chip selected={value.chargeMode === "CLOCK"} onClick={() => set({ chargeMode: "CLOCK" })}>
+                {t("addProduct.runningClock")}
+              </Chip>
+            </div>
+          ) : null}
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border border-input"
+              checked={value.autoApply}
+              onChange={(e) => set({ autoApply: e.target.checked })}
+            />
+            {t("addProduct.autoApply")}
+          </label>
+        </div>
+      ) : null}
 
       {value.kind === "SERVICE" ? (
         <label className="flex cursor-pointer items-center gap-2 text-sm">
