@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -17,6 +18,7 @@ const PAGE_SIZE = 10;
 
 export function PosRegisterList() {
   const router = useRouter();
+  const { t } = useLanguage();
   const toast = useToast();
   const confirm = useConfirm();
   const del = useDeletePosRegister();
@@ -57,8 +59,9 @@ export function PosRegisterList() {
     () =>
       getPosRegisterTableColumns({
         onView: (r) => router.push(`/pos-registers/${r.id}`),
+        t,
       }),
-    [router],
+    [router, t],
   );
 
   return (
