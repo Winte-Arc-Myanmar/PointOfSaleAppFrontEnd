@@ -3,6 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/presentation/components/ui/select";
+import { cn } from "@/lib/utils";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import type { DataTableAction, DataTableColumn } from "@/presentation/components/data-table";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
@@ -57,6 +65,7 @@ export function SpaPackageList() {
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [onSale, setOnSale] = useState<"all" | "yes" | "no">("all");
 
   useEffect(() => {
     const id = setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -131,7 +140,7 @@ export function SpaPackageList() {
 
   return (
     <EntityListWithCreateModal<SpaPackage>
-      data={result?.items ?? []}
+      data={(result?.items ?? []).filter((p) => onSale === "all" || p.isActive === (onSale === "yes"))}
       columns={columns}
       actions={actions}
       isLoading={isLoading}
@@ -139,10 +148,57 @@ export function SpaPackageList() {
       emptyText={search ? "No packages match your search." : "No packages yet. Add your first treatment, e.g. Thai massage 90 min."}
       error={error ? { message: apiErrorMessage(error, "Failed to load packages."), onRetry: () => refetch() } : undefined}
       topContent={
-        <div className="mb-4">
-          <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search packages..." />
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search packages..."
+            className="sm:w-[300px]"
+          />
+          <Select value={onSale} onValueChange={(value) => setOnSale(value as typeof onSale)}>
+            <SelectTrigger className="sm:w-[180px]">
+              <SelectValue placeholder="On sale" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All packages</SelectItem>
+              <SelectItem value="yes">On sale</SelectItem>
+              <SelectItem value="no">Not on sale</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       }
+      enableGridView
+      showViewModeToggle
+      defaultViewMode="grid"
+      gridClassName="grid-cols-1 justify-items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      gridCardClassName="w-full max-w-[240px] rounded-xl border border-border bg-background/90 p-0 shadow-sm"
+      gridContentClassName="pr-0"
+      renderGridItem={(p) => (
+        <article className={cn("flex h-full flex-col p-3", !p.isActive && "opacity-60")}>
+          <p className="text-[10px] uppercase tracking-[0.16em] text-muted">{p.durationMinutes} min</p>
+          <button
+            type="button"
+            className="mt-1 line-clamp-2 text-left text-[13px] font-semibold leading-snug hover:text-mint"
+            onClick={() => router.push(`/spa-packages/${p.id}/edit`)}
+          >
+            {p.name}
+          </button>
+          {p.items.length ? (
+            <p className="mt-1 line-clamp-2 text-xs text-muted">
+              + {p.items.map((i) => `${i.quantity} × ${i.name}`).join(", ")}
+            </p>
+          ) : null}
+          <p className="mt-2 text-sm font-semibold">{formatPrice(p.price)}</p>
+          <span
+            className={`mt-auto inline-flex w-fit rounded-full px-2 py-0.5 text-xs font-medium ${
+              p.isActive ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {p.isActive ? "On sale" : "Not on sale"}
+          </span>
+        </article>
+      )}
+      onEdit={(p) => router.push(`/spa-packages/${p.id}/edit`)}
       pageSize={PAGE_SIZE}
       currentPage={pagination.page}
       totalPages={result?.totalPages ?? pagination.getTotalPages(result?.total)}
