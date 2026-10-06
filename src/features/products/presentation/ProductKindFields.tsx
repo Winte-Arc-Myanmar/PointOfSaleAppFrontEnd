@@ -9,6 +9,7 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import type { ProductTerms, RentalPlace } from "@/core/domain/entities/Product";
 import type { PosType } from "@/core/domain/entities/PosReport";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { AREA_LABEL, KIND_OPTIONS, PLACE_AREA, PLACE_LABEL } from "./product-kind-text";
 
 type Place = { id: string; label: string };
@@ -53,12 +54,13 @@ function PlaceChips({
   onChange: (ids: string[]) => void;
   emptyText: string;
 }) {
-  if (isLoading) return <p className="text-sm text-muted">Loading…</p>;
+  const { t } = useLanguage();
+  if (isLoading) return <p className="text-sm text-muted">…</p>;
   if (!places.length) return <p className="text-sm text-muted">{emptyText}</p>;
   return (
     <div className="flex flex-wrap gap-2">
       <Chip selected={value.length === 0} onClick={() => onChange([])}>
-        All
+        {t("addProduct.allOfThem")}
       </Chip>
       {places.map((p) => (
         <Chip key={p.id} selected={value.includes(p.id)} onClick={() => onChange(toggle(value, p.id))}>
@@ -103,6 +105,12 @@ const PICKERS: Record<RentalPlace, (props: PickerProps) => React.ReactElement> =
   SPA_ROOM: SpaRoomPicker,
   TABLE: TablePicker,
 };
+
+/** The rooms or tables of one kind, as chips: All, or only those picked. */
+export function PlacePicker({ rents, ...props }: PickerProps & { rents: RentalPlace }) {
+  const Picker = PICKERS[rents];
+  return <Picker {...props} />;
+}
 
 export function ProductKindFields({
   value,
