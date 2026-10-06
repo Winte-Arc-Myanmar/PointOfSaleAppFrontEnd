@@ -1,6 +1,7 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Product } from "@/core/domain/entities/Product";
 import { AvailabilityToggle } from "./AvailabilityToggle";
+import { KIND_LABEL, soldAtLabel, soldByLabel } from "./product-kind-text";
 
 type ProductTableColumnOptions = {
   onView?: (product: Product) => void;
@@ -45,6 +46,24 @@ export function getProductTableColumns(
           isAvailable={p.isAvailable}
         />
       ),
+    },
+    {
+      key: "kind",
+      header: "Kind",
+      className: "min-w-[90px]",
+      render: (p) => <span className="text-muted">{KIND_LABEL[p.kind]}</span>,
+    },
+    {
+      key: "soldAt",
+      header: "Sold at",
+      className: "min-w-[110px]",
+      render: (p) => <span className="text-muted">{soldAtLabel(p.soldAt)}</span>,
+    },
+    {
+      key: "soldBy",
+      header: "Sold by",
+      className: "min-w-[80px]",
+      render: (p) => <span className="text-muted">{soldByLabel(p)}</span>,
     },
     {
       key: "baseSku",

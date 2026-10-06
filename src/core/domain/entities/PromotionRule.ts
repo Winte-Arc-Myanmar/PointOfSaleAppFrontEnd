@@ -1,7 +1,8 @@
 import type { Id } from "@/core/domain/types";
 import type { PosType } from "@/core/domain/entities/PosReport";
 
-export type PromotionDiscountType = "PERCENT_OFF" | "AMOUNT_OFF";
+/** FREE_TIME gives time instead of money off: buy some hours, get more free. */
+export type PromotionDiscountType = "PERCENT_OFF" | "AMOUNT_OFF" | "FREE_TIME";
 export type PromotionScope = "ALL_ITEMS" | "CATEGORIES" | "ITEMS";
 
 export interface PromotionItem {
@@ -15,6 +16,9 @@ export interface PromotionRule {
   name: string;
   discountType: PromotionDiscountType;
   discountValue: number;
+  /** FREE_TIME: every buyUnits bought gives freeUnits more. */
+  buyUnits: number | null;
+  freeUnits: number | null;
   appliesTo: PromotionScope;
   categoryIds: string[];
   variantIds: string[];

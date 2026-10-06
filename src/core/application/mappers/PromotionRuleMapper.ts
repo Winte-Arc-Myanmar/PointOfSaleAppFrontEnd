@@ -8,6 +8,8 @@ export function toPromotionRule(dto: PromotionRuleDto & { id: string }): Promoti
     name: dto.name ?? "",
     discountType: dto.discountType ?? "PERCENT_OFF",
     discountValue: Number(dto.discountValue) || 0,
+    buyUnits: dto.buyUnits ?? null,
+    freeUnits: dto.freeUnits ?? null,
     appliesTo: dto.appliesTo ?? "ALL_ITEMS",
     categoryIds: dto.categoryIds ?? [],
     variantIds: dto.variantIds ?? [],

@@ -3,7 +3,9 @@
  * Application layer - matches backend contract.
  */
 
-export interface ProductDto {
+import type { ProductTerms } from "@/core/domain/entities/Product";
+
+export interface ProductDto extends Partial<ProductTerms> {
   id?: string;
   name: string;
   tenantId: string;
