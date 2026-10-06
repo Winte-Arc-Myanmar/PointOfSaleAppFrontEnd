@@ -27,6 +27,7 @@ import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useKitchenPrinters } from "@/presentation/hooks/useKitchenPrinters";
 import { PrinterChecklist } from "@/features/kitchen-printers/presentation/PrinterChecklist";
 import { printersFor } from "@/features/kitchen-printers/presentation/printers-for";
+import { TillModeField } from "./TillModeField";
 
 const NO_PRINTERS: string[] = [];
 
@@ -35,6 +36,7 @@ const schema = z.object({
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
   macAddress: z.string().min(1, "MAC address is required"),
+  mode: z.enum(["CASHIER", "ROOM"]),
   checkoutPrinterIds: z.array(z.string()),
   financePrinterIds: z.array(z.string()),
 });
@@ -63,6 +65,7 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
       locationId: "",
       name: "",
       macAddress: "",
+      mode: "CASHIER",
       checkoutPrinterIds: [],
       financePrinterIds: [],
     },
@@ -75,6 +78,7 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
         locationId: reg.locationId,
         name: reg.name,
         macAddress: reg.macAddress,
+        mode: reg.mode,
         checkoutPrinterIds: reg.checkoutPrinterIds,
         financePrinterIds: reg.financePrinterIds,
       });
@@ -108,6 +112,7 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
           locationId: data.locationId,
           name: data.name,
           macAddress: data.macAddress,
+          mode: data.mode,
           checkoutPrinterIds: data.checkoutPrinterIds,
           financePrinterIds: data.financePrinterIds,
         },
@@ -222,6 +227,12 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
           </p>
         )}
         {update.isError && <p className="text-sm text-red-600">Failed to update POS register.</p>}
+
+      <Controller
+        control={form.control}
+        name="mode"
+        render={({ field }) => <TillModeField value={field.value} onChange={field.onChange} />}
+      />
 
       <PrinterChecklist
           label="Checkout printers"

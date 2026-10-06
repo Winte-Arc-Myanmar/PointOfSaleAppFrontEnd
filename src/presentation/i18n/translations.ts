@@ -354,6 +354,25 @@ export const translations = {
       noLoyaltyEntriesYet: "No loyalty ledger entries yet.",
       failedToLoadLoyaltyLedger: "Failed to load loyalty ledger.",
     },
+    shifts: {
+      tillType: "Till type",
+      cashier: "Cashier till",
+      cashierHint: "For a person at the counter. The shift opens when they log in and closes when they log out, with a cash count.",
+      room: "Room POS (SPA / KTV board)",
+      roomHint: "Logged in once a day. The shift lasts 24 hours, then the day must be counted and closed before more sales.",
+      till: "Till",
+      staff: "Cashier",
+      opened: "Opened",
+      closed: "Closed",
+      float: "Cash at start",
+      expected: "Expected cash",
+      counted: "Counted cash",
+      difference: "Difference",
+      open: "Open",
+      short: "Short",
+      over: "Over",
+      exact: "Exact",
+    },
   },
   my: {
     common: {
@@ -705,6 +724,25 @@ export const translations = {
       noLoyaltyEntriesYet: "အမှတ်စုစာရင်း မရှိသေးပါ။",
       failedToLoadLoyaltyLedger: "အမှတ်စုစာရင်း ဖတ်ယူမရပါ။",
     },
+    shifts: {
+      tillType: "ငွေကောင်တာ အမျိုးအစား",
+      cashier: "ငွေကိုင် ကောင်တာ",
+      cashierHint: "ကောင်တာက လူတစ်ယောက်အတွက်။ Login ဝင်ရင် အလှည့်ဖွင့်ပြီး Logout ထွက်ရင် ငွေရေပြီး ပိတ်သည်။",
+      room: "အခန်း POS (SPA / KTV ဘုတ်)",
+      roomHint: "တစ်နေ့ တစ်ခါ Login ဝင်သည်။ အလှည့်က ၂၄ နာရီ ကြာပြီး နောက်ထပ် ရောင်းရန် ငွေရေပြီး နေ့ကို ပိတ်ရမည်။",
+      till: "ကောင်တာ",
+      staff: "ငွေကိုင်",
+      opened: "ဖွင့်ချိန်",
+      closed: "ပိတ်ချိန်",
+      float: "စစချင်း ငွေ",
+      expected: "ရှိသင့်သည့် ငွေ",
+      counted: "ရေတွက်ငွေ",
+      difference: "ကွာခြားချက်",
+      open: "ဖွင့်ထား",
+      short: "လို",
+      over: "ပို",
+      exact: "ကိုက်",
+    },
   },
 } as const;
 
@@ -716,4 +754,5 @@ export type TranslationKey =
   | `interactionsPage.${keyof typeof translations.en.interactionsPage}`
   | `loyaltyPage.${keyof typeof translations.en.loyaltyPage}`
   | `addProduct.${keyof typeof translations.en.addProduct}`
-  | `shopSettings.${keyof typeof translations.en.shopSettings}`;
+  | `shopSettings.${keyof typeof translations.en.shopSettings}`
+  | `shifts.${keyof typeof translations.en.shifts}`;

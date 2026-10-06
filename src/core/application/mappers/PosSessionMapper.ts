@@ -46,6 +46,8 @@ export function toPosSession(
     tenantId: dto.tenantId ?? "",
     registerId: dto.registerId ?? "",
     cashierId: dto.cashierId ?? "",
+    registerName: dto.register?.name ?? null,
+    cashierName: dto.cashier?.fullName ?? null,
     openedAt: dto.openedAt ?? null,
     closedAt: dto.closedAt ?? null,
     openingCashFloat: parseDecimal(dto.openingCashFloat),

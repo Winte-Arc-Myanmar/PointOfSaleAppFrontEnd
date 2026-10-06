@@ -8,6 +8,7 @@ export interface PosRegisterDto {
   locationId: string;
   name: string;
   macAddress: string;
+  mode?: "CASHIER" | "ROOM";
   checkoutPrinterIds?: string[];
   financePrinterIds?: string[];
   createdAt?: string | null;
