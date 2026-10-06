@@ -30,6 +30,7 @@ export const REPORT_TAB_GROUPS = [
       { id: "ktv-summary", label: "Summary" },
       { id: "ktv-bills", label: "Bills" },
       { id: "ktv-sessions", label: "Sessions" },
+      { id: "ktv-hostesses", label: "Hostesses" },
     ],
   },
   {

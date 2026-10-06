@@ -39,3 +39,10 @@ export const useKtvSessionReport = (params: PosRangeParams) =>
     queryFn: () => repository().ktvSessions(params),
     placeholderData: keepPreviousData,
   });
+
+export const useHostessReport = (params: PosRangeParams) =>
+  useQuery({
+    queryKey: [...KEY, "hostesses", ...rangeKey(params)],
+    queryFn: () => repository().hostesses(params),
+    placeholderData: keepPreviousData,
+  });

@@ -1,5 +1,6 @@
 import type {
   BarCategoryReport,
+  HostessReport,
   KtvSessionReport,
   PosBillsReport,
   PosType,
@@ -49,6 +50,12 @@ export class ApiPosReportRepository {
 
   ktvSessions(params: PosRangeParams) {
     return this.httpClient.get<KtvSessionReport>(API_ENDPOINTS.REPORTS.KTV_SESSIONS, {
+      params: defined({ ...params }),
+    });
+  }
+
+  hostesses(params: PosRangeParams) {
+    return this.httpClient.get<HostessReport>(API_ENDPOINTS.REPORTS.HOSTESSES, {
       params: defined({ ...params }),
     });
   }
