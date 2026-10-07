@@ -9,6 +9,8 @@ export interface VenueSetting {
   paymentTiming: RoomPaymentTiming;
   roomCardOnly: boolean;
   maxPromotionsPerItem: number;
+  /** Different promotions one bill can use; null for no limit. */
+  maxPromotionsPerBill: number | null;
   updatedAt: string | null;
 }
 

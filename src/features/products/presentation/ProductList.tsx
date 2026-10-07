@@ -80,9 +80,11 @@ function buildCategoryFamilyMap(categories: Category[]) {
   return map;
 }
 
+export const isSpaPackage = (p: Product) => p.kind === "SERVICE" && p.categoryName === "Spa Packages";
+
 /** Food & drink and other things sold each: not hostess services, room charges or SPA packages. */
 export const isMenuProduct = (p: Product) =>
-  p.kind === "ITEM" || (p.kind === "SERVICE" && !p.askWhoServed && p.categoryName !== "Spa Packages");
+  p.kind === "ITEM" || (p.kind === "SERVICE" && !p.askWhoServed && !isSpaPackage(p));
 
 export const isHostessService = (p: Product) => p.kind === "SERVICE" && p.askWhoServed;
 export const isCharge = (p: Product) => p.kind === "RENTAL";

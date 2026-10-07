@@ -4,6 +4,8 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 /** FREE_TIME gives time instead of money off: buy some hours, get more free. */
 export type PromotionDiscountType = "PERCENT_OFF" | "AMOUNT_OFF" | "FREE_TIME";
 export type PromotionScope = "ALL_ITEMS" | "CATEGORIES" | "ITEMS";
+/** The groups an "everything" promotion can be narrowed to, as the products page tabs show them. */
+export type PromotionGroup = "FOOD_DRINK" | "HOSTESS" | "SPA_PACKAGE" | "ROOM_TIME";
 
 export interface PromotionItem {
   variantId: string;
@@ -20,6 +22,8 @@ export interface PromotionRule {
   buyUnits: number | null;
   freeUnits: number | null;
   appliesTo: PromotionScope;
+  /** ALL_ITEMS: only these groups; empty means everything sold. */
+  productGroups: PromotionGroup[];
   categoryIds: string[];
   variantIds: string[];
   items: PromotionItem[];
