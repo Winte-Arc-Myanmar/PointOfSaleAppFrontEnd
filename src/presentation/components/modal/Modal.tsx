@@ -18,7 +18,7 @@ export interface ModalProps {
   description?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
   /** Extra classes on DialogContent */
   className?: string;
   /** Mint header matches FormModal styling */
