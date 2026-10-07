@@ -25,7 +25,7 @@ export interface FormModalProps {
   cancelText?: string;
   loadingText?: string;
   isLoading?: boolean;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
   className?: string;
 }
 
