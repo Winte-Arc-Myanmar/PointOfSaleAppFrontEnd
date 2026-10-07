@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ReceiptText, Tag } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -68,6 +69,11 @@ const TIMING = [
   { value: "PAY_AT_END", title: "shopSettings.payWhenLeaving", hint: "shopSettings.payWhenLeavingHint" },
 ] as const satisfies readonly { value: RoomPaymentTiming; title: string; hint: string }[];
 
+const LIMIT_FOR = [
+  { value: "ITEM", title: "shopSettings.perItem", icon: Tag },
+  { value: "BILL", title: "shopSettings.perBill", icon: ReceiptText },
+] as const;
+
 export function VenueSetupForm() {
   const toast = useToast();
   const { t } = useLanguage();
@@ -97,9 +103,12 @@ export function VenueSetupForm() {
     paymentTiming: saved.paymentTiming,
     roomCardOnly: saved.roomCardOnly ?? true,
     maxPromotionsPerItem: saved.maxPromotionsPerItem ?? 1,
+    maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
+  const perBill = draft.maxPromotionsPerBill !== null;
+  const limit = draft.maxPromotionsPerBill ?? draft.maxPromotionsPerItem;
   const changed = (Object.keys(edits) as (keyof Draft)[]).filter((k) => draft[k] !== saved[k]);
 
   const save = () => {
@@ -186,22 +195,47 @@ export function VenueSetupForm() {
 
       <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
         <h2 className="text-base font-semibold">{t("shopSettings.promotions")}</h2>
+        <p className="text-sm font-medium">{t("shopSettings.limitFor")}</p>
+        <div role="radiogroup" aria-label={t("shopSettings.limitFor")} className="grid gap-3 sm:grid-cols-2">
+          {LIMIT_FOR.map((option) => {
+            const selected = (draft.maxPromotionsPerBill === null) === (option.value === "ITEM");
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() =>
+                  set(
+                    option.value === "ITEM"
+                      ? { maxPromotionsPerItem: limit, maxPromotionsPerBill: null }
+                      : { maxPromotionsPerItem: 1, maxPromotionsPerBill: limit },
+                  )
+                }
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border p-4 text-left transition-colors",
+                  selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+                )}
+              >
+                <option.icon className={cn("size-6", selected ? "text-mint" : "text-muted")} />
+                <span className="text-sm font-semibold">{t(option.title)}</span>
+              </button>
+            );
+          })}
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium">{t("shopSettings.promotionsPerItem")}</p>
-            <p className="text-xs text-muted">{t("shopSettings.promotionsPerItemHint")}</p>
-          </div>
-          <div role="radiogroup" aria-label={t("shopSettings.promotionsPerItem")} className="flex gap-1">
-            {[1, 2, 3].map((n) => (
+          <p className="text-sm font-medium">{t("shopSettings.howMany")}</p>
+          <div role="radiogroup" aria-label={t("shopSettings.howMany")} className="flex gap-1">
+            {(perBill ? [1, 2, 3, 4, 5] : [1, 2, 3]).map((n) => (
               <button
                 key={n}
                 type="button"
                 role="radio"
-                aria-checked={draft.maxPromotionsPerItem === n}
-                onClick={() => set({ maxPromotionsPerItem: n })}
+                aria-checked={limit === n}
+                onClick={() => set(perBill ? { maxPromotionsPerBill: n } : { maxPromotionsPerItem: n })}
                 className={cn(
                   "size-10 rounded-lg border text-sm font-medium",
-                  draft.maxPromotionsPerItem === n ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+                  limit === n ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
                 )}
               >
                 {n}
@@ -209,6 +243,7 @@ export function VenueSetupForm() {
             ))}
           </div>
         </div>
+        <p className="text-xs text-muted">{t(perBill ? "shopSettings.perBillHint" : "shopSettings.perItemHint")}</p>
       </section>
 
       <div className="flex items-center gap-3">

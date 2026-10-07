@@ -1,4 +1,4 @@
-import type { PromotionRule } from "@/core/domain/entities/PromotionRule";
+import type { PromotionGroup, PromotionRule } from "@/core/domain/entities/PromotionRule";
 import type { PosType } from "@/core/domain/entities/PosReport";
 
 export const DAYS = [
@@ -12,6 +12,13 @@ export const DAYS = [
 ];
 
 export const POS_LABEL: Record<PosType, string> = { BAR: "Bar", SPA: "SPA", KTV: "KTV" };
+
+export const GROUP_LABEL: Record<PromotionGroup, string> = {
+  FOOD_DRINK: "Food & drink",
+  HOSTESS: "Hostess",
+  SPA_PACKAGE: "SPA packages",
+  ROOM_TIME: "Room & table time",
+};
 
 const dayShort = (d: number) => DAYS.find((x) => x.value === d)?.short ?? String(d);
 
@@ -61,7 +68,8 @@ export function discountLabel(
 
 export function scopeLabel(rule: PromotionRule, categoryName: (id: string) => string): string {
   if (rule.appliesTo === "ALL_ITEMS") {
-    return rule.discountType === "FREE_TIME" ? "Everything sold by time" : "Everything except rentals";
+    if (rule.productGroups.length) return rule.productGroups.map((g) => GROUP_LABEL[g]).join(", ");
+    return rule.discountType === "FREE_TIME" ? "All time & packages" : "Everything";
   }
   if (rule.appliesTo === "CATEGORIES") {
     return rule.categoryIds.map(categoryName).join(", ") || "No categories";

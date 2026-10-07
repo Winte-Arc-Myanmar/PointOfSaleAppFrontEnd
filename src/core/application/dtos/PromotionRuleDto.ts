@@ -1,5 +1,6 @@
 import type {
   PromotionDiscountType,
+  PromotionGroup,
   PromotionScope,
 } from "@/core/domain/entities/PromotionRule";
 import type { PosType } from "@/core/domain/entities/PosReport";
@@ -13,6 +14,7 @@ export interface PromotionRuleDto {
   buyUnits?: number | null;
   freeUnits?: number | null;
   appliesTo: PromotionScope;
+  productGroups?: PromotionGroup[];
   categoryIds?: string[];
   variantIds?: string[];
   items?: { variantId: string; name: string }[];
@@ -39,6 +41,7 @@ export interface PromotionRuleInput {
   buyUnits?: number;
   freeUnits?: number;
   appliesTo: PromotionScope;
+  productGroups: PromotionGroup[];
   categoryIds: string[];
   variantIds: string[];
   posTypes: PosType[];
