@@ -44,7 +44,7 @@ interface EntityListWithCreateModalProps<T extends { id: string | number }> {
   createSubmitText?: string;
   createLoadingText?: string;
   createFormId?: string;
-  createMaxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
+  createMaxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
   renderCreateForm?: (args: CreateFormRenderArgs) => ReactNode;
   sectionTitle?: string;
   enableRowSelection?: boolean;
