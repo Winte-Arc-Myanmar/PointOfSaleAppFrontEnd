@@ -120,7 +120,7 @@ export function PromotionRuleList() {
       createSubmitText="Add promotion"
       createLoadingText="Adding..."
       createFormId={CREATE_FORM_ID}
-      createMaxWidth="2xl"
+      createMaxWidth="4xl"
       renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
         <CreatePromotionRuleForm
           formId={formId}

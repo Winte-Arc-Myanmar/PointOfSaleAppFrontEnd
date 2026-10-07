@@ -29,7 +29,7 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
+    maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl";
     showClose?: boolean;
     /** When true, runs close animation then calls onExitComplete. */
     isClosing?: boolean;
@@ -67,6 +67,7 @@ const DialogContent = React.forwardRef<
             maxWidth === "lg" && "max-w-lg",
             maxWidth === "xl" && "max-w-xl",
             maxWidth === "2xl" && "max-w-2xl",
+            maxWidth === "4xl" && "max-w-4xl",
             className
           )}
         >

@@ -31,7 +31,7 @@ export function EditPromotionRuleForm({ ruleId }: { ruleId: string }) {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/promotion-rules">
           <Button variant="ghost" size="icon" aria-label="Back">
