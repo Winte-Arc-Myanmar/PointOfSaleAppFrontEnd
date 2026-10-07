@@ -11,6 +11,7 @@ export function toPromotionRule(dto: PromotionRuleDto & { id: string }): Promoti
     buyUnits: dto.buyUnits ?? null,
     freeUnits: dto.freeUnits ?? null,
     appliesTo: dto.appliesTo ?? "ALL_ITEMS",
+    productGroups: dto.productGroups ?? [],
     categoryIds: dto.categoryIds ?? [],
     variantIds: dto.variantIds ?? [],
     items: dto.items ?? [],
