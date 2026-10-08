@@ -101,7 +101,6 @@ export function VenueSetupForm() {
     ktvEnabled: saved.ktvEnabled,
     ktvMenuOrdering: saved.ktvMenuOrdering,
     paymentTiming: saved.paymentTiming,
-    roomCardOnly: saved.roomCardOnly ?? true,
     maxPromotionsPerItem: saved.maxPromotionsPerItem ?? 1,
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     ...edits,
@@ -179,18 +178,6 @@ export function VenueSetupForm() {
             );
           })}
         </div>
-        {draft.paymentTiming === "PAY_AT_END" ? (
-          <div className="divide-y divide-border">
-            <SwitchRow
-              title={t("shopSettings.cardOnly")}
-              hint={draft.roomCardOnly ? t("shopSettings.cardOnlyOn") : t("shopSettings.cardOnlyOff")}
-              checked={draft.roomCardOnly}
-              onChange={(v) => set({ roomCardOnly: v })}
-            />
-          </div>
-        ) : (
-          <p className="text-xs text-muted">{t("shopSettings.eachTimeIsCard")}</p>
-        )}
       </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
