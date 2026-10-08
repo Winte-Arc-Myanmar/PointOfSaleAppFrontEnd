@@ -1,4 +1,5 @@
 export type RoomPaymentTiming = "PAY_WHEN_ORDERING" | "PAY_AT_END";
+export type PriceCurrency = "MMK" | "USD";
 
 export interface VenueSetting {
   tenantId: string;
@@ -10,6 +11,8 @@ export interface VenueSetting {
   maxPromotionsPerItem: number;
   /** Different promotions one bill can use; null for no limit. */
   maxPromotionsPerBill: number | null;
+  /** The money customers pay in, shown on receipts. */
+  currency: PriceCurrency;
   updatedAt: string | null;
 }
 

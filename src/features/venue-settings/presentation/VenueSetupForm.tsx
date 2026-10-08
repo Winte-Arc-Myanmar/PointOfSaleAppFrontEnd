@@ -9,7 +9,7 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { useUpdateVenueSettings, useVenueSettings } from "@/presentation/hooks/useVenueSettings";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
-import type { RoomPaymentTiming, VenueSettingUpdate } from "@/core/domain/entities/VenueSetting";
+import type { PriceCurrency, RoomPaymentTiming, VenueSettingUpdate } from "@/core/domain/entities/VenueSetting";
 
 type Draft = Required<VenueSettingUpdate>;
 
@@ -69,6 +69,11 @@ const TIMING = [
   { value: "PAY_AT_END", title: "shopSettings.payWhenLeaving", hint: "shopSettings.payWhenLeavingHint" },
 ] as const satisfies readonly { value: RoomPaymentTiming; title: string; hint: string }[];
 
+const CURRENCIES = [
+  { value: "MMK", title: "shopSettings.mmk", sample: "100,000 MMK" },
+  { value: "USD", title: "shopSettings.usd", sample: "$ 100,000" },
+] as const satisfies readonly { value: PriceCurrency; title: string; sample: string }[];
+
 const LIMIT_FOR = [
   { value: "ITEM", title: "shopSettings.perItem", icon: Tag },
   { value: "BILL", title: "shopSettings.perBill", icon: ReceiptText },
@@ -103,6 +108,7 @@ export function VenueSetupForm() {
     paymentTiming: saved.paymentTiming,
     maxPromotionsPerItem: saved.maxPromotionsPerItem ?? 1,
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
+    currency: saved.currency ?? "MMK",
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
@@ -178,6 +184,32 @@ export function VenueSetupForm() {
             );
           })}
         </div>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
+        <h2 className="text-base font-semibold">{t("shopSettings.currency")}</h2>
+        <div role="radiogroup" aria-label={t("shopSettings.currency")} className="grid gap-3 sm:grid-cols-2">
+          {CURRENCIES.map((option) => {
+            const selected = draft.currency === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => set({ currency: option.value })}
+                className={cn(
+                  "rounded-xl border p-4 text-left transition-colors",
+                  selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+                )}
+              >
+                <p className="text-sm font-semibold">{t(option.title)}</p>
+                <p className="mt-1 font-mono text-xs text-muted">{option.sample}</p>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-muted">{t("shopSettings.currencyHint")}</p>
       </section>
 
       <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
