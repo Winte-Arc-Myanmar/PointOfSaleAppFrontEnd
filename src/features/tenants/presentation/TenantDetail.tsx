@@ -43,7 +43,6 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         { label: "Legal name", value: safeText(tenant.legalName) },
         { label: "Domain", value: safeText(tenant.domain), mono: true },
         { label: "Status", value: safeText(tenant.status) },
-        { label: "Base currency", value: safeText(tenant.baseCurrency) },
         {
           label: "Website",
           value: tenant.website ? (
