@@ -73,7 +73,7 @@ const DAYS: { value: number; label: TranslationKey }[] = [
 const POS: { value: PosType; label: TranslationKey | null; text: string }[] = [
   { value: "BAR", label: "promoForm.restaurant", text: "" },
   { value: "SPA", label: null, text: "SPA" },
-  { value: "KTV", label: null, text: "KTV" },
+  { value: "KTV", label: null, text: "Private VIP Lounge" },
 ];
 
 /** Free time is given on what is sold by time, and on SPA packages. */

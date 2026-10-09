@@ -6,7 +6,7 @@ export default function PromotionRulesPage() {
     <Shell>
       <div className="space-y-6">
         <p className="page-description">
-          Discounts the system applies by itself while they run, at the counter, tables, SPA and KTV. How many one item can
+          Discounts the system applies by itself while they run, at the counter, tables, SPA and Private VIP Lounges. How many one item can
           get at once is set in Venue setup.
         </p>
         <section>

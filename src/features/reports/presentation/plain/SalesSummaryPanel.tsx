@@ -20,7 +20,7 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 
 const POS_TITLE: Record<PosType, string> = {
   SPA: "SPA sales summary",
-  KTV: "KTV sales summary",
+  KTV: "Private VIP Lounge sales summary",
   BAR: "Bar sales summary",
 };
 
@@ -39,7 +39,7 @@ export function SalesSummaryPanel({ range, posType }: { range: DashboardRange; p
       title={posType ? POS_TITLE[posType] : "Sales summary"}
       description={
         posType === "BAR"
-          ? "Sales at the bar and every other till that isn't SPA or KTV, with refunds on the day they were made."
+          ? "Sales at the bar and every other till that isn't SPA or Private VIP Lounge, with refunds on the day they were made."
           : posType
             ? `Sales of the ${posType} POS on each business date, with refunds on the day they were made.`
             : "Sales filed on each business date, with refunds on the day they were made. Guest-card top-ups are deposits and do not appear here."

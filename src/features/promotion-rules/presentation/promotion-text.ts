@@ -11,7 +11,7 @@ export const DAYS = [
   { value: 0, short: "Sun" },
 ];
 
-export const POS_LABEL: Record<PosType, string> = { BAR: "Bar", SPA: "SPA", KTV: "KTV" };
+export const POS_LABEL: Record<PosType, string> = { BAR: "Bar", SPA: "SPA", KTV: "Private VIP Lounge" };
 
 export const GROUP_LABEL: Record<PromotionGroup, string> = {
   FOOD_DRINK: "Food & drink",

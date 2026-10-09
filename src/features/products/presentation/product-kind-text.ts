@@ -8,7 +8,7 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 export const KIND_OPTIONS: { value: ProductKind; title: string; hint: string }[] = [
   { value: "ITEM", title: "Item", hint: "Food, drinks, goods" },
   { value: "SERVICE", title: "Service", hint: "SPA package, hostess, song request" },
-  { value: "RENTAL", title: "Rental", hint: "KTV room, table charge" },
+  { value: "RENTAL", title: "Rental", hint: "Private VIP Lounge, table charge" },
 ];
 
 export const KIND_LABEL: Record<ProductKind, string> = {
@@ -19,7 +19,7 @@ export const KIND_LABEL: Record<ProductKind, string> = {
 
 export const AREA_LABEL: Record<PosType, string> = {
   BAR: "Restaurant & Bar",
-  KTV: "KTV",
+  KTV: "Private VIP Lounge",
   SPA: "SPA",
 };
 
