@@ -43,7 +43,7 @@ export function BarCategoriesPanel({ range }: { range: DashboardRange }) {
   return (
     <ReportPanel
       title="Bar sales by menu category"
-      description="Sales at the bar and every other till that isn't SPA or KTV, by menu category. Sub-categories are counted in their parent and listed under it."
+      description="Sales at the bar and every other till that isn't SPA or Private VIP Lounge, by menu category. Sub-categories are counted in their parent and listed under it."
       isLoading={query.isLoading}
       isFetching={query.isFetching}
       error={query.error}
