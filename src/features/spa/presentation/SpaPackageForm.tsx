@@ -16,7 +16,7 @@ import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import type { SpaPackage, SpaPackageInput, SpaPackageItem } from "@/core/domain/entities/Spa";
 
-const HIDDEN_CATEGORIES = ["Spa Packages", "Spa Rooms", "KTV Rooms"];
+const HIDDEN_CATEGORIES = ["Spa Packages", "Spa Rooms", "KTV Rooms", "Private VIP Lounges"];
 
 type Errors = Partial<Record<"name" | "durationMinutes" | "price", string>>;
 

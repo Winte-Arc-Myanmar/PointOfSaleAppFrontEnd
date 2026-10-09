@@ -82,7 +82,7 @@ function KtvRoomPicker({ tenantId, ...props }: PickerProps) {
   const places = getPaginatedItems(data)
     .filter((r) => !tenantId || String(r.tenantId) === tenantId)
     .map((r) => ({ id: String(r.id), label: roomLabel(r) }));
-  return <PlaceChips {...props} places={places} isLoading={isLoading} emptyText="No KTV rooms yet." />;
+  return <PlaceChips {...props} places={places} isLoading={isLoading} emptyText="No Private VIP Lounges yet." />;
 }
 
 function SpaRoomPicker({ tenantId, ...props }: PickerProps) {
