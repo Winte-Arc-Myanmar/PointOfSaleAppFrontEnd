@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ReceiptText, Tag } from "lucide-react";
+import { BadgePercent, Banknote, DoorOpen, Mic, Minus, Package, Plus, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -12,6 +13,40 @@ import { cn } from "@/lib/utils";
 import type { PriceCurrency, RoomPaymentTiming, VenueSettingUpdate } from "@/core/domain/entities/VenueSetting";
 
 type Draft = Required<VenueSettingUpdate>;
+
+function Switch({
+  label,
+  checked,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed",
+        checked ? "bg-emerald-500" : "bg-muted-foreground/30",
+      )}
+    >
+      <span
+        className={cn(
+          "absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform",
+          checked ? "translate-x-5" : "translate-x-0.5",
+        )}
+      />
+    </button>
+  );
+}
 
 function SwitchRow({
   title,
@@ -27,40 +62,116 @@ function SwitchRow({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <div className={cn("flex items-center justify-between gap-4 py-3", disabled && "opacity-50")}>
+    <div className={cn("flex items-start justify-between gap-4 py-3", disabled && "opacity-50")}>
       <div>
         <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted">{hint}</p>
+        <p className="mt-0.5 text-xs text-muted">{hint}</p>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={title}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors",
-          checked ? "bg-emerald-500" : "bg-muted-foreground/30",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform",
-            checked ? "translate-x-5" : "translate-x-0.5",
-          )}
-        />
-      </button>
+      <Switch label={title} checked={checked} disabled={disabled} onChange={onChange} />
     </div>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-      <h2 className="text-base font-semibold">{title}</h2>
-      <div className="divide-y divide-border">{children}</div>
+    <section className="space-y-3">
+      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
+        <Icon className="size-4" />
+        {title}
+      </h2>
+      {children}
     </section>
+  );
+}
+
+function Panel({
+  icon: Icon,
+  title,
+  className,
+  children,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm", className)}>
+      <h3 className="flex items-center gap-2 text-base font-semibold">
+        {Icon ? <Icon className="size-5 text-mint" /> : null}
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function Choice({
+  selected,
+  onSelect,
+  title,
+  hint,
+  mono,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  title: string;
+  hint: string;
+  mono?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={cn(
+        "flex gap-3 rounded-xl border p-4 text-left transition-colors",
+        selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
+      )}
+    >
+      <span
+        className={cn(
+          "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
+          selected ? "border-mint" : "border-muted-foreground/40",
+        )}
+      >
+        {selected ? <span className="size-2 rounded-full bg-mint" /> : null}
+      </span>
+      <span>
+        <span className="block text-sm font-semibold">{title}</span>
+        <span className={cn("mt-1 block text-xs text-muted", mono && "font-mono")}>{hint}</span>
+      </span>
+    </button>
+  );
+}
+
+function Stepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  const step = "flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-mint/15 hover:text-foreground disabled:opacity-30 disabled:hover:bg-transparent";
+  return (
+    <div role="group" aria-label={label} className="inline-flex items-center rounded-xl border border-border p-1">
+      <button type="button" aria-label="-" className={step} disabled={value <= min} onClick={() => onChange(value - 1)}>
+        <Minus className="size-4" />
+      </button>
+      <output aria-live="polite" className="w-10 text-center text-lg font-semibold tabular-nums">
+        {value}
+      </output>
+      <button type="button" aria-label="+" className={step} disabled={value >= max} onClick={() => onChange(value + 1)}>
+        <Plus className="size-4" />
+      </button>
+    </div>
   );
 }
 
@@ -75,8 +186,8 @@ const CURRENCIES = [
 ] as const satisfies readonly { value: PriceCurrency; title: string; sample: string }[];
 
 const LIMIT_FOR = [
-  { value: "ITEM", title: "shopSettings.perItem", icon: Tag },
-  { value: "BILL", title: "shopSettings.perBill", icon: ReceiptText },
+  { value: "ITEM", title: "shopSettings.perItem" },
+  { value: "BILL", title: "shopSettings.perBill" },
 ] as const;
 
 export function VenueSetupForm() {
@@ -129,158 +240,154 @@ export function VenueSetupForm() {
   };
 
   return (
-    <div className="max-w-2xl space-y-5">
-      <Card title={t("shopSettings.spaCard")}>
-        <SwitchRow
-          title={t("shopSettings.hasSpa")}
-          hint={t("shopSettings.hasSpaHint")}
-          checked={draft.spaEnabled}
-          onChange={(v) => set({ spaEnabled: v })}
-        />
-        <SwitchRow
-          title={t("shopSettings.spaFood")}
-          hint={t("shopSettings.spaFoodHint")}
-          checked={draft.spaMenuOrdering}
-          disabled={!draft.spaEnabled}
-          onChange={(v) => set({ spaMenuOrdering: v })}
-        />
-      </Card>
-
-      <Card title={t("shopSettings.ktvCard")}>
-        <SwitchRow
-          title={t("shopSettings.hasKtv")}
-          hint={t("shopSettings.hasKtvHint")}
-          checked={draft.ktvEnabled}
-          onChange={(v) => set({ ktvEnabled: v })}
-        />
-        <SwitchRow
-          title={t("shopSettings.ktvFood")}
-          hint={t("shopSettings.ktvFoodHint")}
-          checked={draft.ktvMenuOrdering}
-          disabled={!draft.ktvEnabled}
-          onChange={(v) => set({ ktvMenuOrdering: v })}
-        />
-      </Card>
-
-      <Card title={t("shopSettings.stockCard")}>
-        <SwitchRow
-          title={t("shopSettings.trackStock")}
-          hint={t("shopSettings.trackStockHint")}
-          checked={draft.trackStock}
-          onChange={(v) => set({ trackStock: v })}
-        />
-      </Card>
-
-      <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-        <h2 className="text-base font-semibold">{t("shopSettings.whenPay")}</h2>
-        <div role="radiogroup" className="grid gap-3 sm:grid-cols-2">
-          {TIMING.map((option) => {
-            const selected = draft.paymentTiming === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => set({ paymentTiming: option.value })}
-                className={cn(
-                  "rounded-xl border p-4 text-left transition-colors",
-                  selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
-                )}
-              >
-                <p className="text-sm font-semibold">{t(option.title)}</p>
-                <p className="mt-1 text-xs text-muted">{t(option.hint)}</p>
-              </button>
-            );
-          })}
+    <div className="max-w-4xl space-y-8 pb-24">
+      <Section icon={DoorOpen} title={t("shopSettings.roomsSection")}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel icon={Sparkles} title={t("shopSettings.spaCard")}>
+            <div className="divide-y divide-border">
+              <SwitchRow
+                title={t("shopSettings.hasSpa")}
+                hint={t("shopSettings.hasSpaHint")}
+                checked={draft.spaEnabled}
+                onChange={(v) => set({ spaEnabled: v })}
+              />
+              <SwitchRow
+                title={t("shopSettings.spaFood")}
+                hint={t("shopSettings.spaFoodHint")}
+                checked={draft.spaMenuOrdering}
+                disabled={!draft.spaEnabled}
+                onChange={(v) => set({ spaMenuOrdering: v })}
+              />
+            </div>
+          </Panel>
+          <Panel icon={Mic} title={t("shopSettings.ktvCard")}>
+            <div className="divide-y divide-border">
+              <SwitchRow
+                title={t("shopSettings.hasKtv")}
+                hint={t("shopSettings.hasKtvHint")}
+                checked={draft.ktvEnabled}
+                onChange={(v) => set({ ktvEnabled: v })}
+              />
+              <SwitchRow
+                title={t("shopSettings.ktvFood")}
+                hint={t("shopSettings.ktvFoodHint")}
+                checked={draft.ktvMenuOrdering}
+                disabled={!draft.ktvEnabled}
+                onChange={(v) => set({ ktvMenuOrdering: v })}
+              />
+            </div>
+          </Panel>
         </div>
-      </section>
+      </Section>
 
-      <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-        <h2 className="text-base font-semibold">{t("shopSettings.currency")}</h2>
-        <div role="radiogroup" aria-label={t("shopSettings.currency")} className="grid gap-3 sm:grid-cols-2">
-          {CURRENCIES.map((option) => {
-            const selected = draft.currency === option.value;
-            return (
-              <button
+      <Section icon={Banknote} title={t("shopSettings.paymentsSection")}>
+        <Panel title={t("shopSettings.whenPay")} className="space-y-3">
+          <div role="radiogroup" aria-label={t("shopSettings.whenPay")} className="grid gap-3 sm:grid-cols-2">
+            {TIMING.map((option) => (
+              <Choice
                 key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => set({ currency: option.value })}
-                className={cn(
-                  "rounded-xl border p-4 text-left transition-colors",
-                  selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
-                )}
-              >
-                <p className="text-sm font-semibold">{t(option.title)}</p>
-                <p className="mt-1 font-mono text-xs text-muted">{option.sample}</p>
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-xs text-muted">{t("shopSettings.currencyHint")}</p>
-      </section>
-
-      <section className="space-y-3 rounded-2xl border border-border bg-background/80 px-5 py-4 shadow-sm">
-        <h2 className="text-base font-semibold">{t("shopSettings.promotions")}</h2>
-        <p className="text-sm font-medium">{t("shopSettings.limitFor")}</p>
-        <div role="radiogroup" aria-label={t("shopSettings.limitFor")} className="grid gap-3 sm:grid-cols-2">
-          {LIMIT_FOR.map((option) => {
-            const selected = (draft.maxPromotionsPerBill === null) === (option.value === "ITEM");
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() =>
-                  set(
-                    option.value === "ITEM"
-                      ? { maxPromotionsPerItem: limit, maxPromotionsPerBill: null }
-                      : { maxPromotionsPerItem: 1, maxPromotionsPerBill: limit },
-                  )
-                }
-                className={cn(
-                  "flex items-center gap-3 rounded-xl border p-4 text-left transition-colors",
-                  selected ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
-                )}
-              >
-                <option.icon className={cn("size-6", selected ? "text-mint" : "text-muted")} />
-                <span className="text-sm font-semibold">{t(option.title)}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm font-medium">{t("shopSettings.howMany")}</p>
-          <div role="radiogroup" aria-label={t("shopSettings.howMany")} className="flex gap-1">
-            {(perBill ? [1, 2, 3, 4, 5] : [1, 2, 3]).map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={limit === n}
-                onClick={() => set(perBill ? { maxPromotionsPerBill: n } : { maxPromotionsPerItem: n })}
-                className={cn(
-                  "size-10 rounded-lg border text-sm font-medium",
-                  limit === n ? "border-mint bg-mint/15" : "border-border hover:border-mint/60",
-                )}
-              >
-                {n}
-              </button>
+                selected={draft.paymentTiming === option.value}
+                onSelect={() => set({ paymentTiming: option.value })}
+                title={t(option.title)}
+                hint={t(option.hint)}
+              />
             ))}
           </div>
-        </div>
-        <p className="text-xs text-muted">{t(perBill ? "shopSettings.perBillHint" : "shopSettings.perItemHint")}</p>
-      </section>
+        </Panel>
+        <Panel title={t("shopSettings.currency")} className="space-y-3">
+          <p className="text-xs text-muted">{t("shopSettings.currencyHint")}</p>
+          <div role="radiogroup" aria-label={t("shopSettings.currency")} className="grid gap-3 sm:grid-cols-2">
+            {CURRENCIES.map((option) => (
+              <Choice
+                key={option.value}
+                selected={draft.currency === option.value}
+                onSelect={() => set({ currency: option.value })}
+                title={t(option.title)}
+                hint={option.sample}
+                mono
+              />
+            ))}
+          </div>
+        </Panel>
+      </Section>
 
-      <div className="flex items-center gap-3">
-        <Button type="button" onClick={save} disabled={changed.length === 0 || update.isPending}>
-          {update.isPending ? t("shopSettings.saving") : t("shopSettings.save")}
-        </Button>
-        {changed.length === 0 ? <span className="text-xs text-muted">{t("shopSettings.noChanges")}</span> : null}
-      </div>
+      <Section icon={Package} title={t("shopSettings.salesSection")}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel icon={Package} title={t("shopSettings.stockCard")}>
+            <SwitchRow
+              title={t("shopSettings.trackStock")}
+              hint={t("shopSettings.trackStockHint")}
+              checked={draft.trackStock}
+              onChange={(v) => set({ trackStock: v })}
+            />
+          </Panel>
+          <Panel icon={BadgePercent} title={t("shopSettings.promotions")} className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{t("shopSettings.limitFor")}</p>
+              <div
+                role="radiogroup"
+                aria-label={t("shopSettings.limitFor")}
+                className="grid grid-cols-2 rounded-xl border border-border p-1"
+              >
+                {LIMIT_FOR.map((option) => {
+                  const selected = perBill === (option.value === "BILL");
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() =>
+                        set(
+                          option.value === "ITEM"
+                            ? { maxPromotionsPerItem: Math.min(limit, 3), maxPromotionsPerBill: null }
+                            : { maxPromotionsPerItem: 1, maxPromotionsPerBill: limit },
+                        )
+                      }
+                      className={cn(
+                        "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        selected ? "bg-mint/20 text-foreground shadow-sm" : "text-muted hover:text-foreground",
+                      )}
+                    >
+                      {t(option.title)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm">{t("shopSettings.upTo")}</span>
+              <Stepper
+                label={t("shopSettings.howMany")}
+                value={limit}
+                min={1}
+                max={perBill ? 5 : 3}
+                onChange={(n) => set(perBill ? { maxPromotionsPerBill: n } : { maxPromotionsPerItem: n })}
+              />
+              <span className="text-sm">
+                {t(perBill ? "shopSettings.promotionsPerBill" : "shopSettings.promotionsPerItem")}
+              </span>
+            </div>
+            <p className="text-xs text-muted">
+              {t(perBill ? "shopSettings.perBillHint" : "shopSettings.perItemHint")}
+            </p>
+          </Panel>
+        </div>
+      </Section>
+
+      {changed.length > 0 ? (
+        <div className="sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-mint/50 bg-background/95 px-5 py-3 shadow-lg backdrop-blur">
+          <span className="text-sm font-medium">{t("shopSettings.unsaved").replace("{count}", String(changed.length))}</span>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => setEdits({})} disabled={update.isPending}>
+              {t("shopSettings.discard")}
+            </Button>
+            <Button type="button" onClick={save} disabled={update.isPending}>
+              {update.isPending ? t("shopSettings.saving") : t("shopSettings.save")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
