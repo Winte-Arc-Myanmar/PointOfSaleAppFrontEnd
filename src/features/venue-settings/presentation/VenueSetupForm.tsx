@@ -109,6 +109,7 @@ export function VenueSetupForm() {
     maxPromotionsPerItem: saved.maxPromotionsPerItem ?? 1,
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     currency: saved.currency ?? "MMK",
+    trackStock: saved.trackStock ?? true,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
@@ -158,6 +159,15 @@ export function VenueSetupForm() {
           checked={draft.ktvMenuOrdering}
           disabled={!draft.ktvEnabled}
           onChange={(v) => set({ ktvMenuOrdering: v })}
+        />
+      </Card>
+
+      <Card title={t("shopSettings.stockCard")}>
+        <SwitchRow
+          title={t("shopSettings.trackStock")}
+          hint={t("shopSettings.trackStockHint")}
+          checked={draft.trackStock}
+          onChange={(v) => set({ trackStock: v })}
         />
       </Card>
 
