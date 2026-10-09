@@ -38,11 +38,7 @@ const tenantWriteFields = {
  */
 export const createTenantSchema = z.object(tenantWriteFields);
 
-export const updateTenantSchema = createTenantSchema.extend({
-  baseCurrency: z.enum(["MMK", "USD"], {
-    message: "Base currency is required",
-  }),
-});
+export const updateTenantSchema = createTenantSchema;
 
 export type CreateTenantFormData = z.infer<typeof createTenantSchema>;
 export type UpdateTenantFormData = z.infer<typeof updateTenantSchema>;

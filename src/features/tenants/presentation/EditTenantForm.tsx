@@ -3,17 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTenant, useUpdateTenant } from "@/presentation/hooks/useTenants";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import { ArrowLeft, CircleDollarSign, HandCoins } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
-import { cn } from "@/lib/utils";
-import type { TenantCurrency } from "@/core/domain/entities/Tenant";
 import {
   emptyToBlank,
   updateTenantSchema,
@@ -21,26 +19,6 @@ import {
 } from "./tenant-form-schema";
 
 const REDIRECT_DELAY_MS = 1500;
-
-const CURRENCY_OPTIONS: Array<{
-  value: TenantCurrency;
-  label: string;
-  example: string;
-  icon: typeof CircleDollarSign;
-}> = [
-  {
-    value: "USD",
-    label: "Dollar (USD)",
-    example: "$2,000.00",
-    icon: CircleDollarSign,
-  },
-  {
-    value: "MMK",
-    label: "Myanmar Kyat (MMK)",
-    example: "2,000.00 MMK",
-    icon: HandCoins,
-  },
-];
 
 export function EditTenantForm({ tenantId }: { tenantId: string }) {
   const router = useRouter();
@@ -64,9 +42,10 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
       state: "",
       country: "",
       zipCode: "",
-      baseCurrency: "MMK",
     },
   });
+
+  const logoUrl = useWatch({ control: form.control, name: "logoUrl" });
 
   useEffect(() => {
     if (tenant) {
@@ -84,7 +63,6 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         state: tenant.state ?? "",
         country: tenant.country,
         zipCode: tenant.zipCode ?? "",
-        baseCurrency: tenant.baseCurrency ?? "MMK",
       });
     }
   }, [tenant, form]);
@@ -108,7 +86,6 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           state: data.state,
           country: data.country,
           zipCode: data.zipCode,
-          baseCurrency: data.baseCurrency,
         },
       },
       {
@@ -276,108 +253,28 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         </div>
         </div>
 
-        <fieldset className="w-full rounded-xl border border-border bg-background p-4 shadow-sm lg:sticky lg:top-4">
-          <legend className="sr-only">Business settings</legend>
-          <div className="mb-4">
-            <p className="section-label">Business settings</p>
-            <h2 className="mt-2 text-base font-semibold text-foreground">
-              Base currency
-            </h2>
-            <p className="mt-1 text-xs leading-5 text-muted">
-              Choose how this tenant&apos;s prices appear in Products and Checkout.
-            </p>
-          </div>
-
-          <Controller
-            control={form.control}
-            name="baseCurrency"
-            render={({ field }) => (
-              <div
-                className="space-y-2"
-                role="radiogroup"
-                aria-label="Base currency"
-              >
-                {CURRENCY_OPTIONS.map((option) => {
-                  const isSelected = field.value === option.value;
-                  const Icon = option.icon;
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      onClick={() => field.onChange(option.value)}
-                      className={cn(
-                        "flex min-h-16 w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                        isSelected
-                          ? "border-mint bg-mint/10"
-                          : "border-border hover:border-mint/40 hover:bg-mint/5",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                          isSelected
-                            ? "bg-mint/20 text-mint"
-                            : "bg-muted/10 text-muted",
-                        )}
-                      >
-                        <Icon className="size-5" aria-hidden="true" />
-                      </span>
-
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-foreground">
-                          {option.label}
-                        </span>
-                        <span className="block text-xs text-muted">
-                          Show prices like {option.example}
-                        </span>
-                      </span>
-
-                      <span className="flex shrink-0 items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[11px] font-medium",
-                            isSelected ? "text-mint" : "text-muted",
-                          )}
-                        >
-                          {isSelected ? "Enabled" : "Disabled"}
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className={cn(
-                            "relative h-6 w-11 rounded-full border transition-colors",
-                            isSelected
-                              ? "border-mint bg-mint"
-                              : "border-border bg-gray-200 dark:bg-background",
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "absolute top-0.5 size-4.5 rounded-full bg-white shadow-sm transition-transform duration-200",
-                              isSelected ? "translate-x-5" : "translate-x-0.5",
-                            )}
-                          />
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+        <aside className="w-full space-y-3 rounded-xl border border-border bg-background p-4 shadow-sm lg:sticky lg:top-4">
+          <p className="section-label">On receipts</p>
+          <div className="flex h-28 items-center justify-center rounded-lg border border-dashed border-border bg-white p-3">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="Logo" className="max-h-full max-w-full object-contain grayscale" />
+            ) : (
+              <span className="text-xs text-muted">No logo</span>
             )}
-          />
-
-          {errors.baseCurrency && (
-            <p className="mt-2 text-sm text-red-600">
-              {errors.baseCurrency.message}
-            </p>
-          )}
-
-          <p className="mt-4 rounded-lg bg-muted/10 px-3 py-2 text-xs leading-5 text-muted">
-            Saved with this tenant. Currency conversion is managed separately through Exchange Rates.
+          </div>
+          <p className="text-xs leading-5 text-muted">
+            The logo, name, address, phone and email print at the top of receipts. Choose which
+            ones in the POS under Settings, Print Template.
           </p>
-        </fieldset>
+          <p className="text-xs leading-5 text-muted">
+            The currency receipts use is set in{" "}
+            <Link href="/venue-setup" className="text-mint underline">
+              Shop settings
+            </Link>
+            .
+          </p>
+        </aside>
       </form>
     </div>
   );

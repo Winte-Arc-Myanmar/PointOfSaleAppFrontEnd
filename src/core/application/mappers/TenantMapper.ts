@@ -46,7 +46,6 @@ export function toTenantDto(tenant: Partial<Tenant>): TenantDto {
     state: tenant.state ?? "",
     country: tenant.country ?? "",
     zipCode: tenant.zipCode ?? "",
-    baseCurrency: tenant.baseCurrency === "USD" ? "USD" : "MMK",
     ...(tenant.status != null && { status: tenant.status }),
     ...(tenant.deletedAt != null && { deletedAt: tenant.deletedAt }),
     ...(tenant.createdAt != null && { createdAt: tenant.createdAt }),
