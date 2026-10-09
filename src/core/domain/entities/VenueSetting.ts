@@ -13,6 +13,8 @@ export interface VenueSetting {
   maxPromotionsPerBill: number | null;
   /** The money customers pay in, shown on receipts. */
   currency: PriceCurrency;
+  /** Sales check and deduct menu stock; off for a business without inventory. */
+  trackStock: boolean;
   updatedAt: string | null;
 }
 
