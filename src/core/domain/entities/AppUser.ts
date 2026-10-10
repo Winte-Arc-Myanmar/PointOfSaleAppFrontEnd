@@ -15,7 +15,10 @@ export interface AppUser {
   phoneNumber?: string;
   avatarUrl?: string;
   jobTitle?: string;
+  tenantId?: string;
   roleId?: string;
+  /** The role's name, when the API sends the user's roles. */
+  roleName?: string;
   branchId?: string;
   preferredLanguage?: string;
   status?: string;
