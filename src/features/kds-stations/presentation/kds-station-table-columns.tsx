@@ -52,7 +52,7 @@ export function getKdsStationTableColumns(
     },
     {
       key: "locationId",
-      header: "Location",
+      header: "Outlet",
       className: "min-w-[180px]",
       render: (s) => locationLabelById[s.locationId] ?? s.locationId,
     },

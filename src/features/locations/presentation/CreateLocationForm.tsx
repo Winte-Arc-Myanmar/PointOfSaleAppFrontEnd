@@ -24,7 +24,7 @@ const PARENT_NONE = "__none__";
 
 const LOCATION_TYPES = [
   { value: "warehouse", label: "Warehouse" },
-  { value: "store", label: "Store" },
+  { value: "store", label: "Outlet" },
   { value: "zone", label: "Zone" },
   { value: "bin", label: "Bin" },
   { value: "shelf", label: "Shelf" },

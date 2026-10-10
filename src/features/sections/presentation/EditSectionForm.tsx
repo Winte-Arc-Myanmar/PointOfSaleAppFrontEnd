@@ -117,14 +117,14 @@ export function EditSectionForm({ sectionId }: { sectionId: string }) {
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
         <div className="grid gap-2">
-          <Label htmlFor="locationId">Location</Label>
+          <Label htmlFor="locationId">Outlet</Label>
           <Controller
             control={form.control}
             name="locationId"
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger id="locationId">
-                  <SelectValue placeholder="Select location" />
+                  <SelectValue placeholder="Choose the outlet" />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredLocations.map((location) => (
