@@ -6,6 +6,8 @@ declare module "next-auth" {
     accessToken?: string;
     activeBranch?: string;
     access?: BranchAccess[];
+    /** When the API access token runs out (ms); renewed before then while possible. */
+    expiresAt?: number | null;
   }
   interface User {
     accessToken?: string;
