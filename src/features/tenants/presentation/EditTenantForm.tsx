@@ -1,5 +1,6 @@
 "use client";
 
+import { resolveMediaUrl } from "@/lib/media-url";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -258,7 +259,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           <div className="flex h-28 items-center justify-center rounded-lg border border-dashed border-border bg-white p-3">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="Logo" className="max-h-full max-w-full object-contain grayscale" />
+              <img src={resolveMediaUrl(logoUrl)} alt="Logo" className="max-h-full max-w-full object-contain grayscale" />
             ) : (
               <span className="text-xs text-muted">No logo</span>
             )}

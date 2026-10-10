@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { resolveMediaUrl } from "@/lib/media-url";
 import { useState } from "react";
 import { useTenant } from "@/presentation/hooks/useTenants";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
@@ -113,13 +113,12 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
               <div className="pt-2">
                 <dt className="text-xs font-medium text-muted uppercase tracking-wider">Logo</dt>
                 <dd className="mt-1">
-                  <Image
-                    src={tenant.logoUrl}
+                  {/* A plain img: next/image throws on a stored path it can't parse, taking the page down. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={resolveMediaUrl(tenant.logoUrl)}
                     alt={`${tenant.name} logo`}
-                    width={120}
-                    height={60}
                     className="h-12 w-auto object-contain"
-                    unoptimized
                   />
                 </dd>
               </div>
