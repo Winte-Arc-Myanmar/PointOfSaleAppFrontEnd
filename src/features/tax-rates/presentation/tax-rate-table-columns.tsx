@@ -1,3 +1,4 @@
+import { taxPercent } from "@/lib/tax-percent";
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { TaxRate } from "@/core/domain/entities/TaxRate";
 
@@ -38,7 +39,7 @@ export function getTaxRateTableColumns(
       sortable: true,
       className: "min-w-[100px]",
       render: (r) => (
-        <span className="font-mono text-sm text-foreground">{r.ratePercentage}%</span>
+        <span className="font-mono text-sm text-foreground">{taxPercent(r.ratePercentage)}%</span>
       ),
     },
     {
