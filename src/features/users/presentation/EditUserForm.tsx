@@ -154,7 +154,7 @@ export function EditUserForm({ userId }: { userId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password (leave blank to keep)</Label>
+            <Label htmlFor="password">New password (leave blank to keep the current one)</Label>
             <Input
               id="password"
               type="password"
