@@ -74,12 +74,6 @@ function formatOrderDate(value?: string | null): string {
   }).format(date);
 }
 
-function getShortOrderId(orderNumber: string): string {
-  const digits = orderNumber.replace(/\D/g, "");
-  if (!digits) return `#${orderNumber.slice(-3).toUpperCase()}`;
-  return `#${digits.slice(-3).padStart(3, "0")}`;
-}
-
 function normalizeBoardStatus(status: SalesOrderStatus): OrderBoardStatus {
   const normalized = String(status).trim().toUpperCase();
   if (
@@ -348,7 +342,12 @@ function OrderTrackingCard({
   order: SalesOrder;
   onOpen: () => void;
 }) {
-  const { data: receipt } = useReceipt(String(order.id));
+  const {
+    data: receipt,
+    isLoading: itemsLoading,
+    isError: itemsFailed,
+    refetch: retryItems,
+  } = useReceipt(String(order.id));
   const boardStatus = normalizeBoardStatus(order.status);
   const lineItems = receipt?.lineItems ?? [];
   const previewItems = lineItems.slice(0, 2);
@@ -393,7 +392,7 @@ function OrderTrackingCard({
           </button>
         </div>
         <span className="shrink-0 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
-          {getShortOrderId(order.orderNumber)}
+          {order.orderNumber ? `#${order.orderNumber}` : ""}
         </span>
       </div>
 
@@ -429,8 +428,26 @@ function OrderTrackingCard({
             </div>
           ))
         ) : (
-          <div className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-500 dark:bg-white/5 dark:text-muted">
-            Receipt items are still syncing for this order.
+          <div className="flex items-center justify-between gap-2 rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-500 dark:bg-white/5 dark:text-muted">
+            <span>
+              {itemsLoading
+                ? "Loading items..."
+                : itemsFailed
+                  ? "Couldn't load the items."
+                  : "No items on this order."}
+            </span>
+            {itemsFailed ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void retryItems();
+                }}
+                className="shrink-0 font-semibold text-mint hover:text-mint-hover"
+              >
+                Retry
+              </button>
+            ) : null}
           </div>
         )}
 
@@ -468,7 +485,7 @@ function OrderTrackingCard({
 function StatusBadge({ status }: { status: OrderBoardStatus }) {
   const config = {
     new: {
-      label: "New Order",
+      label: "New",
       className:
         "bg-violet-100 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-200 dark:ring-violet-400/20",
       icon: UtensilsCrossed,
@@ -504,11 +521,11 @@ function StatusBadge({ status }: { status: OrderBoardStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium",
         config.className,
       )}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-3.5 w-3.5" />
       {config.label}
     </span>
   );

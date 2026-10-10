@@ -38,4 +38,8 @@ export class KdsTicketService implements IKdsTicketService {
   readyLine(lineId: string): Promise<KdsTicketLine> {
     return this.kdsTicketRepository.readyLine(lineId);
   }
+
+  closeOld(olderThanHours: number): Promise<number> {
+    return this.kdsTicketRepository.closeOld(olderThanHours);
+  }
 }
