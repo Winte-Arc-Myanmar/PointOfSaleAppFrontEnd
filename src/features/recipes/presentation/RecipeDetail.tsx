@@ -108,7 +108,7 @@ export function RecipeDetail({ recipeId }: { recipeId: string }) {
                 <tr>
                   <th className="px-3 py-2 text-left font-medium">Ingredient product & variant</th>
                   <th className="px-3 py-2 text-left font-medium">Quantity</th>
-                  <th className="px-3 py-2 text-left font-medium">UOM</th>
+                  <th className="px-3 py-2 text-left font-medium">Unit</th>
                   <th className="px-3 py-2 text-left font-medium">Optional</th>
                   <th className="px-3 py-2 text-left font-medium">Notes</th>
                 </tr>

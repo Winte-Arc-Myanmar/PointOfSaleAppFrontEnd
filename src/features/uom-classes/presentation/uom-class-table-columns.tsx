@@ -32,15 +32,5 @@ export function getUomClassTableColumns(
           </span>
         ),
     },
-    {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[200px] max-w-[280px]",
-      render: (c) => (
-        <span className="font-mono text-xs text-muted truncate" title={c.tenantId}>
-          {c.tenantId}
-        </span>
-      ),
-    },
   ];
 }

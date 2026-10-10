@@ -5,7 +5,6 @@ export default function KdsTicketsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage KDS tickets.</p>
         <section>
           <h2 className="section-label mb-4">KDS Tickets</h2>
           <KdsTicketList />

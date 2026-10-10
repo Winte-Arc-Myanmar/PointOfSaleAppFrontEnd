@@ -13,7 +13,7 @@ import {
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
 import { Shield, KeyRound, ListChecks, Search } from "lucide-react";
-import { useRole, useAssignRolePermissions } from "@/presentation/hooks/useRoles";
+import { useRole, useRoles, useAssignRolePermissions } from "@/presentation/hooks/useRoles";
 import { usePermissionCatalog } from "@/presentation/hooks/usePermissionCatalog";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useGrantablePermissions } from "@/presentation/hooks/useGrantablePermissions";
@@ -33,6 +33,10 @@ export function RoleDetail({ roleId }: { roleId: string }) {
     [isGrantable, permissionsData],
   );
   const assign = useAssignRolePermissions();
+  const { data: rolesData } = useRoles();
+  const parentName = role?.parentId
+    ? getPaginatedItems(rolesData).find((r) => r.id === role.parentId)?.name
+    : undefined;
 
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -42,6 +46,7 @@ export function RoleDetail({ roleId }: { roleId: string }) {
         { label: "Role ID", value: safeText(role.id), mono: true },
         { label: "Name", value: safeText(role.name) },
         { label: "Tenant ID", value: safeText(role.tenantId), mono: true },
+        { label: "Parent role", value: safeText(parentName) },
         { label: "Parent ID", value: safeText(role.parentId), mono: true },
         { label: "System default", value: role.isSystemDefault ? "Yes" : "No" },
       ]

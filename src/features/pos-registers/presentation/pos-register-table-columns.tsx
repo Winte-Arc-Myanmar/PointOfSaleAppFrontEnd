@@ -9,6 +9,7 @@ const KIND_LABEL: Record<PosKind, TranslationKey> = {
 };
 
 type PosRegisterTableColumnOptions = {
+  locationNames?: Record<string, string>;
   onView?: (register: PosRegister) => void;
   t: (key: TranslationKey) => string;
 };
@@ -16,7 +17,7 @@ type PosRegisterTableColumnOptions = {
 export function getPosRegisterTableColumns(
   options: PosRegisterTableColumnOptions,
 ): DataTableColumn<PosRegister>[] {
-  const { onView, t } = options;
+  const { onView, t, locationNames = {} } = options;
 
   return [
     {
@@ -53,17 +54,13 @@ export function getPosRegisterTableColumns(
     },
     {
       key: "locationId",
-      header: "Location",
+      header: "Outlet",
       className: "min-w-[140px] max-w-[220px]",
-      render: (r) => (
-        <span className="font-mono text-xs text-muted truncate" title={r.locationId}>
-          {r.locationId}
-        </span>
-      ),
+      render: (r) => locationNames[r.locationId] ?? "—",
     },
     {
       key: "macAddress",
-      header: "MAC address",
+      header: "Device ID",
       className: "min-w-[140px] max-w-[200px]",
       render: (r) => (
         <span className="font-mono text-xs text-muted truncate" title={r.macAddress}>

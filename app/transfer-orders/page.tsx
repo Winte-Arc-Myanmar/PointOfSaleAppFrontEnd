@@ -5,7 +5,6 @@ export default function TransferOrdersPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage transfer orders.</p>
         <section>
           <h2 className="section-label mb-4">Transfer orders</h2>
           <TransferOrderList />

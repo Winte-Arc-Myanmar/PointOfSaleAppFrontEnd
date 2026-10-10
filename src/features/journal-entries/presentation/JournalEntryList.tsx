@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccountingPeriodNames } from "@/presentation/hooks/useNameLookups";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/presentation/components/ui/input";
@@ -21,6 +22,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 10;
 
 export function JournalEntryList() {
+  const periodNames = useAccountingPeriodNames();
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
@@ -74,9 +76,10 @@ export function JournalEntryList() {
   const columns = useMemo(
     () =>
       getJournalEntryTableColumns({
+        periodNames,
         onView: (e) => router.push(`/journal-entries/${e.id}`),
       }),
-    [router],
+    [router, periodNames],
   );
 
   return (

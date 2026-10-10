@@ -25,7 +25,7 @@ import {
 import type { Product } from "@/core/domain/entities/Product";
 
 const ingredientSchema = z.object({
-  ingredientVariantId: z.string().min(1, "Ingredient variant is required"),
+  ingredientVariantId: z.string().min(1, "Ingredient is required"),
   quantity: z.number().gt(0, "Quantity must be greater than 0"),
   uomId: z.string().min(1, "UOM is required"),
   isOptional: z.boolean(),
@@ -35,7 +35,7 @@ const ingredientSchema = z.object({
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   productId: z.string().optional(),
-  variantId: z.string().min(1, "Recipe variant is required"),
+  variantId: z.string().min(1, "Item is required"),
   yield: z.number().gt(0, "Yield must be greater than 0"),
   notes: z.string().optional(),
   isActive: z.boolean(),
@@ -152,34 +152,36 @@ export function CreateRecipeForm({
   return (
     <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select tenant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue placeholder="Select tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tenants.map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.tenantId && (
+              <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
             )}
-          />
-          {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="grid gap-2">
           <Label htmlFor="productId">Recipe product</Label>
@@ -213,14 +215,14 @@ export function CreateRecipeForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="variantId">Recipe variant</Label>
+          <Label htmlFor="variantId">Item</Label>
           <Controller
             control={form.control}
             name="variantId"
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange} disabled={!selectedProductId}>
                 <SelectTrigger id="variantId">
-                  <SelectValue placeholder={selectedProductId ? "Select variant" : "Select product first"} />
+                  <SelectValue placeholder={selectedProductId ? "Select item" : "Select product first"} />
                 </SelectTrigger>
                 <SelectContent>
                   {variants.map((variant) => (
@@ -289,7 +291,7 @@ export function CreateRecipeForm({
           <div key={field.id} className="rounded-lg border border-border p-3 space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="grid gap-2 sm:col-span-2">
-                <Label>Ingredient variant</Label>
+                <Label>Ingredient</Label>
                 <Controller
                   control={form.control}
                   name={`ingredients.${index}.ingredientVariantId`}
@@ -328,14 +330,14 @@ export function CreateRecipeForm({
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor={`uom-${field.id}`}>UOM</Label>
+                <Label htmlFor={`uom-${field.id}`}>Unit</Label>
                 <Controller
                   control={form.control}
                   name={`ingredients.${index}.uomId`}
                   render={({ field: uomField }) => (
                     <Select value={uomField.value} onValueChange={uomField.onChange}>
                       <SelectTrigger id={`uom-${field.id}`}>
-                        <SelectValue placeholder="Select UOM" />
+                        <SelectValue placeholder="Select unit" />
                       </SelectTrigger>
                       <SelectContent>
                         {uoms.map((uom) => (
@@ -394,14 +396,17 @@ export function CreateRecipeForm({
   );
 }
 
-function IngredientVariantSelector({
+export function IngredientVariantSelector({
   products,
   value,
   onChange,
+  currentLabel,
 }: {
   products: Product[];
   value: string;
   onChange: (value: string) => void;
+  /** The saved ingredient's name, shown until another product is picked. */
+  currentLabel?: string;
 }) {
   const [productId, setProductId] = useState("");
   const { data: variantsData } = useProductVariants(productId || null, { page: 1, limit: 200 });
@@ -409,6 +414,9 @@ function IngredientVariantSelector({
 
   return (
     <div className="grid gap-2 sm:grid-cols-2">
+      {value && !productId && currentLabel ? (
+        <p className="text-sm text-foreground sm:col-span-2">{currentLabel}</p>
+      ) : null}
       <Select
         value={productId || "__none__"}
         onValueChange={(nextProductId) => {
@@ -418,14 +426,14 @@ function IngredientVariantSelector({
       >
         <SelectTrigger><SelectValue placeholder="Select ingredient product" /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="__none__">Select product</SelectItem>
+          <SelectItem value="__none__">{value ? "Change ingredient" : "Select product"}</SelectItem>
           {products.map((product) => (
             <SelectItem key={product.id} value={String(product.id)}>{product.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Select value={value} onValueChange={onChange} disabled={!productId}>
-        <SelectTrigger><SelectValue placeholder={productId ? "Select variant" : "Select product first"} /></SelectTrigger>
+        <SelectTrigger><SelectValue placeholder={productId ? "Select item" : "Select product first"} /></SelectTrigger>
         <SelectContent>
           {variants.map((variant) => (
             <SelectItem key={variant.id} value={String(variant.id)}>{variant.variantSku || "Unnamed variant"}</SelectItem>

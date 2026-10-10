@@ -42,13 +42,14 @@ export function getKdsTicketTableColumns(
       key: "stationId",
       header: "Station",
       className: "min-w-[180px]",
-      render: (t) => stationLabelById[t.stationId] ?? t.stationId,
+      render: (t) => stationLabelById[t.stationId] ?? t.stationName ?? "—",
     },
     {
       key: "sessionId",
-      header: "Session",
+      header: "For",
       className: "min-w-[180px]",
-      render: (t) => (t.sessionId ? sessionLabelById[t.sessionId] ?? t.sessionId : "—"),
+      render: (t) =>
+        t.placeLabel ?? (t.sessionId ? sessionLabelById[t.sessionId] : undefined) ?? "—",
     },
     {
       key: "courseType",

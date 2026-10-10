@@ -190,31 +190,33 @@ export function EditFixedAssetForm({ fixedAssetId }: { fixedAssetId: string }) {
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-3xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="tenantId">Tenant</Label>
-            <Controller
-              control={form.control}
-              name="tenantId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={Boolean(lockedTenantId)}
-                >
-                  <SelectTrigger id="tenantId">
-                    <SelectValue placeholder="Select tenant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tenants.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+          {!lockedTenantId && (
+            <div className="grid gap-2">
+              <Label htmlFor="tenantId">Tenant</Label>
+              <Controller
+                control={form.control}
+                name="tenantId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={Boolean(lockedTenantId)}
+                  >
+                    <SelectTrigger id="tenantId">
+                      <SelectValue placeholder="Select tenant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tenants.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="assetName">Asset name</Label>
             <Input id="assetName" {...form.register("assetName")} />

@@ -33,7 +33,6 @@ export function getRoleTableColumns(
           </span>
         ),
     },
-    { key: "tenantId", header: "Tenant", sortable: false, className: "font-mono text-xs" },
     {
       key: "isSystemDefault",
       header: "Default",

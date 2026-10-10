@@ -47,15 +47,5 @@ export function getDiningZoneTableColumns(
         <span className="text-xs text-muted">{z.layoutSvg ? "SVG defined" : "—"}</span>
       ),
     },
-    {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[200px] max-w-[240px]",
-      render: (z) => (
-        <span className="font-mono text-xs text-muted truncate" title={z.tenantId}>
-          {z.tenantId}
-        </span>
-      ),
-    },
   ];
 }

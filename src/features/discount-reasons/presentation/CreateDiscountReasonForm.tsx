@@ -99,34 +99,36 @@ export function CreateDiscountReasonForm({
   return (
     <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select tenant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue placeholder="Select tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tenants.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.tenantId && (
+              <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
             )}
-          />
-          {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
-          )}
-        </div>
+          </div>
+        )}
         <div className="grid gap-2">
           <Label htmlFor="code">Code</Label>
           <Input id="code" {...form.register("code")} placeholder="SENIOR_15" />
