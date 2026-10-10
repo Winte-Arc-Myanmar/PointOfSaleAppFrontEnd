@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent, Banknote, DoorOpen, Mic, Minus, Package, Plus, Sparkles } from "lucide-react";
+import { BadgePercent, Banknote, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -10,6 +10,7 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { useUpdateVenueSettings, useVenueSettings } from "@/presentation/hooks/useVenueSettings";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
+import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
 import type { PriceCurrency, RoomPaymentTiming, VenueSettingUpdate } from "@/core/domain/entities/VenueSetting";
 
 type Draft = Required<VenueSettingUpdate>;
@@ -221,6 +222,7 @@ export function VenueSetupForm() {
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     currency: saved.currency ?? "MMK",
     trackStock: saved.trackStock ?? true,
+    defaultTaxRateId: saved.defaultTaxRateId ?? null,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
@@ -320,6 +322,19 @@ export function VenueSetupForm() {
               checked={draft.trackStock}
               onChange={(v) => set({ trackStock: v })}
             />
+          </Panel>
+          <Panel icon={Receipt} title={t("shopSettings.taxCard")} className="space-y-2">
+            <label htmlFor="default-tax-rate" className="text-sm font-medium">
+              {t("shopSettings.defaultTax")}
+            </label>
+            <TaxRateSelect
+              id="default-tax-rate"
+              value={draft.defaultTaxRateId ?? ""}
+              onChange={(v) => set({ defaultTaxRateId: v || null })}
+              tenantId={saved.tenantId}
+              noneLabel={t("shopSettings.noDefaultTax")}
+            />
+            <p className="text-xs text-muted">{t("shopSettings.defaultTaxHint")}</p>
           </Panel>
           <Panel icon={BadgePercent} title={t("shopSettings.promotions")} className="space-y-4">
             <div className="space-y-2">

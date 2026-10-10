@@ -15,7 +15,16 @@ export interface VenueSetting {
   currency: PriceCurrency;
   /** Sales check and deduct menu stock; off for a business without inventory. */
   trackStock: boolean;
+  /** Taxes taxable products that have no tax rate of their own; null for none. */
+  defaultTaxRateId: string | null;
+  defaultTaxRate?: {
+    id: string;
+    name: string;
+    /** A fraction: 0.05 is 5%. */
+    ratePercentage: string;
+    isPriceInclusive: boolean;
+  } | null;
   updatedAt: string | null;
 }
 
-export type VenueSettingUpdate = Partial<Omit<VenueSetting, "tenantId" | "updatedAt">>;
+export type VenueSettingUpdate = Partial<Omit<VenueSetting, "tenantId" | "updatedAt" | "defaultTaxRate">>;

@@ -24,6 +24,7 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
+import { taxPercent } from "@/lib/tax-percent";
 import { toProductDto } from "@/core/application/mappers/ProductMapper";
 import type { ProductDto } from "@/core/application/dtos/ProductDto";
 import type { Product } from "@/core/domain/entities/Product";
@@ -428,7 +429,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
             <SelectItem value={NONE}>{t("addProduct.noTax")}</SelectItem>
             {taxRates.map((rate) => (
               <SelectItem key={String(rate.id)} value={String(rate.id)}>
-                {rate.name} ({Number(rate.ratePercentage) * (Number(rate.ratePercentage) <= 1 ? 100 : 1)}%)
+                {rate.name} ({taxPercent(rate.ratePercentage)}%)
               </SelectItem>
             ))}
           </SelectContent>

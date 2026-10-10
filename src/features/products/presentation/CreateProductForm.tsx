@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
+import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
 import { ProductKindFields } from "./ProductKindFields";
 import { DEFAULT_TERMS, termsError } from "./product-kind-text";
 import type { ProductTerms } from "@/core/domain/entities/Product";
@@ -318,15 +319,22 @@ export function CreateProductForm({
         )}
       />
       <div className="grid gap-2">
-        <Label htmlFor="taxRateId">Tax rate ID</Label>
-        <Input
-          id="taxRateId"
-          {...register("taxRateId")}
-          placeholder="UUID when taxable"
-          className="font-mono text-sm"
+        <Label htmlFor="taxRateId">Tax rate</Label>
+        <Controller
+          control={control}
+          name="taxRateId"
+          render={({ field }) => (
+            <TaxRateSelect
+              id="taxRateId"
+              value={field.value}
+              onChange={field.onChange}
+              tenantId={selectedTenantId}
+              noneLabel="Shop default tax rate"
+            />
+          )}
         />
         <p className="text-xs text-muted">
-          Paste the tax rate identifier from your billing setup. Leave empty if none.
+          Leave on the shop default to use the default tax rate from Shop settings.
         </p>
       </div>
       <div className="flex items-center gap-2">
