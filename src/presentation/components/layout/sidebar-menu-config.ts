@@ -509,12 +509,6 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["tenants:read"],
       },
       {
-        href: "/admin/onboard",
-        labelKey: "nav.onboardTenant",
-        icon: ShieldPlus,
-        adminOnly: true,
-      },
-      {
         href: "/users",
         labelKey: "nav.users",
         icon: Users,

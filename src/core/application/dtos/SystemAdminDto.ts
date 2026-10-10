@@ -18,7 +18,7 @@ export interface OnboardTenantDto {
   };
   branch: {
     name: string;
-    branchCode: string;
+    branchCode?: string;
     address?: string;
     city?: string;
     phone?: string;
