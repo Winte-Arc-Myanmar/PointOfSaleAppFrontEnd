@@ -39,15 +39,15 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <LanguageProvider>
-            <CurrencyProvider>
-              <SessionProvider>
-                <QueryProvider>
+            <SessionProvider>
+              <QueryProvider>
+                <CurrencyProvider>
                   <ToastProvider>
                     <ConfirmProvider>{children}</ConfirmProvider>
                   </ToastProvider>
-                </QueryProvider>
-              </SessionProvider>
-            </CurrencyProvider>
+                </CurrencyProvider>
+              </QueryProvider>
+            </SessionProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

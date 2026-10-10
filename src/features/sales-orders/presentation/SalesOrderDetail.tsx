@@ -35,14 +35,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
+import { formatMoney as money } from "@/lib/money";
 
 const CREATE_LINE_FORM_ID = "create-sales-order-line";
 const CREATE_PAYMENT_FORM_ID = "create-sales-order-payment";
 const DETAIL_PAGE_SIZE = 10;
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
 
 export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
   const { data: order, isLoading, error } = useSalesOrder(salesOrderId);

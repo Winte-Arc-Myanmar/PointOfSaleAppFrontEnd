@@ -25,10 +25,7 @@ import { useCreateRefund, useRefundsByOrder } from "@/presentation/hooks/useRefu
 import type { RefundRequestDto, RefundMethod } from "@/core/application/dtos/RefundDto";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { isUuid, shortId } from "./refund-order-utils";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+import { formatMoney as money } from "@/lib/money";
 
 function errorMessage(err: unknown): string {
   if (err && typeof err === "object") {
