@@ -36,9 +36,7 @@ export function DiningTableTile({ table, onClick, compact, className }: DiningTa
         <Users className="size-3" />
         {table.maxSeats}
       </span>
-      <span className="mt-1 text-[10px] font-medium uppercase tracking-wide opacity-70">
-        {cfg.shortLabel}
-      </span>
+      <span className="mt-1 text-[10px] font-medium opacity-70">{cfg.label}</span>
     </button>
   );
 }
