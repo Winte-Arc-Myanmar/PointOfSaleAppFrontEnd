@@ -192,7 +192,7 @@ export function TenantList() {
       toolbarEndContent={
         <Button type="button" onClick={() => router.push("/admin/onboard")}>
           <Plus className="mr-1.5 size-4" />
-          Add Tenant
+          New shop
         </Button>
       }
       enableRowSelection
