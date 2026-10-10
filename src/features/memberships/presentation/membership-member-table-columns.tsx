@@ -1,6 +1,7 @@
 import { Eye } from "lucide-react";
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { MembershipMember } from "@/core/domain/entities/MembershipMember";
+import { StatusBadge } from "@/presentation/components/ui/status-badge";
 
 type Options = {
   onView?: (member: MembershipMember) => void;
@@ -64,19 +65,7 @@ export function getMembershipMemberTableColumns(
     {
       key: "status",
       header: "Status",
-      render: (row) => (
-        <span
-          className={
-            row.status === "ACTIVE"
-              ? "font-medium text-green-600"
-              : row.status === "CLOSED"
-                ? "text-red-500"
-                : "text-muted"
-          }
-        >
-          {row.status}
-        </span>
-      ),
+      render: (row) => <StatusBadge status={row.status} />,
     },
     {
       key: "actions",

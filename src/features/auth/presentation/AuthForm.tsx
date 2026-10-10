@@ -7,6 +7,8 @@ import { z } from "zod";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import { safeReturnPath } from "@/lib/login-return";
 import type { UserType } from "@/core/domain/types/auth";
 import { useAuthService } from "@/presentation/hooks/useAuthService";
 import { Button } from "@/presentation/components/ui/button";
@@ -71,8 +73,11 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const tenantIdRaw = searchParams.get("tenantId") ?? "";
   const tenantId = tenantIdRaw.replace(/^["']|["']$/g, "").trim();
 
-  const defaultCallbackUrl =
-    callbackUrl ?? searchParams.get("callbackUrl") ?? "/dashboard";
+  const defaultCallbackUrl = safeReturnPath(
+    callbackUrl ?? searchParams.get("callbackUrl"),
+  );
+  const sessionEnded = isLogin && searchParams.get("reason") === "expired";
+  const [showPassword, setShowPassword] = useState(false);
 
   /** Show Branch ID field when tenant link is used (tenant user flow). */
   const isTenantUserFlow = isLogin && tenantId.length > 0;
@@ -154,8 +159,13 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       }
       className="space-y-4"
     >
+      {sessionEnded ? (
+        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          Your session ended. Sign in again to go back to where you were.
+        </p>
+      ) : null}
       {isLogin ? (
-        <p className="text-xs text-muted">
+        <p className="text-sm text-muted">
           Sign in with your User ID (e.g. SHW0001). System admins use their
           email.
         </p>
@@ -215,15 +225,26 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
       )}
       <div className="grid gap-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          {...(isLogin
-            ? loginForm.register("password")
-            : registerForm.register("password"))}
-          placeholder="••••••••"
-          autoComplete={isLogin ? "current-password" : "new-password"}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            {...(isLogin
+              ? loginForm.register("password")
+              : registerForm.register("password"))}
+            placeholder="Enter your password"
+            autoComplete={isLogin ? "current-password" : "new-password"}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((shown) => !shown)}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted hover:text-foreground"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {(isLogin
           ? loginForm.formState.errors.password
           : registerForm.formState.errors.password) && (
@@ -263,7 +284,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
             id="confirmPassword"
             type="password"
             {...registerForm.register("confirmPassword")}
-            placeholder="••••••••"
+            placeholder="Repeat the password"
             autoComplete="new-password"
           />
           {registerForm.formState.errors.confirmPassword && (

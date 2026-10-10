@@ -21,6 +21,7 @@ import type { SpaRoom } from "@/core/domain/entities/Spa";
 import { apiErrorMessage } from "@/lib/api-error";
 import { SpaRoomForm } from "./SpaRoomForm";
 import { ROOM_STATUS } from "./room-status";
+import { StatusBadge } from "@/presentation/components/ui/status-badge";
 
 const PAGE_SIZE = 20;
 
@@ -99,9 +100,7 @@ export function SpaRoomList() {
         key: "status",
         header: "Status",
         render: (r) => (
-          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${ROOM_STATUS[r.status]?.className ?? ""}`}>
-            {ROOM_STATUS[r.status]?.label ?? r.status}
-          </span>
+          <StatusBadge status={r.status} label={ROOM_STATUS[r.status]?.label} />
         ),
       },
     ],

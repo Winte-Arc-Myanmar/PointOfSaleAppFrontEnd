@@ -35,7 +35,7 @@ export function getRoleTableColumns(
     },
     {
       key: "isSystemDefault",
-      header: "Default",
+      header: "Type",
       sortable: false,
       render: (r) =>
         r.isSystemDefault ? (

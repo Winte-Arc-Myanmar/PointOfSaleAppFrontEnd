@@ -42,9 +42,8 @@ export function KitchenPrinterConnection({
   return (
     <DetailSection title="Kitchen printer" icon={Printer}>
       <p className="mb-4 text-sm text-muted">
-        Choose which network kitchen printer this POS terminal should use. Kitchen
-        printers are Wi‑Fi or Ethernet devices (IP:port). Tickets are sent from the
-        server over the LAN — the browser cannot open raw TCP 9100 itself.
+        Choose the kitchen printer this till sends tickets to. Kitchen printers are
+        connected to the shop&apos;s network and are added under Printers.
       </p>
 
       <div className="grid gap-2">

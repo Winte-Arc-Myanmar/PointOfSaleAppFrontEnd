@@ -18,7 +18,6 @@ import { useLocations } from "@/presentation/hooks/useLocations";
 import { useDailySales, useZReport } from "@/presentation/hooks/useReports";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
 import { useToast } from "@/presentation/providers/ToastProvider";
-import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
 import { isDayReportTab, ReportTabBar, type ReportTabId } from "./ReportTabBar";
 import { startOfMonth, toDateInputValue } from "./report-utils";
 import { ItemSalesPanel } from "./plain/ItemSalesPanel";
@@ -39,6 +38,7 @@ import { KtvSessionsPanel } from "./pos/KtvSessionsPanel";
 import { HostessesPanel } from "./pos/HostessesPanel";
 import { PosBillsPanel } from "./pos/PosBillsPanel";
 import { SpaMenuPanel } from "./pos/SpaMenuPanel";
+import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 
 const ALL_OUTLETS = "__all__";
 
@@ -50,7 +50,8 @@ export function ReportsDashboard() {
   const [date, setDate] = useState(toDateInputValue(today));
   const [from, setFrom] = useState(startOfMonth(today));
   const [to, setTo] = useState(toDateInputValue(today));
-  const [paperWidthMm, setPaperWidthMm] = useState<ThermalPaperWidth>(80);
+  const { preferences } = usePrinterPreferences();
+  const { mode, paperWidthMm } = preferences.receipt;
   const [tab, setTab] = useState<ReportTabId>("sales-summary");
 
   const { data: locationsData } = useLocations({ page: 1, limit: 200 });
@@ -66,7 +67,7 @@ export function ReportsDashboard() {
   const zReport = useZReport(day);
   const printContext = { locationName: selectedLocation?.name };
 
-  async function handlePrintDaily(mode: "browser" | "raw-escpos") {
+  async function handlePrintDaily() {
     if (!dailySales.data) {
       toast.warning("Load daily sales before printing.");
       return;
@@ -80,7 +81,7 @@ export function ReportsDashboard() {
     else toast.error(result.message ?? "Daily sales print failed.");
   }
 
-  async function handlePrintZReport(mode: "browser" | "raw-escpos") {
+  async function handlePrintZReport() {
     if (!zReport.data) {
       toast.warning("Load the Z-report before printing.");
       return;
@@ -121,49 +122,32 @@ export function ReportsDashboard() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-from">From</Label>
-              <Input id="report-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-to">To</Label>
-              <Input id="report-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-date">Business date</Label>
-              <Input id="report-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-              <p className="text-xs text-muted">Daily sales, by hour, and Z-report.</p>
-            </div>
+            {needsDay ? (
+              <div className="space-y-2">
+                <Label htmlFor="report-date">Business date</Label>
+                <Input id="report-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="report-from">From</Label>
+                  <Input id="report-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="report-to">To</Label>
+                  <Input id="report-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-wrap items-end gap-2 border-t border-border pt-4">
-            <div className="space-y-1">
-              <p className="text-xs text-muted">Thermal paper</p>
-              <Select
-                value={String(paperWidthMm)}
-                onValueChange={(value) => setPaperWidthMm(Number(value) as ThermalPaperWidth)}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="80">80mm thermal</SelectItem>
-                  <SelectItem value="58">58mm thermal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="button" variant="outline" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily("browser")}>
+            <Button type="button" variant="outline" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily()}>
               <Printer className="mr-2 h-4 w-4" />
               Print daily sales
             </Button>
-            <Button type="button" variant="outline" disabled={isPrinting || !zReport.data} onClick={() => void handlePrintZReport("browser")}>
+            <Button type="button" variant="outline" disabled={isPrinting || !zReport.data} onClick={() => void handlePrintZReport()}>
               <Printer className="mr-2 h-4 w-4" />
               Print Z-report
-            </Button>
-            <Button type="button" variant="outline" disabled={isPrinting || !zReport.data} onClick={() => void handlePrintZReport("raw-escpos")}>
-              ESC/POS Z-report
-            </Button>
-            <Button type="button" variant="outline" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily("raw-escpos")}>
-              ESC/POS daily
             </Button>
             <Button type="button" variant="outline" onClick={() => window.print()}>
               Print page

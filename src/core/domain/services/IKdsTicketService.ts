@@ -12,4 +12,6 @@ export interface IKdsTicketService {
   recall(id: string): Promise<KdsTicket>;
   expedite(id: string): Promise<KdsTicket>;
   readyLine(lineId: string): Promise<KdsTicketLine>;
+  /** Marks tickets still open after this many hours as ready; returns how many. */
+  closeOld(olderThanHours: number): Promise<number>;
 }
