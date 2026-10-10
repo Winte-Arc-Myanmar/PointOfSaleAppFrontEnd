@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { Button } from "@/presentation/components/ui/button";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import {
   Select,
@@ -20,6 +22,7 @@ import {
   useReadyKdsTicket,
   useRecallKdsTicket,
   useStartKdsTicket,
+  useCloseOldKdsTickets,
 } from "@/presentation/hooks/useKdsTickets";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
@@ -38,9 +41,14 @@ const STATUS_OPTIONS: Array<{ label: string; value: string }> = [
   { label: "EXPEDITED", value: "EXPEDITED" },
 ];
 
+/** Tickets open longer than this are left over, not still being cooked. */
+const OLD_TICKET_HOURS = 12;
+
 export function KdsTicketList() {
   const router = useRouter();
   const toast = useToast();
+  const confirm = useConfirm();
+  const closeOld = useCloseOldKdsTickets();
   const pagination = usePagination({ pageSize: PAGE_SIZE });
 
   const [stationFilter, setStationFilter] = useState(ALL);
@@ -138,6 +146,28 @@ export function KdsTicketList() {
       isLoading={isLoading}
       loadingText="Loading KDS tickets..."
       emptyText="No KDS tickets found."
+      toolbarEndContent={
+        <Button
+          type="button"
+          variant="outline"
+          disabled={closeOld.isPending}
+          onClick={async () => {
+            const ok = await confirm({
+              title: "Close old tickets",
+              description: `Mark every ticket still open after ${OLD_TICKET_HOURS} hours as ready? Use this for tickets left over from earlier days.`,
+              confirmLabel: "Close them",
+            });
+            if (!ok) return;
+            closeOld.mutate(OLD_TICKET_HOURS, {
+              onSuccess: (closed) =>
+                toast.success(closed ? `${closed} old ticket${closed === 1 ? "" : "s"} closed.` : "No old tickets to close."),
+              onError: () => toast.error("Couldn't close old tickets."),
+            });
+          }}
+        >
+          Close old tickets
+        </Button>
+      }
       topContent={
         <div className="mb-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <div className="grid gap-2">

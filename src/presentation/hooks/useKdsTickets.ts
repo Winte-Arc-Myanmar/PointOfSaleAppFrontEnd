@@ -91,6 +91,15 @@ export function useExpediteKdsTicket() {
   });
 }
 
+export function useCloseOldKdsTickets() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (olderThanHours: number) =>
+      container.resolve<IKdsTicketService>("kdsTicketService").closeOld(olderThanHours),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: KDS_TICKETS_QUERY_KEY }),
+  });
+}
+
 export function useReadyKdsTicketLine() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -65,6 +65,14 @@ export class ApiKdsTicketRepository implements IKdsTicketRepository {
     return toKdsTicket({ ...dto, id: dto?.id ?? id } as KdsTicketDto & { id: string });
   }
 
+  async closeOld(olderThanHours: number): Promise<number> {
+    const result = await this.httpClient.post<{ closed?: number }>(
+      API_ENDPOINTS.KDS.TICKETS.CLOSE_OLD,
+      { olderThanHours },
+    );
+    return Number(result?.closed) || 0;
+  }
+
   async readyLine(lineId: string): Promise<KdsTicketLine> {
     const dto = await this.httpClient.post<KdsTicketLineDto>(API_ENDPOINTS.KDS.TICKETS.LINE_READY(lineId));
     return toKdsTicketLine({

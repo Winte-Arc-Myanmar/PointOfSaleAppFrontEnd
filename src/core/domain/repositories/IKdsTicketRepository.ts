@@ -20,4 +20,5 @@ export interface IKdsTicketRepository {
   recall(id: string): Promise<KdsTicket>;
   expedite(id: string): Promise<KdsTicket>;
   readyLine(lineId: string): Promise<KdsTicketLine>;
+  closeOld(olderThanHours: number): Promise<number>;
 }
