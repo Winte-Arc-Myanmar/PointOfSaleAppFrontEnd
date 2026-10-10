@@ -19,11 +19,15 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { isTaxPercent, taxFraction } from "@/lib/tax-percent";
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   name: z.string().min(1, "Name is required"),
-  ratePercentage: z.string().min(1, "Rate percentage is required"),
+  ratePercentage: z
+    .string()
+    .min(1, "Rate percentage is required")
+    .refine(isTaxPercent, "Enter a percent from 0 to 100, e.g. 5 for 5%"),
   isPriceInclusive: z.boolean(),
   glLiabilityAccountId: z.string().min(1, "GL liability account is required"),
 });
@@ -103,7 +107,7 @@ export function CreateTaxRateForm({
       {
         tenantId: data.tenantId,
         name: data.name.trim(),
-        ratePercentage: data.ratePercentage.trim(),
+        ratePercentage: taxFraction(data.ratePercentage),
         isPriceInclusive: data.isPriceInclusive,
         glLiabilityAccountId: data.glLiabilityAccountId,
       },
@@ -196,8 +200,8 @@ export function CreateTaxRateForm({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="ratePercentage">Rate percentage</Label>
-          <Input id="ratePercentage" {...form.register("ratePercentage")} placeholder="15.0000" />
+          <Label htmlFor="ratePercentage">Rate (%)</Label>
+          <Input id="ratePercentage" inputMode="decimal" {...form.register("ratePercentage")} placeholder="5" />
           {form.formState.errors.ratePercentage && (
             <p className="text-sm text-red-600">{form.formState.errors.ratePercentage.message}</p>
           )}

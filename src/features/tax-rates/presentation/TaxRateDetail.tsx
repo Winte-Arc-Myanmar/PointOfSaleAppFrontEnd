@@ -1,5 +1,6 @@
 "use client";
 
+import { taxPercent } from "@/lib/tax-percent";
 import Link from "next/link";
 import { BadgePercent, Info } from "lucide-react";
 import { useTaxRate } from "@/presentation/hooks/useTaxRates";
@@ -32,7 +33,7 @@ export function TaxRateDetail({ taxRateId }: { taxRateId: string }) {
     { label: "Tax rate ID", value: safeText(taxRate.id), mono: true },
     { label: "Tenant ID", value: safeText(taxRate.tenantId), mono: true },
     { label: "Name", value: safeText(taxRate.name) },
-    { label: "Rate percentage", value: `${safeText(taxRate.ratePercentage)}%` },
+    { label: "Rate percentage", value: `${taxPercent(taxRate.ratePercentage)}%` },
     { label: "Price inclusive", value: taxRate.isPriceInclusive ? "Yes" : "No" },
     {
       label: "GL liability account ID",

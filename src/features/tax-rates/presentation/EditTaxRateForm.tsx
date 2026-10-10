@@ -24,13 +24,17 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import { isTaxPercent, taxFraction, taxPercent } from "@/lib/tax-percent";
 
 const REDIRECT_DELAY_MS = 1500;
 
 const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   name: z.string().min(1, "Name is required"),
-  ratePercentage: z.string().min(1, "Rate percentage is required"),
+  ratePercentage: z
+    .string()
+    .min(1, "Rate percentage is required")
+    .refine(isTaxPercent, "Enter a percent from 0 to 100, e.g. 5 for 5%"),
   isPriceInclusive: z.boolean(),
   glLiabilityAccountId: z.string().min(1, "GL liability account is required"),
 });
@@ -83,7 +87,7 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
       form.reset({
         tenantId: taxRate.tenantId,
         name: taxRate.name,
-        ratePercentage: taxRate.ratePercentage,
+        ratePercentage: taxPercent(taxRate.ratePercentage),
         isPriceInclusive: taxRate.isPriceInclusive,
         glLiabilityAccountId: taxRate.glLiabilityAccountId,
       });
@@ -109,7 +113,7 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
         data: {
           tenantId: data.tenantId,
           name: data.name.trim(),
-          ratePercentage: data.ratePercentage.trim(),
+          ratePercentage: taxFraction(data.ratePercentage),
           isPriceInclusive: data.isPriceInclusive,
           glLiabilityAccountId: data.glLiabilityAccountId,
         },
@@ -219,8 +223,8 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="ratePercentage">Rate percentage</Label>
-            <Input id="ratePercentage" {...form.register("ratePercentage")} />
+            <Label htmlFor="ratePercentage">Rate (%)</Label>
+            <Input id="ratePercentage" inputMode="decimal" {...form.register("ratePercentage")} placeholder="5" />
             {form.formState.errors.ratePercentage && (
               <p className="text-sm text-red-600">{form.formState.errors.ratePercentage.message}</p>
             )}
