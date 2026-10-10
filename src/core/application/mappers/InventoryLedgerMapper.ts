@@ -32,5 +32,8 @@ export function toInventoryLedgerEntry(
     expiryDate: dto.expiryDate ?? null,
     createdAt: dto.createdAt ?? null,
     createdBy: dto.createdBy ?? null,
+    locationName: dto.locationName ?? dto.location?.name ?? null,
+    productName: dto.productName ?? dto.variant?.product?.name ?? null,
+    variantSku: dto.variantSku ?? dto.variant?.variantSku ?? null,
   };
 }
