@@ -12,11 +12,10 @@ export type DiningTableShapeOption = (typeof TABLE_SHAPES)[number];
 
 export const STATUS_CONFIG: Record<
   DiningTableStatus,
-  { label: string; shortLabel: string; dotClass: string; tileClass: string; chipClass: string }
+  { label: string; dotClass: string; tileClass: string; chipClass: string }
 > = {
   AVAILABLE: {
     label: "Available",
-    shortLabel: "Free",
     dotClass: "bg-emerald-500",
     tileClass:
       "border-emerald-300 bg-emerald-50 text-emerald-900 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-100",
@@ -25,7 +24,6 @@ export const STATUS_CONFIG: Record<
   },
   OCCUPIED: {
     label: "Occupied",
-    shortLabel: "Busy",
     dotClass: "bg-blue-500",
     tileClass:
       "border-blue-300 bg-blue-50 text-blue-900 hover:border-blue-400 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-100",
@@ -34,7 +32,6 @@ export const STATUS_CONFIG: Record<
   },
   DIRTY: {
     label: "Dirty",
-    shortLabel: "Dirty",
     dotClass: "bg-amber-500",
     tileClass:
       "border-amber-300 bg-amber-50 text-amber-900 hover:border-amber-400 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100",
@@ -43,7 +40,6 @@ export const STATUS_CONFIG: Record<
   },
   RESERVED: {
     label: "Reserved",
-    shortLabel: "Held",
     dotClass: "bg-violet-500",
     tileClass:
       "border-violet-300 bg-violet-50 text-violet-900 hover:border-violet-400 dark:border-violet-800 dark:bg-violet-950/60 dark:text-violet-100",
