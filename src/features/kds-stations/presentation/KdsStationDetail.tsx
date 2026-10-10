@@ -107,7 +107,7 @@ export function KdsStationDetail({ stationId }: { stationId: string }) {
                 </span>
               ),
             },
-            { label: "Location", value: location?.name || safeText(station.locationId) },
+            { label: "Outlet", value: location?.name || safeText(station.locationId) },
             {
               label: "Printers",
               value: station.printerIds.length

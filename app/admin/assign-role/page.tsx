@@ -1,12 +1,6 @@
-import { Shell } from "@/presentation/components/layout/Shell";
-import { AssignRoleForm } from "@/features/system-admin/presentation/AssignRoleForm";
+import { redirect } from "next/navigation";
 
+/** Merged into /users: users are created and given a role there. */
 export default function AssignRolePage() {
-  return (
-    <Shell>
-      <div className="space-y-6">
-        <AssignRoleForm />
-      </div>
-    </Shell>
-  );
+  redirect("/users");
 }

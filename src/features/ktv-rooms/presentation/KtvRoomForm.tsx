@@ -3,14 +3,8 @@
 import { useState } from "react";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/presentation/components/ui/select";
 import { useLocations } from "@/presentation/hooks/useLocations";
+import { isOutlet, OutletSelect } from "@/features/locations/presentation/OutletSelect";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import type { KtvRoom, KtvRoomInput, RoomRoundingMode } from "@/core/domain/entities/KtvRoom";
@@ -76,9 +70,12 @@ export function KtvRoomForm({
 }) {
   const { tenantId } = usePermissions();
   const { data: locationsData } = useLocations({ page: 1, limit: 200 });
-  const locations = getPaginatedItems(locationsData).filter(
+  const tenantLocations = getPaginatedItems(locationsData).filter(
     (l) => !l.deletedAt && (!tenantId || String(l.tenantId) === tenantId),
   );
+  const locations = tenantLocations.some(isOutlet)
+    ? tenantLocations.filter(isOutlet)
+    : tenantLocations;
 
   const [locationId, setLocationId] = useState(room?.locationId ?? "");
   const [roomNumber, setRoomNumber] = useState(room?.roomNumber ?? "");
@@ -124,24 +121,11 @@ export function KtvRoomForm({
 
   return (
     <form id={formId} onSubmit={submit} className="space-y-4" noValidate>
-      {locations.length > 1 || !effectiveLocationId ? (
-        <div className="grid gap-1">
-          <Label>Outlet</Label>
-          <Select value={effectiveLocationId} onValueChange={(v) => v && setLocationId(v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose the outlet" />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map((l) => (
-                <SelectItem key={String(l.id)} value={String(l.id)}>
-                  {l.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldError message={errors.locationId} />
-        </div>
-      ) : null}
+      <div className="grid gap-1">
+        <Label>Outlet</Label>
+        <OutletSelect tenantId={tenantId} value={effectiveLocationId} onChange={setLocationId} />
+        <FieldError message={errors.locationId} />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-1">
