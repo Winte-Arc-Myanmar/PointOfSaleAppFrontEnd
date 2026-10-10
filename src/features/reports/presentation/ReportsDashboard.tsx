@@ -122,19 +122,23 @@ export function ReportsDashboard() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-from">From</Label>
-              <Input id="report-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-to">To</Label>
-              <Input id="report-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="report-date">Business date</Label>
-              <Input id="report-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-              <p className="text-xs text-muted">Daily sales, by hour, and Z-report.</p>
-            </div>
+            {needsDay ? (
+              <div className="space-y-2">
+                <Label htmlFor="report-date">Business date</Label>
+                <Input id="report-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="report-from">From</Label>
+                  <Input id="report-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="report-to">To</Label>
+                  <Input id="report-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-wrap items-end gap-2 border-t border-border pt-4">
             <Button type="button" variant="outline" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily()}>
