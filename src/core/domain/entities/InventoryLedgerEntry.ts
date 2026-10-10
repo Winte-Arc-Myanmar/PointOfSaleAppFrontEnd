@@ -17,4 +17,8 @@ export interface InventoryLedgerEntry {
   expiryDate: string | null;
   createdAt: string | null;
   createdBy: string | null;
+  /** Names sent with list entries. */
+  locationName?: string | null;
+  productName?: string | null;
+  variantSku?: string | null;
 }
