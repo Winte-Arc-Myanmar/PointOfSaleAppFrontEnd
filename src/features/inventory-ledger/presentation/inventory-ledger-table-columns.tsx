@@ -1,6 +1,8 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { InventoryLedgerEntry } from "@/core/domain/entities/InventoryLedgerEntry";
 import { formatDate } from "@/presentation/components/detail";
+import { formatMoney } from "@/lib/money";
+import { ledgerTypeLabel } from "./ledger-constants";
 
 function shortId(id: string, n = 8): string {
   if (!id) return "-";
@@ -21,20 +23,35 @@ export function getInventoryLedgerTableColumns(
       key: "transactionType",
       header: "Type",
       sortable: true,
-      className: "min-w-[100px] max-w-[140px]",
+      className: "min-w-[120px]",
       render: (row) =>
         onView ? (
           <button
             type="button"
-            className="font-mono text-xs text-foreground truncate text-left hover:text-mint transition-colors"
-            title={row.transactionType}
+            className="text-left text-sm text-foreground hover:text-mint transition-colors"
             onClick={() => onView(row)}
           >
-            {row.transactionType || "-"}
+            {ledgerTypeLabel(row.transactionType)}
           </button>
         ) : (
-          <span className="font-mono text-xs text-foreground" title={row.transactionType}>
-            {row.transactionType || "-"}
+          <span className="text-sm text-foreground">{ledgerTypeLabel(row.transactionType)}</span>
+        ),
+    },
+    {
+      key: "variantId",
+      header: "Item",
+      className: "min-w-[160px]",
+      render: (row) =>
+        row.productName ? (
+          <div className="min-w-0">
+            <div className="truncate text-sm text-foreground">{row.productName}</div>
+            {row.variantSku ? (
+              <div className="truncate text-xs text-muted">{row.variantSku}</div>
+            ) : null}
+          </div>
+        ) : (
+          <span className="font-mono text-xs text-muted" title={row.variantId}>
+            {shortId(row.variantId)}
           </span>
         ),
     },
@@ -47,30 +64,23 @@ export function getInventoryLedgerTableColumns(
     {
       key: "unitCost",
       header: "Unit cost",
-      className: "min-w-[80px]",
+      className: "min-w-[100px]",
       render: (row) => (
-        <span className="tabular-nums text-sm text-muted">{row.unitCost}</span>
-      ),
-    },
-    {
-      key: "variantId",
-      header: "Variant",
-      className: "min-w-[90px] max-w-[120px]",
-      render: (row) => (
-        <span className="font-mono text-xs text-muted truncate" title={row.variantId}>
-          {shortId(row.variantId)}
-        </span>
+        <span className="tabular-nums text-sm text-muted">{formatMoney(row.unitCost)}</span>
       ),
     },
     {
       key: "locationId",
       header: "Location",
-      className: "min-w-[90px] max-w-[120px]",
-      render: (row) => (
-        <span className="font-mono text-xs text-muted truncate" title={row.locationId}>
-          {shortId(row.locationId)}
-        </span>
-      ),
+      className: "min-w-[120px]",
+      render: (row) =>
+        row.locationName ? (
+          <span className="text-sm text-muted">{row.locationName}</span>
+        ) : (
+          <span className="font-mono text-xs text-muted" title={row.locationId}>
+            {shortId(row.locationId)}
+          </span>
+        ),
     },
     {
       key: "expiryDate",

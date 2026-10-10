@@ -19,6 +19,12 @@ export interface InventoryLedgerDto {
   expiryDate?: string | null;
   createdAt?: string | null;
   createdBy?: string | null;
+  locationName?: string | null;
+  productName?: string | null;
+  variantSku?: string | null;
+  /** A single entry comes with its location and variant. */
+  location?: { name?: string | null } | null;
+  variant?: { variantSku?: string | null; product?: { name?: string | null } | null } | null;
 }
 
 export interface InventoryLedgerWriteOffDto {

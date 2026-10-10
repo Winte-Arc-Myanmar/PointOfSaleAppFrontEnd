@@ -12,6 +12,8 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import { formatMoney } from "@/lib/money";
+import { ledgerTypeLabel } from "./ledger-constants";
 
 export function InventoryLedgerDetail({ entryId }: { entryId: string }) {
   const { data: row, isLoading, error } = useInventoryLedgerEntry(entryId);
@@ -32,19 +34,23 @@ export function InventoryLedgerDetail({ entryId }: { entryId: string }) {
 
   const overviewRows = [
     { label: "Entry ID", value: safeText(row.id), mono: true },
-    { label: "Transaction type", value: safeText(row.transactionType) },
+    { label: "Type", value: ledgerTypeLabel(row.transactionType) },
     { label: "Reference ID", value: row.referenceId ? safeText(row.referenceId) : "—", mono: true },
   ];
 
   const linksRows = [
-    { label: "Tenant ID", value: safeText(row.tenantId), mono: true },
-    { label: "Location ID", value: safeText(row.locationId), mono: true },
-    { label: "Variant ID", value: safeText(row.variantId), mono: true },
+    {
+      label: "Item",
+      value: row.productName
+        ? `${row.productName}${row.variantSku ? ` (${row.variantSku})` : ""}`
+        : safeText(row.variantId),
+    },
+    { label: "Location", value: row.locationName ?? safeText(row.locationId) },
   ];
 
   const qtyRows = [
     { label: "Quantity", value: String(row.quantity) },
-    { label: "Unit cost", value: String(row.unitCost) },
+    { label: "Unit cost", value: formatMoney(row.unitCost) },
   ];
 
   const identityRows = [
@@ -67,14 +73,14 @@ export function InventoryLedgerDetail({ entryId }: { entryId: string }) {
       <DetailPageHeader
         backHref="/inventory-ledger"
         backLabel="Inventory ledger"
-        title={`${row.transactionType}`}
+        title={ledgerTypeLabel(row.transactionType)}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={ClipboardList}>
           <DetailRows rows={overviewRows} />
         </DetailSection>
-        <DetailSection title="Links" icon={Warehouse}>
+        <DetailSection title="Item & location" icon={Warehouse}>
           <DetailRows rows={linksRows} />
         </DetailSection>
         <DetailSection title="Quantity & cost" icon={Package}>
