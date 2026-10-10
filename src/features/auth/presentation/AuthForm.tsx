@@ -53,6 +53,7 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
   const authService = useAuthService();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [forgotOpen, setForgotOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [splashTarget, setSplashTarget] = useState<string | null>(null);
 
@@ -224,7 +225,26 @@ export function AuthForm({ mode, callbackUrl }: AuthFormProps) {
         </div>
       )}
       <div className="grid gap-2">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Password</Label>
+          {isLogin ? (
+            <button
+              type="button"
+              onClick={() => setForgotOpen((open) => !open)}
+              className="text-sm text-mint hover:underline"
+              aria-expanded={forgotOpen}
+            >
+              Forgot password?
+            </button>
+          ) : null}
+        </div>
+        {isLogin && forgotOpen ? (
+          <p className="rounded-lg border border-border bg-muted/10 px-3 py-2 text-sm text-muted">
+            Ask your manager to set a new one: in the admin, Users → the ⋯ menu next to
+            your name → <strong>Reset password</strong>. System admins: contact Winter Arc
+            support.
+          </p>
+        ) : null}
         <div className="relative">
           <Input
             id="password"
