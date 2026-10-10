@@ -28,6 +28,7 @@ import type {
   SalesOrderStatus,
 } from "@/core/domain/entities/SalesOrder";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/money";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 24;
@@ -55,11 +56,6 @@ const STATUS_FILTERS: Array<{
   { key: "completed", label: "Completed" },
   { key: "cancelled", label: "Cancelled" },
 ];
-
-function formatMoney(n: number | null | undefined): string {
-  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
-  return `$${n.toFixed(2)}`;
-}
 
 function formatOrderDate(value?: string | null): string {
   if (!value) return "Date unavailable";

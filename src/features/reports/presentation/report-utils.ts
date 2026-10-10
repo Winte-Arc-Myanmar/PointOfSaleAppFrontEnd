@@ -1,8 +1,4 @@
-export function formatMoney(value: string | number | null | undefined): string {
-  if (value == null || value === "") return "—";
-  const n = typeof value === "number" ? value : Number(String(value).trim());
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+export { formatMoney } from "@/lib/money";
 
 /** Format quantity sold (backend sends decimal strings like "48.0000"). */
 export function formatQuantity(value: string | number | null | undefined): string {
