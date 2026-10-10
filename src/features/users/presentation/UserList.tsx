@@ -19,6 +19,7 @@ import {
 import { ExcelTransferButtons } from "@/presentation/components/excel/ExcelTransferButtons";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getUserRowActions } from "./user-row-actions";
+import { ResetPasswordDialog } from "./ResetPasswordDialog";
 import { getUserTableColumns } from "./user-table-columns";
 import { CreateUserForm } from "./CreateUserForm";
 import type { AppUser } from "@/core/domain/entities/AppUser";
@@ -30,6 +31,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 export function UserList() {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
+  const [resettingUser, setResettingUser] = useState<AppUser | null>(null);
   const [search, setSearch] = useState("");
   const [selectedJobTitle, setSelectedJobTitle] = useState("__all__");
   const pagination = usePagination({ pageSize: PAGE_SIZE });
@@ -100,6 +102,7 @@ export function UserList() {
       getUserRowActions({
         onView: (u) => router.push(`/users/${u.id}`),
         onEdit: (u) => router.push(`/users/${u.id}/edit`),
+        onResetPassword: setResettingUser,
         onDelete: async (u) => {
           const ok = await confirm({
             title: "Delete user",
@@ -147,72 +150,75 @@ export function UserList() {
   }
 
   return (
-    <EntityListWithCreateModal<AppUser>
-      data={filteredUsers}
-      columns={columns}
-      actions={actions}
-      isLoading={isLoading}
-      loadingText="Loading users..."
-      emptyText={
-        search.trim()
-          ? "No users match your search."
-          : selectedJobTitle !== "__all__"
-            ? "No users match this job type."
-            : "No users yet."
-      }
-      topContent={
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search users..."
-            className="sm:w-[360px]"
+    <>
+      <EntityListWithCreateModal<AppUser>
+        data={filteredUsers}
+        columns={columns}
+        actions={actions}
+        isLoading={isLoading}
+        loadingText="Loading users..."
+        emptyText={
+          search.trim()
+            ? "No users match your search."
+            : selectedJobTitle !== "__all__"
+              ? "No users match this job type."
+              : "No users yet."
+        }
+        topContent={
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search users..."
+              className="sm:w-[360px]"
+            />
+            <Select value={selectedJobTitle} onValueChange={setSelectedJobTitle}>
+              <SelectTrigger className="sm:w-[240px]">
+                <SelectValue placeholder="Filter by job type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">All job types</SelectItem>
+                {jobTitleOptions.map((title) => (
+                  <SelectItem key={title} value={title}>
+                    {title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
+        error={
+          error
+            ? {
+                message: "Failed to load users. Is the backend API running?",
+                onRetry: () => refetch(),
+              }
+            : undefined
+        }
+        pageSize={PAGE_SIZE}
+        currentPage={pagination.page}
+        totalPages={usersResult?.totalPages ?? pagination.getTotalPages(usersResult?.total)}
+        totalItems={usersResult?.total ?? 0}
+        onPageChange={pagination.setPage}
+        toolbarEndContent={<ExcelTransferButtons kind="users" />}
+        addLabel="Add User"
+        createTitle="Create User"
+        createSubmitText="Create User"
+        createLoadingText="Creating..."
+        createFormId={CREATE_USER_FORM_ID}
+        createMaxWidth="2xl"
+        enableRowSelection
+        onEditSelected={(item) => router.push(`/users/${item.id}/edit`)}
+        onDeleteSelected={handleDeleteSelected}
+        renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
+          <CreateUserForm
+            formId={formId}
+            onSuccess={onSuccess}
+            onLoadingChange={onLoadingChange}
           />
-          <Select value={selectedJobTitle} onValueChange={setSelectedJobTitle}>
-            <SelectTrigger className="sm:w-[240px]">
-              <SelectValue placeholder="Filter by job type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">All job types</SelectItem>
-              {jobTitleOptions.map((title) => (
-                <SelectItem key={title} value={title}>
-                  {title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      }
-      error={
-        error
-          ? {
-              message: "Failed to load users. Is the backend API running?",
-              onRetry: () => refetch(),
-            }
-          : undefined
-      }
-      pageSize={PAGE_SIZE}
-      currentPage={pagination.page}
-      totalPages={usersResult?.totalPages ?? pagination.getTotalPages(usersResult?.total)}
-      totalItems={usersResult?.total ?? 0}
-      onPageChange={pagination.setPage}
-      toolbarEndContent={<ExcelTransferButtons kind="users" />}
-      addLabel="Add User"
-      createTitle="Create User"
-      createSubmitText="Create User"
-      createLoadingText="Creating..."
-      createFormId={CREATE_USER_FORM_ID}
-      createMaxWidth="2xl"
-      enableRowSelection
-      onEditSelected={(item) => router.push(`/users/${item.id}/edit`)}
-      onDeleteSelected={handleDeleteSelected}
-      renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
-        <CreateUserForm
-          formId={formId}
-          onSuccess={onSuccess}
-          onLoadingChange={onLoadingChange}
-        />
-      )}
-    />
+        )}
+      />
+      <ResetPasswordDialog user={resettingUser} onClose={() => setResettingUser(null)} />
+    </>
   );
 }
