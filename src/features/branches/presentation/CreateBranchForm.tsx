@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateBranch } from "@/presentation/hooks/useBranches";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -98,6 +99,10 @@ export function CreateBranchForm({
     resolver: zodResolver(schema),
     defaultValues,
   });
+  const { tenantId: lockedTenantId } = usePermissions();
+  useEffect(() => {
+    if (lockedTenantId) setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, setValue]);
 
   const latWatch = watch("latitude");
   const lngWatch = watch("longitude");
@@ -142,30 +147,32 @@ export function CreateBranchForm({
           <p className="text-sm text-red-600">{errors.name.message}</p>
         )}
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="tenantId">Tenant</Label>
-        <Controller
-          control={control}
-          name="tenantId"
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id="tenantId">
-                <SelectValue placeholder="Select tenant" />
-              </SelectTrigger>
-              <SelectContent>
-                {tenants.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {!lockedTenantId && (
+        <div className="grid gap-2">
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="tenantId">
+                  <SelectValue placeholder="Select tenant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.tenantId && (
+            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
           )}
-        />
-        {errors.tenantId && (
-          <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-        )}
-      </div>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="branchCode">Branch code</Label>

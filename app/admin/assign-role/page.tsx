@@ -5,7 +5,6 @@ export default function AssignRolePage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage user roles.</p>
         <AssignRoleForm />
       </div>
     </Shell>

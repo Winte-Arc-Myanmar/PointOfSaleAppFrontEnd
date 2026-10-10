@@ -129,38 +129,40 @@ export function CreateCustomerInteractionForm({
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="tenantId">Tenant</Label>
-        <Controller
-          control={control}
-          name="tenantId"
-          render={({ field }) => (
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={isTenantsLoading || Boolean(lockedTenantId)}
-            >
-              <SelectTrigger id="tenantId">
-                <SelectValue
-                  placeholder={
-                    isTenantsLoading ? "Loading tenants..." : "Select tenant"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {tenants.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {!lockedTenantId && (
+        <div className="grid gap-2">
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isTenantsLoading || Boolean(lockedTenantId)}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={
+                      isTenantsLoading ? "Loading tenants..." : "Select tenant"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.tenantId && (
+            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
           )}
-        />
-        {errors.tenantId && (
-          <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid gap-2">
         <Label htmlFor="agentId">Agent</Label>

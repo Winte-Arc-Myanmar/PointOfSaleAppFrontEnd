@@ -206,7 +206,7 @@ export function LocationList() {
       />
 
       <section>
-        <h2 className="section-label mb-3">Hierarchy (from API tree)</h2>
+        <h2 className="section-label mb-3">Outlet structure</h2>
         <p className="text-sm text-muted mb-4 max-w-2xl">
           This shows your location hierarchy. Use the Parent location field when
           creating entries to build the tree.

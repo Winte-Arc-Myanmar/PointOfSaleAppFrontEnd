@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/presentation/components/ui/info-tip";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,7 +32,7 @@ const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
-  macAddress: z.string().min(1, "MAC address is required"),
+  macAddress: z.string().min(1, "Device ID is required"),
   sellsAt: z.array(z.enum(["BAR", "KTV", "SPA"])).min(1, "Pick at least one"),
   shiftRule: z.enum(["PER_LOGIN", "DAILY"]),
   checkoutPrinterIds: z.array(z.string()),
@@ -188,7 +189,10 @@ export function CreatePosRegisterForm({
           <Input {...form.register("name")} placeholder="Register 1" />
         </div>
         <div className="grid gap-2">
-          <Label>MAC address</Label>
+          <Label>
+            Device ID
+            <InfoTip text="Click Generate to register this PC." />
+          </Label>
           <div className="flex gap-2">
             <Input
               {...form.register("macAddress")}
@@ -203,9 +207,6 @@ export function CreatePosRegisterForm({
               Generate device ID
             </Button>
           </div>
-          <p className="text-xs text-muted">
-            Browsers can’t read the real MAC address. Use “Generate device ID” to register this PC.
-          </p>
         </div>
       </div>
 
@@ -218,8 +219,8 @@ export function CreatePosRegisterForm({
       />
 
       <PrinterChecklist
-        label="Checkout printers"
-        hint="Where this till prints the bill. Leave empty to use the outlet's checkout printers."
+        label="Bill printer"
+        hint="Empty = use the outlet's printer."
         emptyText="No checkout printers at this location."
         printers={printerOptions.CHECKOUT}
         value={checkoutPrinterIds}
@@ -228,8 +229,8 @@ export function CreatePosRegisterForm({
       />
 
       <PrinterChecklist
-        label="Finance printers"
-        hint="Where this till prints the finance copy. Leave empty to use the outlet's finance printers."
+        label="Finance printer"
+        hint="Empty = use the outlet's printer."
         emptyText="No finance printers at this location."
         printers={printerOptions.FINANCE}
         value={financePrinterIds}

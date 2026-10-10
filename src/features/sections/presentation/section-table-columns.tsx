@@ -2,13 +2,14 @@ import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Section } from "@/core/domain/entities/Section";
 
 type SectionTableColumnOptions = {
+  locationNames?: Record<string, string>;
   onView?: (section: Section) => void;
 };
 
 export function getSectionTableColumns(
   options: SectionTableColumnOptions = {}
 ): DataTableColumn<Section>[] {
-  const { onView } = options;
+  const { onView, locationNames = {} } = options;
   return [
     {
       key: "name",
@@ -44,23 +45,9 @@ export function getSectionTableColumns(
     },
     {
       key: "locationId",
-      header: "Location ID",
+      header: "Outlet",
       className: "min-w-[220px] max-w-[260px]",
-      render: (s) => (
-        <span className="font-mono text-xs text-muted truncate" title={s.locationId}>
-          {s.locationId}
-        </span>
-      ),
-    },
-    {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[220px] max-w-[260px]",
-      render: (s) => (
-        <span className="font-mono text-xs text-muted truncate" title={s.tenantId}>
-          {s.tenantId}
-        </span>
-      ),
+      render: (r) => locationNames[r.locationId] ?? "—",
     },
   ];
 }

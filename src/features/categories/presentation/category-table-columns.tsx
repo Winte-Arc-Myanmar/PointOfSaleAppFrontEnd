@@ -7,6 +7,8 @@ type CategoryTableColumnOptions = {
   onView?: (category: Category) => void;
   productCountByCategoryId?: Map<string, number>;
   getDescription?: (category: Category) => string;
+  /** Parent names, so two "Appetizer" rows read "Chinese › Appetizer" and "Thai › Appetizer". */
+  nameById?: Map<string, string>;
 };
 
 function defaultDescription(category: Category) {
@@ -17,8 +19,12 @@ function defaultDescription(category: Category) {
 export function getCategoryTableColumns(
   options: CategoryTableColumnOptions = {},
 ): DataTableColumn<Category>[] {
-  const { onView, productCountByCategoryId, getDescription = defaultDescription } =
+  const { onView, productCountByCategoryId, getDescription = defaultDescription, nameById } =
     options;
+  const fullName = (category: Category) => {
+    const parent = category.parentId ? nameById?.get(category.parentId) : undefined;
+    return parent ? `${parent} › ${category.name}` : category.name;
+  };
 
   const columns: DataTableColumn<Category>[] = [
     {
@@ -32,10 +38,10 @@ export function getCategoryTableColumns(
             onClick={() => onView(category)}
             className="text-left text-sm font-semibold text-foreground transition hover:text-mint"
           >
-            {category.name}
+            {fullName(category)}
           </button>
         ) : (
-          <span className="text-sm font-semibold text-foreground">{category.name}</span>
+          <span className="text-sm font-semibold text-foreground">{fullName(category)}</span>
         ),
     },
     {

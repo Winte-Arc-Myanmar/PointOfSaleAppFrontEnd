@@ -55,6 +55,16 @@ export function CategoryList() {
   const { data: productsResult } = useProducts({ page: 1, limit: 500 });
   const { data: categoryTree = [] } = useCategoryTree();
   const categories = categoriesResult?.items ?? [];
+  const categoryNameById = useMemo(() => {
+    const names = new Map<string, string>();
+    const walk = (nodes: Category[]) =>
+      nodes.forEach((node) => {
+        names.set(String(node.id), node.name);
+        walk(node.children ?? []);
+      });
+    walk(categoryTree);
+    return names;
+  }, [categoryTree]);
   const products = productsResult?.items ?? [];
   const deleteCategory = useDeleteCategory();
   const toast = useToast();
@@ -156,6 +166,7 @@ export function CategoryList() {
       ...getCategoryTableColumns({
         onView: (category) => router.push(`/categories/${category.id}`),
         productCountByCategoryId,
+        nameById: categoryNameById,
       }),
       getCategoryInlineActionsColumn({
         onView: (category) => router.push(`/categories/${category.id}`),
@@ -163,7 +174,7 @@ export function CategoryList() {
         onDelete: handleDelete,
       }),
     ],
-    [router, productCountByCategoryId, handleDelete],
+    [router, productCountByCategoryId, handleDelete, categoryNameById],
   );
 
   return (

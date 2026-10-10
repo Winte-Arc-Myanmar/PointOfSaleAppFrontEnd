@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/presentation/components/ui/info-tip";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,7 +36,7 @@ const schema = z.object({
   tenantId: z.string().min(1, "Tenant is required"),
   locationId: z.string().min(1, "Location is required"),
   name: z.string().min(1, "Name is required"),
-  macAddress: z.string().min(1, "MAC address is required"),
+  macAddress: z.string().min(1, "Device ID is required"),
   sellsAt: z.array(z.enum(["BAR", "KTV", "SPA"])).min(1, "Pick at least one"),
   shiftRule: z.enum(["PER_LOGIN", "DAILY"]),
   checkoutPrinterIds: z.array(z.string()),
@@ -210,7 +211,10 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
             <Input {...form.register("name")} />
           </div>
           <div className="grid gap-2">
-            <Label>MAC address</Label>
+            <Label>
+            Device ID
+            <InfoTip text="Click Generate to register this PC." />
+          </Label>
             <div className="flex gap-2">
               <Input className="font-mono text-sm" {...form.register("macAddress")} />
               <Button
@@ -221,9 +225,6 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
                 Generate device ID
               </Button>
             </div>
-            <p className="text-xs text-muted">
-              Browsers can’t read the real MAC address. This fills a stable device ID instead.
-            </p>
           </div>
         </div>
 
@@ -243,8 +244,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
       />
 
       <PrinterChecklist
-          label="Checkout printers"
-          hint="Where this till prints the bill. Leave empty to use the outlet's checkout printers."
+          label="Bill printer"
+          hint="Empty = use the outlet\'s printer."
           emptyText="No checkout printers at this location."
           printers={printerOptions.CHECKOUT}
           value={checkoutPrinterIds}
@@ -253,8 +254,8 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
         />
 
         <PrinterChecklist
-          label="Finance printers"
-          hint="Where this till prints the finance copy. Leave empty to use the outlet's finance printers."
+          label="Finance printer"
+          hint="Empty = use the outlet\'s printer."
           emptyText="No finance printers at this location."
           printers={printerOptions.FINANCE}
           value={financePrinterIds}

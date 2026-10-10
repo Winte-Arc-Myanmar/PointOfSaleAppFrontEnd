@@ -5,7 +5,6 @@ export default function PricingSchedulesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage pricing schedules.</p>
         <section>
           <h2 className="section-label mb-4">Pricing schedules</h2>
           <PricingScheduleList />
