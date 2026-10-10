@@ -87,23 +87,6 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         title={safeText(tenant.name)}
         editHref={`/tenants/${tenant.id}/edit`}
       />
-      {isSystemAdmin ? (
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            className="!border-red-300 !text-red-700 hover:!bg-red-50"
-            onClick={() => setResetOpen(true)}
-          >
-            Reset data
-          </Button>
-          <ResetTenantDataDialog
-            tenantId={String(tenant.id)}
-            isOpen={resetOpen}
-            onClose={() => setResetOpen(false)}
-          />
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Building2}>
@@ -155,6 +138,28 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         </DetailSection>
 
       </div>
+      {isSystemAdmin ? (
+        <section className="flex flex-col gap-3 rounded-xl border border-red-500/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-red-600 dark:text-red-400">Danger zone</h2>
+            <p className="text-sm text-muted">
+              Delete this shop&apos;s sales, stock, menu or other data. The shop, users and settings stay.
+            </p>
+          </div>
+          <Button
+            type="button"
+            className="shrink-0 !border-red-600 !bg-red-600 !text-white hover:!bg-red-700"
+            onClick={() => setResetOpen(true)}
+          >
+            Reset data
+          </Button>
+          <ResetTenantDataDialog
+            tenantId={String(tenant.id)}
+            isOpen={resetOpen}
+            onClose={() => setResetOpen(false)}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }
