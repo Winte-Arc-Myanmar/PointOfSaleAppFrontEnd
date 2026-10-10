@@ -2,7 +2,9 @@ import type { DiningTable } from "@/core/domain/entities/DiningTable";
 import { FLOOR_PLAN_HEIGHT, FLOOR_PLAN_WIDTH } from "./dining-ui";
 
 export const FLOOR_GRID_SIZE = 40;
-const TILE_MARGIN = 40;
+const TILE_MARGIN = 48;
+/** Closer than this, two tiles overlap. */
+const TILE_SPACING = 80;
 
 export function parseCoord(value: string | number): number {
   const n = typeof value === "number" ? value : Number(value);
@@ -44,6 +46,10 @@ export type PositionedTable = {
   hasPosition: boolean;
 };
 
+/**
+ * Where each tile is drawn: saved spots are kept inside the plan, and a table
+ * with no spot, or one sitting on another, is moved to the nearest free one.
+ */
 export function resolveTablePositions(tables: DiningTable[]): PositionedTable[] {
   const withCoords = tables.map((table, index) => {
     const x = parseCoord(table.posX);
@@ -58,21 +64,29 @@ export function resolveTablePositions(tables: DiningTable[]): PositionedTable[] 
     return withCoords.map((item) => {
       const col = item.index % cols;
       const row = Math.floor(item.index / cols);
-      return {
-        table: item.table,
-        x: 80 + col * 110,
-        y: 80 + row * 110,
-        hasPosition: true,
-      };
+      const spot = clampFloorCoord(80 + col * 110, 80 + row * 110);
+      return { table: item.table, ...spot, hasPosition: true };
     });
   }
 
-  return withCoords.map(({ table, x, y, hasPosition }) => ({
-    table,
-    x,
-    y,
-    hasPosition,
-  }));
+  const placed: Array<{ x: number; y: number }> = [];
+  const overlaps = (x: number, y: number) =>
+    placed.some(
+      (p) => Math.abs(p.x - x) < TILE_SPACING && Math.abs(p.y - y) < TILE_SPACING,
+    );
+  const result = new Map<number, PositionedTable>();
+  const order = [...withCoords].sort(
+    (a, b) => Number(b.hasPosition) - Number(a.hasPosition),
+  );
+  for (const { table, x, y, hasPosition, index } of order) {
+    let spot = clampFloorCoord(x, y);
+    if (!hasPosition || overlaps(spot.x, spot.y)) {
+      spot = suggestNextPosition(placed, TILE_SPACING);
+    }
+    placed.push(spot);
+    result.set(index, { table, ...spot, hasPosition });
+  }
+  return withCoords.map(({ index }) => result.get(index)!);
 }
 
 export function suggestNextPosition(
@@ -89,7 +103,7 @@ export function suggestNextPosition(
       const snapped = clampFloorCoord(snapCoord(x), snapCoord(y));
       const taken = occupied.some(
         (p) =>
-          Math.abs(p.x - snapped.x) < step * 0.6 && Math.abs(p.y - snapped.y) < step * 0.6
+          Math.abs(p.x - snapped.x) < step && Math.abs(p.y - snapped.y) < step
       );
       if (!taken) return snapped;
     }

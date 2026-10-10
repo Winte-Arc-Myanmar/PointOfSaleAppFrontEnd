@@ -27,7 +27,7 @@ import { ZoneTabs } from "@/features/dining/shared/ZoneTabs";
 import { TableStatusTabs } from "@/features/dining/shared/TableStatusTabs";
 import { FloorPlanCanvas } from "@/features/dining/shared/FloorPlanCanvas";
 import { DiningTableTile } from "@/features/dining/shared/DiningTableTile";
-import { countTablesByStatus } from "@/features/dining/shared/dining-ui";
+import { countTablesByStatus, STATUS_CONFIG } from "@/features/dining/shared/dining-ui";
 import { DiningEmptyState } from "@/features/dining/shared/DiningEmptyState";
 import { AppLoader } from "@/presentation/components/loader";
 
@@ -96,7 +96,6 @@ export function DiningTableList() {
     sortBy: "tableNumber",
     sortOrder: "asc",
     zoneId: selectedZoneId ?? undefined,
-    status: statusFilter !== "ALL" ? statusFilter : undefined,
     search: search || undefined,
   });
 
@@ -110,17 +109,16 @@ export function DiningTableList() {
     search: search || undefined,
   });
 
-  const floorTables = floorQuery.data?.items ?? [];
-  const listTables = listQuery.data?.items ?? [];
-  const allZoneTablesQuery = useDiningTables({
-    page: 1,
-    limit: FLOOR_LIMIT,
-    zoneId: selectedZoneId ?? undefined,
-  });
-  const statusCounts = useMemo(
-    () => countTablesByStatus(allZoneTablesQuery.data?.items ?? []),
-    [allZoneTablesQuery.data?.items]
+  const zoneTables = useMemo(() => floorQuery.data?.items ?? [], [floorQuery.data?.items]);
+  const floorTables = useMemo(
+    () =>
+      statusFilter === "ALL"
+        ? zoneTables
+        : zoneTables.filter((t) => t.status === statusFilter),
+    [zoneTables, statusFilter]
   );
+  const listTables = listQuery.data?.items ?? [];
+  const statusCounts = useMemo(() => countTablesByStatus(zoneTables), [zoneTables]);
 
   const actions = useMemo(
     () =>
@@ -311,7 +309,7 @@ export function DiningTableList() {
                   <p className="text-xs text-muted">
                     {arrangeMode
                       ? "Drag tables to rearrange the floor. Positions save when you release."
-                      : "Tap a table for details. Use quick status codes below each tile during service."}
+                      : "Tap a table for details, or set its status with the buttons below each tile."}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -364,7 +362,7 @@ export function DiningTableList() {
                                   : "border-border text-muted hover:text-foreground"
                               )}
                             >
-                              {s.slice(0, 3)}
+                              {STATUS_CONFIG[s].label}
                             </button>
                           )
                         )}
