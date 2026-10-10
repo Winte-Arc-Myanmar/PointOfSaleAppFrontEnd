@@ -60,7 +60,7 @@ const routeTitles: Record<string, string> = {
   "/uoms": "UOMs",
   "/roles": "Roles",
   "/data-transfer": "Import / Export",
-  "/admin/onboard": "Onboard tenant",
+  "/admin/onboard": "New shop",
   "/admin/create-user": "Create user",
   "/admin/assign-permissions": "Assign permissions",
   "/admin/assign-role": "Assign role",
