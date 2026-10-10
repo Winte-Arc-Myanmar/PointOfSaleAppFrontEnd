@@ -7,7 +7,7 @@ export default function RefundsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <Suspense fallback={<AppLoader message="Loading refund form..." />}>
+        <Suspense fallback={<AppLoader fullScreen={false} size="sm" message="Loading refund form..." />}>
           <RefundSection />
         </Suspense>
       </div>
