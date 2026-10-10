@@ -32,10 +32,16 @@ import {
   Upload,
   UserRound,
   UtensilsCrossed,
-  Wallet,
   Warehouse,
 } from "lucide-react";
 import type { TranslationKey } from "@/presentation/i18n/translations";
+
+/** One of the pages a sidebar link groups, shown as tabs across their tops. */
+export interface SidebarSubPage {
+  href: string;
+  labelKey: TranslationKey;
+  permissions?: string[];
+}
 
 export interface SidebarMenuItem {
   href: string;
@@ -43,6 +49,10 @@ export interface SidebarMenuItem {
   icon: LucideIcon;
   permissions?: string[];
   adminOnly?: boolean;
+  /** Rarely needed: listed only when "Show advanced pages" is on. */
+  advanced?: boolean;
+  /** Pages this link stands for; it opens the first one the user may see. */
+  pages?: SidebarSubPage[];
 }
 
 export interface SidebarMenuGroup {
@@ -165,16 +175,14 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
     icon: UtensilsCrossed,
     items: [
       {
-        href: "/dining-zones",
-        labelKey: "nav.diningZones",
-        icon: UtensilsCrossed,
-        permissions: ["dining-zones:read"],
-      },
-      {
         href: "/dining-tables",
-        labelKey: "nav.diningTables",
+        labelKey: "nav.floorAndTables",
         icon: LayoutGrid,
-        permissions: ["dining-tables:read"],
+        permissions: ["dining-tables:read", "dining-zones:read"],
+        pages: [
+          { href: "/dining-tables", labelKey: "nav.diningTables", permissions: ["dining-tables:read"] },
+          { href: "/dining-zones", labelKey: "nav.diningZones", permissions: ["dining-zones:read"] },
+        ],
       },
       // {
       //   href: "/table-sessions",
@@ -263,15 +271,13 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
       },
       {
         href: "/uoms",
-        labelKey: "nav.uoms",
+        labelKey: "nav.units",
         icon: Ruler,
         permissions: ["uom:read"],
-      },
-      {
-        href: "/uom-classes",
-        labelKey: "nav.uomClasses",
-        icon: Ruler,
-        permissions: ["uom:read"],
+        pages: [
+          { href: "/uoms", labelKey: "nav.uoms", permissions: ["uom:read"] },
+          { href: "/uom-classes", labelKey: "nav.uomClasses", permissions: ["uom:read"] },
+        ],
       },
     ],
   },
@@ -299,22 +305,24 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["loyalty-ledger:read"],
       },
       {
-        href: "/card-tiers",
-        labelKey: "nav.membershipCardTemplates",
-        icon: CreditCard,
-        permissions: ["card-tiers:read", "membership-card-templates:read"],
-      },
-      {
-        href: "/memberships",
-        labelKey: "nav.memberships",
-        icon: Wallet,
-        permissions: ["guestcard:wallet:read"],
-      },
-      {
         href: "/guest-cards",
         labelKey: "nav.guestCards",
         icon: CreditCard,
-        permissions: ["guestcard:card:read"],
+        permissions: [
+          "guestcard:card:read",
+          "guestcard:wallet:read",
+          "card-tiers:read",
+          "membership-card-templates:read",
+        ],
+        pages: [
+          { href: "/guest-cards", labelKey: "nav.cards", permissions: ["guestcard:card:read"] },
+          { href: "/memberships", labelKey: "nav.memberships", permissions: ["guestcard:wallet:read"] },
+          {
+            href: "/card-tiers",
+            labelKey: "nav.membershipCardTemplates",
+            permissions: ["card-tiers:read", "membership-card-templates:read"],
+          },
+        ],
       },
     ],
   },
@@ -563,13 +571,23 @@ export function getFlatSidebarMenuItems(): SidebarMenuItem[] {
   return SIDEBAR_MENU_GROUPS.flatMap((group) => group.items);
 }
 
+function onPath(pathname: string, href: string): boolean {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+}
+
+/** Whether the page open at `pathname` belongs to this link, or to one of its pages. */
+export function itemMatchesPath(item: SidebarMenuItem, pathname: string): boolean {
+  return onPath(pathname, item.href) || Boolean(item.pages?.some((p) => onPath(pathname, p.href)));
+}
+
+/** The link grouping several pages that the page at `pathname` is one of. */
+export function findPageGroupForPath(pathname: string): SidebarMenuItem | null {
+  return getFlatSidebarMenuItems().find((item) => item.pages && itemMatchesPath(item, pathname)) ?? null;
+}
+
 export function findSidebarGroupForPath(pathname: string): string | null {
   for (const group of SIDEBAR_MENU_GROUPS) {
-    for (const item of group.items) {
-      if (pathname === item.href || pathname.startsWith(`${item.href}/`)) {
-        return group.id;
-      }
-    }
+    if (group.items.some((item) => itemMatchesPath(item, pathname))) return group.id;
   }
   return null;
 }
