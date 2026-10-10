@@ -1,3 +1,4 @@
+import { taxPercent } from "@/lib/tax-percent";
 import type { Receipt } from "@/core/domain/entities/Receipt";
 import type {
   DailySalesSummary,
@@ -197,7 +198,7 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
       push(`Discount -${money(receipt.totals.totalDiscount)}`);
     }
     for (const tax of receipt.taxSummary) {
-      push(`${tax.taxName} ${tax.ratePercentage}% ${money(tax.taxAmount)}`);
+      push(`${tax.taxName} ${taxPercent(tax.ratePercentage)}% ${money(tax.taxAmount)}`);
     }
     if (receipt.taxSummary.length === 0 && receipt.totals.totalTax > 0) {
       push(`Tax ${money(receipt.totals.totalTax)}`);

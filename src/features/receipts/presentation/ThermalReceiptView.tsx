@@ -1,5 +1,6 @@
 "use client";
 
+import { taxPercent } from "@/lib/tax-percent";
 import type { Receipt } from "@/core/domain/entities/Receipt";
 import { cn } from "@/lib/utils";
 
@@ -102,7 +103,7 @@ export function ThermalReceiptView({
         {receipt.taxSummary.length > 0
           ? receipt.taxSummary.map((tax, index) => (
               <p key={`${tax.taxName}-${index}`}>
-                {tax.taxName} {tax.ratePercentage}% {money(tax.taxAmount)}
+                {tax.taxName} {taxPercent(tax.ratePercentage)}% {money(tax.taxAmount)}
               </p>
             ))
           : receipt.totals.totalTax > 0 && (
