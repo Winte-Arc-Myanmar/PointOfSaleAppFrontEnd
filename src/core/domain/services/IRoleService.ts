@@ -14,6 +14,7 @@ export interface IRoleService {
   create(data: CreateRoleDto): Promise<Role>;
   delete(id: string): Promise<void>;
   assignPermissions(roleId: string, permissionIds: string[]): Promise<void>;
+  setPermissions(roleId: string, permissionIds: string[]): Promise<void>;
   getAvailablePermissionIds(): Promise<string[]>;
 }
 

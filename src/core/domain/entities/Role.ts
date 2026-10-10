@@ -9,5 +9,7 @@ export interface Role {
   parentId: string | null;
   name: string;
   isSystemDefault: boolean;
+  /** The permissions the role holds, when the API sends them (a single role does). */
+  permissionIds?: string[];
 }
 
