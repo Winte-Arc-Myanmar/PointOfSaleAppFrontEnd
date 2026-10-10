@@ -9,6 +9,7 @@ export interface RoleDto {
   parentId: string | null;
   name: string;
   isSystemDefault: boolean;
+  permissions?: { permissionId?: string; permission?: { id?: string } }[];
 }
 
 export interface CreateRoleDto {
