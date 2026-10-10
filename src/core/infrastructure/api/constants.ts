@@ -49,6 +49,8 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/v1/products/${id}`,
     DELETE: (id: string) => `/v1/products/${id}`,
     AVAILABILITY: (id: string) => `/v1/products/${id}/availability`,
+    /** GET/PUT - a menu item's add-on groups and ingredients */
+    SETUP: (id: string) => `/v1/products/${id}/setup`,
     VARIANTS: (productId: string) => ({
       LIST: `/v1/products/${productId}/variants`,
       BY_ID: (variantId: string) =>
