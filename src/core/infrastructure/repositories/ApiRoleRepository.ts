@@ -85,4 +85,8 @@ export class ApiRoleRepository implements IRoleRepository {
     const body: AssignRolePermissionsDto = { roleId, permissionIds };
     await this.httpClient.post(API_ENDPOINTS.ROLES.ASSIGN_PERMISSIONS(roleId), body);
   }
+
+  async setPermissions(roleId: string, permissionIds: string[]): Promise<void> {
+    await this.httpClient.put(API_ENDPOINTS.ROLES.ASSIGN_PERMISSIONS(roleId), { permissionIds });
+  }
 }
