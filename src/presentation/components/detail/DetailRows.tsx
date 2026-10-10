@@ -14,8 +14,15 @@ interface DetailRowsProps {
   className?: string;
 }
 
-/** Raw record IDs: kept for support, out of the way of everyone else. */
-const isIdRow = (row: DetailRowItem) => /\bIDs?$/.test(row.label);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Raw record IDs - an "… ID" row holding a UUID, or nothing - kept for support
+ * and out of everyone else's way. A User ID people sign in with stays in view.
+ */
+const isIdRow = (row: DetailRowItem) =>
+  /\bIDs?$/.test(row.label) &&
+  (typeof row.value !== "string" || row.value === "—" || UUID.test(row.value.trim()));
 
 export function DetailRows({ rows, className = "space-y-0" }: DetailRowsProps) {
   const shown = rows.filter((row) => !isIdRow(row));
