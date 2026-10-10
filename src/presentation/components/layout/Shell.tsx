@@ -12,7 +12,11 @@ import { TAB_STORAGE_KEY } from "./tab-storage";
 import { Navbar } from "./Navbar";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
-import { getFlatSidebarMenuItems } from "@/presentation/components/layout/sidebar-menu-config";
+import {
+  getFlatSidebarMenuItems,
+  itemMatchesPath,
+} from "@/presentation/components/layout/sidebar-menu-config";
+import { PageGroupTabs } from "./PageGroupTabs";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -34,7 +38,7 @@ const routeTitles: Record<string, string> = {
   "/bundles": "Bundles",
   "/pricing-schedules": "Pricing Schedules",
   "/modifier-groups": "Modifier Groups",
-  "/tenants": "Tenants",
+  "/tenants": "Shops",
   "/users": "Users",
   "/categories": "Categories",
   "/branches": "Branches",
@@ -274,16 +278,16 @@ const MAX_TABS = 8;
 /** Tabs shown in the row; the rest wait behind "+N more". */
 const VISIBLE_TABS = 5;
 
-const TAB_MENU_ITEMS: MenuTabItem[] = getFlatSidebarMenuItems().map(
-  ({ href, labelKey }) => ({ href, labelKey }),
-);
+const SIDEBAR_ITEMS = getFlatSidebarMenuItems();
+
+const TAB_MENU_ITEMS: MenuTabItem[] = SIDEBAR_ITEMS.map(({ href, labelKey }) => ({
+  href,
+  labelKey,
+}));
 
 function getMenuBase(pathname: string): MenuTabItem | null {
-  return (
-    TAB_MENU_ITEMS.find(
-      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-    ) ?? null
-  );
+  const item = SIDEBAR_ITEMS.find((entry) => itemMatchesPath(entry, pathname));
+  return item ? { href: item.href, labelKey: item.labelKey } : null;
 }
 
 function persistTabs(tabs: MenuTabItem[]) {
@@ -359,9 +363,8 @@ export function Shell({ children }: ShellProps) {
   const { rowTabs, moreTabs } = useMemo(() => {
     const row = displayedTabs.slice(0, VISIBLE_TABS);
     const more = displayedTabs.slice(VISIBLE_TABS);
-    const hiddenActive = more.find(
-      (tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`),
-    );
+    const activeHref = getMenuBase(pathname)?.href;
+    const hiddenActive = more.find((tab) => tab.href === activeHref);
     if (hiddenActive && row.length) {
       const swapped = row[row.length - 1];
       return {
@@ -391,8 +394,7 @@ export function Shell({ children }: ShellProps) {
     if (idx < 0) return;
 
     const nextTabs = openTabs.filter((t) => t.href !== href);
-    const isClosingActive =
-      pathname === href || pathname.startsWith(`${href}/`);
+    const isClosingActive = getMenuBase(pathname)?.href === href;
 
     setOpenTabs(nextTabs);
     persistTabs(nextTabs);
@@ -423,8 +425,7 @@ export function Shell({ children }: ShellProps) {
           <div className="border-b border-border bg-background/80 px-6 py-2 lg:px-8">
             <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto">
               {rowTabs.map((tab) => {
-                const isActive =
-                  pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+                const isActive = getMenuBase(pathname)?.href === tab.href;
                 return (
                   <div
                     key={tab.href}
@@ -500,6 +501,7 @@ export function Shell({ children }: ShellProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="mx-auto max-w-6xl"
           >
+            <PageGroupTabs pathname={pathname} />
             {children}
           </motion.div>
           <PoweredByWinterArc

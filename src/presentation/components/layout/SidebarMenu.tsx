@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type RefObject,
+} from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { TAB_STORAGE_KEY } from "./tab-storage";
@@ -15,9 +22,28 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import {
   SIDEBAR_MENU_GROUPS,
   findSidebarGroupForPath,
+  itemMatchesPath,
   type SidebarMenuGroup,
   type SidebarMenuItem,
 } from "./sidebar-menu-config";
+
+const ADVANCED_STORAGE_KEY = "sidebar-show-advanced";
+const advancedListeners = new Set<() => void>();
+
+function subscribeAdvanced(listener: () => void) {
+  advancedListeners.add(listener);
+  return () => {
+    advancedListeners.delete(listener);
+  };
+}
+
+function readAdvanced(): boolean {
+  try {
+    return localStorage.getItem(ADVANCED_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -37,8 +63,13 @@ function isItemVisible(
   return canAny(...item.permissions);
 }
 
-function isRouteActive(pathname: string, href: string): boolean {
-  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+/** A link standing for several pages opens the first one the user may see. */
+function withOpenablePage(
+  item: SidebarMenuItem,
+  canAny: (...permissions: string[]) => boolean,
+): SidebarMenuItem {
+  const first = item.pages?.find((page) => !page.permissions?.length || canAny(...page.permissions));
+  return first ? { ...item, href: first.href } : item;
 }
 
 export function SidebarMenu({
@@ -57,14 +88,29 @@ export function SidebarMenu({
     null,
   );
 
+  const showAdvanced = useSyncExternalStore(subscribeAdvanced, readAdvanced, () => false);
+
+  function toggleAdvanced() {
+    try {
+      localStorage.setItem(ADVANCED_STORAGE_KEY, showAdvanced ? "0" : "1");
+    } catch {
+      // Storage can be blocked; advanced pages then stay as they are.
+    }
+    advancedListeners.forEach((listener) => listener());
+  }
+
   const visibleGroups = useMemo(() => {
     return SIDEBAR_MENU_GROUPS.map((group) => ({
       ...group,
-      items: group.items.filter((item) =>
-        isItemVisible(item, canAny, isSystemAdmin),
-      ),
+      items: group.items
+        .filter(
+          (item) =>
+            (showAdvanced || !item.advanced || itemMatchesPath(item, pathname)) &&
+            isItemVisible(item, canAny, isSystemAdmin),
+        )
+        .map((item) => withOpenablePage(item, canAny)),
     })).filter((group) => group.items.length > 0);
-  }, [canAny, isSystemAdmin]);
+  }, [canAny, isSystemAdmin, showAdvanced, pathname]);
 
   useEffect(() => {
     const activeGroupId = findSidebarGroupForPath(pathname);
@@ -210,6 +256,17 @@ export function SidebarMenu({
               className="pb-1 [&_.powered-by-winter-arc-text]:sr-only"
             />
           )}
+          {!isCollapsed ? (
+            <label className="flex cursor-pointer items-center gap-2 px-3 text-xs text-muted">
+              <input
+                type="checkbox"
+                className="h-3.5 w-3.5 accent-emerald-500"
+                checked={showAdvanced}
+                onChange={toggleAdvanced}
+              />
+              {t("nav.showAdvanced")}
+            </label>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -256,7 +313,7 @@ function ExpandedGroup({
   t: (key: import("@/presentation/i18n/translations").TranslationKey) => string;
 }) {
   const GroupIcon = group.icon;
-  const groupActive = group.items.some((item) => isRouteActive(pathname, item.href));
+  const groupActive = group.items.some((item) => itemMatchesPath(item, pathname));
 
   return (
     <li>
@@ -291,7 +348,7 @@ function ExpandedGroup({
           >
             {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive = isRouteActive(pathname, item.href);
+              const isActive = itemMatchesPath(item, pathname);
               const label = t(item.labelKey);
               return (
                 <li key={item.href}>
@@ -343,7 +400,7 @@ function CollapsedGroupButton({
   t: (key: import("@/presentation/i18n/translations").TranslationKey) => string;
 }) {
   const GroupIcon = group.icon;
-  const groupActive = group.items.some((item) => isRouteActive(pathname, item.href));
+  const groupActive = group.items.some((item) => itemMatchesPath(item, pathname));
 
   return (
     <li className="relative">
@@ -375,7 +432,7 @@ function CollapsedGroupButton({
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = isRouteActive(pathname, item.href);
+                const isActive = itemMatchesPath(item, pathname);
                 return (
                   <li key={item.href}>
                     <Link

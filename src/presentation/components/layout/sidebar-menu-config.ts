@@ -51,11 +51,16 @@ import {
   Upload,
   UserRound,
   Users,
-  UtensilsCrossed,
-  Wallet,
   Warehouse,
 } from "lucide-react";
 import type { TranslationKey } from "@/presentation/i18n/translations";
+
+/** One of the pages a sidebar link groups, shown as tabs across their tops. */
+export interface SidebarSubPage {
+  href: string;
+  labelKey: TranslationKey;
+  permissions?: string[];
+}
 
 export interface SidebarMenuItem {
   href: string;
@@ -63,6 +68,10 @@ export interface SidebarMenuItem {
   icon: LucideIcon;
   permissions?: string[];
   adminOnly?: boolean;
+  /** Rarely needed: listed only when "Show advanced pages" is on. */
+  advanced?: boolean;
+  /** Pages this link stands for; it opens the first one the user may see. */
+  pages?: SidebarSubPage[];
 }
 
 export interface SidebarMenuGroup {
@@ -144,7 +153,21 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         href: "/guest-cards",
         labelKey: "nav.guestCards",
         icon: CreditCard,
-        permissions: ["guestcard:card:read"],
+        permissions: [
+          "guestcard:card:read",
+          "guestcard:wallet:read",
+          "card-tiers:read",
+          "membership-card-templates:read",
+        ],
+        pages: [
+          { href: "/guest-cards", labelKey: "nav.cards", permissions: ["guestcard:card:read"] },
+          { href: "/memberships", labelKey: "nav.memberships", permissions: ["guestcard:wallet:read"] },
+          {
+            href: "/card-tiers",
+            labelKey: "nav.membershipCardTemplates",
+            permissions: ["card-tiers:read", "membership-card-templates:read"],
+          },
+        ],
       },
       {
         href: "/refunds",
@@ -197,39 +220,25 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
       },
       {
         href: "/printer-setup",
-        labelKey: "nav.printerSetup",
+        labelKey: "nav.printersAndScreens",
         icon: Printer,
-        permissions: ["kitchen-printers:read"],
-      },
-      {
-        href: "/kitchen-printers",
-        labelKey: "nav.kitchenPrinters",
-        icon: Printer,
-        permissions: ["kitchen-printers:read"],
-      },
-      {
-        href: "/kds-stations",
-        labelKey: "nav.kdsStations",
-        icon: TvMinimal,
-        permissions: ["kds-stations:read"],
-      },
-      {
-        href: "/sections",
-        labelKey: "nav.sections",
-        icon: LayoutGrid,
-        permissions: ["sections:read"],
-      },
-      {
-        href: "/dining-zones",
-        labelKey: "nav.diningZones",
-        icon: UtensilsCrossed,
-        permissions: ["dining-zones:read"],
+        permissions: ["kitchen-printers:read", "kds-stations:read"],
+        pages: [
+          { href: "/printer-setup", labelKey: "nav.printerSetup", permissions: ["kitchen-printers:read"] },
+          { href: "/kitchen-printers", labelKey: "nav.kitchenPrinters", permissions: ["kitchen-printers:read"] },
+          { href: "/kds-stations", labelKey: "nav.kdsStations", permissions: ["kds-stations:read"] },
+        ],
       },
       {
         href: "/dining-tables",
-        labelKey: "nav.diningTables",
+        labelKey: "nav.floorAndTables",
         icon: LayoutGrid,
-        permissions: ["dining-tables:read"],
+        permissions: ["dining-tables:read", "dining-zones:read", "sections:read"],
+        pages: [
+          { href: "/dining-tables", labelKey: "nav.diningTables", permissions: ["dining-tables:read"] },
+          { href: "/dining-zones", labelKey: "nav.diningZones", permissions: ["dining-zones:read"] },
+          { href: "/sections", labelKey: "nav.sections", permissions: ["sections:read"] },
+        ],
       },
     ],
   },
@@ -282,15 +291,13 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
       },
       {
         href: "/uoms",
-        labelKey: "nav.uoms",
+        labelKey: "nav.units",
         icon: Ruler,
         permissions: ["uom:read"],
-      },
-      {
-        href: "/uom-classes",
-        labelKey: "nav.uomClasses",
-        icon: Ruler,
-        permissions: ["uom:read"],
+        pages: [
+          { href: "/uoms", labelKey: "nav.uoms", permissions: ["uom:read"] },
+          { href: "/uom-classes", labelKey: "nav.uomClasses", permissions: ["uom:read"] },
+        ],
       },
     ],
   },
@@ -335,18 +342,6 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.customers",
         icon: UserRound,
         permissions: ["customers:read"],
-      },
-      {
-        href: "/memberships",
-        labelKey: "nav.memberships",
-        icon: Wallet,
-        permissions: ["guestcard:wallet:read"],
-      },
-      {
-        href: "/card-tiers",
-        labelKey: "nav.membershipCardTemplates",
-        icon: CreditCard,
-        permissions: ["card-tiers:read", "membership-card-templates:read"],
       },
       {
         href: "/customer-interactions",
@@ -451,6 +446,7 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.landedCostAllocations",
         icon: Scale,
         permissions: ["landed-cost-allocations:read"],
+        advanced: true,
       },
     ],
   },
@@ -488,6 +484,7 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.reconciliationMatches",
         icon: GitCompareArrows,
         permissions: ["reconciliation-matches:read"],
+        advanced: true,
       },
       {
         href: "/fixed-assets",
@@ -500,6 +497,7 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         labelKey: "nav.depreciationSchedules",
         icon: CalendarClock,
         permissions: ["depreciation-schedules:read"],
+        advanced: true,
       },
     ],
   },
@@ -535,13 +533,23 @@ export function getFlatSidebarMenuItems(): SidebarMenuItem[] {
   return SIDEBAR_MENU_GROUPS.flatMap((group) => group.items);
 }
 
+function onPath(pathname: string, href: string): boolean {
+  return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+}
+
+/** Whether the page open at `pathname` belongs to this link, or to one of its pages. */
+export function itemMatchesPath(item: SidebarMenuItem, pathname: string): boolean {
+  return onPath(pathname, item.href) || Boolean(item.pages?.some((p) => onPath(pathname, p.href)));
+}
+
+/** The link grouping several pages that the page at `pathname` is one of. */
+export function findPageGroupForPath(pathname: string): SidebarMenuItem | null {
+  return getFlatSidebarMenuItems().find((item) => item.pages && itemMatchesPath(item, pathname)) ?? null;
+}
+
 export function findSidebarGroupForPath(pathname: string): string | null {
   for (const group of SIDEBAR_MENU_GROUPS) {
-    for (const item of group.items) {
-      if (pathname === item.href || pathname.startsWith(`${item.href}/`)) {
-        return group.id;
-      }
-    }
+    if (group.items.some((item) => itemMatchesPath(item, pathname))) return group.id;
   }
   return null;
 }

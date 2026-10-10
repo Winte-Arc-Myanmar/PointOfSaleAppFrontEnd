@@ -83,9 +83,8 @@ export function ReceiptPrinterConnection({ compact = false }: { compact?: boolea
   return (
     <DetailSection title="Receipt printer" icon={Printer}>
       <p className="mb-4 text-sm text-muted">
-        Connect this terminal’s receipt printer over USB, Bluetooth (BLE), or Wi‑Fi
-        (Epson ePOS / Star WebPRNT). Kitchen printers on the LAN still use the server
-        (IP:port) path below.
+        Connect the receipt printer at this till by USB cable, Bluetooth or Wi‑Fi.
+        Kitchen printers are set up below.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -271,9 +270,9 @@ export function ReceiptPrinterConnection({ compact = false }: { compact?: boolea
         <div className="mt-4 space-y-3 rounded-xl border border-border bg-background/80 p-4">
           <p className="text-sm font-medium text-foreground">Wi‑Fi / LAN connection</p>
           <p className="text-sm text-muted">
-            Browsers cannot open raw TCP 9100. Use a printer with an HTTP print API
-            (Epson ePOS or Star WebPRNT). Cheap Wi‑Fi printers that only speak 9100
-            must be printed through USB, Bluetooth, or the kitchen printer server path.
+            Only Epson and Star Wi‑Fi printers can print straight from this page. Other
+            Wi‑Fi printers need a USB cable or Bluetooth, or can be added as a kitchen
+            printer.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="grid gap-2 sm:col-span-2">
