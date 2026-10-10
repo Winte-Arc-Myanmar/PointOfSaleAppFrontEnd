@@ -50,15 +50,5 @@ export function getModifierGroupTableColumns(
       className: "min-w-[90px] max-w-[120px]",
       render: (g) => <span className="text-muted">{g.isRequired ? "Yes" : "No"}</span>,
     },
-    {
-      key: "tenantId",
-      header: "Tenant",
-      className: "min-w-[140px] max-w-[220px]",
-      render: (g) => (
-        <span className="font-mono text-xs text-muted truncate" title={g.tenantId}>
-          {g.tenantId}
-        </span>
-      ),
-    },
   ];
 }
