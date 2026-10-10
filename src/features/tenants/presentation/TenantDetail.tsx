@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { useTenant } from "@/presentation/hooks/useTenants";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { ResetTenantDataDialog } from "./ResetTenantDataDialog";
 import { Button } from "@/presentation/components/ui/button";
 import { Building2, User, MapPin, Info } from "lucide-react";
 import {
@@ -16,6 +19,8 @@ import { AppLoader } from "@/presentation/components/loader";
 
 export function TenantDetail({ tenantId }: { tenantId: string }) {
   const { data: tenant, isLoading, error } = useTenant(tenantId);
+  const { isSystemAdmin } = usePermissions();
+  const [resetOpen, setResetOpen] = useState(false);
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading tenant..." />;
   if (error || !tenant)
@@ -82,6 +87,23 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         title={safeText(tenant.name)}
         editHref={`/tenants/${tenant.id}/edit`}
       />
+      {isSystemAdmin ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="!border-red-300 !text-red-700 hover:!bg-red-50"
+            onClick={() => setResetOpen(true)}
+          >
+            Reset data
+          </Button>
+          <ResetTenantDataDialog
+            tenantId={String(tenant.id)}
+            isOpen={resetOpen}
+            onClose={() => setResetOpen(false)}
+          />
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DetailSection title="Overview" icon={Building2}>

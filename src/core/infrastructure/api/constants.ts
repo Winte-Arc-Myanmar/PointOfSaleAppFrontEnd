@@ -307,6 +307,8 @@ export const API_ENDPOINTS = {
     ASSIGN_PERMISSIONS: "/v1/system-admin/roles/assign-permissions",
     ASSIGN_ROLE: "/v1/system-admin/users/assign-role",
     TENANT_MODULES: (id: string) => `/v1/system-admin/tenants/${id}/modules`,
+    /** GET preview / POST reset of a tenant's data, part by part */
+    TENANT_RESET: (id: string) => `/v1/system-admin/tenants/${id}/reset`,
   },
   VENUE_SETTINGS: "/v1/venue-settings",
   SPA_PACKAGES: {
