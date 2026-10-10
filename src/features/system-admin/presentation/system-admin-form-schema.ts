@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { createTenantSchema } from "@/features/tenants/presentation/tenant-form-schema";
 import { createUserSchema } from "@/features/users/presentation/user-form-schema";
 
 const requiredText = (label: string) =>
@@ -7,49 +6,57 @@ const requiredText = (label: string) =>
 
 const requiredId = (label: string) => requiredText(label);
 
-const phoneField = requiredText("Phone").regex(
-  /^\+?[0-9]{7,15}$/,
-  "Enter a valid phone number, e.g. +1234567890",
+/** Blank, or a real value: the optional onboarding fields can be filled in later. */
+const optional = z.string().trim();
+const optionalPhone = optional.refine(
+  (value) => value === "" || /^\+?[0-9]{7,15}$/.test(value),
+  "Enter a valid phone number, e.g. +959123456789",
 );
-
-const onboardTenantFields = createTenantSchema
-  .pick({
-    name: true,
-    legalName: true,
-    domain: true,
-    website: true,
-    address: true,
-    city: true,
-    state: true,
-    country: true,
-    zipCode: true,
-  })
-  .extend({ timezone: z.string().trim().min(1, "Timezone is required") });
+const optionalEmail = optional.refine(
+  (value) => value === "" || z.string().email().safeParse(value).success,
+  "Enter a valid email",
+);
+const optionalUrl = optional.refine(
+  (value) => value === "" || z.string().url().safeParse(value).success,
+  "Enter a full address, e.g. https://example.com",
+);
 
 /** Where most tenants are; the business day rolls over at its midnight. */
 export const DEFAULT_TENANT_TIMEZONE = "Asia/Yangon";
 
-const onboardOwnerFields = createUserSchema.pick({
-  email: true,
-  password: true,
-  fullName: true,
-  phoneNumber: true,
-  jobTitle: true,
-});
-
 /**
  * POST /api/v1/system-admin/tenants/onboard
+ *
+ * Only the shop name, branch name and the owner's name and password are needed
+ * to open a shop; everything else is optional and can be set in Shop settings.
  */
 export const onboardTenantSchema = z.object({
-  tenant: onboardTenantFields,
+  tenant: z.object({
+    name: requiredText("Shop name"),
+    timezone: requiredText("Timezone"),
+    legalName: optional,
+    domain: optional,
+    website: optionalUrl,
+    address: optional,
+    city: optional,
+    state: optional,
+    country: optional,
+    zipCode: optional,
+  }),
   branch: z.object({
     name: requiredText("Branch name"),
-    branchCode: requiredText("Branch code"),
-    address: requiredText("Address"),
-    city: requiredText("City"),
-    phone: phoneField,
+    branchCode: optional,
+    address: optional,
+    city: optional,
+    phone: optionalPhone,
   }),
-  owner: onboardOwnerFields,
+  owner: z.object({
+    fullName: requiredText("Owner name"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    email: optionalEmail,
+    phoneNumber: optionalPhone,
+    jobTitle: optional,
+  }),
 });
 
 /**
