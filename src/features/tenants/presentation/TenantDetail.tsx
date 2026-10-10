@@ -16,6 +16,7 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
+import { StatusBadge } from "@/presentation/components/ui/status-badge";
 
 export function TenantDetail({ tenantId }: { tenantId: string }) {
   const { data: tenant, isLoading, error } = useTenant(tenantId);
@@ -33,21 +34,13 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
       </div>
     );
 
-  const addressParts = [
-    tenant.address,
-    tenant.city,
-    tenant.state,
-    tenant.zipCode,
-    tenant.country,
-  ].filter(Boolean);
-  const addressLine = addressParts.length > 0 ? addressParts.join(", ") : "—";
   const overviewRows = tenant
     ? [
         { label: "Tenant ID", value: safeText(tenant.id), mono: true },
         { label: "Name", value: safeText(tenant.name) },
         { label: "Legal name", value: safeText(tenant.legalName) },
         { label: "Domain", value: safeText(tenant.domain), mono: true },
-        { label: "Status", value: safeText(tenant.status) },
+        { label: "Status", value: <StatusBadge status={tenant.status} /> },
         {
           label: "Website",
           value: tenant.website ? (
@@ -68,8 +61,26 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
   const contactRows = tenant
     ? [
         { label: "Name", value: safeText(tenant.primaryContactName) },
-        { label: "Email", value: safeText(tenant.primaryContactEmail) },
-        { label: "Phone", value: safeText(tenant.primaryContactPhone) },
+        {
+          label: "Email",
+          value: tenant.primaryContactEmail ? (
+            <a href={`mailto:${tenant.primaryContactEmail}`} className="text-mint hover:underline break-all">
+              {tenant.primaryContactEmail}
+            </a>
+          ) : (
+            "—"
+          ),
+        },
+        {
+          label: "Phone",
+          value: tenant.primaryContactPhone ? (
+            <a href={`tel:${tenant.primaryContactPhone.replace(/\s+/g, "")}`} className="text-mint hover:underline">
+              {tenant.primaryContactPhone}
+            </a>
+          ) : (
+            "—"
+          ),
+        },
       ]
     : [];
   const recordRows = tenant
@@ -88,7 +99,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         editHref={`/tenants/${tenant.id}/edit`}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         <DetailSection title="Overview" icon={Building2}>
           <div className="space-y-0">
             <DetailRows rows={overviewRows} />
@@ -101,7 +112,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
                   <img
                     src={resolveMediaUrl(tenant.logoUrl)}
                     alt={`${tenant.name} logo`}
-                    className="h-12 w-auto object-contain"
+                    className="h-20 w-auto rounded-lg border border-border bg-white object-contain p-2"
                   />
                 </dd>
               </div>
@@ -109,14 +120,19 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
           </div>
         </DetailSection>
 
-        <DetailSection title="Primary contact" icon={User}>
-          <DetailRows rows={contactRows} />
-        </DetailSection>
+        <div className="space-y-5">
+          <DetailSection title="Primary contact" icon={User}>
+            <DetailRows rows={contactRows} />
+          </DetailSection>
+          <DetailSection title="Record info" icon={Info}>
+            <DetailRows rows={recordRows} />
+          </DetailSection>
+        </div>
 
         <DetailSection title="Address" icon={MapPin} className="lg:col-span-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0">
             <div className="space-y-0 sm:col-span-2">
-              <DetailRows rows={[{ label: "Full address", value: addressLine }]} />
+              <DetailRows rows={[{ label: "Street", value: safeText(tenant.address) }]} />
             </div>
             <div className="space-y-0">
               <DetailRows rows={[{ label: "City", value: safeText(tenant.city) }]} />
@@ -131,10 +147,6 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
               <DetailRows rows={[{ label: "Zip code", value: safeText(tenant.zipCode) }]} />
             </div>
           </div>
-        </DetailSection>
-
-        <DetailSection title="Record info" icon={Info}>
-          <DetailRows rows={recordRows} />
         </DetailSection>
 
       </div>

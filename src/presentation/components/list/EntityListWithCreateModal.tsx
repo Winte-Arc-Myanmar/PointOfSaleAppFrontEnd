@@ -140,6 +140,9 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
   const canEditSelected = selectedItems.length === 1 && !!onEditSelected;
   const canDeleteSelected = selectedItems.length > 0 && !!onDeleteSelected;
 
+  // An empty list offers its own Add button; one is enough.
+  const listIsEmpty = !isLoading && !error && data.length === 0;
+
   const actionBar =
     showActionBar &&
     (createEnabled || toolbarEndContent || (enableRowSelection && hasSelection)) ? (
@@ -170,7 +173,7 @@ export function EntityListWithCreateModal<T extends { id: string | number }>({
             </Button>
           )}
           {toolbarEndContent}
-          {createEnabled && (
+          {createEnabled && !listIsEmpty && (
             <Button onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
               {addLabel}
