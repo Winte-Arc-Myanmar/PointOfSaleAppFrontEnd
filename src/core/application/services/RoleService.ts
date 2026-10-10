@@ -35,6 +35,10 @@ export class RoleService implements IRoleService {
     return this.repo.assignPermissions(roleId, permissionIds);
   }
 
+  setPermissions(roleId: string, permissionIds: string[]): Promise<void> {
+    return this.repo.setPermissions(roleId, permissionIds);
+  }
+
   getAvailablePermissionIds(): Promise<string[]> {
     return this.repo.getAvailablePermissionIds();
   }
