@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 import { SidebarMenu } from "./SidebarMenu";
 import { TAB_STORAGE_KEY } from "./tab-storage";
 import { Navbar } from "./Navbar";
-import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
 import { getFlatSidebarMenuItems } from "@/presentation/components/layout/sidebar-menu-config";
 import { cn } from "@/lib/utils";
@@ -294,10 +293,26 @@ function persistTabs(tabs: MenuTabItem[]) {
   }
 }
 
+/** Pages with no sidebar or header: signing in and the no-access notice. */
+const BARE_PATHS = new Set(["/", "/login", "/register", "/no-access"]);
+
+/**
+ * Pages still wrap themselves in Shell, but the frame itself is drawn once by
+ * the root layout (AppShell), so the sidebar and header stay put between pages.
+ */
 export function Shell({ children }: ShellProps) {
+  return <>{children}</>;
+}
+
+export function AppShell({ children }: ShellProps) {
+  const pathname = usePathname();
+  if (BARE_PATHS.has(pathname)) return <>{children}</>;
+  return <AppFrame pathname={pathname}>{children}</AppFrame>;
+}
+
+function AppFrame({ children, pathname }: ShellProps & { pathname: string }) {
   const router = useRouter();
   const { t } = useLanguage();
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openTabs, setOpenTabs] = useState<MenuTabItem[]>([]);
@@ -429,7 +444,7 @@ export function Shell({ children }: ShellProps) {
                   <div
                     key={tab.href}
                     className={cn(
-                      "flex w-40 shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
+                      "flex max-w-56 shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
                       isActive
                         ? "border-mint/40 bg-mint/10 text-foreground"
                         : "border-border bg-background text-muted",
@@ -502,10 +517,6 @@ export function Shell({ children }: ShellProps) {
           >
             {children}
           </motion.div>
-          <PoweredByWinterArc
-            variant="footer"
-            className="mx-auto mt-10 max-w-6xl border-t border-border/60 pt-6 pb-2"
-          />
         </main>
       </div>
       <AiHelperChat />

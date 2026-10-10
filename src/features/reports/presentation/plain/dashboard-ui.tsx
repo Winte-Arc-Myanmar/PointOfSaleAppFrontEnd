@@ -70,7 +70,7 @@ export function ReportPanel({
       </div>
       {isLoading ? (
         <div className="flex justify-center py-8">
-          <AppLoader />
+          <AppLoader fullScreen={false} size="sm" showName={false} />
         </div>
       ) : error ? (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
