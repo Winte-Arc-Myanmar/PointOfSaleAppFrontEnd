@@ -10,6 +10,7 @@ import axios, {
   type AxiosResponse,
 } from "axios";
 import { getSession, signOut } from "next-auth/react";
+import { loginUrlFor } from "@/lib/login-return";
 import { API_CONFIG } from "./constants";
 import {
   ACTING_TENANT_HEADER,
@@ -77,7 +78,8 @@ export class HttpClient {
       (response) => response,
       (error) => {
         if (error.response?.status === 401 && typeof window !== "undefined") {
-          signOut({ callbackUrl: "/login" });
+          const here = window.location.pathname + window.location.search;
+          signOut({ callbackUrl: loginUrlFor(here, "expired") });
         }
         return Promise.reject(error);
       },

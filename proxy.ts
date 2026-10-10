@@ -7,6 +7,7 @@
 import { auth } from "@/server/auth";
 import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 import { holdsPermission } from "@/core/domain/services/permission-names";
+import { loginUrlFor } from "@/lib/login-return";
 
 const publicPaths = ["/login", "/register"];
 
@@ -136,7 +137,9 @@ export default auth((req) => {
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
 
   if (!isLoggedIn && !isPublic) {
-    return Response.redirect(new URL("/login", req.nextUrl));
+    return Response.redirect(
+      new URL(loginUrlFor(pathname + req.nextUrl.search), req.nextUrl),
+    );
   }
   if (isLoggedIn && req.auth) {
     const userType = (req.auth.user as { type?: UserType } | undefined)?.type;
