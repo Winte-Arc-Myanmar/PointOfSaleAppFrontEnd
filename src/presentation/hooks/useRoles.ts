@@ -71,3 +71,14 @@ export function useAssignRolePermissions() {
   });
 }
 
+
+export function useSetRolePermissions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roleId, permissionIds }: { roleId: string; permissionIds: string[] }) =>
+      getService().setPermissions(roleId, permissionIds),
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: [...ROLES_QUERY_KEY, vars.roleId] });
+    },
+  });
+}

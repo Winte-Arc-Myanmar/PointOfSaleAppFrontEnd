@@ -1,5 +1,6 @@
 "use client";
 
+import { OutletSelect } from "@/features/locations/presentation/OutletSelect";
 import { InfoTip } from "@/presentation/components/ui/info-tip";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -8,7 +9,6 @@ import { z } from "zod";
 import { useCreatePosRegister } from "@/presentation/hooks/usePosRegisters";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useTenants } from "@/presentation/hooks/useTenants";
-import { useLocations } from "@/presentation/hooks/useLocations";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
@@ -67,8 +67,6 @@ export function CreatePosRegisterForm({
   const toast = useToast();
   const { data: tenantsData } = useTenants();
   const tenants = getPaginatedItems(tenantsData);
-  const { data: locationsData } = useLocations({ page: 1, limit: 200 });
-  const locations = getPaginatedItems(locationsData);
   const { data: printersData } = useKitchenPrinters({ page: 1, limit: 200 });
   const printers = getPaginatedItems(printersData);
 
@@ -82,11 +80,6 @@ export function CreatePosRegisterForm({
   }, [create.isPending, onLoadingChange]);
 
   const tenantId = useWatch({ control: form.control, name: "tenantId" });
-  const filteredLocations = useMemo(
-    () => locations.filter((l) => (tenantId ? l.tenantId === tenantId : true)),
-    [locations, tenantId]
-  );
-
   const selectedLocationId = useWatch({ control: form.control, name: "locationId" });
   const sellsAt = useWatch({ control: form.control, name: "sellsAt" });
   const shiftRule = useWatch({ control: form.control, name: "shiftRule" });
@@ -152,29 +145,12 @@ export function CreatePosRegisterForm({
         </div>
 
         <div className="grid gap-2">
-          <Label>Location</Label>
+          <Label>Outlet</Label>
           <Controller
             control={form.control}
             name="locationId"
             render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={!tenantId}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={!tenantId ? "Select tenant first" : "Select location"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredLocations.map((l) => (
-                    <SelectItem key={l.id} value={String(l.id)}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <OutletSelect tenantId={tenantId} value={field.value} onChange={field.onChange} />
             )}
           />
           {form.formState.errors.locationId && (

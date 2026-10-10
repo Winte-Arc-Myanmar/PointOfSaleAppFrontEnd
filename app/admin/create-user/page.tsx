@@ -1,12 +1,6 @@
-import { Shell } from "@/presentation/components/layout/Shell";
-import { SystemAdminCreateUserForm } from "@/features/system-admin/presentation/SystemAdminCreateUserForm";
+import { redirect } from "next/navigation";
 
+/** Merged into /users: users are created and given a role there. */
 export default function CreateUserPage() {
-  return (
-    <Shell>
-      <div className="space-y-6">
-        <SystemAdminCreateUserForm />
-      </div>
-    </Shell>
-  );
+  redirect("/users");
 }

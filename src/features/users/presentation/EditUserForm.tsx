@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser, useUpdateUser } from "@/presentation/hooks/useUsers";
+import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -41,6 +42,7 @@ export function EditUserForm({ userId }: { userId: string }) {
   const router = useRouter();
   const { data: user, isLoading, error } = useUser(userId);
   const updateUser = useUpdateUser();
+  const { data: options } = useCreateUserFormOptions();
   const toast = useToast();
   const [showSuccess, setShowSuccess] = useState(false);
   const form = useForm<UpdateUserFormData>({
@@ -53,8 +55,14 @@ export function EditUserForm({ userId }: { userId: string }) {
       avatarUrl: "",
       jobTitle: "",
       preferredLanguage: "EN",
+      roleId: "",
+      branchId: "",
     },
   });
+  const roles = (options?.roles ?? []).filter((r) => !user?.tenantId || r.tenantId === user.tenantId);
+  const branches = (options?.branches ?? []).filter(
+    (b) => !user?.tenantId || b.tenantId === user.tenantId,
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -66,6 +74,8 @@ export function EditUserForm({ userId }: { userId: string }) {
       avatarUrl: user.avatarUrl ?? "",
       jobTitle: user.jobTitle ?? "",
       preferredLanguage: toPreferredLanguage(user.preferredLanguage),
+      roleId: user.roleId ?? "",
+      branchId: user.branchId ?? "",
     });
   }, [user, form]);
 
@@ -79,6 +89,10 @@ export function EditUserForm({ userId }: { userId: string }) {
       jobTitle: data.jobTitle,
       preferredLanguage: data.preferredLanguage,
       ...(data.password ? { password: data.password } : {}),
+      ...(data.roleId &&
+      (data.roleId !== (user?.roleId ?? "") || data.branchId !== (user?.branchId ?? ""))
+        ? { roleId: data.roleId, branchId: data.branchId || null }
+        : {}),
     };
     updateUser.mutate(
       { id: userId, data: payload },
@@ -184,6 +198,54 @@ export function EditUserForm({ userId }: { userId: string }) {
             />
           )}
         />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="roleId">Role</Label>
+            <Controller
+              control={form.control}
+              name="roleId"
+              render={({ field }) => (
+                <Select value={field.value || undefined} onValueChange={field.onChange}>
+                  <SelectTrigger id="roleId">
+                    <SelectValue placeholder={user.roleName ?? "Select role"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="branchId">Branch</Label>
+            <Controller
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <Select
+                  value={field.value || "__all__"}
+                  onValueChange={(value) => field.onChange(value === "__all__" ? "" : value)}
+                >
+                  <SelectTrigger id="branchId">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">All branches</SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        </div>
         <div className="grid gap-2">
           <Label htmlFor="preferredLanguage">Preferred language *</Label>
           <Controller

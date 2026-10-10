@@ -1,5 +1,6 @@
 "use client";
 
+import { OutletSelect } from "@/features/locations/presentation/OutletSelect";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -183,29 +184,12 @@ export function CreateKdsStationForm({
         )}
 
         <div className="grid gap-2">
-          <Label htmlFor="locationId">Location</Label>
+          <Label htmlFor="locationId">Outlet</Label>
           <Controller
             control={form.control}
             name="locationId"
             render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={!selectedTenantId}
-              >
-                <SelectTrigger id="locationId">
-                  <SelectValue
-                    placeholder={!selectedTenantId ? "Select tenant first" : "Select location"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredLocations.map((location) => (
-                    <SelectItem key={location.id} value={String(location.id)}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <OutletSelect tenantId={selectedTenantId} value={field.value} onChange={field.onChange} />
             )}
           />
           {form.formState.errors.locationId && (

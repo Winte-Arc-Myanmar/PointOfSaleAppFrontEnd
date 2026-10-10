@@ -140,14 +140,14 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="locationId">Location</Label>
+            <Label htmlFor="locationId">Outlet</Label>
             <Controller
               control={form.control}
               name="locationId"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger id="locationId">
-                    <SelectValue placeholder="Select location" />
+                    <SelectValue placeholder="Choose the outlet" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredLocations.map((location) => (
