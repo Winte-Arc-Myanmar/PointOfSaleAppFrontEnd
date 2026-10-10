@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { KdsTicket } from "@/core/domain/entities/KdsTicket";
+import { StatusBadge } from "@/presentation/components/ui/status-badge";
 
 type KdsTicketTableColumnOptions = {
   onView?: (ticket: KdsTicket) => void;
@@ -36,7 +37,7 @@ export function getKdsTicketTableColumns(
       header: "Status",
       sortable: true,
       className: "min-w-[120px]",
-      render: (t) => t.status,
+      render: (t) => <StatusBadge status={t.status} />,
     },
     {
       key: "stationId",

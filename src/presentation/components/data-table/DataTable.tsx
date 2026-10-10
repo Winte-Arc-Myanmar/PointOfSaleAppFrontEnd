@@ -476,7 +476,7 @@ export function DataTable<T extends { id: string | number }>({
                     {header.column.getCanSort() ? (
                       <button
                         type="button"
-                        className="flex items-center gap-2 hover:text-mint transition-colors"
+                        className="flex items-center gap-2 uppercase tracking-wider hover:text-mint transition-colors"
                         onClick={() => handleSort(header.column.id)}
                       >
                         {header.isPlaceholder
@@ -597,7 +597,6 @@ export function DataTable<T extends { id: string | number }>({
           canPreviousPage={canPreviousPage}
           canNextPage={canNextPage}
           isLoading={isLoading}
-          forceShow={!!hasServerPagination}
         />
       )}
     </div>

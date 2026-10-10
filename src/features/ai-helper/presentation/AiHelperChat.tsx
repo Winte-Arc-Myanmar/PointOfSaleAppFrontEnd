@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Loader2, Minus, Send, WifiOff, X } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,8 +16,36 @@ import { LoliQuestionPrompts, PROMPT_QUESTIONS } from "./LoliQuestionPrompts";
 
 const SUGGESTIONS = PROMPT_QUESTIONS.slice(0, 3);
 
+const TIPS_HIDDEN_KEY = "loli-tips-hidden";
+const tipsListeners = new Set<() => void>();
+
+function subscribeTips(listener: () => void) {
+  tipsListeners.add(listener);
+  return () => {
+    tipsListeners.delete(listener);
+  };
+}
+
+function readTipsHidden(): boolean {
+  try {
+    return localStorage.getItem(TIPS_HIDDEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function hideTips() {
+  try {
+    localStorage.setItem(TIPS_HIDDEN_KEY, "1");
+  } catch {
+    // Storage can be blocked; the tips then come back on reload.
+  }
+  tipsListeners.forEach((listener) => listener());
+}
+
 export function AiHelperChat() {
   const [open, setOpen] = useState(false);
+  const tipsHidden = useSyncExternalStore(subscribeTips, readTipsHidden, () => false);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const statusQuery = useAiHelperStatus(open);
   const turn = useAiHelperTurn();
@@ -175,7 +203,9 @@ export function AiHelperChat() {
 
       {!open ? (
         <div className="pointer-events-none flex items-end gap-3">
-          <LoliQuestionPrompts onSelect={openWithQuestion} />
+          {tipsHidden ? null : (
+            <LoliQuestionPrompts onSelect={openWithQuestion} onDismiss={hideTips} />
+          )}
           <button
             type="button"
             className="pointer-events-auto shrink-0 rounded-full bg-transparent p-0"
@@ -183,7 +213,7 @@ export function AiHelperChat() {
             aria-label="Open Loli"
             aria-expanded={false}
           >
-            <LoliAvatar size="lg" />
+            <LoliAvatar size={tipsHidden ? "sm" : "lg"} />
           </button>
         </div>
       ) : (
