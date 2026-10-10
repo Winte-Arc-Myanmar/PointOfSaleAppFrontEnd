@@ -33,6 +33,7 @@ export function UserDetail({ userId }: { userId: string }) {
         },
         { label: "Phone number", value: safeText(user.phoneNumber) },
         { label: "Job title", value: safeText(user.jobTitle) },
+        { label: "Role", value: safeText(user.roleName) },
         { label: "Preferred language", value: safeText(user.preferredLanguage) },
       ]
     : [];

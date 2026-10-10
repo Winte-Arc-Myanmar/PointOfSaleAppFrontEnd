@@ -37,4 +37,8 @@ export type UserUpdateDto = Partial<
     | "jobTitle"
     | "preferredLanguage"
   >
->;
+> & {
+  /** Replaces the user's role; sent with the branch it applies in (null: all). */
+  roleId?: string;
+  branchId?: string | null;
+};
