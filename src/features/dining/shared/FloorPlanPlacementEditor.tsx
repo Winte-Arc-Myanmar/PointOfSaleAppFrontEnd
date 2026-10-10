@@ -114,7 +114,7 @@ export function FloorPlanPlacementEditor({
         )}
       </div>
 
-      <div className="relative w-full overflow-auto rounded-xl border border-border bg-[#f8fafc] dark:bg-muted/20">
+      <div className="relative w-full overflow-auto rounded-xl border border-border bg-[#f8fafc] dark:bg-[#141414]">
         <div
           ref={canvasRef}
           role="application"
@@ -132,12 +132,12 @@ export function FloorPlanPlacementEditor({
         >
           {zone?.layoutSvg ? (
             <div
-              className="absolute inset-0 pointer-events-none opacity-90"
+              className="absolute inset-0 pointer-events-none opacity-90 dark:opacity-60 dark:invert dark:hue-rotate-180"
               dangerouslySetInnerHTML={{ __html: layoutSvgWithoutLabels(zone.layoutSvg) }}
             />
           ) : (
             <div
-              className="absolute inset-0 opacity-60 pointer-events-none"
+              className="absolute inset-0 opacity-60 pointer-events-none dark:opacity-10"
               style={{
                 backgroundImage:
                   "linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px)",

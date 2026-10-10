@@ -8,7 +8,6 @@ import { ThemeToggle } from "@/presentation/components/theme/ThemeToggle";
 import { LanguageSwitcher } from "@/presentation/components/language/LanguageSwitcher";
 import { TenantSwitcher } from "./TenantSwitcher";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
-import { APP_VERSION_LABEL } from "@/lib/app-version";
 
 interface NavbarProps {
   onMenuToggle: () => void;
@@ -76,12 +75,6 @@ export function Navbar({
         </motion.h1>
       )}
       <div className="ml-auto flex items-center gap-3">
-        <span
-          className="hidden text-xs font-medium tracking-wide text-muted sm:inline"
-          title={`App version ${APP_VERSION_LABEL}`}
-        >
-          {APP_VERSION_LABEL}
-        </span>
         <TenantSwitcher className="hidden items-center gap-2 md:flex" />
         <LanguageSwitcher />
         {displayName && (

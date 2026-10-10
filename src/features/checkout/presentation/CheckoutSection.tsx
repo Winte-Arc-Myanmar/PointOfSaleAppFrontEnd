@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
-  ShoppingCart,
   Search,
   Plus,
-  Minus,
   Trash2,
   Settings2,
   KeyRound,
   CreditCard,
   RefreshCw,
-  Package,
   LayoutGrid,
   ChevronLeft,
   ChevronRight,
@@ -31,11 +28,9 @@ import {
 } from "@/presentation/components/ui/select";
 import { Modal } from "@/presentation/components/modal/Modal";
 import { AppLoader } from "@/presentation/components/loader";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useCurrency } from "@/presentation/providers/CurrencyProvider";
 import { ProductCardImage } from "@/presentation/components/product/ProductCardImage";
-import { useConfirm } from "@/presentation/hooks/useConfirm";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useTenants } from "@/presentation/hooks/useTenants";
 import { useLocations } from "@/presentation/hooks/useLocations";
@@ -47,6 +42,7 @@ import { useProducts } from "@/presentation/hooks/useProducts";
 import { useProductVariants } from "@/presentation/hooks/useProductVariants";
 import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
 import { usePromotionRules } from "@/presentation/hooks/usePromotionRules";
+import { useDiningTables } from "@/presentation/hooks/useDiningTables";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
@@ -140,7 +136,6 @@ interface LineMeta {
 export function CheckoutSection() {
   const router = useRouter();
   const toast = useToast();
-  const confirm = useConfirm();
   const { printOrderSlip, isPrinting } = useThermalPrint();
   const { formatPrice: formatCurrencyPrice } = useCurrency();
   const { data: session } = useSession();
@@ -167,6 +162,7 @@ export function CheckoutSection() {
     page: 1,
     limit: 200,
   });
+  const { data: diningTablesResult } = useDiningTables({ page: 1, limit: 200 });
   const { data: promotionRulesResult } = usePromotionRules({
     page: 1,
     limit: 200,
@@ -181,6 +177,7 @@ export function CheckoutSection() {
   const allCategories = getPaginatedItems(categoriesResult);
   const products = getPaginatedItems(productsResult);
   const allPromotionRules = getPaginatedItems(promotionRulesResult);
+  const diningTables = getPaginatedItems(diningTablesResult);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -273,17 +270,19 @@ export function CheckoutSection() {
         : allPaymentMethods,
     [allPaymentMethods, selectedTenantId],
   );
-  const categories = useMemo(
-    () =>
-      (selectedTenantId
-        ? allCategories.filter(
-            (category) =>
-              String(category.tenantId) === String(selectedTenantId),
-          )
-        : allCategories
-      ).sort((a, b) => a.name.localeCompare(b.name)),
-    [allCategories, selectedTenantId],
-  );
+  const categories = useMemo(() => {
+    const withProducts = new Set(
+      products
+        .filter(
+          (p) =>
+            !selectedTenantId || String(p.tenantId) === String(selectedTenantId),
+        )
+        .map((p) => String(p.categoryId)),
+    );
+    return allCategories
+      .filter((category) => withProducts.has(String(category.id)))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [allCategories, products, selectedTenantId]);
 
   useEffect(() => {
     if (
@@ -321,7 +320,7 @@ export function CheckoutSection() {
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("__all__");
   const [orderType, setOrderType] = useState<PosOrderType>("dine-in");
-  const [tableNumber, setTableNumber] = useState("Table #1");
+  const [tableNumber, setTableNumber] = useState("");
   const [giftCode, setGiftCode] = useState("");
   const [promotionCode, setPromotionCode] = useState("");
   const [selectedPromotionRuleId, setSelectedPromotionRuleId] = useState<
@@ -341,11 +340,7 @@ export function CheckoutSection() {
   }, [categories, selectedCategoryId]);
 
   useEffect(() => {
-    if (orderType === "dine-in") {
-      setTableNumber((current) => current || "Table #1");
-      return;
-    }
-    setTableNumber("");
+    if (orderType !== "dine-in") setTableNumber("");
   }, [orderType]);
 
   const activePromotionRules = useMemo(() => {
@@ -432,6 +427,16 @@ export function CheckoutSection() {
       return hay.includes(s);
     });
   }, [products, productSearch, selectedCategoryId, selectedTenantId]);
+
+  /** Names more than one item uses, so their cards say which is which. */
+  const sharedNames = useMemo(() => {
+    const seen = new Map<string, number>();
+    for (const p of filteredProducts) {
+      const key = p.name.trim().toLowerCase();
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+    return new Set([...seen].filter(([, n]) => n > 1).map(([key]) => key));
+  }, [filteredProducts]);
 
   const subtotal = useMemo(() => {
     return watchedItems.reduce((sum, it, i) => {
@@ -558,20 +563,6 @@ export function CheckoutSection() {
     setQty(index, currentQty - 1);
   }
 
-  async function clearCart() {
-    if (items.fields.length === 0) return;
-    const ok = await confirm({
-      title: "Clear cart",
-      description: "Remove all items from the cart?",
-      confirmLabel: "Clear",
-      variant: "destructive",
-    });
-    if (!ok) return;
-    form.setValue("items", []);
-    setLineMeta({});
-    setActiveLineIndex(null);
-  }
-
   function onSubmit(v: FormValues) {
     if (!v.tenantId?.trim()) return toast.error("Tenant is required.");
     if (!v.locationId?.trim()) return toast.error("Location is required.");
@@ -644,15 +635,13 @@ export function CheckoutSection() {
     .slice(-4)
     .toUpperCase()
     .padStart(4, "0");
-  const availableTables = [
-    "Table #1",
-    "Table #2",
-    "Table #3",
-    "Table #4",
-    "Table #5",
-    "Patio #1",
-    "VIP #1",
-  ];
+  const availableTables = diningTables
+    .filter(
+      (table) =>
+        !selectedTenantId || String(table.tenantId) === String(selectedTenantId),
+    )
+    .map((table) => table.tableNumber)
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const sidebarItems = watchedItems.map((it, idx) => {
     const variantId = String(it?.variantId ?? "");
     const meta = lineMeta[variantId + ":" + idx];
@@ -754,7 +743,7 @@ export function CheckoutSection() {
         loginTimeLabel={loginTimeLabel}
       />
       <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-12 md:items-start">
-        <div className="order-1 min-h-0 space-y-4 md:col-span-5 xl:col-span-4">
+        <div className="order-2 min-h-0 md:sticky md:top-0 md:col-span-5 md:h-[calc(100vh-9rem)] xl:col-span-4">
           <PosRightSidebarCart
             currency={selectedTenantCurrency}
             orderNumber={orderNumber}
@@ -802,316 +791,132 @@ export function CheckoutSection() {
             }
             printDisabled={items.fields.length === 0 || isPrinting}
             isPrinting={isPrinting}
-          />
-          <PrinterConnectionStatus />
-          <CheckoutGuestCardPanel
-            onCustomerLinked={(customerId) => {
-              form.setValue("customerId", customerId);
-              toast.success("Customer linked from guest card.");
-            }}
-          />
-          {false ? (
-            <>
-          <div className="rounded-xl border border-border bg-background shadow-[var(--shadow-panel)]">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="section-label flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4 text-mint" />
-                Cart
-                <span className="text-muted">({items.fields.length})</span>
-              </h3>
-              <div className="flex items-center gap-2">
+          >
+            <PrinterConnectionStatus />
+            <CheckoutGuestCardPanel
+              onCustomerLinked={(customerId) => {
+                form.setValue("customerId", customerId);
+                toast.success("Customer linked from guest card.");
+              }}
+            />
+            <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="section-label flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-mint" />
+                  Payments
+                </h3>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={clearCart}
-                  disabled={items.fields.length === 0}
+                  onClick={() =>
+                    payments.append({
+                      paymentMethodId: "",
+                      amount: 0,
+                      transactionReference: "",
+                    })
+                  }
                 >
-                  <Trash2 className="mr-1 h-3.5 w-3.5" />
-                  Clear
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Add
                 </Button>
               </div>
-            </div>
+              <div className="space-y-3">
+                {payments.fields.map((f, idx) => (
+                  <div
+                    key={f.id}
+                    className="grid grid-cols-1 sm:grid-cols-12 gap-2"
+                  >
+                    <div className="sm:col-span-5">
+                      <Controller
+                        control={form.control}
+                        name={`payments.${idx}.paymentMethodId` as const}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={(paymentMethodId) => {
+                              field.onChange(paymentMethodId);
 
-            <div className="max-h-[38vh] overflow-y-auto">
-              {items.fields.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-2">
-                  <Package className="h-8 w-8 text-muted" />
-                  <p className="text-sm text-muted">
-                    No items yet. Tap a product on the right to add it.
-                  </p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-border">
-                  {items.fields.map((f, idx) => {
-                    const it = watchedItems[idx];
-                    const variantId = String(it?.variantId ?? "");
-                    const meta = lineMeta[variantId + ":" + idx];
-                    const qty = Number(it?.quantity) || 0;
-                    const disc = Number(it?.lineDiscount) || 0;
-                    const unitPrice = meta?.unitPrice ?? 0;
-                    const lineTotal = unitPrice * qty - disc;
-                    const isActive = activeLineIndex === idx;
-                    return (
-                      <li
-                        key={f.id}
-                        onClick={() => setActiveLineIndex(idx)}
-                        className={cn(
-                          "flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-3 transition-colors",
-                          isActive
-                            ? "bg-mint/10 border-l-2 border-l-mint"
-                            : "hover:bg-mint/5 border-l-2 border-l-transparent",
+                              const otherPaymentsTotal = watchedPayments.reduce(
+                                (sum, payment, paymentIndex) =>
+                                  paymentIndex === idx
+                                    ? sum
+                                    : sum + (Number(payment?.amount) || 0),
+                                0,
+                              );
+                              const remainingAmount = Math.max(
+                                0,
+                                subtotal - otherPaymentsTotal,
+                              );
+
+                              form.setValue(
+                                `payments.${idx}.amount`,
+                                Number(remainingAmount.toFixed(4)),
+                                { shouldDirty: true, shouldValidate: true },
+                              );
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {paymentMethods.map((m) => (
+                                <SelectItem
+                                  key={String(m.id)}
+                                  value={String(m.id)}
+                                >
+                                  {m.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         )}
+                      />
+                    </div>
+                    <div className="sm:col-span-3">
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        placeholder="Amount"
+                        {...form.register(`payments.${idx}.amount` as const, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </div>
+                    <div className="sm:col-span-3">
+                      <Input
+                        placeholder="Reference (optional)"
+                        {...form.register(
+                          `payments.${idx}.transactionReference` as const,
+                        )}
+                      />
+                    </div>
+                    <div className="sm:col-span-1">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => payments.remove(idx)}
+                        disabled={payments.fields.length === 1}
                       >
-                        <div className="relative h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted/20 border border-border">
-                          <ProductCardImage
-                            src={meta?.productImage}
-                            alt={meta?.productName ?? "Product"}
-                            sizes="48px"
-                            imageClassName="object-cover"
-                            logoClassName="w-7"
-                          />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold truncate text-foreground">
-                            {meta?.productName ?? "Item"}
-                          </div>
-                          <div className="text-xs text-muted truncate">
-                            {meta?.variantSku ?? variantId} · {formatPrice(unitPrice)}
-                          </div>
-                        </div>
-                        <div className="shrink-0 flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 dark:bg-white/10">
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-full"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              decrementItem(idx);
-                            }}
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </Button>
-                          <span className="w-8 text-center text-sm font-semibold tabular-nums text-foreground">
-                            {qty}
-                          </span>
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 rounded-full"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              incrementItem(idx);
-                            }}
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                        <div className="min-w-[96px] text-right text-base font-bold tabular-nums text-foreground">
-                          {formatPrice(lineTotal)}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 rounded-full text-muted hover:text-red-600 dark:hover:text-red-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            items.remove(idx);
-                            if (activeLineIndex === idx)
-                              setActiveLineIndex(null);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-muted" />
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-panel)] space-y-4">
-              <h3 className="section-label">Totals</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Subtotal</span>
-                  <span className="font-medium">{formatPrice(netSubtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Tax</span>
-                  <span className="font-medium">{formatPrice(taxTotal)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted">Total paid</span>
-                  <span className="font-medium">{formatPrice(totalPaid)}</span>
-                </div>
-                <div className="flex items-center justify-between">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {changeDue > 0 ? (
+                <p className="flex items-center justify-between text-sm">
                   <span className="text-muted">Change due</span>
-                  <span className="font-medium">{formatPrice(changeDue)}</span>
-                </div>
-                <div className="pt-2 border-t border-border flex items-center justify-between">
-                  <span className="text-sm font-semibold">Grand total</span>
-                  <span className="text-2xl font-bold text-mint">
-                    {formatPrice(subtotal)}
-                  </span>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-12"
-                  onClick={() => {
-                    if (watchedPayments.length === 1) {
-                      form.setValue(
-                        "payments.0.amount",
-                        Number(subtotal.toFixed(4)),
-                      );
-                      toast.success("Exact amount set.");
-                    } else {
-                      toast.error(
-                        "Exact amount only works with a single payment line.",
-                      );
-                    }
-                  }}
-                  disabled={subtotal <= 0}
-                >
-                  Exact amount
-                </Button>
-                <Button
-                  type="button"
-                  onClick={form.handleSubmit(onSubmit)}
-                  disabled={checkout.isPending || items.fields.length === 0}
-                  className="h-12 md:h-14 text-base font-semibold bg-mint text-white hover:bg-mint-hover dark:text-gloss-black"
-                >
-                  {checkout.isPending
-                    ? "Processing..."
-                    : "Pay now"}
-                </Button>
-              </div>
-          </div>
-
-            </>
-          ) : null}
-
-          <div className="rounded-xl border border-border bg-background p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="section-label flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-mint" />
-                Payments
-              </h3>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  payments.append({
-                    paymentMethodId: "",
-                    amount: 0,
-                    transactionReference: "",
-                  })
-                }
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" />
-                Add
-              </Button>
+                  <span className="font-semibold tabular-nums">{formatPrice(changeDue)}</span>
+                </p>
+              ) : null}
             </div>
-            <div className="space-y-3">
-              {payments.fields.map((f, idx) => (
-                <div
-                  key={f.id}
-                  className="grid grid-cols-1 sm:grid-cols-12 gap-2"
-                >
-                  <div className="sm:col-span-5">
-                    <Controller
-                      control={form.control}
-                      name={`payments.${idx}.paymentMethodId` as const}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={(paymentMethodId) => {
-                            field.onChange(paymentMethodId);
-
-                            const otherPaymentsTotal = watchedPayments.reduce(
-                              (sum, payment, paymentIndex) =>
-                                paymentIndex === idx
-                                  ? sum
-                                  : sum + (Number(payment?.amount) || 0),
-                              0,
-                            );
-                            const remainingAmount = Math.max(
-                              0,
-                              subtotal - otherPaymentsTotal,
-                            );
-
-                            form.setValue(
-                              `payments.${idx}.amount`,
-                              Number(remainingAmount.toFixed(4)),
-                              { shouldDirty: true, shouldValidate: true },
-                            );
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {paymentMethods.map((m) => (
-                              <SelectItem
-                                key={String(m.id)}
-                                value={String(m.id)}
-                              >
-                                {m.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Input
-                      type="number"
-                      step="0.0001"
-                      placeholder="Amount"
-                      {...form.register(`payments.${idx}.amount` as const, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <Input
-                      placeholder="Reference (optional)"
-                      {...form.register(
-                        `payments.${idx}.transactionReference` as const,
-                      )}
-                    />
-                  </div>
-                  <div className="sm:col-span-1">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="w-full"
-                      onClick={() => payments.remove(idx)}
-                      disabled={payments.fields.length === 1}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
+          </PosRightSidebarCart>
         </div>
 
-        <div className="order-2 md:col-span-7 xl:col-span-8">
-          <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4 sticky top-4">
+        <div className="order-1 md:col-span-7 xl:col-span-8">
+          <div className="rounded-xl border border-border bg-background p-4 shadow-[var(--shadow-panel)] space-y-4">
             <CategoryChooser
               categories={categories}
               selectedCategoryId={selectedCategoryId}
@@ -1154,18 +959,16 @@ export function CheckoutSection() {
                   : "Select a tenant to load products."}
               </p>
             ) : (
-              <div
-                className="visible-scrollbar grid max-h-[70vh] grid-cols-2 gap-4 overflow-y-auto pr-2 touch-pan-y md:grid-cols-3 xl:grid-cols-4"
-                style={{ WebkitOverflowScrolling: "touch" }}
-              >
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((p) => (
                   <button
                     key={String(p.id)}
                     type="button"
                     onClick={() => onProductClick(p)}
-                    className="group flex flex-col rounded-[28px] border border-gray-200 bg-white px-4 pb-4 pt-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-mint/50 hover:shadow-md dark:border-border dark:bg-background"
+                    className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-mint/50 hover:shadow-md dark:border-border dark:bg-background"
                   >
-                    <div className="relative mx-auto mb-4 flex h-24 w-full max-w-[112px] items-center justify-center overflow-hidden rounded-2xl bg-transparent">
+                    {p.imageUrl ? (
+                    <div className="relative mx-auto mb-3 flex h-20 w-full max-w-[96px] items-center justify-center overflow-hidden rounded-2xl bg-transparent">
                       <ProductCardImage
                         src={p.imageUrl}
                         alt={p.name}
@@ -1175,11 +978,19 @@ export function CheckoutSection() {
                         logoClassName="w-12"
                       />
                     </div>
+                    ) : null}
                     <div className="flex flex-1 flex-col">
-                      <div className="min-h-[2.75rem] text-sm font-semibold leading-snug text-foreground line-clamp-2">
+                      <div className="text-sm font-semibold leading-snug text-foreground line-clamp-2">
                         {p.name}
                       </div>
-                      <div className="mt-2 text-sm font-medium text-muted">
+                      {sharedNames.has(p.name.trim().toLowerCase()) ? (
+                        <div className="mt-0.5 truncate text-xs text-muted">
+                          {p.timeBlockMinutes
+                            ? `${p.timeBlockMinutes} min`
+                            : p.categoryName || p.baseSku}
+                        </div>
+                      ) : null}
+                      <div className="mt-auto pt-2 text-sm font-medium text-muted">
                         {formatPrice(
                           (() => {
                             const unit = Number(p.basePrice) || 0;
@@ -1194,13 +1005,9 @@ export function CheckoutSection() {
                           })(),
                         )}
                       </div>
-                      <div className="mt-4 flex items-center rounded-full bg-mint px-2 py-1.5 text-white shadow-sm dark:text-gloss-black">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
-                          <Plus className="h-4 w-4" />
-                        </span>
-                        <span className="flex-1 text-center text-sm font-semibold tracking-wide">
-                          ADD
-                        </span>
+                      <div className="mt-2 flex items-center justify-center gap-1 rounded-full bg-mint px-2 py-1 text-sm font-semibold text-white shadow-sm dark:text-gloss-black">
+                        <Plus className="h-4 w-4" />
+                        Add
                       </div>
                     </div>
                   </button>

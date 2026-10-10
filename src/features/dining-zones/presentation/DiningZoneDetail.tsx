@@ -25,28 +25,23 @@ export function DiningZoneDetail({ diningZoneId }: { diningZoneId: string }) {
   const { data: zone, isLoading, error } = useDiningZone(diningZoneId);
   const [statusFilter, setStatusFilter] = useState<DiningTableStatus | "ALL">("ALL");
 
-  const { data: allTablesResult } = useDiningTables({
-    page: 1,
-    limit: 200,
-    zoneId: diningZoneId,
-    sortBy: "tableNumber",
-    sortOrder: "asc",
-  });
-
   const { data: tablesResult, isLoading: tablesLoading } = useDiningTables({
     page: 1,
     limit: 200,
     zoneId: diningZoneId,
     sortBy: "tableNumber",
     sortOrder: "asc",
-    status: statusFilter !== "ALL" ? statusFilter : undefined,
   });
 
-  const tables = tablesResult?.items ?? [];
-  const statusCounts = useMemo(
-    () => countTablesByStatus(allTablesResult?.items ?? []),
-    [allTablesResult?.items]
+  const zoneTables = useMemo(() => tablesResult?.items ?? [], [tablesResult?.items]);
+  const tables = useMemo(
+    () =>
+      statusFilter === "ALL"
+        ? zoneTables
+        : zoneTables.filter((t) => t.status === statusFilter),
+    [zoneTables, statusFilter]
   );
+  const statusCounts = useMemo(() => countTablesByStatus(zoneTables), [zoneTables]);
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading zone..." />;
   if (error || !zone) {
@@ -63,7 +58,7 @@ export function DiningZoneDetail({ diningZoneId }: { diningZoneId: string }) {
   const overviewRows = [
     { label: "Zone name", value: safeText(zone.name) },
     { label: "Display order", value: String(zone.sortOrder) },
-    { label: "Tables on floor", value: String(tablesResult?.total ?? tables.length) },
+    { label: "Tables on floor", value: String(tablesResult?.total ?? zoneTables.length) },
     { label: "Tenant ID", value: safeText(zone.tenantId), mono: true },
   ];
 

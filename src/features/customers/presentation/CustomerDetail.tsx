@@ -27,10 +27,7 @@ import {
   getCustomerDemoProfile,
 } from "./customer-demo-profile";
 import { CustomerMembershipPanel } from "./CustomerMembershipPanel";
-
-const moneyFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 0,
-});
+import { formatMoney } from "@/lib/money";
 
 export function CustomerDetail({ customerId }: { customerId: string }) {
   const { data: customer, isLoading, error } = useCustomer(customerId);
@@ -285,7 +282,7 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
                         </td>
                         <td className="py-2">{order.status}</td>
                         <td className="py-2 text-right tabular-nums">
-                          {moneyFormatter.format(order.total)} MMK
+                          {formatMoney(order.total)}
                         </td>
                       </tr>
                     ))}
@@ -334,7 +331,7 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
                           {entry.orderCount}
                         </td>
                         <td className="py-2 text-right font-medium tabular-nums">
-                          {moneyFormatter.format(entry.total)} MMK
+                          {formatMoney(entry.total)}
                         </td>
                       </tr>
                     ))}
@@ -349,13 +346,12 @@ export function CustomerDetail({ customerId }: { customerId: string }) {
                         )}
                       </td>
                       <td className="pt-3 text-right font-semibold tabular-nums">
-                        {moneyFormatter.format(
+                        {formatMoney(
                           demoProfile.spendHistory.reduce(
                             (total, entry) => total + entry.total,
                             0,
                           ),
-                        )}{" "}
-                        MMK
+                        )}
                       </td>
                     </tr>
                   </tfoot>

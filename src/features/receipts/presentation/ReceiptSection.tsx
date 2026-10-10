@@ -24,10 +24,7 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import type { ThermalPaperWidth } from "@/core/domain/entities/ThermalPrint";
 import { PrinterConnectionStatus } from "@/presentation/components/printer/PrinterConnectionStatus";
 import { ThermalReceiptView } from "./ThermalReceiptView";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+import { formatMoney as money } from "@/lib/money";
 
 export function ReceiptSection({ salesOrderId }: { salesOrderId: string }) {
   const { data: receipt, isLoading, error, refetch } = useReceipt(salesOrderId);

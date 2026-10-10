@@ -32,7 +32,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
-import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { TablePagination } from "./TablePagination";
@@ -390,8 +389,14 @@ export function DataTable<T extends { id: string | number }>({
         </div>
       )}
       {showLoading ? (
-        <div className="panel flex items-center justify-center min-h-64 rounded-xl bg-background/80">
-          <AppLoader fullScreen={false} showName={false} size="sm" message={loadingText} />
+        <div
+          className="panel space-y-3 rounded-xl bg-background/80 p-4"
+          role="status"
+          aria-label={loadingText}
+        >
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="h-9 animate-pulse rounded-md bg-muted/15" />
+          ))}
         </div>
       ) : canUseGrid && viewMode === "grid" ? (
         <div>

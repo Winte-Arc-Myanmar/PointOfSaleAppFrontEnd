@@ -1,10 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
-
-function formatMoney(n: number | null | undefined): string {
-  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
-  return n.toFixed(2);
-}
+import { formatMoney } from "@/lib/money";
 
 type CounterOrderTableColumnOptions = {
   onView?: (order: SalesOrder) => void;
