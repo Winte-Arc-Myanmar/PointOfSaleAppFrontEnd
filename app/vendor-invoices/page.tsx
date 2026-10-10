@@ -7,7 +7,6 @@ export default function VendorInvoicesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage vendor invoices.</p>
         <section>
           <h2 className="section-label mb-4">Vendor invoices</h2>
           <Suspense

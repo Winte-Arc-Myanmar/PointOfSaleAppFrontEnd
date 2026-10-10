@@ -37,8 +37,8 @@ export function PosRegisterDetail({ registerId }: { registerId: string }) {
     { label: "Name", value: safeText(reg.name) },
     { label: "Tenant ID", value: safeText(reg.tenantId), mono: true },
     { label: "Location ID", value: safeText(reg.locationId), mono: true },
-    { label: "MAC address", value: safeText(reg.macAddress), mono: true },
-    { label: "Checkout printers", value: printerNames(reg.checkoutPrinterIds, "checkout") },
+    { label: "Device ID", value: safeText(reg.macAddress), mono: true },
+    { label: "Bill printer", value: printerNames(reg.checkoutPrinterIds, "checkout") },
     { label: "Finance printers", value: printerNames(reg.financePrinterIds, "finance") },
   ];
 

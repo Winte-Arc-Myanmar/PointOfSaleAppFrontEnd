@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/presentation/components/ui/info-tip";
 import type { PosKind, ShiftRule } from "@/core/domain/entities/PosRegister";
 import { Label } from "@/presentation/components/ui/label";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
@@ -41,8 +42,10 @@ export function PosDeviceSetupFields({
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label>{t("shifts.sellsAt")}</Label>
-        <p className="text-xs text-muted">{t("shifts.sellsAtHint")}</p>
+        <Label>
+          {t("shifts.sellsAt")}
+          <InfoTip text={t("shifts.sellsAtHint")} />
+        </Label>
         <div className="grid gap-2 sm:grid-cols-3">
           {KINDS.map((kind) => (
             <button
@@ -71,8 +74,10 @@ export function PosDeviceSetupFields({
               onClick={() => onShiftRuleChange(rule.value)}
               className={choice(shiftRule === rule.value)}
             >
-              <span className="block font-medium text-foreground">{t(rule.label)}</span>
-              <span className="mt-1 block text-xs text-muted">{t(rule.hint)}</span>
+              <span className="block font-medium text-foreground">
+                {t(rule.label)}
+                <InfoTip text={t(rule.hint)} />
+              </span>
             </button>
           ))}
         </div>

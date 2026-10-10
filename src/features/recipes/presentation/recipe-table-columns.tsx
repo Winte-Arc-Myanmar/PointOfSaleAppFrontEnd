@@ -20,7 +20,7 @@ export function getRecipeTableColumns(
   return [
     {
       key: "variantId",
-      header: "Product & variant",
+      header: "Item",
       sortable: true,
       className: "min-w-[220px] max-w-[300px]",
       render: (recipe) => {

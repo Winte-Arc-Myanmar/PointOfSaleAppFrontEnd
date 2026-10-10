@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocationNames } from "@/presentation/hooks/useNameLookups";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
@@ -17,6 +18,7 @@ const CREATE_FORM_ID = "create-pos-register-form";
 const PAGE_SIZE = 10;
 
 export function PosRegisterList() {
+  const locationNames = useLocationNames();
   const router = useRouter();
   const { t } = useLanguage();
   const toast = useToast();
@@ -58,10 +60,11 @@ export function PosRegisterList() {
   const columns = useMemo(
     () =>
       getPosRegisterTableColumns({
+        locationNames,
         onView: (r) => router.push(`/pos-registers/${r.id}`),
         t,
       }),
-    [router, t],
+    [router, t, locationNames],
   );
 
   return (

@@ -172,31 +172,33 @@ export function EditCustomerInteractionForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 max-w-2xl"
       >
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={isTenantsLoading || Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select tenant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isTenantsLoading || Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue placeholder="Select tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tenants.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        )}
 
         <div className="grid gap-2">
           <Label htmlFor="agentId">Agent</Label>

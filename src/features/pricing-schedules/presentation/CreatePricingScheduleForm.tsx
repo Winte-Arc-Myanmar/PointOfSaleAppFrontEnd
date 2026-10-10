@@ -188,34 +188,36 @@ export function CreatePricingScheduleForm({
   return (
     <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select tenant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={form.control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue placeholder="Select tenant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tenants.map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.tenantId && (
+              <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
             )}
-          />
-          {form.formState.errors.tenantId && (
-            <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
-          )}
-        </div>
+          </div>
+        )}
         <div className="grid gap-2">
           <Label htmlFor="name">Name</Label>
           <Input id="name" placeholder="Happy Hour" {...form.register("name")} />

@@ -5,7 +5,6 @@ export default function PosSessionsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage POS sessions.</p>
         <section>
           <h2 className="section-label mb-4">POS sessions</h2>
           <PosSessionList />

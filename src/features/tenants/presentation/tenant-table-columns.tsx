@@ -23,42 +23,22 @@ export function getTenantTableColumns(
       key: "name",
       header: "Name",
       sortable: true,
-      className: COL_WIDTH,
+      className: "min-w-[200px]",
       render: (t) =>
         onView ? (
           <button
             type="button"
-            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+            className="font-medium text-foreground text-left hover:text-mint transition-colors"
             title={t.name}
             onClick={() => onView(t)}
           >
-            {truncate(t.name)}
+            {t.name}
           </button>
         ) : (
-          <span className="font-medium text-foreground truncate" title={t.name}>
-            {truncate(t.name)}
+          <span className="font-medium text-foreground" title={t.name}>
+            {t.name}
           </span>
         ),
-    },
-    {
-      key: "legalName",
-      header: "Legal name",
-      className: COL_WIDTH,
-      render: (t) => (
-        <span className="text-muted truncate" title={t.legalName}>
-          {truncate(t.legalName)}
-        </span>
-      ),
-    },
-    {
-      key: "domain",
-      header: "Domain",
-      className: COL_WIDTH,
-      render: (t) => (
-        <span className="text-muted truncate" title={t.domain}>
-          {truncate(t.domain)}
-        </span>
-      ),
     },
     {
       key: "status",

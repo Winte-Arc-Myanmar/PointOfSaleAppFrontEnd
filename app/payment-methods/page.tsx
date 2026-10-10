@@ -5,7 +5,6 @@ export default function PaymentMethodsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage payment methods.</p>
         <section>
           <h2 className="section-label mb-4">Payment methods</h2>
           <PaymentMethodList />

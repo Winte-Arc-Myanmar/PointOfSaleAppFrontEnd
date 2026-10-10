@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoTip } from "@/presentation/components/ui/info-tip";
 import { Label } from "@/presentation/components/ui/label";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
 import { formatPrinterAddress } from "./printer-address";
@@ -30,10 +31,12 @@ export function PrinterChecklist({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <p className="text-xs text-muted">{hint}</p>
+      <Label>
+        {label}
+        {hint ? <InfoTip text={hint} /> : null}
+      </Label>
       {!locationSelected ? (
-        <p className="text-sm text-muted">Select a location first.</p>
+        <p className="text-sm text-muted">Select an outlet first.</p>
       ) : printers.length === 0 ? (
         <p className="text-sm text-muted">{emptyText}</p>
       ) : (

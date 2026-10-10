@@ -7,6 +7,9 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRecipe, useUpdateRecipe } from "@/presentation/hooks/useRecipes";
+import { useProducts } from "@/presentation/hooks/useProducts";
+import { IngredientVariantSelector } from "./CreateRecipeForm";
+import { useVariantNames } from "./useVariantNames";
 import { useUoms } from "@/presentation/hooks/useUoms";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -25,7 +28,7 @@ import {
 const REDIRECT_DELAY_MS = 1200;
 
 const ingredientSchema = z.object({
-  ingredientVariantId: z.string().min(1, "Ingredient variant is required"),
+  ingredientVariantId: z.string().min(1, "Ingredient is required"),
   quantity: z.number().gt(0, "Quantity must be greater than 0"),
   uomId: z.string().min(1, "UOM is required"),
   isOptional: z.boolean(),
@@ -60,6 +63,11 @@ export function EditRecipeForm({ recipeId }: { recipeId: string }) {
   const toast = useToast();
   const update = useUpdateRecipe();
   const { data: recipe, isLoading, error } = useRecipe(recipeId);
+  const variantNames = useVariantNames();
+  const { data: productsData } = useProducts({ page: 1, limit: 200 });
+  const tenantProducts = getPaginatedItems(productsData).filter(
+    (product) => !recipe || product.tenantId === recipe.tenantId,
+  );
   const { data: uomsData } = useUoms({ page: 1, limit: 200 });
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -151,13 +159,8 @@ export function EditRecipeForm({ recipeId }: { recipeId: string }) {
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 max-w-3xl">
         <div className="grid gap-2">
-          <Label>Tenant ID</Label>
-          <Input value={recipe.tenantId} disabled className="font-mono" />
-        </div>
-
-        <div className="grid gap-2">
-          <Label>Variant ID</Label>
-          <Input value={recipe.variantId} disabled className="font-mono" />
+          <Label>Item</Label>
+          <Input value={variantNames.get(String(recipe.variantId)) ?? ""} disabled />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -213,10 +216,18 @@ export function EditRecipeForm({ recipeId }: { recipeId: string }) {
             <div key={field.id} className="rounded-lg border border-border p-3 space-y-3">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="grid gap-2 sm:col-span-2">
-                  <Label htmlFor={`ingredientVariantId-${field.id}`}>Ingredient Variant ID</Label>
-                  <Input
-                    id={`ingredientVariantId-${field.id}`}
-                    {...form.register(`ingredients.${index}.ingredientVariantId`)}
+                  <Label>Ingredient</Label>
+                  <Controller
+                    control={form.control}
+                    name={`ingredients.${index}.ingredientVariantId`}
+                    render={({ field: variantField }) => (
+                      <IngredientVariantSelector
+                        products={tenantProducts}
+                        value={variantField.value}
+                        onChange={variantField.onChange}
+                        currentLabel={variantNames.get(variantField.value)}
+                      />
+                    )}
                   />
                   {form.formState.errors.ingredients?.[index]?.ingredientVariantId && (
                     <p className="text-sm text-red-600">
@@ -245,14 +256,14 @@ export function EditRecipeForm({ recipeId }: { recipeId: string }) {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor={`uom-${field.id}`}>UOM</Label>
+                  <Label htmlFor={`uom-${field.id}`}>Unit</Label>
                   <Controller
                     control={form.control}
                     name={`ingredients.${index}.uomId`}
                     render={({ field: uomField }) => (
                       <Select value={uomField.value} onValueChange={uomField.onChange}>
                         <SelectTrigger id={`uom-${field.id}`}>
-                          <SelectValue placeholder="Select UOM" />
+                          <SelectValue placeholder="Select unit" />
                         </SelectTrigger>
                         <SelectContent>
                           {uoms.map((uom) => (

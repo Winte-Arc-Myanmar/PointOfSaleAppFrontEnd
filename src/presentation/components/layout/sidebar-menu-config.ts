@@ -396,18 +396,6 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["transfer-orders:read"],
       },
       {
-        href: "/transfer-order-lines",
-        labelKey: "nav.transferOrderLines",
-        icon: ListTree,
-        permissions: ["transfer-order-lines:read"],
-      },
-      {
-        href: "/grn-lines",
-        labelKey: "nav.grnLines",
-        icon: ListTree,
-        permissions: ["grn-lines:read"],
-      },
-      {
         href: "/goods-received-notes",
         labelKey: "nav.goodsReceivedNotes",
         icon: ClipboardCheck,
@@ -493,22 +481,10 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         permissions: ["journal-entries:read"],
       },
       {
-        href: "/journal-lines",
-        labelKey: "nav.journalLines",
-        icon: ListTree,
-        permissions: ["journal-lines:read"],
-      },
-      {
         href: "/bank-statements",
         labelKey: "nav.bankStatements",
         icon: Landmark,
         permissions: ["bank-statements:read"],
-      },
-      {
-        href: "/bank-statement-lines",
-        labelKey: "nav.bankStatementLines",
-        icon: ListTree,
-        permissions: ["bank-statement-lines:read"],
       },
     ],
   },

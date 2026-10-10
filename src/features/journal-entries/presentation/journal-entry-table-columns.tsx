@@ -3,6 +3,7 @@ import type { JournalEntry } from "@/core/domain/entities/JournalEntry";
 import { formatDate } from "@/presentation/components/detail";
 
 type JournalEntryTableColumnOptions = {
+  periodNames?: Record<string, string>;
   onView?: (entry: JournalEntry) => void;
 };
 
@@ -15,7 +16,7 @@ function statusClassName(status: string): string {
 export function getJournalEntryTableColumns(
   options: JournalEntryTableColumnOptions = {},
 ): DataTableColumn<JournalEntry>[] {
-  const { onView } = options;
+  const { onView, periodNames = {} } = options;
 
   return [
     {
@@ -70,13 +71,9 @@ export function getJournalEntryTableColumns(
     },
     {
       key: "periodId",
-      header: "Period ID",
+      header: "Period",
       className: "min-w-[200px] max-w-[240px]",
-      render: (e) => (
-        <span className="font-mono text-xs text-muted truncate" title={e.periodId}>
-          {e.periodId}
-        </span>
-      ),
+      render: (r) => periodNames[r.periodId] ?? "—",
     },
   ];
 }

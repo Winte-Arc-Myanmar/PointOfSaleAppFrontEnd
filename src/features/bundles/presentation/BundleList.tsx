@@ -1,5 +1,6 @@
 "use client";
 
+import { useProductNames } from "@/presentation/hooks/useNameLookups";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/presentation/components/ui/input";
@@ -26,6 +27,7 @@ const PAGE_SIZE = 10;
 const ALL = "__all__";
 
 export function BundleList() {
+  const productNames = useProductNames();
   const router = useRouter();
   const toast = useToast();
   const confirm = useConfirm();
@@ -87,9 +89,10 @@ export function BundleList() {
   const columns = useMemo(
     () =>
       getBundleTableColumns({
+        productNames,
         onView: (b) => router.push(`/bundles/${b.id}`),
       }),
-    [router],
+    [router, productNames],
   );
 
   return (
