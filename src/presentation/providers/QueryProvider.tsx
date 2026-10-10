@@ -10,6 +10,8 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000,
+            // Lists seen earlier show at once on a return visit, then refresh.
+            gcTime: 30 * 60 * 1000,
           },
         },
       })
