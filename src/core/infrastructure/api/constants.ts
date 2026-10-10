@@ -194,6 +194,7 @@ export const API_ENDPOINTS = {
       READY: (id: string) => `/v1/kds/tickets/${id}/ready`,
       RECALL: (id: string) => `/v1/kds/tickets/${id}/recall`,
       EXPEDITE: (id: string) => `/v1/kds/tickets/${id}/expedite`,
+      CLOSE_OLD: "/v1/kds/tickets/close-old",
       LINE_READY: (lineId: string) => `/v1/kds/tickets/lines/${lineId}/ready`,
     },
   },

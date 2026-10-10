@@ -449,6 +449,11 @@ export function ProductList({ scope }: { scope: ProductScope }) {
                   ? formatPrice(product.basePrice, currencyByTenantId.get(String(product.tenantId)) ?? "MMK")
                   : priceWithUnit(product)}
               </p>
+              {!Number(product.basePrice) ? (
+                <p className="mt-1 inline-flex w-fit rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                  No price set
+                </p>
+              ) : null}
               <div className="mt-auto pt-2">
                 <AvailabilityToggle
                   productId={String(product.id)}
