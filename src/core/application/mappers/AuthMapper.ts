@@ -72,6 +72,7 @@ export function toAuthUser(
     name: user?.fullName ?? user?.name ?? null,
     image: user?.image,
     accessToken: token,
+    refreshToken: dto.refresh_token,
     type,
     tenantId: user?.tenantId ?? fallbacks?.tenantId,
     activeBranch: dto.activeBranch,

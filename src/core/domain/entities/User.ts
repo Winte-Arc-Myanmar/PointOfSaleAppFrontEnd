@@ -11,6 +11,7 @@ export interface AuthUser {
   name?: string | null;
   image?: string | null;
   accessToken?: string;
+  refreshToken?: string;
   type?: UserType;
   tenantId?: string;
   activeBranch?: string;
