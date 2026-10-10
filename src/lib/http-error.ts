@@ -21,6 +21,7 @@ export function getHttpErrorMessage(
   error: unknown,
   fallback = "Request failed.",
 ): string {
+  if (error == null) return fallback;
   const axiosLike = error as {
     response?: { status?: number; data?: ApiErrorBody };
     message?: string;

@@ -102,7 +102,7 @@ export function ResetTenantDataDialog({
         </div>
       }
     >
-      {isLoading ? (
+      {!isOpen ? null : isLoading ? (
         <AppLoader fullScreen={false} size="sm" message="Counting records..." />
       ) : error || !data ? (
         <p className="text-sm text-red-600">{getHttpErrorMessage(error, "Could not load what would be deleted.")}</p>
