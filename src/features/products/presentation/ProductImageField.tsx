@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ImagePlus, Loader2, RefreshCw, X } from "lucide-react";
+import { ImagePlus, Loader2, RefreshCw, Upload, X } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { Modal } from "@/presentation/components/modal/Modal";
 import { TablePagination } from "@/presentation/components/data-table";
 import { resolveMediaUrl } from "@/lib/media-url";
-import { useUploads } from "@/presentation/hooks/useUploads";
+import { useUploadFile, useUploads } from "@/presentation/hooks/useUploads";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import type { UploadedFile } from "@/core/domain/entities/UploadedFile";
@@ -44,6 +44,22 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
   const [pickerOpen, setPickerOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const upload = useUploadFile();
+
+  const uploadNew = (file: File | undefined) => {
+    if (!file) return;
+    upload.mutate(
+      { file, folder: "products", branchId: activeBranch ?? undefined },
+      {
+        onSuccess: (uploaded) => {
+          onChange(uploaded.url);
+          toast.success("Photo uploaded.");
+        },
+        onError: () => toast.error("Could not upload the photo."),
+      },
+    );
+  };
 
   const { data, isLoading, isFetching, error, refetch } = useUploads({
     page,
@@ -117,6 +133,30 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
             <ImagePlus className="mr-2 h-4 w-4" />
             Choose from uploads
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={upload.isPending}
+            onClick={() => fileInput.current?.click()}
+          >
+            {upload.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            Upload a photo
+          </Button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => {
+              uploadNew(event.target.files?.[0]);
+              event.target.value = "";
+            }}
+          />
           {value ? (
             <Button
               type="button"
@@ -131,9 +171,6 @@ export function ProductImageField({ value, onChange, id = "product-image-file" }
           ) : null}
         </div>
       </div>
-      <p className="text-xs text-muted">
-        Product images are selected from the system upload library (<code className="text-xs">products</code> folder).
-      </p>
       {!isSystemAdmin && !activeBranch ? (
         <p className="text-xs text-amber-600">
           Select an active branch to view branch-specific uploaded images.

@@ -17,6 +17,14 @@ import {
 import { useCreateProduct, useUpdateProduct } from "@/presentation/hooks/useProducts";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { useTaxRates } from "@/presentation/hooks/useTaxRates";
+import { useProducts } from "@/presentation/hooks/useProducts";
+import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
+import { useVenueSettings } from "@/presentation/hooks/useVenueSettings";
+import {
+  useMenuItemSetup,
+  useSaveMenuItemSetup,
+  type MenuItemSetup,
+} from "@/presentation/hooks/useMenuItemSetup";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
@@ -31,8 +39,15 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 import { ProductImageField } from "../ProductImageField";
 import { PlacePicker } from "../ProductKindFields";
 import { autoSku, pickUom, quickTerms, TAB_OF, type QuickType } from "./quick-product";
+import {
+  MenuItemOptions,
+  MenuItemStock,
+  type IngredientRow,
+} from "./MenuItemStockAndOptions";
 
 const NONE = "__none__";
+/** The tax choice that turns tax off for the item, unlike NONE (the shop default). */
+const NO_TAX = "__no_tax__";
 
 function Choice({
   selected,
@@ -84,7 +99,9 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const [price, setPrice] = useState(product ? String(product.basePrice) : "");
   const [categoryId, setCategoryId] = useState(product?.categoryId || "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? "");
-  const [taxRateId, setTaxRateId] = useState(product?.taxRateId ?? "");
+  const [taxRateId, setTaxRateId] = useState(
+    product && product.isTaxable === false ? NO_TAX : (product?.taxRateId ?? ""),
+  );
   const [soldAt, setSoldAt] = useState<PosType[]>(product?.soldAt ?? []);
   const [perHour, setPerHour] = useState(product ? product.soldBy === "TIME" : true);
   const [rents, setRents] = useState<"KTV_ROOM" | "SPA_ROOM" | "TABLE">(product?.rents ?? "KTV_ROOM");
@@ -100,7 +117,34 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const [autoApply, setAutoApply] = useState(product?.autoApply ?? false);
   const isSession = blockMinutes !== 30 && blockMinutes !== 60;
   const [minimumBlocks, setMinimumBlocks] = useState(String(product?.minimumBlocks ?? 1));
-  const [errors, setErrors] = useState<{ name?: string; price?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; price?: string; stock?: string }>({});
+
+  const isMenu = type === "menu";
+  const [isAvailable, setIsAvailable] = useState(product?.isAvailable ?? true);
+  const [modifierGroupIds, setModifierGroupIds] = useState<string[]>([]);
+  const [trackIngredients, setTrackIngredients] = useState(false);
+  const [ingredientRows, setIngredientRows] = useState<IngredientRow[]>([]);
+  const { data: setup } = useMenuItemSetup(isMenu && product ? String(product.id) : null);
+  const [loadedSetup, setLoadedSetup] = useState<MenuItemSetup | null>(null);
+  if (setup && !loadedSetup) {
+    setLoadedSetup(setup);
+    setModifierGroupIds(setup.modifierGroupIds);
+    setTrackIngredients(setup.ingredients.length > 0);
+    setIngredientRows(
+      setup.ingredients.map((i) => ({
+        key: i.ingredientVariantId,
+        name: i.name,
+        productId: i.productId ?? "",
+        variantId: i.ingredientVariantId,
+        quantity: String(Number(i.quantity)),
+        uomId: i.uomId,
+      })),
+    );
+  }
+  const saveSetup = useSaveMenuItemSetup();
+  const { data: venue } = useVenueSettings();
+  const { data: groupsData } = useModifierGroups({ page: 1, limit: 200 });
+  const { data: productsData } = useProducts(isMenu ? { page: 1, limit: 500 } : { page: 1, limit: 1 });
 
   const tenants = options?.tenants ?? [];
   const tenant = tenantId || (tenants.length === 1 ? String(tenants[0].id) : "");
@@ -109,7 +153,16 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     [options?.categories, tenant],
   );
   const taxRates = getPaginatedItems(taxData).filter((r) => !tenant || String(r.tenantId) === tenant);
-  const isSaving = create.isPending || update.isPending;
+  const modifierGroups = getPaginatedItems(groupsData).filter(
+    (g) => !g.deletedAt && (!tenant || String(g.tenantId) === tenant),
+  );
+  const ingredientProducts = getPaginatedItems(productsData).filter(
+    (p) =>
+      (!tenant || String(p.tenantId) === tenant) &&
+      String(p.id) !== String(product?.id ?? "") &&
+      (p.trackingType ?? "").toUpperCase() !== "SERVICE",
+  );
+  const isSaving = create.isPending || update.isPending || saveSetup.isPending;
 
   const toggleArea = (area: PosType) =>
     setSoldAt((current) => (current.includes(area) ? current.filter((a) => a !== area) : [...current, area]));
@@ -120,6 +173,11 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     const nextErrors = {
       ...(name.trim() ? {} : { name: t("addProduct.nameRequired") }),
       ...(price.trim() !== "" && amount >= 0 ? {} : { price: t("addProduct.priceRequired") }),
+      ...(isMenu &&
+      trackIngredients &&
+      ingredientRows.some((r) => !r.variantId || !(Number(r.quantity) > 0) || !r.uomId)
+        ? { stock: "Give each ingredient an item, an amount and a unit." }
+        : {}),
     };
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || !tenant) return;
@@ -138,8 +196,9 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
       name: name.trim(),
       basePrice: amount,
       imageUrl: imageUrl.trim() || null,
-      isTaxable: Boolean(taxRateId),
-      taxRateId: taxRateId || null,
+      isTaxable: taxRateId !== NO_TAX,
+      taxRateId: taxRateId && taxRateId !== NO_TAX ? taxRateId : null,
+      ...(isMenu ? { isAvailable } : {}),
       ...terms,
     };
     const base = product
@@ -156,12 +215,33 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     delete payload.id;
     if (!categoryId) delete (payload as Partial<ProductDto>).categoryId;
 
+    const finish = () => {
+      toast.success(t("addProduct.saved"));
+      router.push(TAB_OF[type]);
+    };
+    const failed = (error: unknown) => toast.error(apiErrorMessage(error, t("addProduct.couldNotSave")));
     const done = {
-      onSuccess: () => {
-        toast.success(t("addProduct.saved"));
-        router.push(TAB_OF[type]);
+      onSuccess: (saved: { id?: string | number } | void) => {
+        const productId = String(saved?.id ?? product?.id ?? "");
+        if (!isMenu || !productId) return finish();
+        saveSetup.mutate(
+          {
+            productId,
+            setup: {
+              modifierGroupIds,
+              ingredients: trackIngredients
+                ? ingredientRows.map((r) => ({
+                    ingredientVariantId: r.variantId,
+                    quantity: Number(r.quantity),
+                    uomId: r.uomId,
+                  }))
+                : [],
+            },
+          },
+          { onSuccess: finish, onError: failed },
+        );
       },
-      onError: (error: unknown) => toast.error(apiErrorMessage(error, t("addProduct.couldNotSave"))),
+      onError: failed,
     };
     if (product) update.mutate({ id: String(product.id), data: payload }, done);
     else create.mutate(payload, done);
@@ -198,6 +278,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
         </div>
       ) : null}
 
+      {isMenu ? <h2 className="text-sm font-semibold">Basics</h2> : null}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="grid gap-1">
           <Label htmlFor="quick-name">{t("addProduct.name")}</Label>
@@ -381,21 +462,8 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
         </section>
       ) : null}
 
-      {type === "menu" ? (
+      {isMenu ? (
         <section className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">{t("addProduct.soldAt")}</p>
-            <div className="flex flex-wrap gap-2">
-              <Choice selected={soldAt.length === 0} onClick={() => setSoldAt([])}>
-                {t("addProduct.everywhere")}
-              </Choice>
-              {(["BAR", "KTV", "SPA"] as PosType[]).map((area) => (
-                <Choice key={area} selected={soldAt.includes(area)} onClick={() => toggleArea(area)}>
-                  {area === "BAR" ? t("addProduct.restaurant") : area}
-                </Choice>
-              ))}
-            </div>
-          </div>
           <div className="grid gap-1 sm:w-1/2">
             <Label>{t("addProduct.category")}</Label>
             <Select value={categoryId || NONE} onValueChange={(v) => setCategoryId(!v || v === NONE ? "" : v)}>
@@ -420,10 +488,11 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
         <Label>{t("addProduct.tax")}</Label>
         <Select value={taxRateId || NONE} onValueChange={(v) => setTaxRateId(!v || v === NONE ? "" : v)}>
           <SelectTrigger>
-            <SelectValue placeholder={t("addProduct.noTax")} />
+            <SelectValue placeholder="Shop default" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>{t("addProduct.noTax")}</SelectItem>
+            <SelectItem value={NONE}>Shop default</SelectItem>
+            <SelectItem value={NO_TAX}>{t("addProduct.noTax")}</SelectItem>
             {taxRates.map((rate) => (
               <SelectItem key={String(rate.id)} value={String(rate.id)}>
                 {rate.name} ({taxPercent(rate.ratePercentage)}%)
@@ -432,6 +501,48 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
           </SelectContent>
         </Select>
       </div>
+
+      {isMenu ? (
+        <>
+          <MenuItemOptions groups={modifierGroups} value={modifierGroupIds} onChange={setModifierGroupIds} />
+          <MenuItemStock
+            enabled={trackIngredients}
+            stockControlOn={venue?.trackStock ?? true}
+            onEnabledChange={setTrackIngredients}
+            rows={ingredientRows}
+            onRowsChange={setIngredientRows}
+            products={ingredientProducts}
+            units={options?.uoms ?? []}
+          />
+          {errors.stock ? <p className="text-sm text-red-600">{errors.stock}</p> : null}
+          <section className="space-y-3">
+            <h2 className="text-sm font-semibold">Availability</h2>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{t("addProduct.soldAt")}</p>
+              <div className="flex flex-wrap gap-2">
+                <Choice selected={soldAt.length === 0} onClick={() => setSoldAt([])}>
+                  {t("addProduct.everywhere")}
+                </Choice>
+                {(["BAR", "KTV", "SPA"] as PosType[]).map((area) => (
+                  <Choice key={area} selected={soldAt.includes(area)} onClick={() => toggleArea(area)}>
+                    {area === "BAR" ? t("addProduct.restaurant") : area === "KTV" ? "Private VIP Lounge" : area}
+                  </Choice>
+                ))}
+              </div>
+            </div>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-emerald-500"
+                checked={isAvailable}
+                onChange={(e) => setIsAvailable(e.target.checked)}
+              />
+              Available now
+              <span className="text-xs text-muted">(untick when sold out)</span>
+            </label>
+          </section>
+        </>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isSaving || isLoading}>
