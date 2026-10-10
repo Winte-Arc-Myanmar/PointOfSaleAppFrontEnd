@@ -35,6 +35,8 @@ export interface BranchAccessDto {
 /** Response from POST /auth/signin (after HttpClient unwraps `data`). */
 export interface SigninResponseDto {
   access_token?: string;
+  /** Lasts 7 days; swapped at POST /auth/refresh for a new access token. */
+  refresh_token?: string;
   token?: string;
   accessToken?: string;
   user?: SigninUserDto;

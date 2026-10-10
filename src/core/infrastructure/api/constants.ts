@@ -70,6 +70,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     /** POST - sign in;  */
     SIGNIN: "/v1/auth/signin",
+    /** POST - swap a refresh token for a new access token */
+    REFRESH: "/v1/auth/refresh",
     /** GET - current session (Bearer token) */
     SESSION: "/v1/auth/session",
     REGISTER: "/v1/auth/register",

@@ -9,6 +9,7 @@ declare module "next-auth" {
   }
   interface User {
     accessToken?: string;
+    refreshToken?: string;
     type?: UserType;
     tenantId?: string;
     activeBranch?: string;
@@ -19,6 +20,8 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
+    /** Never sent to the browser: only the jwt callback reads it. */
+    refreshToken?: string;
     type?: UserType;
     tenantId?: string;
     activeBranch?: string;
