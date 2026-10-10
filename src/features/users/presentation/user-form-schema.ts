@@ -57,6 +57,8 @@ export const updateUserSchema = z.object({
   avatarUrl: avatarUrlField,
   jobTitle: requiredText("Job title"),
   preferredLanguage: preferredLanguageField,
+  roleId: z.string(),
+  branchId: z.string(),
 });
 
 export type CreateUserFormData = z.infer<typeof createUserSchema>;

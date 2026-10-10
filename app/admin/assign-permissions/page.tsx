@@ -1,12 +1,6 @@
-import { Shell } from "@/presentation/components/layout/Shell";
-import { AssignPermissionsForm } from "@/features/system-admin/presentation/AssignPermissionsForm";
+import { redirect } from "next/navigation";
 
+/** Merged into /roles: each role's permissions are set on the role. */
 export default function AssignPermissionsPage() {
-  return (
-    <Shell>
-      <div className="space-y-6">
-        <AssignPermissionsForm />
-      </div>
-    </Shell>
-  );
+  redirect("/roles");
 }
