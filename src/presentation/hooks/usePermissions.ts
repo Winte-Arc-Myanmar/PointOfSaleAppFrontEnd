@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useActingTenant } from "@/presentation/hooks/useActingTenant";
 import type { UserType, BranchAccess } from "@/core/domain/types/auth";
 import {
   hasPermissions,
@@ -14,8 +15,12 @@ export function usePermissions() {
   const userType = (session?.user as { type?: UserType } | undefined)?.type;
   const access = session?.access as BranchAccess[] | undefined;
   const activeBranch = session?.activeBranch as string | undefined;
-  const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
   const isSystemAdmin = userType === "systemAdmin";
+  const actingTenantId = useActingTenant();
+  /** The shop being worked in: the user's own, or the one a system admin picked in the header. */
+  const tenantId =
+    (session?.user as { tenantId?: string } | undefined)?.tenantId ??
+    (isSystemAdmin ? actingTenantId ?? undefined : undefined);
 
   return {
     userType,

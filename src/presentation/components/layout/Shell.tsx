@@ -5,14 +5,21 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { SidebarMenu } from "./SidebarMenu";
+import { TAB_STORAGE_KEY } from "./tab-storage";
 import { Navbar } from "./Navbar";
 import { PoweredByWinterArc } from "@/presentation/components/brand/poweredByWinterArcAnimation";
 import { AiHelperChat } from "@/features/ai-helper/presentation/AiHelperChat";
 import { getFlatSidebarMenuItems } from "@/presentation/components/layout/sidebar-menu-config";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/presentation/components/ui/dropdown-menu";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import type { TranslationKey } from "@/presentation/i18n/translations";
 
@@ -262,7 +269,10 @@ type MenuTabItem = {
   labelKey: TranslationKey;
 };
 
-const TAB_STORAGE_KEY = "pos-open-menu-tabs";
+/** Open pages kept as tabs; opening one more closes the oldest. */
+const MAX_TABS = 8;
+/** Tabs shown in the row; the rest wait behind "+N more". */
+const VISIBLE_TABS = 5;
 
 const TAB_MENU_ITEMS: MenuTabItem[] = getFlatSidebarMenuItems().map(
   ({ href, labelKey }) => ({ href, labelKey }),
@@ -307,7 +317,7 @@ export function Shell({ children }: ShellProps) {
           typeof item?.labelKey === "string" &&
           TAB_MENU_ITEMS.some((m) => m.href === item.href),
       );
-      setOpenTabs(nextTabs);
+      setOpenTabs(nextTabs.slice(-MAX_TABS));
     } catch {
       // Ignore storage failures in private mode or restricted environments.
     }
@@ -343,8 +353,24 @@ export function Shell({ children }: ShellProps) {
   const displayedTabs = useMemo(() => {
     if (!activeMenu) return openTabs;
     if (openTabs.some((t) => t.href === activeMenu.href)) return openTabs;
-    return [...openTabs, activeMenu];
+    return [...openTabs, activeMenu].slice(-MAX_TABS);
   }, [openTabs, activeMenu]);
+
+  const { rowTabs, moreTabs } = useMemo(() => {
+    const row = displayedTabs.slice(0, VISIBLE_TABS);
+    const more = displayedTabs.slice(VISIBLE_TABS);
+    const hiddenActive = more.find(
+      (tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`),
+    );
+    if (hiddenActive && row.length) {
+      const swapped = row[row.length - 1];
+      return {
+        rowTabs: [...row.slice(0, -1), hiddenActive],
+        moreTabs: more.map((tab) => (tab === hiddenActive ? swapped : tab)),
+      };
+    }
+    return { rowTabs: row, moreTabs: more };
+  }, [displayedTabs, pathname]);
 
   function handleMenuNavigate(href: string) {
     const menu = TAB_MENU_ITEMS.find((item) => item.href === href);
@@ -354,7 +380,7 @@ export function Shell({ children }: ShellProps) {
         persistTabs(prev);
         return prev;
       }
-      const nextTabs = [...prev, menu];
+      const nextTabs = [...prev, menu].slice(-MAX_TABS);
       persistTabs(nextTabs);
       return nextTabs;
     });
@@ -394,16 +420,16 @@ export function Shell({ children }: ShellProps) {
           title={title}
         />
         {pathname !== "/checkout" && displayedTabs.length > 0 && (
-          <div className="border-b border-border bg-background/80 px-6 py-3 lg:px-8">
-            <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {displayedTabs.map((tab) => {
+          <div className="border-b border-border bg-background/80 px-6 py-2 lg:px-8">
+            <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto">
+              {rowTabs.map((tab) => {
                 const isActive =
                   pathname === tab.href || pathname.startsWith(`${tab.href}/`);
                 return (
                   <div
                     key={tab.href}
                     className={cn(
-                      "flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
+                      "flex w-40 shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-sm shadow-sm",
                       isActive
                         ? "border-mint/40 bg-mint/10 text-foreground"
                         : "border-border bg-background text-muted",
@@ -428,6 +454,41 @@ export function Shell({ children }: ShellProps) {
                   </div>
                 );
               })}
+              {moreTabs.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted shadow-sm hover:text-foreground"
+                    >
+                      +{moreTabs.length} {t("common.more")}
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {moreTabs.map((tab) => (
+                      <DropdownMenuItem
+                        key={tab.href}
+                        className="flex items-center justify-between gap-4"
+                        onSelect={() => router.push(tab.href)}
+                      >
+                        <span className="truncate">{t(tab.labelKey)}</span>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleCloseTab(tab.href);
+                          }}
+                          className="shrink-0 rounded p-0.5 text-muted hover:text-foreground"
+                          aria-label={`Close ${t(tab.labelKey)}`}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         )}

@@ -7,7 +7,6 @@ export default function LandedCostAllocationsPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage landed cost allocations.</p>
         <section>
           <h2 className="section-label mb-4">Landed cost allocations</h2>
           <Suspense

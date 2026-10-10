@@ -138,38 +138,40 @@ export function CreateCategoryForm({
         )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={(v) => field.onChange(v)}
-                disabled={isOptionsLoading || Boolean(lockedTenantId)}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue
-                    placeholder={
-                      isOptionsLoading ? "Loading tenants..." : "Select tenant"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {(options?.tenants ?? []).map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(v) => field.onChange(v)}
+                  disabled={isOptionsLoading || Boolean(lockedTenantId)}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading ? "Loading tenants..." : "Select tenant"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.tenants ?? []).map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.tenantId && (
+              <p className="text-sm text-red-600">{errors.tenantId.message}</p>
             )}
-          />
-          {errors.tenantId && (
-            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-          )}
-        </div>
+          </div>
+        )}
         <div className="grid gap-2">
           <Label htmlFor="parentId">Parent category</Label>
           <Controller

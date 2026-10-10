@@ -7,7 +7,6 @@ export default function PurchaseOrdersPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage purchase orders.</p>
         <section>
           <h2 className="section-label mb-4">Purchase orders</h2>
           <Suspense fallback={<AppLoader fullScreen={false} size="sm" message="Loading..." />}>

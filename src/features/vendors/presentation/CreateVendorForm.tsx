@@ -96,38 +96,40 @@ export function CreateVendorForm({
           <p className="text-sm text-red-600">{errors.name.message}</p>
         )}
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="tenantId">Tenant</Label>
-        <Controller
-          control={control}
-          name="tenantId"
-          render={({ field }) => (
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={isTenantsLoading || Boolean(lockedTenantId)}
-            >
-              <SelectTrigger id="tenantId">
-                <SelectValue
-                  placeholder={
-                    isTenantsLoading ? "Loading tenants..." : "Select tenant"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {tenants.map((tenant) => (
-                  <SelectItem key={tenant.id} value={tenant.id}>
-                    {tenant.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {!lockedTenantId && (
+        <div className="grid gap-2">
+          <Label htmlFor="tenantId">Tenant</Label>
+          <Controller
+            control={control}
+            name="tenantId"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isTenantsLoading || Boolean(lockedTenantId)}
+              >
+                <SelectTrigger id="tenantId">
+                  <SelectValue
+                    placeholder={
+                      isTenantsLoading ? "Loading tenants..." : "Select tenant"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((tenant) => (
+                    <SelectItem key={tenant.id} value={tenant.id}>
+                      {tenant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.tenantId && (
+            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
           )}
-        />
-        {errors.tenantId && (
-          <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-        )}
-      </div>
+        </div>
+      )}
       {createVendor.isError && (
         <p className="text-sm text-red-600">
           Failed to create vendor. Please try again.

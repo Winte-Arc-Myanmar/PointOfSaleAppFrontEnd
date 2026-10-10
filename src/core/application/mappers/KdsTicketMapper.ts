@@ -12,6 +12,19 @@ function toOptionalNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+const PLACE_PREFIX: Record<string, string> = {
+  TABLE: "Table",
+  SPA_ROOM: "SPA room",
+  KTV_ROOM: "VIP Lounge",
+};
+
+function placeLabel(place: KdsTicketDto["place"]): string | null {
+  if (!place?.kind) return null;
+  if (place.kind === "COUNTER") return "Counter";
+  const prefix = PLACE_PREFIX[place.kind] ?? place.kind;
+  return place.number ? `${prefix} ${place.number}` : prefix;
+}
+
 export function toKdsTicket(dto: KdsTicketDto & { id: string }): KdsTicket {
   return {
     id: dto.id,
@@ -19,6 +32,8 @@ export function toKdsTicket(dto: KdsTicketDto & { id: string }): KdsTicket {
     sessionId: dto.sessionId ?? null,
     salesOrderId: dto.salesOrderId ?? null,
     stationId: dto.stationId ?? "",
+    stationName: dto.station?.name ?? null,
+    placeLabel: placeLabel(dto.place),
     ticketNumber: dto.ticketNumber ?? "",
     courseType: dto.courseType ?? null,
     firedAt: dto.firedAt ?? null,

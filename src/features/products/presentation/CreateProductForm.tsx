@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateProduct } from "@/presentation/hooks/useProducts";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -18,6 +19,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
+import { autoSku, pickUom } from "./quick/quick-product";
 import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
 import { ProductKindFields } from "./ProductKindFields";
 import { DEFAULT_TERMS, termsError } from "./product-kind-text";
@@ -90,6 +92,17 @@ export function CreateProductForm({
     resolver: zodResolver(schema),
     defaultValues,
   });
+  const { tenantId: lockedTenantId } = usePermissions();
+  useEffect(() => {
+    if (lockedTenantId) setValue("tenantId", lockedTenantId);
+  }, [lockedTenantId, setValue]);
+  useEffect(() => {
+    if (!getValues("baseSku")) setValue("baseSku", autoSku("menu"));
+  }, [getValues, setValue]);
+  useEffect(() => {
+    const unit = pickUom(options?.uoms ?? [], false);
+    if (unit && !getValues("baseUomId")) setValue("baseUomId", String(unit.id));
+  }, [options?.uoms, getValues, setValue]);
 
   const selectedTenantId = useWatch({ control, name: "tenantId" });
   const filteredCategories = useMemo(
@@ -143,7 +156,12 @@ export function CreateProductForm({
       {
         onSuccess: () => {
           toast.success("Product created.");
-          reset(defaultValues);
+          reset({
+            ...defaultValues,
+            tenantId: getValues("tenantId"),
+            baseUomId: getValues("baseUomId"),
+            baseSku: autoSku("menu"),
+          });
           onSuccess?.();
         },
         onError: () => toast.error("Failed to create product."),
@@ -156,22 +174,13 @@ export function CreateProductForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" {...register("name")} placeholder="iPhone 15" />
+          <Input id="name" {...register("name")} placeholder="e.g. Myanmar Beer" />
           {errors.name && (
             <p className="text-sm text-red-600">{errors.name.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="baseSku">Base SKU</Label>
-          <Input id="baseSku" {...register("baseSku")} placeholder="SKU-IP15" />
-          {errors.baseSku && (
-            <p className="text-sm text-red-600">{errors.baseSku.message}</p>
-          )}
-        </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="basePrice">Base price</Label>
+          <Label htmlFor="basePrice">Price</Label>
           <Input
             id="basePrice"
             type="number"
@@ -182,86 +191,42 @@ export function CreateProductForm({
             <p className="text-sm text-red-600">{errors.basePrice.message}</p>
           )}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="trackingType">Tracking type</Label>
-          <Input
-            id="trackingType"
-            {...register("trackingType")}
-            placeholder="STANDARD"
-          />
-          {errors.trackingType && (
-            <p className="text-sm text-red-600">
-              {errors.trackingType.message}
-            </p>
-          )}
-        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="tenantId">Tenant</Label>
-          <Controller
-            control={control}
-            name="tenantId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={(value) => field.onChange(value)}
-                disabled={isOptionsLoading}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue
-                    placeholder={
-                      isOptionsLoading ? "Loading tenants..." : "Select tenant"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {(options?.tenants ?? []).map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {!lockedTenantId && (
+          <div className="grid gap-2">
+            <Label htmlFor="tenantId">Tenant</Label>
+            <Controller
+              control={control}
+              name="tenantId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                  disabled={isOptionsLoading}
+                >
+                  <SelectTrigger id="tenantId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading ? "Loading tenants..." : "Select tenant"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.tenants ?? []).map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.tenantId && (
+              <p className="text-sm text-red-600">{errors.tenantId.message}</p>
             )}
-          />
-          {errors.tenantId && (
-            <p className="text-sm text-red-600">{errors.tenantId.message}</p>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="baseUomId">Base UOM</Label>
-          <Controller
-            control={control}
-            name="baseUomId"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={(value) => field.onChange(value)}
-                disabled={isOptionsLoading}
-              >
-                <SelectTrigger id="baseUomId">
-                  <SelectValue
-                    placeholder={
-                      isOptionsLoading ? "Loading UOMs..." : "Select base UOM"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {(options?.uoms ?? []).map((uom) => (
-                    <SelectItem key={uom.id} value={uom.id}>
-                      {uom.name}
-                      {uom.abbreviation ? ` (${uom.abbreviation})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.baseUomId && (
-            <p className="text-sm text-red-600">{errors.baseUomId.message}</p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <div className="grid gap-2">
         <Label htmlFor="categoryId">Category</Label>
@@ -318,6 +283,67 @@ export function CreateProductForm({
           <ProductImageField value={field.value} onChange={field.onChange} id="create-product-image" />
         )}
       />
+      <details
+        className="rounded-lg border border-border px-4 py-3"
+        open={Boolean(errors.baseSku || errors.trackingType || errors.baseUomId) || undefined}
+      >
+        <summary className="cursor-pointer text-sm font-medium text-foreground">More</summary>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid gap-2">
+            <Label htmlFor="baseSku">Base SKU</Label>
+            <Input id="baseSku" {...register("baseSku")} placeholder="Filled in for you" />
+            {errors.baseSku && (
+              <p className="text-sm text-red-600">{errors.baseSku.message}</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="trackingType">Tracking type</Label>
+            <Input
+              id="trackingType"
+              {...register("trackingType")}
+              placeholder="STANDARD"
+            />
+            {errors.trackingType && (
+              <p className="text-sm text-red-600">
+                {errors.trackingType.message}
+              </p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="baseUomId">Base UOM</Label>
+            <Controller
+              control={control}
+              name="baseUomId"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                  disabled={isOptionsLoading}
+                >
+                  <SelectTrigger id="baseUomId">
+                    <SelectValue
+                      placeholder={
+                        isOptionsLoading ? "Loading UOMs..." : "Select base UOM"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(options?.uoms ?? []).map((uom) => (
+                      <SelectItem key={uom.id} value={uom.id}>
+                        {uom.name}
+                        {uom.abbreviation ? ` (${uom.abbreviation})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.baseUomId && (
+              <p className="text-sm text-red-600">{errors.baseUomId.message}</p>
+            )}
+          </div>
+        </div>
+      </details>
       <div className="grid gap-2">
         <Label htmlFor="taxRateId">Tax rate</Label>
         <Controller
@@ -354,14 +380,6 @@ export function CreateProductForm({
         <Label htmlFor="isTaxable" className="font-normal cursor-pointer">
           Product is taxable
         </Label>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="globalAttributesJson">Global attributes (JSON)</Label>
-        <Input
-          id="globalAttributesJson"
-          {...register("globalAttributesJson")}
-          placeholder='{"key": "value"}'
-        />
       </div>
       {createProduct.isError && (
         <p className="text-sm text-red-600">

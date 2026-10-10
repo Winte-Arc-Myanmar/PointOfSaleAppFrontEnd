@@ -11,6 +11,8 @@ export interface KdsTicketDto {
   sessionId?: string | null;
   salesOrderId?: string | null;
   stationId: string;
+  station?: { name?: string | null } | null;
+  place?: { kind?: string | null; number?: string | null } | null;
   ticketNumber: string;
   courseType?: string | null;
   firedAt?: string | null;

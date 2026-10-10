@@ -5,7 +5,6 @@ export default function PosRegistersPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage POS registers.</p>
         <section>
           <h2 className="section-label mb-4">POS registers</h2>
           <PosRegisterList />

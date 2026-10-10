@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocationNames } from "@/presentation/hooks/useNameLookups";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
@@ -18,6 +19,7 @@ const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function SectionList() {
+  const locationNames = useLocationNames();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -69,9 +71,10 @@ export function SectionList() {
   const columns = useMemo(
     () =>
       getSectionTableColumns({
+        locationNames,
         onView: (section) => router.push(`/sections/${section.id}`),
       }),
-    [router]
+    [router, locationNames]
   );
 
   async function handleDeleteSelected(items: Section[]) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useUomClassNames } from "@/presentation/hooks/useNameLookups";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUoms, useDeleteUom } from "@/presentation/hooks/useUoms";
@@ -16,6 +17,7 @@ const CREATE_UOM_FORM_ID = "create-uom-form";
 const PAGE_SIZE = 10;
 
 export function UomList() {
+  const classNames = useUomClassNames();
   const router = useRouter();
   const pagination = usePagination({ pageSize: PAGE_SIZE });
   const { data: uomsResult, isLoading, error, refetch } = useUoms({
@@ -53,9 +55,10 @@ export function UomList() {
   const columns = useMemo(
     () =>
       getUomTableColumns({
+        classNames,
         onView: (u) => router.push(`/uoms/${u.id}`),
       }),
-    [router],
+    [router, classNames],
   );
 
   return (

@@ -7,7 +7,6 @@ export default function GoodsReceivedNotesPage() {
   return (
     <Shell>
       <div className="space-y-6">
-        <p className="page-description">Manage goods received notes.</p>
         <section>
           <h2 className="section-label mb-4">Goods received notes</h2>
           <Suspense

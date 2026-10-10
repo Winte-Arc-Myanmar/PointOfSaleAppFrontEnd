@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { TAB_STORAGE_KEY } from "./tab-storage";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, LogOut, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -211,7 +212,14 @@ export function SidebarMenu({
           )}
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => {
+              try {
+                localStorage.removeItem(TAB_STORAGE_KEY);
+              } catch {
+                // Storage can be blocked; the tabs then simply stay.
+              }
+              signOut({ callbackUrl: "/login" });
+            }}
             title={isCollapsed ? t("common.signOut") : undefined}
             className={cn(
               "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-mint/10 hover:text-mint dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",

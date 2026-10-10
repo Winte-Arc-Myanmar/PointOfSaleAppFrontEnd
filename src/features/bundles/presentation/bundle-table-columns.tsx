@@ -2,13 +2,14 @@ import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Bundle } from "@/core/domain/entities/Bundle";
 
 type BundleTableColumnOptions = {
+  productNames?: Record<string, string>;
   onView?: (bundle: Bundle) => void;
 };
 
 export function getBundleTableColumns(
   options: BundleTableColumnOptions = {},
 ): DataTableColumn<Bundle>[] {
-  const { onView } = options;
+  const { onView, productNames = {} } = options;
 
   return [
     {
@@ -34,13 +35,9 @@ export function getBundleTableColumns(
     },
     {
       key: "productId",
-      header: "Product ID",
+      header: "Product",
       className: "min-w-[220px] max-w-[280px]",
-      render: (b) => (
-        <span className="truncate font-mono text-sm text-muted" title={b.productId}>
-          {b.productId}
-        </span>
-      ),
+      render: (r) => productNames[r.productId] ?? "—",
     },
     {
       key: "components",

@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/presentation/components/ui/select";
-import { AppLoader } from "@/presentation/components/loader";
 import { useCreateProduct, useUpdateProduct } from "@/presentation/hooks/useProducts";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
 import { useTaxRates } from "@/presentation/hooks/useTaxRates";
@@ -167,8 +166,6 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     if (product) update.mutate({ id: String(product.id), data: payload }, done);
     else create.mutate(payload, done);
   };
-
-  if (isLoading) return <AppLoader fullScreen={false} size="sm" message="..." />;
 
   return (
     <form onSubmit={submit} className="max-w-2xl space-y-6" noValidate>
@@ -437,7 +434,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={isSaving}>
+        <Button type="submit" disabled={isSaving || isLoading}>
           {isSaving ? t("addProduct.saving") : t("addProduct.save")}
         </Button>
         <Link

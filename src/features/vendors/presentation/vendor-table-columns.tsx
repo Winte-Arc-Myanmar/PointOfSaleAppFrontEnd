@@ -32,19 +32,6 @@ export function getVendorTableColumns(
           </span>
         ),
     },
-    {
-      key: "tenantId",
-      header: "Tenant ID",
-      className: "min-w-[200px] max-w-[280px]",
-      render: (v) => (
-        <span
-          className="font-mono text-xs text-muted truncate"
-          title={v.tenantId}
-        >
-          {v.tenantId}
-        </span>
-      ),
-    },
   ];
 }
 

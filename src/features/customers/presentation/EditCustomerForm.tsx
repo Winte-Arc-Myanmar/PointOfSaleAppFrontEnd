@@ -138,34 +138,36 @@ export function EditCustomerForm({ customerId }: { customerId: string }) {
             )}
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="tenantId">Tenant</Label>
-            <Controller
-              control={form.control}
-              name="tenantId"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={isTenantsLoading || Boolean(lockedTenantId)}
-                >
-                  <SelectTrigger id="tenantId">
-                    <SelectValue placeholder={isTenantsLoading ? "Loading tenants..." : "Select tenant"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tenants.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {!lockedTenantId && (
+            <div className="grid gap-2">
+              <Label htmlFor="tenantId">Tenant</Label>
+              <Controller
+                control={form.control}
+                name="tenantId"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isTenantsLoading || Boolean(lockedTenantId)}
+                  >
+                    <SelectTrigger id="tenantId">
+                      <SelectValue placeholder={isTenantsLoading ? "Loading tenants..." : "Select tenant"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tenants.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.tenantId && (
+                <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
               )}
-            />
-            {form.formState.errors.tenantId && (
-              <p className="text-sm text-red-600">{form.formState.errors.tenantId.message}</p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

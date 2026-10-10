@@ -2,13 +2,14 @@ import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { Uom } from "@/core/domain/entities/Uom";
 
 type UomTableColumnOptions = {
+  classNames?: Record<string, string>;
   onView?: (uom: Uom) => void;
 };
 
 export function getUomTableColumns(
   options: UomTableColumnOptions = {},
 ): DataTableColumn<Uom>[] {
-  const { onView } = options;
+  const { onView, classNames = {} } = options;
 
   return [
     {
@@ -42,13 +43,9 @@ export function getUomTableColumns(
     },
     {
       key: "classId",
-      header: "Class ID",
+      header: "Class",
       className: "min-w-[200px] max-w-[280px]",
-      render: (u) => (
-        <span className="font-mono text-xs text-muted truncate" title={u.classId}>
-          {u.classId}
-        </span>
-      ),
+      render: (r) => classNames[r.classId] ?? "—",
     },
     {
       key: "conversionRateToBase",
