@@ -12,10 +12,7 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { useRefund } from "@/presentation/hooks/useRefunds";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+import { formatMoney as money } from "@/lib/money";
 
 export function RefundDetailSection({ refundId }: { refundId: string }) {
   const { data: refund, isLoading, error } = useRefund(refundId);

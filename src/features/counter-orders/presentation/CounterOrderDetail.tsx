@@ -38,10 +38,7 @@ import { useTipPools } from "@/presentation/hooks/useTipPools";
 import type { CounterOrderLine } from "@/core/domain/entities/CounterOrder";
 import type { CounterOrderKdsTicket } from "@/core/domain/entities/CounterOrder";
 import type { KdsTicketLine } from "@/core/domain/entities/KdsTicket";
-
-function money(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+import { formatMoney as money } from "@/lib/money";
 
 export function CounterOrderDetail({ orderId }: { orderId: string }) {
   const toast = useToast();
