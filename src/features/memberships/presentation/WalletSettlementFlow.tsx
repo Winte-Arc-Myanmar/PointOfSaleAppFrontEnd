@@ -24,6 +24,7 @@ import {
   needsRefundAtSettlement,
   settlementStepState,
 } from "./wallet-settlement-utils";
+import { useManagerApproval } from "@/presentation/components/ManagerApproval";
 
 type Option = { id: string | number; name: string };
 type PosSessionOption = { id: string | number; status?: string };
@@ -100,7 +101,7 @@ export function WalletSettlementFlow({
   const toast = useToast();
   const [posSessionId, setPosSessionId] = useState("");
   const [locationId, setLocationId] = useState("");
-  const [approverToken, setApproverToken] = useState("");
+  const { approve, approvalDialog } = useManagerApproval();
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [notes, setNotes] = useState("");
   const [refundPaymentMethodId, setRefundPaymentMethodId] = useState("");
@@ -156,16 +157,18 @@ export function WalletSettlementFlow({
       ]
     : [];
 
-  const handleSettle = () => {
+  const handleSettle = async () => {
     if (settleDisabledReason) {
       toast.error(settleDisabledReason);
       return;
     }
+    const approval = await approve("guestcard:refund:approve", "Settling and closing a wallet");
+    if (!approval) return;
 
     const payload: MembershipCloseRequest = {
       posSessionId,
       locationId,
-      approverAuthorization: approverToken.trim(),
+      approverAuthorization: approval,
       idempotencyKey: idempotencyKey.trim() || undefined,
       notes: notes.trim() || undefined,
     };
@@ -194,7 +197,6 @@ export function WalletSettlementFlow({
     if (!flow.isSettling) return "Begin settlement first to freeze spending.";
     if (flow.hasBlockers) return "Resolve blockers before settling.";
     if (!posSessionId || !locationId) return "Select POS session and location.";
-    if (!approverToken.trim()) return "Manager approver token is required.";
     if (showRefundFields && !refundPaymentMethodId) {
       return "Select a refund payment method.";
     }
@@ -346,16 +348,6 @@ export function WalletSettlementFlow({
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor={`${idPrefix}-approver`}>Manager approver token</Label>
-            <Input
-              id={`${idPrefix}-approver`}
-              value={approverToken}
-              onChange={(e) => setApproverToken(e.target.value)}
-              disabled={!flow.canSettle}
-              placeholder="Different manager signs in on this terminal"
-            />
-          </div>
           {showRefundFields ? (
             <>
               <div className="grid gap-2">
@@ -463,12 +455,13 @@ export function WalletSettlementFlow({
           type="button"
           variant="destructive"
           disabled={!flow.canSettle || settlePending || Boolean(settleDisabledReason)}
-          onClick={handleSettle}
+          onClick={() => void handleSettle()}
         >
           <Power className="size-4" />
           {settlePending ? "Settling..." : "Settle and close wallet"}
         </Button>
       </div>
+      {approvalDialog}
     </div>
   );
 }
