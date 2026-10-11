@@ -43,6 +43,15 @@ export const REPORT_TAB_GROUPS = [
     ],
   },
   {
+    id: "shifts-cards",
+    label: "Shifts & cards",
+    tabs: [
+      { id: "shifts", label: "Shifts" },
+      { id: "card-usage", label: "Card usage" },
+      { id: "card-money", label: "Card top-ups & refunds" },
+    ],
+  },
+  {
     id: "members",
     label: "Till & members",
     tabs: [
