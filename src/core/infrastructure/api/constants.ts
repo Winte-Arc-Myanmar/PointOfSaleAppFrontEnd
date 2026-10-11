@@ -591,6 +591,9 @@ export const API_ENDPOINTS = {
     SPA_MENU: "/v1/reports/spa-menu",
     KTV_SESSIONS: "/v1/reports/ktv-sessions",
     HOSTESSES: "/v1/reports/hostesses",
+    SHIFTS: "/v1/reports/shifts",
+    CARD_USAGE: "/v1/reports/card-usage",
+    CARD_MONEY: "/v1/reports/card-money",
   },
   /**
    * Standard AI connection (to be implemented on the backend).
