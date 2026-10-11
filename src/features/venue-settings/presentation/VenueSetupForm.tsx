@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent, Banknote, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
+import { BadgePercent, Banknote, ConciergeBell, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -10,7 +10,7 @@ import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { useUpdateVenueSettings, useVenueSettings } from "@/presentation/hooks/useVenueSettings";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
-import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
+import { TaxRateMultiSelect } from "@/features/tax-rates/presentation/TaxRateMultiSelect";
 import type { PriceCurrency, RoomPaymentTiming, VenueSettingUpdate } from "@/core/domain/entities/VenueSetting";
 
 type Draft = Required<VenueSettingUpdate>;
@@ -66,7 +66,7 @@ function SwitchRow({
     <div className={cn("flex items-start justify-between gap-4 py-3", disabled && "opacity-50")}>
       <div>
         <p className="text-sm font-medium">{title}</p>
-        <p className="mt-0.5 text-xs text-muted">{hint}</p>
+        {hint ? <p className="mt-0.5 text-xs text-muted">{hint}</p> : null}
       </div>
       <Switch label={title} checked={checked} disabled={disabled} onChange={onChange} />
     </div>
@@ -186,6 +186,12 @@ const CURRENCIES = [
   { value: "USD", title: "shopSettings.usd", sample: "$ 100,000" },
 ] as const satisfies readonly { value: PriceCurrency; title: string; sample: string }[];
 
+const SERVICE_CHARGE_ON = [
+  { key: "serviceChargeOnBar", title: "shopSettings.serviceChargeOnBar" },
+  { key: "serviceChargeOnSpa", title: "shopSettings.serviceChargeOnSpa" },
+  { key: "serviceChargeOnKtv", title: "shopSettings.serviceChargeOnKtv" },
+] as const;
+
 const LIMIT_FOR = [
   { value: "ITEM", title: "shopSettings.perItem" },
   { value: "BILL", title: "shopSettings.perBill" },
@@ -222,13 +228,19 @@ export function VenueSetupForm() {
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     currency: saved.currency ?? "MMK",
     trackStock: saved.trackStock ?? true,
-    defaultTaxRateId: saved.defaultTaxRateId ?? null,
+    defaultTaxRateIds: saved.defaultTaxRateIds ?? [],
+    serviceChargeBps: saved.serviceChargeBps ?? 0,
+    serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
+    serviceChargeOnSpa: saved.serviceChargeOnSpa ?? true,
+    serviceChargeOnKtv: saved.serviceChargeOnKtv ?? true,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
   const perBill = draft.maxPromotionsPerBill !== null;
   const limit = draft.maxPromotionsPerBill ?? draft.maxPromotionsPerItem;
-  const changed = (Object.keys(edits) as (keyof Draft)[]).filter((k) => draft[k] !== saved[k]);
+  const changed = (Object.keys(edits) as (keyof Draft)[]).filter(
+    (k) => JSON.stringify(draft[k]) !== JSON.stringify(saved[k]),
+  );
 
   const save = () => {
     const patch = Object.fromEntries(changed.map((k) => [k, draft[k]])) as VenueSettingUpdate;
@@ -324,17 +336,48 @@ export function VenueSetupForm() {
             />
           </Panel>
           <Panel icon={Receipt} title={t("shopSettings.taxCard")} className="space-y-2">
-            <label htmlFor="default-tax-rate" className="text-sm font-medium">
-              {t("shopSettings.defaultTax")}
-            </label>
-            <TaxRateSelect
-              id="default-tax-rate"
-              value={draft.defaultTaxRateId ?? ""}
-              onChange={(v) => set({ defaultTaxRateId: v || null })}
+            <p className="text-sm font-medium">{t("shopSettings.defaultTax")}</p>
+            <TaxRateMultiSelect
+              id="default-tax-rates"
+              value={draft.defaultTaxRateIds}
+              onChange={(v) => set({ defaultTaxRateIds: v })}
               tenantId={saved.tenantId}
-              noneLabel={t("shopSettings.noDefaultTax")}
+              emptyLabel={t("shopSettings.noDefaultTax")}
             />
             <p className="text-xs text-muted">{t("shopSettings.defaultTaxHint")}</p>
+          </Panel>
+          <Panel icon={ConciergeBell} title={t("shopSettings.serviceCharge")} className="space-y-3">
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                id="service-charge"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={50}
+                step={0.5}
+                value={draft.serviceChargeBps / 100}
+                onChange={(e) => {
+                  const percent = Math.min(50, Math.max(0, Number(e.target.value) || 0));
+                  set({ serviceChargeBps: Math.round(percent * 100) });
+                }}
+                aria-label={t("shopSettings.serviceCharge")}
+                className="h-10 w-24 rounded-lg border border-border bg-background px-3 text-right text-lg font-semibold tabular-nums"
+              />
+              <span className="text-lg font-semibold">%</span>
+            </div>
+            <p className="text-xs text-muted">{t("shopSettings.serviceChargeHint")}</p>
+            <div className="divide-y divide-border">
+              {SERVICE_CHARGE_ON.map((area) => (
+                <SwitchRow
+                  key={area.key}
+                  title={t(area.title)}
+                  hint=""
+                  checked={draft[area.key]}
+                  disabled={draft.serviceChargeBps === 0}
+                  onChange={(v) => set({ [area.key]: v })}
+                />
+              ))}
+            </div>
           </Panel>
           <Panel icon={BadgePercent} title={t("shopSettings.promotions")} className="space-y-4">
             <div className="space-y-2">

@@ -51,6 +51,8 @@ export interface ReceiptTotals {
   subtotal: number;
   totalDiscount: number;
   totalTax: number;
+  serviceCharge: number;
+  tipAmount: number;
   grandTotal: number;
 }
 

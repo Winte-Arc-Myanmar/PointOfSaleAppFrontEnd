@@ -29,6 +29,7 @@ const schema = z.object({
     .min(1, "Rate percentage is required")
     .refine(isTaxPercent, "Enter a percent from 0 to 100, e.g. 5 for 5%"),
   isPriceInclusive: z.boolean(),
+  appliesToServiceCharge: z.boolean(),
   glLiabilityAccountId: z.string().min(1, "GL liability account is required"),
 });
 
@@ -39,6 +40,7 @@ const defaultValues: FormData = {
   name: "",
   ratePercentage: "",
   isPriceInclusive: false,
+  appliesToServiceCharge: false,
   glLiabilityAccountId: "",
 };
 
@@ -109,6 +111,7 @@ export function CreateTaxRateForm({
         name: data.name.trim(),
         ratePercentage: taxFraction(data.ratePercentage),
         isPriceInclusive: data.isPriceInclusive,
+        appliesToServiceCharge: data.appliesToServiceCharge,
         glLiabilityAccountId: data.glLiabilityAccountId,
       },
       {
@@ -217,6 +220,14 @@ export function CreateTaxRateForm({
           {...form.register("isPriceInclusive")}
         />
         <span className="text-sm text-foreground">Price inclusive</span>
+      </label>
+      <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-emerald-500"
+          {...form.register("appliesToServiceCharge")}
+        />
+        <span className="text-sm text-foreground">Also charge on the service charge</span>
       </label>
     </form>
   );

@@ -36,6 +36,7 @@ const schema = z.object({
     .min(1, "Rate percentage is required")
     .refine(isTaxPercent, "Enter a percent from 0 to 100, e.g. 5 for 5%"),
   isPriceInclusive: z.boolean(),
+  appliesToServiceCharge: z.boolean(),
   glLiabilityAccountId: z.string().min(1, "GL liability account is required"),
 });
 
@@ -65,6 +66,7 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
       name: "",
       ratePercentage: "",
       isPriceInclusive: false,
+      appliesToServiceCharge: false,
       glLiabilityAccountId: "",
     },
   });
@@ -89,6 +91,7 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
         name: taxRate.name,
         ratePercentage: taxPercent(taxRate.ratePercentage),
         isPriceInclusive: taxRate.isPriceInclusive,
+        appliesToServiceCharge: taxRate.appliesToServiceCharge,
         glLiabilityAccountId: taxRate.glLiabilityAccountId,
       });
     }
@@ -115,6 +118,7 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
           name: data.name.trim(),
           ratePercentage: taxFraction(data.ratePercentage),
           isPriceInclusive: data.isPriceInclusive,
+          appliesToServiceCharge: data.appliesToServiceCharge,
           glLiabilityAccountId: data.glLiabilityAccountId,
         },
       },
@@ -124,7 +128,8 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
           setShowSuccess(true);
           setTimeout(() => router.push(`/tax-rates/${taxRateId}`), REDIRECT_DELAY_MS);
         },
-        onError: () => toast.error("Failed to update tax rate."),
+        onError: (err) =>
+          toast.error(err instanceof Error && err.message ? err.message : "Failed to update tax rate."),
       }
     );
   };
@@ -240,6 +245,14 @@ export function EditTaxRateForm({ taxRateId }: { taxRateId: string }) {
             {...form.register("isPriceInclusive")}
           />
           <span className="text-sm text-foreground">Price inclusive</span>
+        </label>
+        <label className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-emerald-500"
+            {...form.register("appliesToServiceCharge")}
+          />
+          <span className="text-sm text-foreground">Also charge on the service charge</span>
         </label>
 
         {showSuccess && (

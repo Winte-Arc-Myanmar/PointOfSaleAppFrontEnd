@@ -8,6 +8,7 @@ export function toTaxRate(dto: TaxRateDto & { id: string }): TaxRate {
     name: dto.name ?? "",
     ratePercentage: dto.ratePercentage ?? "",
     isPriceInclusive: Boolean(dto.isPriceInclusive),
+    appliesToServiceCharge: Boolean(dto.appliesToServiceCharge),
     glLiabilityAccountId: dto.glLiabilityAccountId ?? "",
     deletedAt: dto.deletedAt ?? null,
     createdAt: dto.createdAt ?? null,
@@ -22,6 +23,7 @@ export function toTaxRateDto(rate: Partial<TaxRate>): TaxRateDto {
     name: rate.name ?? "",
     ratePercentage: rate.ratePercentage ?? "",
     isPriceInclusive: Boolean(rate.isPriceInclusive),
+    appliesToServiceCharge: Boolean(rate.appliesToServiceCharge),
     glLiabilityAccountId: rate.glLiabilityAccountId ?? "",
   };
 }

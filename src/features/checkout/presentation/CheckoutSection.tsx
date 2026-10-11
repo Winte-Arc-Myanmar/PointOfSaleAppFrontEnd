@@ -44,10 +44,13 @@ import { useCheckoutProcess } from "@/presentation/hooks/useCheckout";
 import { usePromotionRules } from "@/presentation/hooks/usePromotionRules";
 import { useDiningTables } from "@/presentation/hooks/useDiningTables";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
+import { useVenueSettings } from "@/presentation/hooks/useVenueSettings";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   calcLineTotals,
+  calcServiceCharge,
   calcTax,
+  combinedTax,
 } from "@/core/application/business-rules/checkout/checkoutCalculations";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
 import type { Category } from "@/core/domain/entities/Category";
@@ -138,6 +141,8 @@ export function CheckoutSection() {
   const toast = useToast();
   const { printOrderSlip, isPrinting } = useThermalPrint();
   const { formatPrice: formatCurrencyPrice } = useCurrency();
+  const { data: venue } = useVenueSettings();
+  const defaultTaxRates = useMemo(() => venue?.defaultTaxRates ?? [], [venue]);
   const { data: session } = useSession();
   const { tenantId } = usePermissions();
   const checkout = useCheckoutProcess();
@@ -470,6 +475,14 @@ export function CheckoutSection() {
 
   const netSubtotal = useMemo(() => subtotal - taxTotal, [subtotal, taxTotal]);
 
+  // Checkout here is a bar sale: the shop's service charge applies when it is on for the bar.
+  const { serviceCharge, serviceChargeTax } = calcServiceCharge(
+    netSubtotal,
+    venue?.serviceChargeOnBar === false ? 0 : (venue?.serviceChargeBps ?? 0),
+    defaultTaxRates,
+  );
+  const grandTotal = subtotal + serviceCharge + serviceChargeTax;
+
   const totalPaid = useMemo(() => {
     return watchedPayments.reduce(
       (sum, p) => sum + (Number(p?.amount) || 0),
@@ -478,9 +491,9 @@ export function CheckoutSection() {
   }, [watchedPayments]);
 
   const changeDue = useMemo(() => {
-    const diff = totalPaid - subtotal;
+    const diff = totalPaid - grandTotal;
     return diff > 0 ? diff : 0;
-  }, [totalPaid, subtotal]);
+  }, [totalPaid, grandTotal]);
 
   function addVariantToCart(product: Product, variant: ProductVariant) {
     const variantId = String(variant.id);
@@ -497,8 +510,7 @@ export function CheckoutSection() {
       const unitPrice =
         (Number(product.basePrice) || 0) + (Number(variant.priceModifier) || 0);
       const isTaxable = Boolean(product.isTaxable);
-      const taxRate = product.taxRateRatePercentage ?? 0;
-      const isPriceInclusive = Boolean(product.taxRateIsPriceInclusive);
+      const { taxRate, isPriceInclusive } = combinedTax(product, defaultTaxRates);
       setLineMeta((prev) => ({
         ...prev,
         [variantId + ":" + newIdx]: {
@@ -580,9 +592,9 @@ export function CheckoutSection() {
     ) {
       return toast.error("Each payment must have a method and amount > 0.");
     }
-    if (!(totalPaid + 1e-9 >= subtotal)) {
+    if (!(totalPaid + 1e-9 >= grandTotal)) {
       return toast.error(
-        `Insufficient payment: required ${formatPrice(subtotal)}, received ${formatPrice(totalPaid)}.`,
+        `Insufficient payment: required ${formatPrice(grandTotal)}, received ${formatPrice(totalPaid)}.`,
       );
     }
 
@@ -713,8 +725,8 @@ export function CheckoutSection() {
           };
         }),
         subtotal: netSubtotal,
-        tax: taxTotal,
-        total: subtotal,
+        tax: taxTotal + serviceChargeTax,
+        total: grandTotal,
       },
       {
         mode: options.mode,
@@ -761,9 +773,9 @@ export function CheckoutSection() {
             summary={{
               subtotal: netSubtotal,
               discount: 0,
-              serviceCharge: 0,
-              tax: taxTotal,
-              total: subtotal,
+              serviceCharge,
+              tax: taxTotal + serviceChargeTax,
+              total: grandTotal,
             }}
             onOrderTypeChange={setOrderType}
             onTableNumberChange={setTableNumber}
@@ -846,7 +858,7 @@ export function CheckoutSection() {
                               );
                               const remainingAmount = Math.max(
                                 0,
-                                subtotal - otherPaymentsTotal,
+                                grandTotal - otherPaymentsTotal,
                               );
 
                               form.setValue(
@@ -995,10 +1007,8 @@ export function CheckoutSection() {
                           (() => {
                             const unit = Number(p.basePrice) || 0;
                             const taxable = Boolean(p.isTaxable);
-                            const rate = p.taxRateRatePercentage ?? 0;
-                            const inclusive = Boolean(
-                              p.taxRateIsPriceInclusive,
-                            );
+                            const { taxRate: rate, isPriceInclusive: inclusive } =
+                              combinedTax(p, defaultTaxRates);
                             if (!taxable) return unit;
                             if (inclusive) return unit;
                             return unit + calcTax(unit, rate, false);
@@ -1396,6 +1406,8 @@ function VariantPickerModal({
   formatPrice: (value: number) => string;
   onPickVariant: (v: ProductVariant) => void;
 }) {
+  const { data: venue } = useVenueSettings();
+  const defaultTaxRates = venue?.defaultTaxRates ?? [];
   return (
     <Modal
       isOpen={isOpen}
@@ -1430,8 +1442,10 @@ function VariantPickerModal({
               (Number(v.priceModifier) || 0);
             const price = (() => {
               const taxable = Boolean(product.isTaxable);
-              const rate = product.taxRateRatePercentage ?? 0;
-              const inclusive = Boolean(product.taxRateIsPriceInclusive);
+              const { taxRate: rate, isPriceInclusive: inclusive } = combinedTax(
+                product,
+                defaultTaxRates,
+              );
               if (!taxable) return baseUnit;
               if (inclusive) return baseUnit;
               return baseUnit + calcTax(baseUnit, rate, false);

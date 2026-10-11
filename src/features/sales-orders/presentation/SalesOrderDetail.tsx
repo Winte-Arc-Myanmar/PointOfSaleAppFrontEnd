@@ -79,7 +79,12 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
   const totalsRows = order ? [
     { label: "Subtotal", value: money(order.subtotal) },
     { label: "Discount", value: money(order.totalDiscount) },
+    ...(order.serviceCharge ? [{ label: "Service charge", value: money(order.serviceCharge) }] : []),
     { label: "Tax", value: money(order.totalTax) },
+    ...(order.serviceChargeTax
+      ? [{ label: "of which on service charge", value: money(order.serviceChargeTax) }]
+      : []),
+    ...(order.tipAmount ? [{ label: "Tip", value: money(order.tipAmount) }] : []),
     { label: "Grand total", value: money(order.grandTotal) },
   ] : [];
 

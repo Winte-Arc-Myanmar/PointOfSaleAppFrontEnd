@@ -20,6 +20,10 @@ export interface SalesOrder {
   subtotal: number;
   totalDiscount: number;
   totalTax: number;
+  serviceCharge?: number;
+  /** Tax on the service charge; part of totalTax. */
+  serviceChargeTax?: number;
+  tipAmount?: number;
   grandTotal: number;
   status: SalesOrderStatus;
   createdAt?: string | null;

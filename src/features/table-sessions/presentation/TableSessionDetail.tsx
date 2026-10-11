@@ -29,7 +29,6 @@ import { usePosRegisters } from "@/presentation/hooks/usePosRegisters";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import { useSections } from "@/presentation/hooks/useSections";
 import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
-import { useTaxRates } from "@/presentation/hooks/useTaxRates";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
   useAddTableSessionLine,
@@ -64,7 +63,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
   const { data: posSessionsData } = usePosSessions({ page: 1, limit: 200 });
   const { data: sectionsData } = useSections({ page: 1, limit: 200 });
   const { data: paymentMethodsData } = usePaymentMethods({ page: 1, limit: 200 });
-  const { data: taxRatesData } = useTaxRates({ page: 1, limit: 200 });
 
   const tables = getPaginatedItems(tablesData);
   const zones = getPaginatedItems(zonesData);
@@ -73,7 +71,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
   const posSessions = getPaginatedItems(posSessionsData);
   const sections = getPaginatedItems(sectionsData);
   const paymentMethods = getPaginatedItems(paymentMethodsData);
-  const taxRates = getPaginatedItems(taxRatesData);
 
   const transitionState = useTransitionTableSessionState();
   const addLine = useAddTableSessionLine();
@@ -86,8 +83,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
   const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("0");
   const [lineDiscount, setLineDiscount] = useState("0");
-  const [taxRateId, setTaxRateId] = useState("");
-  const [taxAmount, setTaxAmount] = useState("0");
   const [courseType, setCourseType] = useState("");
   const [lineSeatNumber, setLineSeatNumber] = useState("");
   const [salesOrderLineId, setSalesOrderLineId] = useState("");
@@ -97,7 +92,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
   const [paymentAmount, setPaymentAmount] = useState("0");
   const [paymentTipAmount, setPaymentTipAmount] = useState("0");
   const [transactionReference, setTransactionReference] = useState("");
-  const [serviceCharge, setServiceCharge] = useState("0");
   const [discountReasonId, setDiscountReasonId] = useState("");
   const [totalDiscount, setTotalDiscount] = useState("0");
 
@@ -294,25 +288,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
             <Input value={lineDiscount} onChange={(e) => setLineDiscount(e.target.value)} type="number" step="0.01" />
           </div>
           <div className="grid gap-2">
-            <Label>Tax rate</Label>
-            <Select value={taxRateId} onValueChange={setTaxRateId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Optional tax rate" />
-              </SelectTrigger>
-              <SelectContent>
-                {taxRates.map((taxRate) => (
-                  <SelectItem key={taxRate.id} value={String(taxRate.id)}>
-                    {taxRate.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Tax amount</Label>
-            <Input value={taxAmount} onChange={(e) => setTaxAmount(e.target.value)} type="number" step="0.01" />
-          </div>
-          <div className="grid gap-2">
             <Label>Course type</Label>
             <Input value={courseType} onChange={(e) => setCourseType(e.target.value)} placeholder="STARTER" />
           </div>
@@ -344,8 +319,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
                     quantity: qty,
                     unitPrice: price,
                     lineDiscount: Number(lineDiscount) || 0,
-                    taxRateId: taxRateId || undefined,
-                    taxAmount: Number(taxAmount) || 0,
                     courseType: courseType.trim() || undefined,
                     seatNumber: lineSeatNumber ? Number(lineSeatNumber) : undefined,
                   },
@@ -357,8 +330,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
                     setQuantity("1");
                     setUnitPrice("0");
                     setLineDiscount("0");
-                    setTaxRateId("");
-                    setTaxAmount("0");
                     setCourseType("");
                     setLineSeatNumber("");
                   },
@@ -487,10 +458,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
             <Input value={transactionReference} onChange={(e) => setTransactionReference(e.target.value)} placeholder="TXN-12345" />
           </div>
           <div className="grid gap-2">
-            <Label>Service charge</Label>
-            <Input value={serviceCharge} onChange={(e) => setServiceCharge(e.target.value)} type="number" step="0.01" />
-          </div>
-          <div className="grid gap-2">
             <Label>Total discount</Label>
             <Input value={totalDiscount} onChange={(e) => setTotalDiscount(e.target.value)} type="number" step="0.01" />
           </div>
@@ -523,7 +490,6 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
                       },
                     ],
                     tipAmount: Number(paymentTipAmount) || 0,
-                    serviceCharge: Number(serviceCharge) || 0,
                     discountReasonId: discountReasonId.trim() || undefined,
                     totalDiscount: Number(totalDiscount) || 0,
                   },
