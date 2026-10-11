@@ -267,3 +267,12 @@ summary {
 
   /* Thermal iframe jobs set their own @page; keep default for reports page print. */
 }
+
+/* Native date fields: calendar icon at the right edge, and drawn for the theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+  cursor: pointer;
+}
+.dark input[type="date"] {
+  color-scheme: dark;
+}
