@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
-import { DetailRows } from "@/presentation/components/detail";
+import { ReportTable } from "@/features/reports/presentation/report-export";
+import { ReportRows } from "@/features/reports/presentation/report-export";
 import { useSalesSummary } from "@/presentation/hooks/useReports";
 import { formatCount, formatMoney } from "@/features/reports/presentation/report-utils";
 import { withRowIds } from "@/features/reports/presentation/report-utils";
@@ -57,7 +57,7 @@ export function SalesSummaryPanel({ range, posType }: { range: DashboardRange; p
             <SummaryCard label="Grand total" value={formatMoney(data.sales.grandTotal)} />
             <SummaryCard label="Net after refunds" value={formatMoney(data.netAfterRefunds)} />
           </div>
-          <DetailRows
+          <ReportRows
             rows={[
               { label: "Gross sales", value: formatMoney(data.sales.grossSales) },
               { label: "Line discounts", value: formatMoney(data.sales.lineDiscounts) },
@@ -88,14 +88,14 @@ export function SalesSummaryPanel({ range, posType }: { range: DashboardRange; p
               <SummaryCard label="Refund subtotal" value={formatMoney(data.refunds.subtotal)} />
               <SummaryCard label="Refund total" value={formatMoney(data.refunds.total)} />
             </div>
-            <DataTable
+            <ReportTable
               data={withRowIds(data.refunds.byMethod, (row, index) => `${row.refundMethod}-${index}`)}
               columns={refundColumns}
               emptyText="No refunds in this range."
             />
           </Subsection>
           <Subsection title="Payments">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.payments.byMethod, (row, index) => row.paymentMethodId || `pay-${index}`)}
               columns={paymentColumns}
               emptyText="No payments in this range."
@@ -103,28 +103,28 @@ export function SalesSummaryPanel({ range, posType }: { range: DashboardRange; p
           </Subsection>
           <div className="grid gap-6 lg:grid-cols-2">
             <Subsection title="By day">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byDay, (row) => row.businessDate)}
                 columns={dayColumns}
                 emptyText="No daily sales in this range."
               />
             </Subsection>
             <Subsection title="By hour">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byHour, (row) => `hour-${row.hour}`)}
                 columns={hourColumns}
                 emptyText="No hourly sales in this range."
               />
             </Subsection>
             <Subsection title="By outlet">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byOutlet, (row, index) => row.locationId || `outlet-${index}`)}
                 columns={outletColumns}
                 emptyText="No outlet breakdown."
               />
             </Subsection>
             <Subsection title="By service type">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byServiceType, (row) => row.serviceType)}
                 columns={serviceColumns}
                 emptyText="No service-type breakdown."

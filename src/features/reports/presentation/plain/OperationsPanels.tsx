@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
-import { DetailRows } from "@/presentation/components/detail";
+import { ReportTable } from "@/features/reports/presentation/report-export";
+import { ReportRows } from "@/features/reports/presentation/report-export";
 import {
   useDailySales,
   useSalesByCategory,
@@ -47,7 +47,7 @@ export function DailySalesPanel({ day }: { day: DashboardDay }) {
             <SummaryCard label="Average ticket" value={formatMoney(data.averageTicket)} />
             <SummaryCard label="Tips" value={formatMoney(data.tipAmount)} />
           </div>
-          <DetailRows
+          <ReportRows
             rows={[
               { label: "Subtotal", value: formatMoney(data.subtotal) },
               { label: "Tax", value: formatMoney(data.totalTax) },
@@ -55,7 +55,7 @@ export function DailySalesPanel({ day }: { day: DashboardDay }) {
               { label: "Service charge", value: formatMoney(data.serviceCharge) },
             ]}
           />
-          <DataTable
+          <ReportTable
             data={withRowIds(data.paymentBreakdown, (row, index) => row.paymentMethodId || `pay-${index}`)}
             columns={columns}
             emptyText="No payment breakdown for this day."
@@ -84,7 +84,7 @@ export function SalesByCategoryPanel({ range }: { range: DashboardRange }) {
       error={query.error}
       onRetry={() => query.refetch()}
     >
-      <DataTable
+      <ReportTable
         data={withRowIds(query.data ?? [], (row, index) => row.categoryId || `cat-${index}`)}
         columns={columns}
         emptyText="No category sales in this range."
@@ -111,7 +111,7 @@ export function SalesByItemPanel({ range }: { range: DashboardRange }) {
       error={query.error}
       onRetry={() => query.refetch()}
     >
-      <DataTable
+      <ReportTable
         data={withRowIds(query.data ?? [], (row, index) => row.variantId || `item-${index}`)}
         columns={columns}
         emptyText="No item sales in this range."
@@ -133,7 +133,7 @@ export function SalesByHourPanel({ day }: { day: DashboardDay }) {
       error={query.error}
       onRetry={() => query.refetch()}
     >
-      <DataTable
+      <ReportTable
         data={withRowIds(query.data ?? [], (row) => `hour-${row.hour}`)}
         columns={columns}
         emptyText="No hourly sales for this day."
@@ -160,7 +160,7 @@ export function ServerPerformancePanel({ range }: { range: DashboardRange }) {
       error={query.error}
       onRetry={() => query.refetch()}
     >
-      <DataTable
+      <ReportTable
         data={withRowIds(query.data ?? [], (row, index) => row.waiterId || `server-${index}`)}
         columns={columns}
         emptyText="No server performance data in this range."
@@ -187,7 +187,7 @@ export function ZReportPanel({ day }: { day: DashboardDay }) {
     >
       {data ? (
         <>
-          <DetailRows
+          <ReportRows
             rows={[
               { label: "Date", value: data.date },
               { label: "Completed orders", value: String(data.orders.completed) },
@@ -204,7 +204,7 @@ export function ZReportPanel({ day }: { day: DashboardDay }) {
             <SummaryCard label="Service charge" value={formatMoney(data.totals.serviceCharge)} />
           </div>
           <Subsection title="Payments">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.payments, (row, index) => row.paymentMethodId || `zpay-${index}`)}
               columns={paymentColumns}
               emptyText="No payments recorded."
@@ -212,14 +212,14 @@ export function ZReportPanel({ day }: { day: DashboardDay }) {
           </Subsection>
           <div className="grid gap-6 lg:grid-cols-2">
             <Subsection title="Top items">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.topItems, (row, index) => row.variantId || `ztop-${index}`)}
                 columns={itemColumns}
                 emptyText="No top items."
               />
             </Subsection>
             <Subsection title="By category">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byCategory, (row, index) => row.categoryId || `zcat-${index}`)}
                 columns={categoryColumns}
                 emptyText="No category breakdown."

@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useSpaMenuReport } from "@/presentation/hooks/usePosReports";
 import type { SpaMenuRow, SpaMenuSection } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, formatShare, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, Subsection, SummaryCard } from "../plain/dashboard-ui";
 import type { DashboardRange } from "../plain/types";
-import { downloadCsv, ExportButton, sheet, tableColumns, type ReportColumn } from "./report-columns";
+import { tableColumns, type ReportColumn } from "./report-columns";
 
 const COLUMNS: ReportColumn<SpaMenuRow>[] = [
   {
@@ -40,7 +40,7 @@ function SectionTable({ section, empty }: { section: SpaMenuSection; empty: stri
         Net sales {formatMoney(section.totals.netSales)} · {formatShare(section.totals.shareOfNetSales)} of SPA
         {Number(section.totals.compedValue) ? ` · free ${formatMoney(section.totals.compedValue)}` : ""}
       </p>
-      <DataTable
+      <ReportTable
         data={withRowIds(section.rows, (r) => r.variantId)}
         columns={columns}
         emptyText={empty}
@@ -70,19 +70,6 @@ export function SpaMenuPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="SPA menu" value={formatMoney(data.spaMenu.totals.netSales)} />
             <SummaryCard label="Room + menu packages" value={formatMoney(data.roomMenuPackages.totals.netSales)} />
             <SummaryCard label="Room services" value={formatMoney(data.roomServices.totals.netSales)} />
-          </div>
-          <div className="flex justify-end">
-            <ExportButton
-              disabled={!data.totals.orderCount}
-              onClick={() =>
-                downloadCsv(
-                  `spa-menu-${range.from}-to-${range.to}`,
-                  SECTIONS.filter((s) => s.key !== "roomTime" || data.roomTime.rows.length).map((s) =>
-                    sheet(s.title, COLUMNS, data[s.key].rows),
-                  ),
-                )
-              }
-            />
           </div>
           {SECTIONS.filter((s) => s.key !== "roomTime" || data.roomTime.rows.length).map((s) => (
             <Subsection key={s.key} title={s.title}>

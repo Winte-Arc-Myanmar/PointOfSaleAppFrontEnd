@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useOtherIncomeExpenses } from "@/presentation/hooks/useReports";
 import { formatCount, formatMoney, withRowIds } from "@/features/reports/presentation/report-utils";
 import {
@@ -45,14 +45,14 @@ export function OtherIncomePanel({ range }: { range: DashboardRange }) {
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <Subsection title="By day">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byDay, (row) => row.businessDate)}
                 columns={dayColumns}
                 emptyText="No till movements in this range."
               />
             </Subsection>
             <Subsection title="By payment method">
-              <DataTable
+              <ReportTable
                 data={withRowIds(
                   data.byPaymentMethod,
                   (row, index) => row.paymentMethodId || `method-${index}`,
@@ -63,14 +63,14 @@ export function OtherIncomePanel({ range }: { range: DashboardRange }) {
             </Subsection>
           </div>
           <Subsection title="By outlet">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.byOutlet, (row, index) => row.locationId || `outlet-${index}`)}
               columns={outletColumns}
               emptyText="No outlet breakdown."
             />
           </Subsection>
           <Subsection title="Entries">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.entries, (row, index) => row.id || `entry-${index}`)}
               columns={entryColumns}
               emptyText="No paid-ins or paid-outs in this range."
