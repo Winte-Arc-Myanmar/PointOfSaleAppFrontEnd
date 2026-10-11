@@ -65,6 +65,7 @@ import { usePaymentMethods } from "@/presentation/hooks/usePaymentMethods";
 import { usePosSessions } from "@/presentation/hooks/usePosSessions";
 import { apiErrorMessage } from "@/lib/api-error";
 import { SystemAdminIssueNotice } from "./SystemAdminIssueNotice";
+import { useManagerApproval } from "@/presentation/components/ManagerApproval";
 
 export function MembershipMemberDetail({ membershipId }: { membershipId: string }) {
   const toast = useToast();
@@ -111,10 +112,9 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
   const [refundPosSessionId, setRefundPosSessionId] = useState("");
   const [refundLocationId, setRefundLocationId] = useState("");
   const [bindCardNumber, setBindCardNumber] = useState("");
-  const [refundApproverToken, setRefundApproverToken] = useState("");
   const [replaceCardUid, setReplaceCardUid] = useState("");
   const [lookupCardUid, setLookupCardUid] = useState("");
-  const [voidApproverToken, setVoidApproverToken] = useState("");
+  const { approve, approvalDialog } = useManagerApproval();
 
   if (isLoading) {
     return <AppLoader fullScreen={false} size="md" message="Loading membership..." />;
@@ -184,9 +184,8 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
     if (!refundPaymentMethodId || !refundPosSessionId || !refundLocationId) {
       return toast.error("Refund needs payment method, POS session, and location.");
     }
-    if (!refundApproverToken.trim()) {
-      return toast.error("Refund needs an approver token.");
-    }
+    const approval = await approve("guestcard:refund:approve", "A card refund");
+    if (!approval) return;
     refund.mutate(
       {
         id: membershipId,
@@ -196,7 +195,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           posSessionId: refundPosSessionId,
           locationId: refundLocationId,
           notes: refundReason.trim() || undefined,
-          approverAuthorization: refundApproverToken.trim(),
+          approverAuthorization: approval,
         },
       },
       {
@@ -442,15 +441,6 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="refundApproverToken">Approver token</Label>
-              <Input
-                id="refundApproverToken"
-                value={refundApproverToken}
-                onChange={(e) => setRefundApproverToken(e.target.value)}
-                disabled={isClosed}
-              />
             </div>
             <Button
               type="button"
@@ -736,30 +726,20 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
 
         <DetailSection title="Void wallet" icon={Power}>
           <p className="text-sm text-muted">
-            Only while the wallet is untouched. Requires a different manager’s bearer
-            token.
+            Only while the wallet is untouched. A different manager approves it by
+            signing in.
           </p>
           {!canVoidWallet(activeMember) && !isClosed ? (
             <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
               This wallet has activity and cannot be voided. Use wallet checkout instead.
             </p>
           ) : null}
-          <Input
-            placeholder="Approver token"
-            value={voidApproverToken}
-            onChange={(e) => setVoidApproverToken(e.target.value)}
-            disabled={isClosed || !canVoidWallet(activeMember)}
-            className="mt-3"
-          />
           <Button
             type="button"
             variant="destructive"
             className="mt-3"
             disabled={isClosed || voidWallet.isPending || !canVoidWallet(activeMember)}
             onClick={async () => {
-              if (!voidApproverToken.trim()) {
-                return toast.error("Void needs an approver token.");
-              }
               const ok = await confirm({
                 title: "Void wallet",
                 description: `Void wallet for ${activeMember.customerName}?`,
@@ -767,10 +747,12 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
                 variant: "destructive",
               });
               if (!ok) return;
+              const approval = await approve("guestcard:adjustment:approve", "Voiding a wallet");
+              if (!approval) return;
               voidWallet.mutate(
                 {
                   id: membershipId,
-                  data: { approverAuthorization: voidApproverToken.trim() },
+                  data: { approverAuthorization: approval },
                 },
                 {
                   onSuccess: () => {
@@ -786,6 +768,7 @@ export function MembershipMemberDetail({ membershipId }: { membershipId: string 
           </Button>
         </DetailSection>
       </div>
+      {approvalDialog}
     </div>
   );
 }

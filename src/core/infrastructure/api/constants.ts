@@ -77,6 +77,8 @@ export const API_ENDPOINTS = {
     /** GET - current session (Bearer token) */
     SESSION: "/v1/auth/session",
     REGISTER: "/v1/auth/register",
+    /** POST - a manager's one-action approval; 401 means their password was wrong */
+    APPROVE: "/v1/auth/approve",
   },
   USERS: {
     LIST: "/v1/users",
