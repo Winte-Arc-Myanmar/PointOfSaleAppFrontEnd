@@ -5,8 +5,16 @@ import { Button } from "@/presentation/components/ui/button";
 import { Card, CardContent } from "@/presentation/components/ui/card";
 import { AppLoader } from "@/presentation/components/loader";
 import { cn } from "@/lib/utils";
+import {
+  ReportExportButtons,
+  ReportPartsProvider,
+  ReportSectionTitle,
+  useReportFact,
+  useReportParts,
+} from "../report-export";
 
 export function SummaryCard({ label, value }: { label: string; value: string }) {
+  useReportFact(label, value);
   return (
     <Card>
       <CardContent className="pt-6">
@@ -27,7 +35,7 @@ export function Subsection({
   return (
     <div className="space-y-3">
       <h4 className="text-sm font-medium text-muted">{title}</h4>
-      {children}
+      <ReportSectionTitle value={title}>{children}</ReportSectionTitle>
     </div>
   );
 }
@@ -50,6 +58,7 @@ export function ReportPanel({
   children: React.ReactNode;
 }) {
   const showSoftFetch = Boolean(isFetching && !isLoading);
+  const parts = useReportParts();
 
   return (
     <section className="space-y-4">
@@ -58,15 +67,18 @@ export function ReportPanel({
           <h3 className="section-label">{title}</h3>
           {description ? <p className="text-sm text-muted">{description}</p> : null}
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onRetry}
-          disabled={isFetching}
-        >
-          <RefreshCw className={cn("h-4 w-4", showSoftFetch && "animate-spin")} />
-        </Button>
+        <div className="flex shrink-0 items-center gap-2 print:hidden">
+          <ReportExportButtons title={title} parts={parts} disabled={isLoading || Boolean(error)} />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRetry}
+            disabled={isFetching}
+          >
+            <RefreshCw className={cn("h-4 w-4", showSoftFetch && "animate-spin")} />
+          </Button>
+        </div>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-8">
@@ -81,7 +93,7 @@ export function ReportPanel({
         </div>
       ) : (
         <div className={cn("space-y-6", showSoftFetch && "opacity-70 transition-opacity")}>
-          {children}
+          <ReportPartsProvider value={parts}>{children}</ReportPartsProvider>
         </div>
       )}
     </section>

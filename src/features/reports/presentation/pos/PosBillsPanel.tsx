@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { allPages, ReportTable } from "@/features/reports/presentation/report-export";
 import { Input } from "@/presentation/components/ui/input";
-import { useToast } from "@/presentation/providers/ToastProvider";
 import { usePosBills } from "@/presentation/hooks/usePosReports";
 import container from "@/core/infrastructure/di/container";
 import type { ApiPosReportRepository } from "@/core/infrastructure/repositories/ApiPosReportRepository";
@@ -11,7 +10,7 @@ import type { PosBill, PosType } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, SummaryCard } from "../plain/dashboard-ui";
 import type { DashboardRange } from "../plain/types";
-import { downloadCsv, ExportButton, sheet, tableColumns, type ReportColumn } from "./report-columns";
+import { tableColumns, type ReportColumn } from "./report-columns";
 
 const PAGE_SIZE = 50;
 const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "Private VIP Lounge", BAR: "Bar" };
@@ -46,10 +45,8 @@ const COLUMNS: ReportColumn<PosBill>[] = [
 ];
 
 export function PosBillsPanel({ range, posType }: { range: DashboardRange; posType: PosType }) {
-  const toast = useToast();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [exporting, setExporting] = useState(false);
   const filterKey = `${range.from}|${range.to}|${range.locationId}|${posType}|${search}`;
   const [pageKey, setPageKey] = useState(filterKey);
   const currentPage = pageKey === filterKey ? page : 1;
@@ -64,25 +61,12 @@ export function PosBillsPanel({ range, posType }: { range: DashboardRange; posTy
   const data = query.data;
   const columns = useMemo(() => tableColumns(COLUMNS), []);
 
-  const exportAll = async () => {
-    setExporting(true);
-    try {
+  const loadAll = () =>
+    allPages(async (p) => {
       const repository = container.resolve<ApiPosReportRepository>("posReportRepository");
-      const bills: PosBill[] = [];
-      for (let p = 1; ; p++) {
-        const result = await repository.bills({ ...range, posType, page: p, limit: 500 });
-        bills.push(...result.bills);
-        if (p >= result.meta.totalPages) break;
-      }
-      downloadCsv(`${POS_NAME[posType].toLowerCase()}-bills-${range.from}-to-${range.to}`, [
-        sheet(`${POS_NAME[posType]} bills ${range.from} to ${range.to}`, COLUMNS, bills),
-      ]);
-    } catch {
-      toast.error("Couldn't export the bills.");
-    } finally {
-      setExporting(false);
-    }
-  };
+      const result = await repository.bills({ ...range, posType, page: p, limit: 500, search: search.trim() || undefined });
+      return { rows: withRowIds(result.bills, (b) => b.orderId), totalPages: result.meta.totalPages };
+    });
 
   return (
     <ReportPanel
@@ -111,10 +95,11 @@ export function PosBillsPanel({ range, posType }: { range: DashboardRange; posTy
                 setPageKey("");
               }}
             />
-            <ExportButton onClick={() => void exportAll()} busy={exporting} disabled={!data.totals.billCount} />
           </div>
-          <DataTable
+          <ReportTable
             data={withRowIds(data.bills, (b) => b.orderId)}
+            loadAll={loadAll}
+            title="Bills"
             columns={columns}
             emptyText="No bills in this range."
             currentPage={data.meta.page || currentPage}

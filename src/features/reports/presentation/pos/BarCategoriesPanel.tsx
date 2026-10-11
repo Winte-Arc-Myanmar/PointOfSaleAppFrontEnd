@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useBarCategories } from "@/presentation/hooks/usePosReports";
 import type { BarSubCategory } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, formatQuantity, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, SummaryCard } from "../plain/dashboard-ui";
 import type { DashboardRange } from "../plain/types";
-import { downloadCsv, ExportButton, sheet, tableColumns, type ReportColumn } from "./report-columns";
+import { tableColumns, type ReportColumn } from "./report-columns";
 
 type Row = BarSubCategory & { level: 0 | 1 };
 
@@ -57,17 +57,7 @@ export function BarCategoriesPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="Net sales" value={formatMoney(data.totals.netSales)} />
             <SummaryCard label="Free (FOC)" value={formatMoney(data.totals.compedValue)} />
           </div>
-          <div className="flex justify-end">
-            <ExportButton
-              disabled={!rows.length}
-              onClick={() =>
-                downloadCsv(`bar-categories-${range.from}-to-${range.to}`, [
-                  sheet(`Bar sales by category ${range.from} to ${range.to}`, COLUMNS, rows),
-                ])
-              }
-            />
-          </div>
-          <DataTable
+          <ReportTable
             data={withRowIds(rows, (r, i) => `${r.categoryId ?? "none"}-${r.level}-${i}`)}
             columns={columns}
             emptyText="No bar sales in this range."

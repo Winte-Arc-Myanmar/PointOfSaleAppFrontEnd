@@ -39,6 +39,7 @@ import { HostessesPanel } from "./pos/HostessesPanel";
 import { PosBillsPanel } from "./pos/PosBillsPanel";
 import { SpaMenuPanel } from "./pos/SpaMenuPanel";
 import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
+import { ReportScopeProvider, type ReportScope } from "./report-export";
 
 const ALL_OUTLETS = "__all__";
 
@@ -66,6 +67,11 @@ export function ReportsDashboard() {
   const dailySales = useDailySales(day);
   const zReport = useZReport(day);
   const printContext = { locationName: selectedLocation?.name };
+  const scope: ReportScope = {
+    outlet: selectedLocation?.name ?? "All outlets",
+    period: needsDay ? `Business date ${date}` : `${from} to ${to}`,
+    fileSuffix: needsDay ? date : `${from}-to-${to}`,
+  };
 
   async function handlePrintDaily() {
     if (!dailySales.data) {
@@ -164,29 +170,31 @@ export function ReportsDashboard() {
         </div>
       ) : null}
 
-      <div data-print-reports className="space-y-8">
-        {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryPanel range={range} /> : null}
-        {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesPanel range={range} /> : null}
-        {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryPanel range={range} posType="SPA" /> : null}
-        {!rangeInvalid && tab === "spa-bills" && range ? <PosBillsPanel range={range} posType="SPA" /> : null}
-        {!rangeInvalid && tab === "spa-menu" && range ? <SpaMenuPanel range={range} /> : null}
-        {!rangeInvalid && tab === "ktv-summary" && range ? <SalesSummaryPanel range={range} posType="KTV" /> : null}
-        {!rangeInvalid && tab === "ktv-bills" && range ? <PosBillsPanel range={range} posType="KTV" /> : null}
-        {!rangeInvalid && tab === "ktv-sessions" && range ? <KtvSessionsPanel range={range} /> : null}
-        {!rangeInvalid && tab === "ktv-hostesses" && range ? <HostessesPanel range={range} /> : null}
-        {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryPanel range={range} posType="BAR" /> : null}
-        {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsPanel range={range} posType="BAR" /> : null}
-        {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesPanel range={range} /> : null}
-        {!rangeInvalid && tab === "other-income" && range ? <OtherIncomePanel range={range} /> : null}
-        {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsPanel range={range} /> : null}
-        {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyPointsPanel range={range} /> : null}
-        {!rangeInvalid && tab === "category" && range ? <SalesByCategoryPanel range={range} /> : null}
-        {!rangeInvalid && tab === "top-items" && range ? <SalesByItemPanel range={range} /> : null}
-        {!rangeInvalid && tab === "servers" && range ? <ServerPerformancePanel range={range} /> : null}
-        {tab === "daily" && day ? <DailySalesPanel day={day} /> : null}
-        {tab === "hour" && day ? <SalesByHourPanel day={day} /> : null}
-        {tab === "z-report" && day ? <ZReportPanel day={day} /> : null}
-      </div>
+      <ReportScopeProvider value={scope}>
+        <div data-print-reports className="space-y-8">
+          {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryPanel range={range} /> : null}
+          {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesPanel range={range} /> : null}
+          {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryPanel range={range} posType="SPA" /> : null}
+          {!rangeInvalid && tab === "spa-bills" && range ? <PosBillsPanel range={range} posType="SPA" /> : null}
+          {!rangeInvalid && tab === "spa-menu" && range ? <SpaMenuPanel range={range} /> : null}
+          {!rangeInvalid && tab === "ktv-summary" && range ? <SalesSummaryPanel range={range} posType="KTV" /> : null}
+          {!rangeInvalid && tab === "ktv-bills" && range ? <PosBillsPanel range={range} posType="KTV" /> : null}
+          {!rangeInvalid && tab === "ktv-sessions" && range ? <KtvSessionsPanel range={range} /> : null}
+          {!rangeInvalid && tab === "ktv-hostesses" && range ? <HostessesPanel range={range} /> : null}
+          {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryPanel range={range} posType="BAR" /> : null}
+          {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsPanel range={range} posType="BAR" /> : null}
+          {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesPanel range={range} /> : null}
+          {!rangeInvalid && tab === "other-income" && range ? <OtherIncomePanel range={range} /> : null}
+          {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsPanel range={range} /> : null}
+          {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyPointsPanel range={range} /> : null}
+          {!rangeInvalid && tab === "category" && range ? <SalesByCategoryPanel range={range} /> : null}
+          {!rangeInvalid && tab === "top-items" && range ? <SalesByItemPanel range={range} /> : null}
+          {!rangeInvalid && tab === "servers" && range ? <ServerPerformancePanel range={range} /> : null}
+          {tab === "daily" && day ? <DailySalesPanel day={day} /> : null}
+          {tab === "hour" && day ? <SalesByHourPanel day={day} /> : null}
+          {tab === "z-report" && day ? <ZReportPanel day={day} /> : null}
+        </div>
+      </ReportScopeProvider>
     </div>
   );
 }

@@ -5,9 +5,16 @@ import { formatCount, formatMoney } from "@/features/reports/presentation/report
 import { ReportPanel, SummaryCard } from "@/features/reports/presentation/plain/dashboard-ui";
 import { ChartCard, EmptyChart, MoneyBarChart, SharePieChart, chartAmount } from "./charts";
 import type { DashboardRange } from "./types";
+import type { PosType } from "@/core/domain/entities/PosReport";
 
-export function SalesSummaryChart({ range }: { range: DashboardRange }) {
-  const query = useSalesSummary(range);
+const POS_TITLE: Record<PosType, string> = {
+  SPA: "SPA sales summary",
+  KTV: "Private VIP Lounge sales summary",
+  BAR: "Bar sales summary",
+};
+
+export function SalesSummaryChart({ range, posType }: { range: DashboardRange; posType?: PosType }) {
+  const query = useSalesSummary({ ...range, posType });
   const data = query.data;
   const byDay = (data?.byDay ?? []).map((row) => ({
     name: row.businessDate.slice(5) || row.businessDate,
@@ -33,7 +40,7 @@ export function SalesSummaryChart({ range }: { range: DashboardRange }) {
 
   return (
     <ReportPanel
-      title="Sales summary"
+      title={posType ? POS_TITLE[posType] : "Sales summary"}
       description="Charts for the business-date range. Full figures are on Reports."
       isLoading={query.isLoading}
       isFetching={query.isFetching}
