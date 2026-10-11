@@ -67,6 +67,7 @@ import {
 } from "@/features/memberships/presentation/wallet-settlement-utils";
 import type { Customer } from "@/core/domain/entities/Customer";
 import type { MembershipMember } from "@/core/domain/entities/MembershipMember";
+import { useManagerApproval } from "@/presentation/components/ManagerApproval";
 
 export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
   const toast = useToast();
@@ -118,7 +119,6 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
   const [refundReference, setRefundReference] = useState("");
   const [refundIdempotencyKey, setRefundIdempotencyKey] = useState("");
   const [refundNotes, setRefundNotes] = useState("");
-  const [refundApproverToken, setRefundApproverToken] = useState("");
   const [bindCardUid, setBindCardUid] = useState("");
   const [bindLabel, setBindLabel] = useState("Guest 2");
   const [bindRoomNumber, setBindRoomNumber] = useState("");
@@ -127,7 +127,7 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
   const [replaceCardRoomNumber, setReplaceCardRoomNumber] = useState("");
   const [replaceTargetCardId, setReplaceTargetCardId] = useState("");
   const [lookupCardUid, setLookupCardUid] = useState("");
-  const [voidApproverToken, setVoidApproverToken] = useState("");
+  const { approve, approvalDialog } = useManagerApproval();
 
   const member = useMemo(() => {
     const items = membershipsResult?.items ?? [];
@@ -233,8 +233,6 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
       setRefundIdempotencyKey={setRefundIdempotencyKey}
       refundNotes={refundNotes}
       setRefundNotes={setRefundNotes}
-      refundApproverToken={refundApproverToken}
-      setRefundApproverToken={setRefundApproverToken}
       bindCardUid={bindCardUid}
       setBindCardUid={setBindCardUid}
       bindLabel={bindLabel}
@@ -274,7 +272,7 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
           },
         );
       }}
-      onRefund={() => {
+      onRefund={async () => {
         const amount = Number(refundAmount);
         if (!(amount > 0)) return toast.error("Enter a refund amount greater than 0.");
         if (member.isPostpaidSnapshot) {
@@ -291,9 +289,8 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
         if (!refundPaymentMethodId || !refundPosSessionId || !refundLocationId) {
           return toast.error("Refund needs payment method, POS session, and location.");
         }
-        if (!refundApproverToken.trim()) {
-          return toast.error("Refund needs an approver token.");
-        }
+        const approval = await approve("guestcard:refund:approve", "A card refund");
+        if (!approval) return;
         refund.mutate(
           {
             id: String(member.id),
@@ -305,7 +302,7 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
               reference: refundReference.trim() || undefined,
               idempotencyKey: refundIdempotencyKey.trim() || undefined,
               notes: refundNotes.trim() || undefined,
-              approverAuthorization: refundApproverToken.trim(),
+              approverAuthorization: approval,
             },
           },
           {
@@ -691,8 +688,8 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
       <DetailSection title="Void wallet" icon={Power}>
         <p className="text-sm text-muted">
           Only while the wallet is untouched (no spending history). Anything with real
-          history must be settled instead of erased. Requires a different manager’s
-          bearer token.
+          history must be settled instead of erased. A different manager approves it
+          by signing in.
         </p>
         {!canVoidWallet(member) && !isClosed ? (
           <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
@@ -700,24 +697,12 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
             instead.
           </p>
         ) : null}
-        <div className="mt-3 grid gap-2">
-          <Label htmlFor="customer-void-approver">Approver token</Label>
-          <Input
-            id="customer-void-approver"
-            value={voidApproverToken}
-            onChange={(e) => setVoidApproverToken(e.target.value)}
-            disabled={isClosed || !canVoidWallet(member)}
-          />
-        </div>
         <Button
           type="button"
           variant="destructive"
           className="mt-3"
           disabled={voidWallet.isPending || isClosed || !canVoidWallet(member)}
           onClick={async () => {
-            if (!voidApproverToken.trim()) {
-              return toast.error("Void needs an approver token.");
-            }
             const ok = await confirm({
               title: "Void wallet",
               description: `Void wallet for ${member.customerName}? This is only valid if the wallet is untouched.`,
@@ -725,10 +710,12 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
               variant: "destructive",
             });
             if (!ok) return;
+            const approval = await approve("guestcard:adjustment:approve", "Voiding a wallet");
+            if (!approval) return;
             voidWallet.mutate(
               {
                 id: String(member.id),
-                data: { approverAuthorization: voidApproverToken.trim() },
+                data: { approverAuthorization: approval },
               },
               {
                 onSuccess: () => {
@@ -746,6 +733,7 @@ export function CustomerMembershipPanel({ customer }: { customer: Customer }) {
           {voidWallet.isPending ? "Voiding..." : "Void wallet"}
         </Button>
       </DetailSection>
+      {approvalDialog}
     </div>
   );
 }
@@ -788,8 +776,6 @@ function CustomerMembershipActions({
   setRefundIdempotencyKey,
   refundNotes,
   setRefundNotes,
-  refundApproverToken,
-  setRefundApproverToken,
   bindCardUid,
   setBindCardUid,
   bindLabel,
@@ -842,8 +828,6 @@ function CustomerMembershipActions({
   setRefundIdempotencyKey: (value: string) => void;
   refundNotes: string;
   setRefundNotes: (value: string) => void;
-  refundApproverToken: string;
-  setRefundApproverToken: (value: string) => void;
   bindCardUid: string;
   setBindCardUid: (value: string) => void;
   bindLabel: string;
@@ -1065,15 +1049,6 @@ function CustomerMembershipActions({
                 id="customer-refund-notes"
                 value={refundNotes}
                 onChange={(e) => setRefundNotes(e.target.value)}
-                disabled={isClosed}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customer-refund-approver">Approver token</Label>
-              <Input
-                id="customer-refund-approver"
-                value={refundApproverToken}
-                onChange={(e) => setRefundApproverToken(e.target.value)}
                 disabled={isClosed}
               />
             </div>

@@ -11,7 +11,7 @@ import axios, {
 } from "axios";
 import { getSession, signOut } from "next-auth/react";
 import { loginUrlFor } from "@/lib/login-return";
-import { API_CONFIG } from "./constants";
+import { API_CONFIG, API_ENDPOINTS } from "./constants";
 import {
   ACTING_TENANT_HEADER,
   getActingTenantId,
@@ -77,7 +77,10 @@ export class HttpClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401 && typeof window !== "undefined") {
+        // A manager mistyping their password at an approval is not this user's
+        // session ending.
+        const approving = error.config?.url === API_ENDPOINTS.AUTH.APPROVE;
+        if (error.response?.status === 401 && !approving && typeof window !== "undefined") {
           const here = window.location.pathname + window.location.search;
           signOut({ callbackUrl: loginUrlFor(here, "expired") });
         }
