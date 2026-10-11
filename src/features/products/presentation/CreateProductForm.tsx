@@ -20,7 +20,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
 import { autoSku, pickUom } from "./quick/quick-product";
-import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
+import { TaxRateMultiSelect } from "@/features/tax-rates/presentation/TaxRateMultiSelect";
 import { ProductKindFields } from "./ProductKindFields";
 import { DEFAULT_TERMS, termsError } from "./product-kind-text";
 import type { ProductTerms } from "@/core/domain/entities/Product";
@@ -36,7 +36,7 @@ const schema = z.object({
   globalAttributesJson: z.string(),
   imageUrl: z.string(),
   isTaxable: z.boolean(),
-  taxRateId: z.string(),
+  taxRateIds: z.array(z.string()),
   terms: z.custom<ProductTerms>().superRefine((terms, ctx) => {
     const message = termsError(terms);
     if (message) ctx.addIssue({ code: "custom", message });
@@ -56,7 +56,7 @@ const defaultValues: ProductFormData = {
   globalAttributesJson: "{}",
   imageUrl: "",
   isTaxable: true,
-  taxRateId: "",
+  taxRateIds: [],
   terms: DEFAULT_TERMS,
 };
 
@@ -137,7 +137,6 @@ export function CreateProductForm({
       // leave {}
     }
     const imageUrl = data.imageUrl.trim();
-    const taxRateId = data.taxRateId.trim();
     createProduct.mutate(
       {
         name: data.name,
@@ -150,7 +149,7 @@ export function CreateProductForm({
         globalAttributes,
         isTaxable: data.isTaxable,
         imageUrl: imageUrl || null,
-        taxRateId: taxRateId || null,
+        taxRateIds: data.taxRateIds,
         ...data.terms,
       },
       {
@@ -345,22 +344,21 @@ export function CreateProductForm({
         </div>
       </details>
       <div className="grid gap-2">
-        <Label htmlFor="taxRateId">Tax rate</Label>
+        <Label htmlFor="taxRateIds">Taxes</Label>
         <Controller
           control={control}
-          name="taxRateId"
+          name="taxRateIds"
           render={({ field }) => (
-            <TaxRateSelect
-              id="taxRateId"
+            <TaxRateMultiSelect
+              id="taxRateIds"
               value={field.value}
               onChange={field.onChange}
               tenantId={selectedTenantId}
-              noneLabel="Shop default tax rate"
             />
           )}
         />
         <p className="text-xs text-muted">
-          Leave on the shop default to use the default tax rate from Shop settings.
+          Tick none to use the default taxes from Shop settings.
         </p>
       </div>
       <div className="flex items-center gap-2">

@@ -59,3 +59,46 @@ export function calcLineTotals(args: CheckoutLineTotalsInput): CheckoutLineTotal
   return { netOrGross, taxAmount, lineTotal };
 }
 
+
+export interface TaxRateLike {
+  /** A fraction: 0.05 is 5%. */
+  ratePercentage: number | string;
+  isPriceInclusive: boolean;
+  appliesToServiceCharge?: boolean;
+}
+
+/**
+ * A product's taxes as one rate, the way the server charges them: its own taxes,
+ * else the shop's defaults. They are all inside the price or all on top, so the
+ * rates add up; the first one says which.
+ */
+export function combinedTax(
+  product: { isTaxable?: boolean; taxRates?: TaxRateLike[] },
+  defaults: TaxRateLike[]
+): { taxRate: number; isPriceInclusive: boolean } {
+  if (!product.isTaxable) return { taxRate: 0, isPriceInclusive: false };
+  const rates = product.taxRates?.length ? product.taxRates : defaults;
+  return {
+    taxRate: rates.reduce((sum, rate) => sum + safeRate(rate.ratePercentage), 0),
+    isPriceInclusive: Boolean(rates[0]?.isPriceInclusive),
+  };
+}
+
+/**
+ * The shop's service charge on what the items come to before tax, and the tax on
+ * it from the default taxes set to apply to it. The server works out the same.
+ */
+export function calcServiceCharge(
+  preTaxTotal: number,
+  serviceChargeBps: number,
+  defaults: TaxRateLike[]
+): { serviceCharge: number; serviceChargeTax: number } {
+  if (!(preTaxTotal > 0) || !(serviceChargeBps > 0)) {
+    return { serviceCharge: 0, serviceChargeTax: 0 };
+  }
+  const serviceCharge = (preTaxTotal * serviceChargeBps) / 10000;
+  const rate = defaults
+    .filter((r) => r.appliesToServiceCharge)
+    .reduce((sum, r) => sum + safeRate(r.ratePercentage), 0);
+  return { serviceCharge, serviceChargeTax: serviceCharge * rate };
+}

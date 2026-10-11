@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { ProductImageField } from "./ProductImageField";
-import { TaxRateSelect } from "@/features/tax-rates/presentation/TaxRateSelect";
+import { TaxRateMultiSelect } from "@/features/tax-rates/presentation/TaxRateMultiSelect";
 import { ProductKindFields } from "./ProductKindFields";
 import { DEFAULT_TERMS, termsError } from "./product-kind-text";
 import type { ProductTerms } from "@/core/domain/entities/Product";
@@ -39,7 +39,7 @@ const schema = z.object({
   globalAttributesJson: z.string(),
   imageUrl: z.string(),
   isTaxable: z.boolean(),
-  taxRateId: z.string(),
+  taxRateIds: z.array(z.string()),
   terms: z.custom<ProductTerms>().superRefine((terms, ctx) => {
     const message = termsError(terms);
     if (message) ctx.addIssue({ code: "custom", message });
@@ -71,7 +71,7 @@ export function EditProductForm({ productId }: { productId: string }) {
       globalAttributesJson: "{}",
       imageUrl: "",
       isTaxable: true,
-      taxRateId: "",
+      taxRateIds: [],
       terms: DEFAULT_TERMS,
     },
   });
@@ -96,7 +96,7 @@ export function EditProductForm({ productId }: { productId: string }) {
             : "{}",
         imageUrl: product.imageUrl ?? "",
         isTaxable: product.isTaxable ?? true,
-        taxRateId: product.taxRateId ?? "",
+        taxRateIds: product.taxRateIds ?? [],
         terms: {
           kind: product.kind,
           soldAt: product.soldAt,
@@ -150,7 +150,6 @@ export function EditProductForm({ productId }: { productId: string }) {
       // leave {}
     }
     const imageUrl = data.imageUrl.trim();
-    const taxRateId = data.taxRateId.trim();
     updateProduct.mutate(
       {
         id: productId,
@@ -165,7 +164,7 @@ export function EditProductForm({ productId }: { productId: string }) {
           globalAttributes,
           isTaxable: data.isTaxable,
           imageUrl: imageUrl || null,
-          taxRateId: taxRateId || null,
+          taxRateIds: data.taxRateIds,
           ...data.terms,
         },
       },
@@ -382,22 +381,21 @@ export function EditProductForm({ productId }: { productId: string }) {
           </div>
         </details>
         <div className="grid gap-2">
-          <Label htmlFor="taxRateId">Tax rate</Label>
+          <Label htmlFor="taxRateIds">Taxes</Label>
           <Controller
             control={form.control}
-            name="taxRateId"
+            name="taxRateIds"
             render={({ field }) => (
-              <TaxRateSelect
-                id="taxRateId"
+              <TaxRateMultiSelect
+                id="taxRateIds"
                 value={field.value}
                 onChange={field.onChange}
                 tenantId={selectedTenantId}
-                noneLabel="Shop default tax rate"
               />
             )}
           />
           <p className="text-xs text-muted">
-            Leave on the shop default to use the default tax rate from Shop settings.
+            Tick none to use the default taxes from Shop settings.
           </p>
         </div>
         <div className="flex items-center gap-2">

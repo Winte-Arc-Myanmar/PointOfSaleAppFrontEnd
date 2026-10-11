@@ -4,6 +4,7 @@ export interface TaxRateDto {
   name: string;
   ratePercentage: string;
   isPriceInclusive: boolean;
+  appliesToServiceCharge?: boolean;
   glLiabilityAccountId: string;
   deletedAt?: string | null;
   createdAt?: string | null;

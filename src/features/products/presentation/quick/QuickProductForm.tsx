@@ -16,7 +16,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { useCreateProduct, useUpdateProduct } from "@/presentation/hooks/useProducts";
 import { useCreateProductFormOptions } from "@/presentation/hooks/useCreateProductFormOptions";
-import { useTaxRates } from "@/presentation/hooks/useTaxRates";
+import { TaxRateMultiSelect } from "@/features/tax-rates/presentation/TaxRateMultiSelect";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
 import { useVenueSettings } from "@/presentation/hooks/useVenueSettings";
@@ -31,7 +31,6 @@ import { useToast } from "@/presentation/providers/ToastProvider";
 import { useLanguage } from "@/presentation/providers/LanguageProvider";
 import { apiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
-import { taxPercent } from "@/lib/tax-percent";
 import { toProductDto } from "@/core/application/mappers/ProductMapper";
 import type { ProductDto } from "@/core/application/dtos/ProductDto";
 import type { Product } from "@/core/domain/entities/Product";
@@ -48,6 +47,8 @@ import {
 const NONE = "__none__";
 /** The tax choice that turns tax off for the item, unlike NONE (the shop default). */
 const NO_TAX = "__no_tax__";
+/** The tax choice that picks the item's own taxes. */
+const OWN_TAX = "__own_tax__";
 
 function Choice({
   selected,
@@ -90,7 +91,6 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const { t } = useLanguage();
   const { tenantId: myTenantId } = usePermissions();
   const { data: options, isLoading } = useCreateProductFormOptions();
-  const { data: taxData } = useTaxRates({ page: 1, limit: 100 });
   const create = useCreateProduct();
   const update = useUpdateProduct();
 
@@ -99,9 +99,10 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
   const [price, setPrice] = useState(product ? String(product.basePrice) : "");
   const [categoryId, setCategoryId] = useState(product?.categoryId || "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? "");
-  const [taxRateId, setTaxRateId] = useState(
-    product && product.isTaxable === false ? NO_TAX : (product?.taxRateId ?? ""),
+  const [taxMode, setTaxMode] = useState<string>(
+    product && product.isTaxable === false ? NO_TAX : product?.taxRateIds?.length ? OWN_TAX : NONE,
   );
+  const [taxRateIds, setTaxRateIds] = useState<string[]>(product?.taxRateIds ?? []);
   const [soldAt, setSoldAt] = useState<PosType[]>(product?.soldAt ?? []);
   const [perHour, setPerHour] = useState(product ? product.soldBy === "TIME" : true);
   const [rents, setRents] = useState<"KTV_ROOM" | "SPA_ROOM" | "TABLE">(product?.rents ?? "KTV_ROOM");
@@ -152,7 +153,6 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
     () => (options?.categories ?? []).filter((c) => !tenant || String(c.tenantId) === tenant),
     [options?.categories, tenant],
   );
-  const taxRates = getPaginatedItems(taxData).filter((r) => !tenant || String(r.tenantId) === tenant);
   const modifierGroups = getPaginatedItems(groupsData).filter(
     (g) => !g.deletedAt && (!tenant || String(g.tenantId) === tenant),
   );
@@ -196,8 +196,8 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
       name: name.trim(),
       basePrice: amount,
       imageUrl: imageUrl.trim() || null,
-      isTaxable: taxRateId !== NO_TAX,
-      taxRateId: taxRateId && taxRateId !== NO_TAX ? taxRateId : null,
+      isTaxable: taxMode !== NO_TAX,
+      taxRateIds: taxMode === OWN_TAX ? taxRateIds : [],
       ...(isMenu ? { isAvailable } : {}),
       ...terms,
     };
@@ -486,20 +486,19 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
 
       <div className="grid gap-1 sm:w-1/2">
         <Label>{t("addProduct.tax")}</Label>
-        <Select value={taxRateId || NONE} onValueChange={(v) => setTaxRateId(!v || v === NONE ? "" : v)}>
+        <Select value={taxMode} onValueChange={(v) => setTaxMode(v || NONE)}>
           <SelectTrigger>
             <SelectValue placeholder="Shop default" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NONE}>Shop default</SelectItem>
             <SelectItem value={NO_TAX}>{t("addProduct.noTax")}</SelectItem>
-            {taxRates.map((rate) => (
-              <SelectItem key={String(rate.id)} value={String(rate.id)}>
-                {rate.name} ({taxPercent(rate.ratePercentage)}%)
-              </SelectItem>
-            ))}
+            <SelectItem value={OWN_TAX}>{t("addProduct.ownTaxes")}</SelectItem>
           </SelectContent>
         </Select>
+        {taxMode === OWN_TAX ? (
+          <TaxRateMultiSelect value={taxRateIds} onChange={setTaxRateIds} tenantId={tenant || undefined} />
+        ) : null}
       </div>
 
       {isMenu ? (

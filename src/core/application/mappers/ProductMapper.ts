@@ -33,12 +33,13 @@ type ProductDtoRaw = Omit<ProductDto, "basePrice"> & {
   image?: string | null;
   image_url?: string | null;
   productImageUrl?: string | null;
-  taxRate?: {
-    id?: string;
+  taxRates?: {
+    id: string;
     name?: string;
     ratePercentage?: unknown;
-    isPriceInclusive?: boolean;
-  };
+    isPriceInclusive?: boolean | null;
+    appliesToServiceCharge?: boolean;
+  }[];
   category?: {
     name?: string;
     description?: string;
@@ -90,16 +91,14 @@ export function toProduct(dto: ProductDtoRaw): Product {
       undefined,
     isTaxable: dto.isTaxable,
     isAvailable: dto.isAvailable !== false,
-    taxRateId: dto.taxRateId ?? dto.taxRate?.id ?? undefined,
-    taxRateName: dto.taxRate?.name,
-    taxRateRatePercentage:
-      dto.taxRate?.ratePercentage != null
-        ? parseDecimalPrice(dto.taxRate.ratePercentage)
-        : undefined,
-    taxRateIsPriceInclusive:
-      dto.taxRate?.isPriceInclusive != null
-        ? Boolean(dto.taxRate.isPriceInclusive)
-        : undefined,
+    taxRateIds: dto.taxRateIds ?? [],
+    taxRates: (dto.taxRates ?? []).map((rate) => ({
+      id: rate.id,
+      name: rate.name ?? "",
+      ratePercentage: parseDecimalPrice(rate.ratePercentage ?? 0),
+      isPriceInclusive: rate.isPriceInclusive === true,
+      appliesToServiceCharge: rate.appliesToServiceCharge === true,
+    })),
     kind: dto.kind ?? "ITEM",
     soldAt: dto.soldAt ?? [],
     soldBy: dto.soldBy ?? "EACH",
@@ -129,6 +128,6 @@ export function toProductDto(product: Partial<Product>): ProductDto {
     trackingType: product.trackingType ?? "STANDARD",
     imageUrl: product.imageUrl,
     isTaxable: product.isTaxable,
-    taxRateId: product.taxRateId,
+    taxRateIds: product.taxRateIds,
   };
 }

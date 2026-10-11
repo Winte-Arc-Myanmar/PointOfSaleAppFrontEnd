@@ -56,6 +56,9 @@ export interface ReceiptTotalsDto {
   subtotal?: unknown;
   totalDiscount?: unknown;
   totalTax?: unknown;
+  serviceCharge?: unknown;
+  serviceChargeTax?: unknown;
+  tipAmount?: unknown;
   grandTotal?: unknown;
 }
 
