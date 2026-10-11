@@ -1,23 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart3, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
-import { Input } from "@/presentation/components/ui/input";
-import { Label } from "@/presentation/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/presentation/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/presentation/components/ui/card";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { useDailySales, useZReport } from "@/presentation/hooks/useReports";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
 import { useToast } from "@/presentation/providers/ToastProvider";
+import { ALL_OUTLETS, ReportFilterBar } from "./ReportFilterBar";
 import { isDayReportTab, ReportTabBar, type ReportTabId } from "./ReportTabBar";
 import { startOfMonth, toDateInputValue } from "./report-utils";
 import { ItemSalesPanel } from "./plain/ItemSalesPanel";
@@ -42,8 +33,6 @@ import { ShiftsPanel } from "./pos/ShiftsPanel";
 import { CardActivityPanel } from "./pos/CardActivityPanel";
 import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 import { ReportScopeProvider, type ReportScope } from "./report-export";
-
-const ALL_OUTLETS = "__all__";
 
 export function ReportsDashboard() {
   const today = useMemo(() => new Date(), []);
@@ -105,64 +94,41 @@ export function ReportsDashboard() {
 
   return (
     <div className="space-y-6">
-      <Card className="print:hidden">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="h-5 w-5 text-mint" />
-            Report filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <Label htmlFor="report-location">Outlet</Label>
-              <Select value={locationId} onValueChange={setLocationId}>
-                <SelectTrigger id="report-location">
-                  <SelectValue placeholder="All outlets" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_OUTLETS}>All outlets</SelectItem>
-                  {locations.map((location) => (
-                    <SelectItem key={String(location.id)} value={String(location.id)}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {needsDay ? (
-              <div className="space-y-2">
-                <Label htmlFor="report-date">Business date</Label>
-                <Input id="report-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
-              </div>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="report-from">From</Label>
-                  <Input id="report-from" type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="report-to">To</Label>
-                  <Input id="report-to" type="date" value={to} onChange={(event) => setTo(event.target.value)} />
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex flex-wrap items-end gap-2 border-t border-border pt-4">
-            <Button type="button" variant="outline" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily()}>
+      <ReportFilterBar
+        className="print:hidden"
+        locations={locations}
+        locationId={locationId}
+        onLocationChange={setLocationId}
+        mode={needsDay ? "day" : "range"}
+        from={from}
+        to={to}
+        onRangeChange={(nextFrom, nextTo) => {
+          setFrom(nextFrom);
+          setTo(nextTo);
+        }}
+        date={date}
+        onDateChange={setDate}
+        actions={
+          <>
+            {tab === "daily" ? (
+              <Button type="button" variant="outline" size="sm" disabled={isPrinting || !dailySales.data} onClick={() => void handlePrintDaily()}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print daily sales
+              </Button>
+            ) : null}
+            {tab === "z-report" ? (
+              <Button type="button" variant="outline" size="sm" disabled={isPrinting || !zReport.data} onClick={() => void handlePrintZReport()}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Z-report
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
-              Print daily sales
-            </Button>
-            <Button type="button" variant="outline" disabled={isPrinting || !zReport.data} onClick={() => void handlePrintZReport()}>
-              <Printer className="mr-2 h-4 w-4" />
-              Print Z-report
-            </Button>
-            <Button type="button" variant="outline" onClick={() => window.print()}>
               Print page
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      />
 
       <ReportTabBar value={tab} onChange={setTab} className="print:hidden" />
 
