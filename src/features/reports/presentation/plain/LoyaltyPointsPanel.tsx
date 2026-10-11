@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { useLoyaltyPointsReport } from "@/presentation/hooks/useReports";
@@ -65,7 +65,7 @@ export function LoyaltyPointsPanel({ range }: { range: DashboardRange }) {
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <Subsection title="By transaction type">
-              <DataTable
+              <ReportTable
                 data={withRowIds(
                   data.period.byTransactionType,
                   (row, index) => `${row.transactionType}-${index}`,
@@ -75,7 +75,7 @@ export function LoyaltyPointsPanel({ range }: { range: DashboardRange }) {
               />
             </Subsection>
             <Subsection title="By loyalty tier">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.byLoyaltyTier, (row) => row.loyaltyTier || "tier")}
                 columns={tierColumns}
                 emptyText="No loyalty tiers."
@@ -83,7 +83,7 @@ export function LoyaltyPointsPanel({ range }: { range: DashboardRange }) {
             </Subsection>
           </div>
           <Subsection title="Top members">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.topMembers, (row, index) => row.customerId || `member-${index}`)}
               columns={memberColumns}
               emptyText="No members earned points in this range."

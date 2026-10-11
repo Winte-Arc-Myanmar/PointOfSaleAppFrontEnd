@@ -35,6 +35,13 @@ import {
   ZReportChart,
 } from "./OperationsCharts";
 import { OtherIncomeChart } from "./OtherIncomeChart";
+import {
+  BarCategoriesChart,
+  HostessesChart,
+  KtvSessionsChart,
+  PosBillsChart,
+  SpaMenuChart,
+} from "./PosCharts";
 import { SalesSummaryChart } from "./SalesSummaryChart";
 
 const ALL_OUTLETS = "__all__";
@@ -128,6 +135,16 @@ export function DashboardView() {
 
       {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryChart range={range} /> : null}
       {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesChart range={range} /> : null}
+      {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryChart range={range} posType="SPA" /> : null}
+      {!rangeInvalid && tab === "spa-bills" && range ? <PosBillsChart range={range} posType="SPA" /> : null}
+      {!rangeInvalid && tab === "spa-menu" && range ? <SpaMenuChart range={range} /> : null}
+      {!rangeInvalid && tab === "ktv-summary" && range ? <SalesSummaryChart range={range} posType="KTV" /> : null}
+      {!rangeInvalid && tab === "ktv-bills" && range ? <PosBillsChart range={range} posType="KTV" /> : null}
+      {!rangeInvalid && tab === "ktv-sessions" && range ? <KtvSessionsChart range={range} /> : null}
+      {!rangeInvalid && tab === "ktv-hostesses" && range ? <HostessesChart range={range} /> : null}
+      {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryChart range={range} posType="BAR" /> : null}
+      {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsChart range={range} posType="BAR" /> : null}
+      {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesChart range={range} /> : null}
       {!rangeInvalid && tab === "other-income" && range ? <OtherIncomeChart range={range} /> : null}
       {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsChart range={range} /> : null}
       {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyChart range={range} /> : null}

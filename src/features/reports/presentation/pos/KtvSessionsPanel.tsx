@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useKtvSessionReport } from "@/presentation/hooks/usePosReports";
 import type { KtvRoomSummary, KtvSessionRow } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, formatQuantity, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, Subsection, SummaryCard } from "../plain/dashboard-ui";
 import type { DashboardRange } from "../plain/types";
-import { downloadCsv, ExportButton, sheet, tableColumns, type ReportColumn } from "./report-columns";
+import { tableColumns, type ReportColumn } from "./report-columns";
 
 const time = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
@@ -77,19 +77,8 @@ export function KtvSessionsPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="Net sales" value={formatMoney(data.totals.netSales)} />
             <SummaryCard label="Total, all sessions" value={formatMoney(data.totals.grandTotal)} />
           </div>
-          <div className="flex justify-end">
-            <ExportButton
-              disabled={!data.totals.sessionCount}
-              onClick={() =>
-                downloadCsv(`ktv-sessions-${range.from}-to-${range.to}`, [
-                  sheet(`Private VIP Lounge sessions ${range.from} to ${range.to}`, SESSION_COLUMNS, data.sessions),
-                  sheet("By room", ROOM_COLUMNS, data.byRoom),
-                ])
-              }
-            />
-          </div>
           <Subsection title="By room">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.byRoom, (r) => r.roomId)}
               columns={roomColumns}
               emptyText="No Private VIP Lounge sessions in this range."
@@ -97,7 +86,7 @@ export function KtvSessionsPanel({ range }: { range: DashboardRange }) {
             />
           </Subsection>
           <Subsection title="Sessions">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.sessions, (r) => r.orderId)}
               columns={sessionColumns}
               emptyText="No Private VIP Lounge sessions in this range."
