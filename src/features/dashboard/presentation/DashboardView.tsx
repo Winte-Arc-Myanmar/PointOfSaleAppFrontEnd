@@ -1,17 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { LayoutDashboard } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/presentation/components/ui/card";
-import { Input } from "@/presentation/components/ui/input";
-import { Label } from "@/presentation/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/presentation/components/ui/select";
 import { useLocations } from "@/presentation/hooks/useLocations";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import {
@@ -19,6 +8,10 @@ import {
   ReportTabBar,
   type ReportTabId,
 } from "@/features/reports/presentation/ReportTabBar";
+import {
+  ALL_OUTLETS,
+  ReportFilterBar,
+} from "@/features/reports/presentation/ReportFilterBar";
 import {
   startOfMonth,
   toDateInputValue,
@@ -46,8 +39,6 @@ import {
 } from "./PosCharts";
 import { SalesSummaryChart } from "./SalesSummaryChart";
 
-const ALL_OUTLETS = "__all__";
-
 export function DashboardView() {
   const today = useMemo(() => new Date(), []);
   const [locationId, setLocationId] = useState(ALL_OUTLETS);
@@ -68,64 +59,20 @@ export function DashboardView() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <LayoutDashboard className="h-5 w-5 text-mint" />
-            Dashboard filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="dashboard-location">Outlet</Label>
-            <Select value={locationId} onValueChange={setLocationId}>
-              <SelectTrigger id="dashboard-location">
-                <SelectValue placeholder="All outlets" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_OUTLETS}>All outlets</SelectItem>
-                {locations.map((location) => (
-                  <SelectItem key={String(location.id)} value={String(location.id)}>
-                    {location.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted">Leave on all outlets to include every outlet you can see.</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dashboard-from">From</Label>
-            <Input
-              id="dashboard-from"
-              type="date"
-              value={from}
-              onChange={(event) => setFrom(event.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dashboard-to">To</Label>
-            <Input
-              id="dashboard-to"
-              type="date"
-              value={to}
-              onChange={(event) => setTo(event.target.value)}
-            />
-            <p className="text-xs text-muted">Business dates, last day included.</p>
-          </div>
-          {needsDay ? (
-            <div className="space-y-2">
-              <Label htmlFor="dashboard-date">Business date</Label>
-              <Input
-                id="dashboard-date"
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-              />
-              <p className="text-xs text-muted">Used by daily sales, by hour, and Z-report.</p>
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
+      <ReportFilterBar
+        locations={locations}
+        locationId={locationId}
+        onLocationChange={setLocationId}
+        mode={needsDay ? "day" : "range"}
+        from={from}
+        to={to}
+        onRangeChange={(nextFrom, nextTo) => {
+          setFrom(nextFrom);
+          setTo(nextTo);
+        }}
+        date={date}
+        onDateChange={setDate}
+      />
 
       <ReportTabBar value={tab} onChange={setTab} />
 
