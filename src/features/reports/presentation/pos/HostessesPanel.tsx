@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useHostessReport } from "@/presentation/hooks/usePosReports";
 import type { HostessCallRow, HostessSummary } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, formatQuantity, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, Subsection, SummaryCard } from "../plain/dashboard-ui";
 import type { DashboardRange } from "../plain/types";
-import { downloadCsv, ExportButton, sheet, tableColumns, type ReportColumn } from "./report-columns";
+import { tableColumns, type ReportColumn } from "./report-columns";
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -58,19 +58,8 @@ export function HostessesPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="Hours" value={formatQuantity(data.totals.hours)} />
             <SummaryCard label="Sales" value={formatMoney(data.totals.netSales)} />
           </div>
-          <div className="flex justify-end">
-            <ExportButton
-              disabled={!data.totals.calls}
-              onClick={() =>
-                downloadCsv(`hostesses-${range.from}-to-${range.to}`, [
-                  sheet(`Hostesses ${range.from} to ${range.to}`, SUMMARY_COLUMNS, data.byHostess),
-                  sheet("Calls", CALL_COLUMNS, data.calls),
-                ])
-              }
-            />
-          </div>
           <Subsection title="By hostess">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.byHostess, (r) => r.hostessId)}
               columns={summaryColumns}
               emptyText="No hostess calls in this range."
@@ -78,7 +67,7 @@ export function HostessesPanel({ range }: { range: DashboardRange }) {
             />
           </Subsection>
           <Subsection title="Calls">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.calls, (r, i) => `${r.orderNumber}-${r.hostessId}-${i}`)}
               columns={callColumns}
               emptyText="No hostess calls in this range."

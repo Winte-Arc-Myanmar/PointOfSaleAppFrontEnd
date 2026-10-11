@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataTable } from "@/presentation/components/data-table";
-import { DetailRows } from "@/presentation/components/detail";
+import { ReportTable } from "@/features/reports/presentation/report-export";
+import { ReportRows } from "@/features/reports/presentation/report-export";
 import { useMemberCardsReport } from "@/presentation/hooks/useReports";
 import { formatCount, formatMoney, withRowIds } from "@/features/reports/presentation/report-utils";
 import {
@@ -39,7 +39,7 @@ export function MemberCardsPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="Closed" value={formatCount(data.closed.count)} />
             <SummaryCard label="Top-ups" value={formatMoney(data.topUps.amount)} />
           </div>
-          <DetailRows
+          <ReportRows
             rows={[
               { label: "Settled", value: formatCount(data.closed.settled) },
               { label: "Voided cards", value: formatCount(data.closed.voided) },
@@ -55,7 +55,7 @@ export function MemberCardsPanel({ range }: { range: DashboardRange }) {
             ]}
           />
           <Subsection title="Ledger">
-            <DetailRows
+            <ReportRows
               rows={[
                 {
                   label: "Top-ups",
@@ -94,14 +94,14 @@ export function MemberCardsPanel({ range }: { range: DashboardRange }) {
           </Subsection>
           <div className="grid gap-6 lg:grid-cols-2">
             <Subsection title="Issued by tier">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.issued.byTier, (row, index) => `${row.tier}-${index}`)}
                 columns={tierColumns}
                 emptyText="No cards issued in this range."
               />
             </Subsection>
             <Subsection title="Spend by tier">
-              <DataTable
+              <ReportTable
                 data={withRowIds(data.spendByTier, (row, index) => `${row.tier}-${index}`)}
                 columns={spendTierColumns}
                 emptyText="No card spend in this range."
@@ -109,7 +109,7 @@ export function MemberCardsPanel({ range }: { range: DashboardRange }) {
             </Subsection>
           </div>
           <Subsection title="Top-ups by payment method">
-            <DataTable
+            <ReportTable
               data={withRowIds(
                 data.topUps.byPaymentMethod,
                 (row, index) => row.paymentMethodId || `topup-${index}`,
@@ -119,7 +119,7 @@ export function MemberCardsPanel({ range }: { range: DashboardRange }) {
             />
           </Subsection>
           <Subsection title="Spend by outlet">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.spendByOutlet, (row, index) => row.locationId || `spend-${index}`)}
               columns={outletColumns}
               emptyText="No outlet spend in this range."

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DataTable } from "@/presentation/components/data-table";
+import { allPages, ReportTable } from "@/features/reports/presentation/report-export";
+import container from "@/core/infrastructure/di/container";
+import type { IReportService } from "@/core/domain/services/IReportService";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import {
@@ -72,6 +74,22 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
   const data = query.data;
   const categoryColumns = useMemo(() => getItemCategoryColumns(), []);
   const itemColumns = useMemo(() => getItemSalesColumns(), []);
+  const loadAllItems = () =>
+    allPages(async (p) => {
+      const result = await container.resolve<IReportService>("reportService").getItemSales({
+        ...range,
+        page: p,
+        limit: 500,
+        search: search || undefined,
+        categoryId: categoryId === ALL ? undefined : categoryId,
+        sortBy,
+        sortOrder,
+      });
+      return {
+        rows: withRowIds(result.items, (row, index) => row.variantId || `item-${index}`),
+        totalPages: result.meta.totalPages,
+      };
+    });
 
   return (
     <ReportPanel
@@ -100,7 +118,7 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
             <SummaryCard label="Refunds" value={formatMoney(data.totals.refundAmount)} />
           </div>
           <Subsection title="Categories">
-            <DataTable
+            <ReportTable
               data={withRowIds(data.categories, (row, index) => row.categoryId || `cat-${index}`)}
               columns={categoryColumns}
               emptyText="No category sales in this range."
@@ -164,8 +182,9 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
                 </Select>
               </div>
             </div>
-            <DataTable
+            <ReportTable
               data={withRowIds(data.items, (row, index) => row.variantId || `item-${index}`)}
+              loadAll={loadAllItems}
               columns={itemColumns}
               emptyText="No item sales match these filters."
               currentPage={data.meta.page || page}
