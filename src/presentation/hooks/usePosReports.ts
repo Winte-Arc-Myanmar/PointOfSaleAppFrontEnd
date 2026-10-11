@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type {
   ApiPosReportRepository,
+  CardActivityParams,
   PosBillsParams,
   PosRangeParams,
 } from "@/core/infrastructure/repositories/ApiPosReportRepository";
@@ -44,5 +45,19 @@ export const useHostessReport = (params: PosRangeParams) =>
   useQuery({
     queryKey: [...KEY, "hostesses", ...rangeKey(params)],
     queryFn: () => repository().hostesses(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useShiftReport = (params: PosRangeParams) =>
+  useQuery({
+    queryKey: [...KEY, "shifts", ...rangeKey(params)],
+    queryFn: () => repository().shifts(params),
+    placeholderData: keepPreviousData,
+  });
+
+export const useCardActivity = (params: CardActivityParams) =>
+  useQuery({
+    queryKey: [...KEY, "card", params.kind, ...rangeKey(params), params.page, params.limit, params.search],
+    queryFn: () => repository().cardActivity(params),
     placeholderData: keepPreviousData,
   });

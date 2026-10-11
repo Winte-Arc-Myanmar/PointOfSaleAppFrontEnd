@@ -37,6 +37,8 @@ import {
 import { OtherIncomeChart } from "./OtherIncomeChart";
 import {
   BarCategoriesChart,
+  CardActivityChart,
+  ShiftsChart,
   HostessesChart,
   KtvSessionsChart,
   PosBillsChart,
@@ -145,6 +147,9 @@ export function DashboardView() {
       {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryChart range={range} posType="BAR" /> : null}
       {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsChart range={range} posType="BAR" /> : null}
       {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesChart range={range} /> : null}
+      {!rangeInvalid && tab === "shifts" && range ? <ShiftsChart range={range} /> : null}
+      {!rangeInvalid && tab === "card-usage" && range ? <CardActivityChart key="usage" range={range} kind="USAGE" /> : null}
+      {!rangeInvalid && tab === "card-money" && range ? <CardActivityChart key="money" range={range} kind="MONEY" /> : null}
       {!rangeInvalid && tab === "other-income" && range ? <OtherIncomeChart range={range} /> : null}
       {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsChart range={range} /> : null}
       {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyChart range={range} /> : null}

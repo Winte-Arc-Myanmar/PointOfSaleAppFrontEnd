@@ -38,6 +38,8 @@ import { KtvSessionsPanel } from "./pos/KtvSessionsPanel";
 import { HostessesPanel } from "./pos/HostessesPanel";
 import { PosBillsPanel } from "./pos/PosBillsPanel";
 import { SpaMenuPanel } from "./pos/SpaMenuPanel";
+import { ShiftsPanel } from "./pos/ShiftsPanel";
+import { CardActivityPanel } from "./pos/CardActivityPanel";
 import { usePrinterPreferences } from "@/presentation/hooks/usePrinterPreferences";
 import { ReportScopeProvider, type ReportScope } from "./report-export";
 
@@ -184,6 +186,9 @@ export function ReportsDashboard() {
           {!rangeInvalid && tab === "bar-summary" && range ? <SalesSummaryPanel range={range} posType="BAR" /> : null}
           {!rangeInvalid && tab === "bar-bills" && range ? <PosBillsPanel range={range} posType="BAR" /> : null}
           {!rangeInvalid && tab === "bar-categories" && range ? <BarCategoriesPanel range={range} /> : null}
+          {!rangeInvalid && tab === "shifts" && range ? <ShiftsPanel range={range} /> : null}
+          {!rangeInvalid && tab === "card-usage" && range ? <CardActivityPanel key="usage" range={range} kind="USAGE" /> : null}
+          {!rangeInvalid && tab === "card-money" && range ? <CardActivityPanel key="money" range={range} kind="MONEY" /> : null}
           {!rangeInvalid && tab === "other-income" && range ? <OtherIncomePanel range={range} /> : null}
           {!rangeInvalid && tab === "member-cards" && range ? <MemberCardsPanel range={range} /> : null}
           {!rangeInvalid && tab === "loyalty" && range ? <LoyaltyPointsPanel range={range} /> : null}

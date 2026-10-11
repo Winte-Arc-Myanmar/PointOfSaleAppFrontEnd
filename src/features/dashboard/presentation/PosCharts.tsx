@@ -2,7 +2,9 @@
 
 import {
   useBarCategories,
+  useCardActivity,
   useHostessReport,
+  useShiftReport,
   useKtvSessionReport,
   usePosBills,
   useSpaMenuReport,
@@ -11,6 +13,7 @@ import type { PosType, SpaMenuSection } from "@/core/domain/entities/PosReport";
 import { formatCount, formatMoney, formatQuantity } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, SummaryCard } from "@/features/reports/presentation/plain/dashboard-ui";
 import { ChartCard, EmptyChart, MoneyBarChart, SharePieChart, chartAmount } from "./charts";
+import { CARD_ENTRY_LABEL } from "@/features/reports/presentation/pos/CardActivityPanel";
 import type { DashboardRange } from "./types";
 
 const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "Private VIP Lounge", BAR: "Bar" };
@@ -332,6 +335,156 @@ export function HostessesChart({ range }: { range: DashboardRange }) {
             </div>
           ) : (
             <EmptyChart label="No hostess calls in this range." />
+          )}
+        </>
+      ) : null}
+    </ReportPanel>
+  );
+}
+
+export function ShiftsChart({ range }: { range: DashboardRange }) {
+  const query = useShiftReport(range);
+  const data = query.data;
+  const staff = top(data?.byStaff ?? [], (row) => chartAmount(row.netTotal)).map((row) => ({
+    name: row.cashierName,
+    netTotal: chartAmount(row.netTotal),
+    cardTopUps: chartAmount(row.cardTopUps),
+  }));
+  const methods = (data?.byPaymentMethod ?? [])
+    .map((row) => ({ name: row.name, value: chartAmount(row.amount) }))
+    .filter((row) => row.value > 0);
+  const byDay = new Map<string, number>();
+  for (const shift of data?.shifts ?? []) {
+    byDay.set(shift.businessDate, (byDay.get(shift.businessDate) ?? 0) + chartAmount(shift.netTotal));
+  }
+  const days = [...byDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, netTotal]) => ({ name: date.slice(5) || date, netTotal }));
+
+  return (
+    <ReportPanel
+      title="Shifts"
+      description="Sales by staff and payment method across the shifts that opened in the range."
+      isLoading={query.isLoading}
+      isFetching={query.isFetching}
+      error={query.error}
+      onRetry={() => query.refetch()}
+    >
+      {data ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard label="Shifts" value={formatCount(data.totals.shifts)} />
+            <SummaryCard label="Bills" value={formatCount(data.totals.salesCount)} />
+            <SummaryCard label="Net sales" value={formatMoney(data.totals.netTotal)} />
+            <SummaryCard label="Card top-ups" value={formatMoney(data.totals.cardTopUps)} />
+          </div>
+          {staff.length ? (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <ChartCard title="Net sales by staff">
+                <MoneyBarChart
+                  data={staff}
+                  layout="vertical"
+                  bars={[
+                    { key: "netTotal", name: "Net sales", color: "#16a34a" },
+                    { key: "cardTopUps", name: "Card top-ups", color: "#2563eb" },
+                  ]}
+                />
+              </ChartCard>
+              {methods.length ? (
+                <ChartCard title="Paid by">
+                  <SharePieChart data={methods} />
+                </ChartCard>
+              ) : (
+                <EmptyChart label="No payments in this range." />
+              )}
+            </div>
+          ) : (
+            <EmptyChart label="No shifts in this range." />
+          )}
+          {days.length ? (
+            <ChartCard title="Net sales by shift date">
+              <MoneyBarChart data={days} bars={[{ key: "netTotal", name: "Net sales", color: "#0f766e" }]} />
+            </ChartCard>
+          ) : null}
+        </>
+      ) : null}
+    </ReportPanel>
+  );
+}
+
+export function CardActivityChart({ range, kind }: { range: DashboardRange; kind: "USAGE" | "MONEY" }) {
+  const usage = kind === "USAGE";
+  const query = useCardActivity({ ...range, kind, page: 1, limit: 1 });
+  const data = query.data;
+  const sign = usage ? -1 : 1;
+  const tiers = top(data?.byTier ?? [], (row) => Math.abs(chartAmount(row.amount))).map((row) => ({
+    name: row.tier,
+    amount: sign * chartAmount(row.amount),
+  }));
+  const types = (data?.totals.byType ?? [])
+    .map((row) => ({ name: CARD_ENTRY_LABEL[row.type], value: Math.abs(chartAmount(row.amount)) }))
+    .filter((row) => row.value > 0);
+  const methods = (data?.byPaymentMethod ?? []).map((row) => ({
+    name: row.name,
+    topUps: chartAmount(row.topUps),
+    refunds: chartAmount(row.refunds),
+  }));
+
+  return (
+    <ReportPanel
+      title={usage ? "Card usage" : "Card top-ups & refunds"}
+      description={
+        usage
+          ? "Guest-card spending by tier. Every spend is listed on Reports."
+          : "Card money in and out by tier and payment method. Every entry is listed on Reports."
+      }
+      isLoading={query.isLoading}
+      isFetching={query.isFetching}
+      error={query.error}
+      onRetry={() => query.refetch()}
+    >
+      {data ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SummaryCard label="Entries" value={formatCount(data.totals.entries)} />
+            <SummaryCard
+              label={usage ? "Net spent" : "Net change on cards"}
+              value={formatMoney(sign * chartAmount(data.totals.netChange))}
+            />
+          </div>
+          {tiers.length ? (
+            <div className="grid gap-6 lg:grid-cols-2">
+              <ChartCard title={usage ? "Spent by tier" : "Net change by tier"}>
+                <MoneyBarChart
+                  data={tiers}
+                  layout="vertical"
+                  bars={[{ key: "amount", name: usage ? "Spent" : "Net change", color: "#c026d3" }]}
+                />
+              </ChartCard>
+              {usage ? (
+                types.length ? (
+                  <ChartCard title="By type">
+                    <SharePieChart data={types} />
+                  </ChartCard>
+                ) : (
+                  <EmptyChart label="Nothing in this range." />
+                )
+              ) : methods.length ? (
+                <ChartCard title="By payment method">
+                  <MoneyBarChart
+                    data={methods}
+                    bars={[
+                      { key: "topUps", name: "Top-ups", color: "#16a34a" },
+                      { key: "refunds", name: "Refunds", color: "#dc2626" },
+                    ]}
+                  />
+                </ChartCard>
+              ) : (
+                <EmptyChart label="No card money taken or paid out in this range." />
+              )}
+            </div>
+          ) : (
+            <EmptyChart label={usage ? "No card spending in this range." : "No card top-ups or refunds in this range."} />
           )}
         </>
       ) : null}

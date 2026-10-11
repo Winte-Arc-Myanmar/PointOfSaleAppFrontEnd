@@ -6,6 +6,7 @@ import type {
   PosType,
   SpaMenuReport,
 } from "@/core/domain/entities/PosReport";
+import type { CardActivityReport, ShiftReport } from "@/core/domain/entities/ShiftCardReport";
 import type { HttpClient } from "../api/HttpClient";
 import { API_ENDPOINTS } from "../api/constants";
 
@@ -17,6 +18,13 @@ export interface PosRangeParams {
 
 export interface PosBillsParams extends PosRangeParams {
   posType: PosType;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface CardActivityParams extends PosRangeParams {
+  kind: "USAGE" | "MONEY";
   page?: number;
   limit?: number;
   search?: string;
@@ -58,5 +66,18 @@ export class ApiPosReportRepository {
     return this.httpClient.get<HostessReport>(API_ENDPOINTS.REPORTS.HOSTESSES, {
       params: defined({ ...params }),
     });
+  }
+
+  shifts(params: PosRangeParams) {
+    return this.httpClient.get<ShiftReport>(API_ENDPOINTS.REPORTS.SHIFTS, {
+      params: defined({ ...params }),
+    });
+  }
+
+  cardActivity({ kind, ...params }: CardActivityParams) {
+    return this.httpClient.get<CardActivityReport>(
+      kind === "USAGE" ? API_ENDPOINTS.REPORTS.CARD_USAGE : API_ENDPOINTS.REPORTS.CARD_MONEY,
+      { params: defined({ ...params }) },
+    );
   }
 }
