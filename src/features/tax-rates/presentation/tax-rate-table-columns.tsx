@@ -53,6 +53,16 @@ export function getTaxRateTableColumns(
       ),
     },
     {
+      key: "appliesToServiceCharge",
+      header: "On Service Charge",
+      className: "min-w-[150px]",
+      render: (r) => (
+        <span className={r.appliesToServiceCharge ? "text-green-600 font-medium" : "text-muted"}>
+          {r.appliesToServiceCharge ? "Yes" : "No"}
+        </span>
+      ),
+    },
+    {
       key: "glLiabilityAccountId",
       header: "GL Liability Account",
       className: "min-w-[200px] max-w-[240px]",

@@ -16,6 +16,7 @@ import {
   Layers,
   CalendarClock,
 } from "lucide-react";
+import { taxPercent } from "@/lib/tax-percent";
 import { useProduct } from "@/presentation/hooks/useProducts";
 import { useModifierGroups } from "@/presentation/hooks/useModifierGroups";
 import { useRecipes } from "@/presentation/hooks/useRecipes";
@@ -180,13 +181,15 @@ export function ProductDetail({ productId }: { productId: string }) {
           value: product.isTaxable == null ? "—" : product.isTaxable ? "Yes" : "No",
         },
         {
-          label: "Tax rate name",
-          value: product.taxRateName ? safeText(product.taxRateName) : "—",
-        },
-        {
-          label: "Tax rate ID",
-          value: product.taxRateId ? safeText(product.taxRateId) : "—",
-          mono: true,
+          label: "Taxes",
+          value:
+            product.isTaxable === false
+              ? "—"
+              : product.taxRates.length
+                ? product.taxRates
+                    .map((rate) => `${rate.name} (${taxPercent(rate.ratePercentage)}%)`)
+                    .join(", ")
+                : "Shop default taxes",
         },
       ]
     : [];

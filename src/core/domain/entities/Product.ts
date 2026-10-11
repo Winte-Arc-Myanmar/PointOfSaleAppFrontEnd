@@ -14,6 +14,15 @@ export type RentalPlace = "KTV_ROOM" | "SPA_ROOM" | "TABLE";
 export type ChargeMode = "PAY_FIRST" | "CLOCK";
 
 /** How a product is classified and sold. */
+export interface ProductTaxRate {
+  id: string;
+  name: string;
+  /** A fraction: 0.05 is 5%. */
+  ratePercentage: number;
+  isPriceInclusive: boolean;
+  appliesToServiceCharge: boolean;
+}
+
 export interface ProductTerms {
   kind: ProductKind;
   /** POS areas it is sold at; empty means every area. */
@@ -60,13 +69,9 @@ export interface Product extends ProductTerms {
   imageUrl?: string | null;
   isTaxable?: boolean;
   isAvailable: boolean;
-  taxRateId?: string | null;
-  /** Resolved when API embeds `taxRate` on product */
-  taxRateName?: string;
-  /** Resolved when API embeds `taxRate` on product */
-  taxRateRatePercentage?: number;
-  /** Resolved when API embeds `taxRate` on product */
-  taxRateIsPriceInclusive?: boolean;
+  /** Its own taxes; empty means the shop's default taxes. */
+  taxRateIds: string[];
+  taxRates: ProductTaxRate[];
   deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
