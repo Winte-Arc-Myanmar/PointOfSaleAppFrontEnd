@@ -19,5 +19,5 @@ export interface ProductDto extends Partial<ProductTerms> {
   imageUrl?: string | null;
   isTaxable?: boolean;
   isAvailable?: boolean;
-  taxRateId?: string | null;
+  taxRateIds?: string[];
 }

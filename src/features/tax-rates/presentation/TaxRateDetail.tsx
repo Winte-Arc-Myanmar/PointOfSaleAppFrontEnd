@@ -35,6 +35,7 @@ export function TaxRateDetail({ taxRateId }: { taxRateId: string }) {
     { label: "Name", value: safeText(taxRate.name) },
     { label: "Rate percentage", value: `${taxPercent(taxRate.ratePercentage)}%` },
     { label: "Price inclusive", value: taxRate.isPriceInclusive ? "Yes" : "No" },
+    { label: "On service charge", value: taxRate.appliesToServiceCharge ? "Yes" : "No" },
     {
       label: "GL liability account ID",
       value: safeText(taxRate.glLiabilityAccountId),

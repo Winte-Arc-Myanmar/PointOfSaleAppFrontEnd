@@ -100,6 +100,9 @@ export function ThermalReceiptView({
         {receipt.totals.totalDiscount > 0 ? (
           <p>Discount -{money(receipt.totals.totalDiscount)}</p>
         ) : null}
+        {receipt.totals.serviceCharge > 0 ? (
+          <p>Service charge {money(receipt.totals.serviceCharge)}</p>
+        ) : null}
         {receipt.taxSummary.length > 0
           ? receipt.taxSummary.map((tax, index) => (
               <p key={`${tax.taxName}-${index}`}>
@@ -109,6 +112,7 @@ export function ThermalReceiptView({
           : receipt.totals.totalTax > 0 && (
               <p>Tax {money(receipt.totals.totalTax)}</p>
             )}
+        {receipt.totals.tipAmount > 0 ? <p>Tip {money(receipt.totals.tipAmount)}</p> : null}
         <p className="mt-2 border-y-2 border-black py-1 text-base font-black">
           TOTAL {money(receipt.totals.grandTotal)}
         </p>

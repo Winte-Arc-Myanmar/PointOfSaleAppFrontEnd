@@ -197,11 +197,17 @@ export class EscPosReceiptFormatter implements IThermalReceiptFormatter {
     if (receipt.totals.totalDiscount > 0) {
       push(`Discount -${money(receipt.totals.totalDiscount)}`);
     }
+    if (receipt.totals.serviceCharge > 0) {
+      push(`Service charge ${money(receipt.totals.serviceCharge)}`);
+    }
     for (const tax of receipt.taxSummary) {
       push(`${tax.taxName} ${taxPercent(tax.ratePercentage)}% ${money(tax.taxAmount)}`);
     }
     if (receipt.taxSummary.length === 0 && receipt.totals.totalTax > 0) {
       push(`Tax ${money(receipt.totals.totalTax)}`);
+    }
+    if (receipt.totals.tipAmount > 0) {
+      push(`Tip ${money(receipt.totals.tipAmount)}`);
     }
     push(("=").repeat(width));
     encoder.bold(true);

@@ -31,6 +31,9 @@ export function toSalesOrder(
     subtotal?: unknown;
     totalDiscount?: unknown;
     totalTax?: unknown;
+    serviceCharge?: unknown;
+    serviceChargeTax?: unknown;
+    tipAmount?: unknown;
     grandTotal?: unknown;
   }
 ): SalesOrder {
@@ -45,6 +48,9 @@ export function toSalesOrder(
     subtotal: parseDecimal(dto.subtotal),
     totalDiscount: parseDecimal(dto.totalDiscount),
     totalTax: parseDecimal(dto.totalTax),
+    serviceCharge: parseDecimal(dto.serviceCharge),
+    serviceChargeTax: parseDecimal(dto.serviceChargeTax),
+    tipAmount: parseDecimal(dto.tipAmount),
     grandTotal: parseDecimal(dto.grandTotal),
     status: dto.status ?? "DRAFT",
     createdAt: dto.createdAt ?? null,

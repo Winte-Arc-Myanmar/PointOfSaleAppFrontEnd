@@ -87,6 +87,8 @@ export function toReceipt(dto: ReceiptDto): Receipt {
       subtotal: parseDecimal(totals.subtotal),
       totalDiscount: parseDecimal(totals.totalDiscount),
       totalTax: parseDecimal(totals.totalTax),
+      serviceCharge: parseDecimal(totals.serviceCharge),
+      tipAmount: parseDecimal(totals.tipAmount),
       grandTotal: parseDecimal(totals.grandTotal),
     },
     paymentSummary: {

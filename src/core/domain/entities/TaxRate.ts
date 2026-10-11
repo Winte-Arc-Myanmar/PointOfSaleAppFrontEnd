@@ -6,6 +6,8 @@ export interface TaxRate {
   name: string;
   ratePercentage: string;
   isPriceInclusive: boolean;
+  /** Also charged on the service charge, not only on the items. */
+  appliesToServiceCharge: boolean;
   glLiabilityAccountId: string;
   deletedAt?: string | null;
   createdAt?: string | null;
