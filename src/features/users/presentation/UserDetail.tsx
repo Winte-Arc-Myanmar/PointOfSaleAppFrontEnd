@@ -14,6 +14,7 @@ import {
 } from "@/presentation/components/detail";
 import { AppLoader } from "@/presentation/components/loader";
 import { resolveMediaUrl } from "@/lib/media-url";
+import { userStatusLabel } from "./user-status";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
@@ -39,7 +40,7 @@ export function UserDetail({ userId }: { userId: string }) {
     : [];
   const statusRows = user
     ? [
-        { label: "Status", value: safeText(user.status) },
+        { label: "Status", value: userStatusLabel(user.status) },
         { label: "Login attempts", value: safeText(user.loginAttempts) },
         { label: "Last login at", value: formatDate(user.lastLoginAt) },
         { label: "Lockout until", value: formatDate(user.lockoutUntil) },

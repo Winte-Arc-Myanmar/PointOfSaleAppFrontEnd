@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { AppUser } from "@/core/domain/entities/AppUser";
+import { isSuspended, userStatusLabel } from "./user-status";
 
 type UserTableColumnOptions = {
   onView?: (user: AppUser) => void;
@@ -60,6 +61,16 @@ export function getUserTableColumns(
       render: (u) => (
         <span className="truncate text-muted" title={u.branchId ? branchNameById?.get(String(u.branchId)) : undefined}>
           {u.branchId ? branchNameById?.get(String(u.branchId)) ?? "Branch unavailable" : "Not assigned"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      className: "min-w-[90px] max-w-[120px]",
+      render: (u) => (
+        <span className={isSuspended(u) ? "font-medium text-red-500" : "text-muted"}>
+          {userStatusLabel(u.status)}
         </span>
       ),
     },

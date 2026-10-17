@@ -25,7 +25,7 @@ export interface UserDto {
   updatedAt?: string;
 }
 
-/** PATCH body - email, password, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage */
+/** PATCH body - email, password, fullName, phoneNumber, avatarUrl, jobTitle, preferredLanguage, status */
 export type UserUpdateDto = Partial<
   Pick<
     UserDto,
@@ -36,6 +36,7 @@ export type UserUpdateDto = Partial<
     | "avatarUrl"
     | "jobTitle"
     | "preferredLanguage"
+    | "status"
   >
 > & {
   /** Replaces the user's role; sent with the branch it applies in (null: all). */

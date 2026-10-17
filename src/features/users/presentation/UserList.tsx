@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUsers, useDeleteUser } from "@/presentation/hooks/useUsers";
+import { useUsers, useDeleteUser, useUpdateUser } from "@/presentation/hooks/useUsers";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { useBranches } from "@/presentation/hooks/useBranches";
 import { usePagination } from "@/presentation/hooks/usePagination";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
@@ -47,6 +48,7 @@ export function UserList() {
     [branches],
   );
   const deleteUser = useDeleteUser();
+  const updateUser = useUpdateUser();
   const toast = useToast();
   const confirm = useConfirm();
   const filteredUsers = useMemo(() => {
@@ -103,6 +105,31 @@ export function UserList() {
         onView: (u) => router.push(`/users/${u.id}`),
         onEdit: (u) => router.push(`/users/${u.id}/edit`),
         onResetPassword: setResettingUser,
+        onSuspend: async (u) => {
+          const ok = await confirm({
+            title: "Suspend user",
+            description: `Suspend "${u.fullName}"? They are signed out of the POS and admin at once and cannot sign in until reactivated.`,
+            confirmLabel: "Suspend",
+            variant: "destructive",
+          });
+          if (ok) {
+            updateUser.mutate(
+              { id: String(u.id), data: { status: "INACTIVE" } },
+              {
+                onSuccess: () => toast.success(`${u.fullName} is suspended.`),
+                onError: (error) => toast.error(getHttpErrorMessage(error, "Couldn't suspend the user.")),
+              },
+            );
+          }
+        },
+        onReactivate: (u) =>
+          updateUser.mutate(
+            { id: String(u.id), data: { status: "ACTIVE" } },
+            {
+              onSuccess: () => toast.success(`${u.fullName} can sign in again.`),
+              onError: (error) => toast.error(getHttpErrorMessage(error, "Couldn't reactivate the user.")),
+            },
+          ),
         onDelete: async (u) => {
           const ok = await confirm({
             title: "Delete user",
@@ -118,7 +145,7 @@ export function UserList() {
           }
         },
       }),
-    [router, deleteUser, toast, confirm]
+    [router, deleteUser, updateUser, toast, confirm]
   );
 
   const columns = useMemo(
