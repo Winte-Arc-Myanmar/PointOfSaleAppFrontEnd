@@ -9,6 +9,7 @@ import { usePagination } from "@/presentation/hooks/usePagination";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { useConfirm } from "@/presentation/hooks/useConfirm";
+import { useIsOwner } from "@/presentation/hooks/useIsOwner";
 import { Input } from "@/presentation/components/ui/input";
 import {
   Select,
@@ -51,6 +52,7 @@ export function UserList() {
   const updateUser = useUpdateUser();
   const toast = useToast();
   const confirm = useConfirm();
+  const isOwner = useIsOwner();
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase();
     const searchedUsers = !q
@@ -104,6 +106,7 @@ export function UserList() {
       getUserRowActions({
         onView: (u) => router.push(`/users/${u.id}`),
         onEdit: (u) => router.push(`/users/${u.id}/edit`),
+        isLocked: (u) => Boolean(u.isOwner) && !isOwner,
         onResetPassword: setResettingUser,
         onSuspend: async (u) => {
           const ok = await confirm({
@@ -145,7 +148,7 @@ export function UserList() {
           }
         },
       }),
-    [router, deleteUser, updateUser, toast, confirm]
+    [router, deleteUser, updateUser, toast, confirm, isOwner]
   );
 
   const columns = useMemo(
@@ -159,6 +162,10 @@ export function UserList() {
 
   async function handleDeleteSelected(items: AppUser[]) {
     if (items.length === 0) return;
+    if (!isOwner && items.some((u) => u.isOwner)) {
+      toast.error("Only an Owner can delete an Owner. Unselect the Owner first.");
+      return;
+    }
     const ok = await confirm({
       title: "Delete users",
       description: `Delete ${items.length} selected user(s)? This cannot be undone.`,
@@ -235,7 +242,13 @@ export function UserList() {
         createFormId={CREATE_USER_FORM_ID}
         createMaxWidth="2xl"
         enableRowSelection
-        onEditSelected={(item) => router.push(`/users/${item.id}/edit`)}
+        onEditSelected={(item) => {
+          if (item.isOwner && !isOwner) {
+            toast.error("Only an Owner can change an Owner account.");
+            return;
+          }
+          router.push(`/users/${item.id}/edit`);
+        }}
         onDeleteSelected={handleDeleteSelected}
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
           <CreateUserForm

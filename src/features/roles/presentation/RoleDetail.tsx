@@ -79,7 +79,12 @@ export function RoleDetail({ roleId }: { roleId: string }) {
         </DetailSection>
 
         <DetailSection title="Permissions" icon={KeyRound} className="lg:col-span-2">
-          {isPermLoading || !isGrantable ? (
+          {role.isOwner ? (
+            <p className="text-sm text-muted">
+              This is the Owner role. It always has every permission, so its list cannot be changed.
+              Only an Owner can give this role to someone.
+            </p>
+          ) : isPermLoading || !isGrantable ? (
             <div className="panel flex min-h-48 items-center justify-center rounded-xl bg-background/80">
               <AppLoader fullScreen={false} showName={false} size="sm" message="Loading permissions..." />
             </div>
