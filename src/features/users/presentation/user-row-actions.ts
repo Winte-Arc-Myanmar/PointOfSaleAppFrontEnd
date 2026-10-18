@@ -9,6 +9,8 @@ export interface UserRowActionsProps {
   onSuspend?: (user: AppUser) => void;
   onReactivate?: (user: AppUser) => void;
   onDelete?: (user: AppUser) => void;
+  /** Rows the signed-in person may only view, such as an Owner when they are not one. */
+  isLocked?: (user: AppUser) => boolean;
 }
 
 export function getUserRowActions({
@@ -18,21 +20,33 @@ export function getUserRowActions({
   onSuspend,
   onReactivate,
   onDelete,
+  isLocked = () => false,
 }: UserRowActionsProps): DataTableAction<AppUser>[] {
   const actions: DataTableAction<AppUser>[] = [];
   if (onView) actions.push({ label: "View", onClick: onView });
-  if (onEdit) actions.push({ label: "Edit", onClick: onEdit });
-  if (onResetPassword) actions.push({ label: "Reset password", onClick: onResetPassword });
+  if (onEdit) actions.push({ label: "Edit", onClick: onEdit, disabled: isLocked });
+  if (onResetPassword) {
+    actions.push({ label: "Reset password", onClick: onResetPassword, disabled: isLocked });
+  }
   if (onSuspend) {
-    actions.push({ label: "Suspend", onClick: onSuspend, disabled: isSuspended });
+    actions.push({
+      label: "Suspend",
+      onClick: onSuspend,
+      disabled: (u) => isLocked(u) || isSuspended(u),
+    });
   }
   if (onReactivate) {
-    actions.push({ label: "Reactivate", onClick: onReactivate, disabled: (u) => !isSuspended(u) });
+    actions.push({
+      label: "Reactivate",
+      onClick: onReactivate,
+      disabled: (u) => isLocked(u) || !isSuspended(u),
+    });
   }
   if (onDelete) {
     actions.push({
       label: "Delete",
       onClick: onDelete,
+      disabled: isLocked,
       variant: "destructive",
     });
   }

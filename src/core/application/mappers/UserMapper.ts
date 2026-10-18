@@ -13,6 +13,7 @@ export function toAppUser(dto: UserDto & { id: string }): AppUser {
     branch?: string | { id?: string | null } | null;
     tenantId?: string;
     roles?: { roleId?: string; roleName?: string; branchId?: string | null }[];
+    isOwner?: boolean;
   };
   const firstRole = Array.isArray(response.roles) ? response.roles[0] : undefined;
   const nestedBranchId =
@@ -34,6 +35,7 @@ export function toAppUser(dto: UserDto & { id: string }): AppUser {
       dto.branchId ?? response.branch_id ?? response.assignedBranchId ?? nestedBranchId ?? undefined,
     preferredLanguage: dto.preferredLanguage,
     status: dto.status,
+    isOwner: Boolean(response.isOwner),
     lastLoginAt: dto.lastLoginAt ?? undefined,
     loginAttempts: dto.loginAttempts,
     lockoutUntil: dto.lockoutUntil ?? undefined,
