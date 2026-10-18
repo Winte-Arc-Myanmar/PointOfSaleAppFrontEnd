@@ -11,7 +11,7 @@ export function getRoleRowActions(args: {
       label: "Delete",
       variant: "destructive",
       onClick: args.onDelete,
-      disabled: (r) => r.isSystemDefault,
+      disabled: (r) => r.isSystemDefault || r.isOwner,
     },
   ];
 }

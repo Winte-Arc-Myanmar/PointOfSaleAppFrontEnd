@@ -8,6 +8,7 @@ import { useCreateUser } from "@/presentation/hooks/useUsers";
 import { useSystemAdminCreateUser } from "@/presentation/hooks/useSystemAdmin";
 import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
 import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { useIsOwner } from "@/presentation/hooks/useIsOwner";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
@@ -43,6 +44,7 @@ export function CreateUserForm({
   const { data: session } = useSession();
   const tenantId = session?.user?.tenantId;
   const { isSystemAdmin } = usePermissions();
+  const isOwner = useIsOwner();
   const createUser = useCreateUser();
   const createSystemAdminUser = useSystemAdminCreateUser();
   const toast = useToast();
@@ -78,7 +80,10 @@ export function CreateUserForm({
     tenantId ??
     filteredBranches.find((branch) => branch.id === chosenBranchId)?.tenantId;
   const filteredRoles = (options?.roles ?? []).filter(
-    (r) => Boolean(roleTenantId) && r.tenantId === roleTenantId,
+    (r) =>
+      Boolean(roleTenantId) &&
+      r.tenantId === roleTenantId &&
+      (isOwner || !r.isOwner),
   );
 
   useEffect(() => {

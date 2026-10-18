@@ -22,6 +22,8 @@ export interface AppUser {
   branchId?: string;
   preferredLanguage?: string;
   status?: string;
+  /** Holds the Owner role: only an Owner may change this user. */
+  isOwner?: boolean;
   lastLoginAt?: string | null;
   loginAttempts?: number;
   lockoutUntil?: string | null;

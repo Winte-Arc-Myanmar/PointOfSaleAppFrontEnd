@@ -34,13 +34,15 @@ export function RoleList() {
         onDelete: async (r) => {
           const ok = await confirm({
             title: "Delete role",
-            description: r.isSystemDefault
+            description: r.isOwner
+              ? `\"${r.name}\" is the Owner role and cannot be deleted.`
+              : r.isSystemDefault
               ? `\"${r.name}\" is a system default role and cannot be deleted.`
               : `Delete \"${r.name}\"? This cannot be undone.`,
             confirmLabel: "Delete",
             variant: "destructive",
           });
-          if (!ok || r.isSystemDefault) return;
+          if (!ok || r.isSystemDefault || r.isOwner) return;
           deleteRole.mutate(r.id, {
             onSuccess: () => toast.success("Role deleted."),
             onError: () => toast.error("Failed to delete role."),

@@ -13,6 +13,7 @@ export function toRole(dto: RoleDto): Role {
     parentId: dto.parentId ?? null,
     name: dto.name,
     isSystemDefault: Boolean(dto.isSystemDefault),
+    isOwner: Boolean(dto.isOwner),
     ...(Array.isArray(dto.permissions) && {
       permissionIds: dto.permissions
         .map((rp) => rp.permission?.id ?? rp.permissionId)

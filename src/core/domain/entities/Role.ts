@@ -9,6 +9,8 @@ export interface Role {
   parentId: string | null;
   name: string;
   isSystemDefault: boolean;
+  /** The shop's Owner role: always holds every permission and cannot be deleted. */
+  isOwner: boolean;
   /** The permissions the role holds, when the API sends them (a single role does). */
   permissionIds?: string[];
 }

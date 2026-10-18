@@ -1,5 +1,6 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { AppUser } from "@/core/domain/entities/AppUser";
+import { StatusBadge } from "@/presentation/components/ui/status-badge";
 import { isSuspended, userStatusLabel } from "./user-status";
 
 type UserTableColumnOptions = {
@@ -28,20 +29,23 @@ export function getUserTableColumns(
       sortable: true,
       className: "min-w-[120px] max-w-[200px]",
       render: (u) => (
-        onView ? (
-          <button
-            type="button"
-            className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
-            title={u.fullName}
-            onClick={() => onView(u)}
-          >
-            {u.fullName}
-          </button>
-        ) : (
-          <span className="font-medium text-foreground truncate" title={u.fullName}>
-            {u.fullName}
-          </span>
-        )
+        <span className="flex min-w-0 items-center gap-2">
+          {onView ? (
+            <button
+              type="button"
+              className="font-medium text-foreground truncate text-left hover:text-mint transition-colors"
+              title={u.fullName}
+              onClick={() => onView(u)}
+            >
+              {u.fullName}
+            </button>
+          ) : (
+            <span className="font-medium text-foreground truncate" title={u.fullName}>
+              {u.fullName}
+            </span>
+          )}
+          {u.isOwner ? <StatusBadge status="OWNER" label="Owner" /> : null}
+        </span>
       ),
     },
     {
