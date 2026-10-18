@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUser, useUpdateUser } from "@/presentation/hooks/useUsers";
+import { useIsOwner } from "@/presentation/hooks/useIsOwner";
 import { useCreateUserFormOptions } from "@/presentation/hooks/useCreateUserFormOptions";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
@@ -59,7 +60,10 @@ export function EditUserForm({ userId }: { userId: string }) {
       branchId: "",
     },
   });
-  const roles = (options?.roles ?? []).filter((r) => !user?.tenantId || r.tenantId === user.tenantId);
+  const isOwner = useIsOwner();
+  const roles = (options?.roles ?? []).filter(
+    (r) => (!user?.tenantId || r.tenantId === user.tenantId) && (isOwner || !r.isOwner),
+  );
   const branches = (options?.branches ?? []).filter(
     (b) => !user?.tenantId || b.tenantId === user.tenantId,
   );
@@ -116,6 +120,16 @@ export function EditUserForm({ userId }: { userId: string }) {
         <p className="text-red-500">User not found.</p>
         <Link href="/users">
           <Button variant="outline">Back to Users</Button>
+        </Link>
+      </div>
+    );
+
+  if (user.isOwner && !isOwner)
+    return (
+      <div className="space-y-4">
+        <p className="text-muted">Only an Owner can change an Owner account.</p>
+        <Link href={`/users/${userId}`}>
+          <Button variant="outline">Back to user</Button>
         </Link>
       </div>
     );

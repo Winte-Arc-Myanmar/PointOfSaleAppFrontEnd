@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/presentation/hooks/useUsers";
+import { useIsOwner } from "@/presentation/hooks/useIsOwner";
 import { Button } from "@/presentation/components/ui/button";
 import { User, Shield, Info } from "lucide-react";
 import {
@@ -18,6 +19,7 @@ import { userStatusLabel } from "./user-status";
 
 export function UserDetail({ userId }: { userId: string }) {
   const { data: user, isLoading, error } = useUser(userId);
+  const isOwner = useIsOwner();
   const profileRows = user
     ? [
         { label: "User ID", value: safeText(user.loginId), mono: true },
@@ -70,7 +72,7 @@ export function UserDetail({ userId }: { userId: string }) {
         backHref="/users"
         backLabel="Users"
         title={safeText(user.fullName)}
-        editHref={`/users/${user.id}/edit`}
+        editHref={user.isOwner && !isOwner ? undefined : `/users/${user.id}/edit`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

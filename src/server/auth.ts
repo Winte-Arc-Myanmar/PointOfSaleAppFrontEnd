@@ -113,6 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.activeBranch = token.activeBranch as string | undefined;
         session.access = token.access as BranchAccess[] | undefined;
         session.expiresAt = expiresAt(token.accessToken);
+        if (token.sub) session.user.id = token.sub;
         (session.user as { type?: UserType }).type = token.type as UserType;
         (session.user as { tenantId?: string }).tenantId = token.tenantId as
           | string
