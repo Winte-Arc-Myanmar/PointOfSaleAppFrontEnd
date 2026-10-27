@@ -8,7 +8,9 @@ import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
   type AxiosResponse,
+  type InternalAxiosRequestConfig,
 } from "axios";
+import type { Session } from "next-auth";
 import { getSession, signOut } from "next-auth/react";
 import { loginUrlFor } from "@/lib/login-return";
 import { API_CONFIG, API_ENDPOINTS } from "./constants";
@@ -47,6 +49,22 @@ function unwrapWithMeta<T>(body: unknown): { data: T; meta?: Record<string, unkn
   return { data: body as T };
 }
 
+let sessionLookup: Promise<Session | null> | null = null;
+
+/**
+ * One session lookup for requests sent together. Each lookup renews an expiring
+ * token, so a page loading 20 things after a break sent 20 renewals; past the
+ * API's limit the rest failed and signed the user out.
+ */
+function currentSession(): Promise<Session | null> {
+  sessionLookup ??= getSession().finally(() => {
+    sessionLookup = null;
+  });
+  return sessionLookup;
+}
+
+type RetriedConfig = InternalAxiosRequestConfig & { _retried?: boolean };
+
 export class HttpClient {
   private client: AxiosInstance;
 
@@ -60,7 +78,7 @@ export class HttpClient {
     this.client.interceptors.request.use(
       async (config) => {
         if (typeof window !== "undefined") {
-          const session = await getSession();
+          const session = await currentSession();
           if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
           }
@@ -76,11 +94,21 @@ export class HttpClient {
 
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
+        const config = error.config as RetriedConfig | undefined;
         // A manager mistyping their password at an approval is not this user's
         // session ending.
-        const approving = error.config?.url === API_ENDPOINTS.AUTH.APPROVE;
+        const approving = config?.url === API_ENDPOINTS.AUTH.APPROVE;
         if (error.response?.status === 401 && !approving && typeof window !== "undefined") {
+          // The token may have run out on the way; try once more with a renewed one.
+          if (config && !config._retried) {
+            const session = await currentSession();
+            const sent = String(config.headers.Authorization ?? "");
+            if (session?.accessToken && sent !== `Bearer ${session.accessToken}`) {
+              config._retried = true;
+              return this.client.request(config);
+            }
+          }
           const here = window.location.pathname + window.location.search;
           signOut({ callbackUrl: loginUrlFor(here, "expired") });
         }
