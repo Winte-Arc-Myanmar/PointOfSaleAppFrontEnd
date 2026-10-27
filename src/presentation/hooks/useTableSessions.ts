@@ -11,6 +11,7 @@ import type {
   TableSessionAllocateSeatDto,
   TableSessionCheckoutDto,
   TableSessionCreateDto,
+  TableSeatingChangeDto,
   TableSessionStateTransitionDto,
   TableSessionUpdateDto,
 } from "@/core/application/dtos/TableSessionDto";
@@ -89,6 +90,20 @@ export function useTransitionTableSessionState() {
       queryClient.invalidateQueries({
         queryKey: [...TABLE_SESSIONS_QUERY_KEY, variables.id],
       });
+    },
+  });
+}
+
+export function useChangeTableSeating() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, change }: { id: string; change: TableSeatingChangeDto }) => {
+      const service = container.resolve<ITableSessionService>("tableSessionService");
+      return service.changeSeating(id, change);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TABLE_SESSIONS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ["dining-tables"] });
     },
   });
 }

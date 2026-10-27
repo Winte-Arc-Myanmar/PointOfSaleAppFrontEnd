@@ -31,6 +31,8 @@ export function toTableSession(dto: TableSessionDto & { id: string }): TableSess
     sessionState: dto.sessionState ?? "SEATED",
     posRegisterId: dto.posRegisterId ?? null,
     openedByPosSessionId: dto.openedByPosSessionId ?? null,
+    joinedTableIds: (dto.joinedTables ?? []).map((joined) => joined.tableId),
+    mergedIntoSessionId: dto.mergedIntoSessionId ?? null,
   };
 }
 

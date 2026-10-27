@@ -21,6 +21,10 @@ export interface TableSession {
   sessionState: TableSessionState;
   posRegisterId?: string | null;
   openedByPosSessionId?: string | null;
+  /** Tables pushed together with this one for the same party and bill. */
+  joinedTableIds: string[];
+  /** Set when this table's bill was combined into another session. */
+  mergedIntoSessionId?: string | null;
 }
 
 export interface TableSessionSeatAllocation {
