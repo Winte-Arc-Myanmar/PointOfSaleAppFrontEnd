@@ -15,6 +15,8 @@ export interface TableSessionDto {
   sessionState: TableSessionState;
   posRegisterId?: string | null;
   openedByPosSessionId?: string | null;
+  joinedTables?: { tableId: string }[];
+  mergedIntoSessionId?: string | null;
 }
 
 export interface TableSessionCreateDto {
@@ -36,6 +38,13 @@ export interface TableSessionUpdateDto {
 export interface TableSessionStateTransitionDto {
   sessionState: TableSessionState;
 }
+
+/** Guests changing places: another table, two bills combined, tables joined. */
+export type TableSeatingChangeDto =
+  | { kind: "move"; tableId: string }
+  | { kind: "merge"; sourceSessionId: string; keepTable: boolean }
+  | { kind: "join"; tableId: string }
+  | { kind: "release"; tableId: string };
 
 export interface TableSessionLineModifierDto {
   modifierId: string;
