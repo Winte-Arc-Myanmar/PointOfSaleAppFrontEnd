@@ -69,7 +69,7 @@ export function discountLabel(
 export function scopeLabel(rule: PromotionRule, categoryName: (id: string) => string): string {
   if (rule.appliesTo === "ALL_ITEMS") {
     if (rule.productGroups.length) return rule.productGroups.map((g) => GROUP_LABEL[g]).join(", ");
-    return rule.discountType === "FREE_TIME" ? "All time & packages" : "Everything";
+    return "Everything";
   }
   if (rule.appliesTo === "CATEGORIES") {
     return rule.categoryIds.map(categoryName).join(", ") || "No categories";
