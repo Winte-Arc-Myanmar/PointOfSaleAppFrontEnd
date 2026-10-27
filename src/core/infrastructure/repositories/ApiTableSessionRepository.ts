@@ -17,6 +17,7 @@ import type {
   TableSessionCreateDto,
   TableSessionDto,
   TableSessionSeatAllocationDto,
+  TableSeatingChangeDto,
   TableSessionStateTransitionDto,
   TableSessionUpdateDto,
 } from "@/core/application/dtos/TableSessionDto";
@@ -75,6 +76,26 @@ export class ApiTableSessionRepository implements ITableSessionRepository {
 
   async transitionState(id: string, data: TableSessionStateTransitionDto): Promise<TableSession> {
     const dto = await this.httpClient.post<TableSessionDto>(API_ENDPOINTS.TABLE_SESSIONS.STATE(id), data);
+    return toTableSession({ ...dto, id: dto?.id ?? id } as TableSessionDto & { id: string });
+  }
+
+  async changeSeating(id: string, change: TableSeatingChangeDto): Promise<TableSession> {
+    const endpoints = API_ENDPOINTS.TABLE_SESSIONS;
+    const dto =
+      change.kind === "move"
+        ? await this.httpClient.post<TableSessionDto>(endpoints.MOVE(id), {
+            tableId: change.tableId,
+          })
+        : change.kind === "merge"
+          ? await this.httpClient.post<TableSessionDto>(endpoints.MERGE(id), {
+              sourceSessionId: change.sourceSessionId,
+              keepTable: change.keepTable,
+            })
+          : change.kind === "join"
+            ? await this.httpClient.post<TableSessionDto>(endpoints.TABLES(id), {
+                tableId: change.tableId,
+              })
+            : await this.httpClient.delete<TableSessionDto>(endpoints.TABLE(id, change.tableId));
     return toTableSession({ ...dto, id: dto?.id ?? id } as TableSessionDto & { id: string });
   }
 

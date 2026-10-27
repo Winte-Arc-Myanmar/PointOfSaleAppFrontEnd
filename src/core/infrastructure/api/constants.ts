@@ -179,6 +179,11 @@ export const API_ENDPOINTS = {
     SEATS_BY_ID: (id: string, allocationId: string) =>
       `/v1/table-sessions/${id}/seats/${allocationId}`,
     CHECKOUT: (id: string) => `/v1/table-sessions/${id}/checkout`,
+    MOVE: (id: string) => `/v1/table-sessions/${id}/move`,
+    MERGE: (id: string) => `/v1/table-sessions/${id}/merge`,
+    TABLES: (id: string) => `/v1/table-sessions/${id}/tables`,
+    TABLE: (id: string, tableId: string) =>
+      `/v1/table-sessions/${id}/tables/${tableId}`,
   },
   KDS_STATIONS: {
     LIST: "/v1/kds/stations",

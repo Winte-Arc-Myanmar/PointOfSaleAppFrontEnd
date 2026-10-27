@@ -13,6 +13,7 @@ import type {
   TableSessionAllocateSeatDto,
   TableSessionCheckoutDto,
   TableSessionCreateDto,
+  TableSeatingChangeDto,
   TableSessionStateTransitionDto,
   TableSessionUpdateDto,
 } from "@/core/application/dtos/TableSessionDto";
@@ -38,6 +39,10 @@ export class TableSessionService implements ITableSessionService {
 
   transitionState(id: string, data: TableSessionStateTransitionDto): Promise<TableSession> {
     return this.tableSessionRepository.transitionState(id, data);
+  }
+
+  changeSeating(id: string, change: TableSeatingChangeDto): Promise<TableSession> {
+    return this.tableSessionRepository.changeSeating(id, change);
   }
 
   addLine(id: string, data: TableSessionAddLineDto): Promise<void> {

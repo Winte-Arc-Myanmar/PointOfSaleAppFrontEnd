@@ -39,6 +39,7 @@ import {
   useTransitionTableSessionState,
 } from "@/presentation/hooks/useTableSessions";
 import type { TableSessionState } from "@/core/domain/entities/TableSession";
+import { TableSeatingSection } from "./TableSeatingSection";
 
 const STATES: TableSessionState[] = [
   "SEATED",
@@ -141,6 +142,15 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
             { label: "State", value: safeText(session.sessionState) },
             { label: "Guest count", value: String(session.guestCount) },
             { label: "Sales order ID", value: safeText(session.salesOrderId || "—"), mono: true },
+            ...(session.mergedIntoSessionId
+              ? [
+                  {
+                    label: "Combined into session",
+                    value: safeText(session.mergedIntoSessionId),
+                    mono: true,
+                  },
+                ]
+              : []),
           ]
         : [],
     [session],
@@ -150,7 +160,16 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
     () =>
       session
         ? [
-            { label: "Dining table", value: table?.tableNumber || safeText(session.tableId) },
+            {
+              label: "Dining table",
+              value: [session.tableId, ...session.joinedTableIds]
+                .map(
+                  (tableId) =>
+                    tables.find((item) => String(item.id) === String(tableId))?.tableNumber ||
+                    safeText(tableId),
+                )
+                .join(" + "),
+            },
             { label: "Dining zone", value: zone?.name || "—" },
             { label: "Waiter", value: waiter ? getUserLabel(waiter) : safeText(session.waiterId) },
             { label: "POS register", value: register?.name || safeText(session.posRegisterId || "—") },
@@ -163,7 +182,7 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
             },
           ]
         : [],
-    [openedByPosSession, register, session, table, waiter, zone],
+    [openedByPosSession, register, session, tables, waiter, zone],
   );
 
   const recordRows = useMemo(
@@ -233,6 +252,8 @@ export function TableSessionDetail({ sessionId }: { sessionId: string }) {
           </div>
         )}
       </DetailSection>
+
+      {session.closedAt ? null : <TableSeatingSection session={session} tables={tables} />}
 
       <DetailSection title="Transition state" icon={ClipboardList}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
