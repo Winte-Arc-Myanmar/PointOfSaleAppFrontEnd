@@ -77,7 +77,6 @@ const POS: { value: PosType; label: TranslationKey | null; text: string }[] = [
 ];
 
 /** Free time is given on what is sold by time, and on SPA packages. */
-const givesTime = (p: Product) => p.soldBy === "TIME" || isSpaPackage(p);
 
 /** What the picker shows as chosen: the product's own name, or with its option in brackets. */
 const isChosen = (p: Product, items: PromotionItem[]) =>
@@ -146,17 +145,15 @@ function BigChoice({
 function ItemPicker({
   items,
   onChange,
-  freeTime,
 }: {
   items: PromotionItem[];
   onChange: (items: PromotionItem[]) => void;
-  freeTime: boolean;
 }) {
   const { t } = useLanguage();
   const { tenantId } = usePermissions();
   const queryClient = useQueryClient();
   const { data: productsData } = useProducts({ page: 1, limit: 500 });
-  const tabs = GROUPS.filter((g) => !freeTime || g.value !== "FOOD_DRINK");
+  const tabs = GROUPS;
   const [tab, setTab] = useState<PromotionGroup>(tabs[0].value);
   const [search, setSearch] = useState("");
   const [choosing, setChoosing] = useState<{ product: Product; variants: ProductVariant[] } | null>(null);
@@ -167,7 +164,6 @@ function ItemPicker({
       !p.deletedAt &&
       (!tenantId || String(p.tenantId) === tenantId) &&
       group.has(p) &&
-      (!freeTime || givesTime(p)) &&
       p.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
@@ -375,7 +371,7 @@ export function PromotionForm({
   const [isActive, setIsActive] = useState(rule?.isActive ?? true);
   const [errors, setErrors] = useState<Errors>({});
 
-  const groupChoices = GROUPS.filter((g) => !freeTime || g.value !== "FOOD_DRINK");
+  const groupChoices = GROUPS;
   const shownGroups = coverage === "GROUPS" ? groups.filter((g) => groupChoices.some((c) => c.value === g)) : [];
 
   const toggle = <T,>(list: T[], item: T) =>
@@ -397,7 +393,7 @@ export function PromotionForm({
 
   const summary =
     coverage === "EVERYTHING"
-      ? t(freeTime ? "promoForm.everythingTime" : "promoForm.everything")
+      ? t("promoForm.everything")
       : coverage === "GROUPS"
         ? GROUPS.filter((g) => shownGroups.includes(g.value)).map((g) => t(g.label)).join(" · ")
         : coverage === "CATEGORIES"
@@ -513,7 +509,7 @@ export function PromotionForm({
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           <BigChoice
             icon={LayoutGrid}
-            label={t(freeTime ? "promoForm.everythingTime" : "promoForm.everything")}
+            label={t("promoForm.everything")}
             selected={coverage === "EVERYTHING"}
             onClick={() => {
               setCoverage("EVERYTHING");
@@ -565,7 +561,7 @@ export function PromotionForm({
             )}
           </div>
         ) : null}
-        {coverage === "ITEMS" ? <ItemPicker items={items} onChange={setItems} freeTime={freeTime} /> : null}
+        {coverage === "ITEMS" ? <ItemPicker items={items} onChange={setItems} /> : null}
 
         <p className="rounded-lg bg-mint/10 px-3 py-2 text-sm">
           <span className="text-muted">{t("promoForm.gets")}</span> <span className="font-medium">{summary}</span>
