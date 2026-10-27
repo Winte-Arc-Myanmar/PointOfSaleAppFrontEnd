@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent, Banknote, ConciergeBell, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
+import { BadgePercent, Banknote, ChefHat, ConciergeBell, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -228,6 +228,7 @@ export function VenueSetupForm() {
     maxPromotionsPerBill: saved.maxPromotionsPerBill ?? null,
     currency: saved.currency ?? "MMK",
     trackStock: saved.trackStock ?? true,
+    kdsDeleteSlips: saved.kdsDeleteSlips ?? true,
     defaultTaxRateIds: saved.defaultTaxRateIds ?? [],
     serviceChargeBps: saved.serviceChargeBps ?? 0,
     serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
@@ -429,6 +430,14 @@ export function VenueSetupForm() {
             <p className="text-xs text-muted">
               {t(perBill ? "shopSettings.perBillHint" : "shopSettings.perItemHint")}
             </p>
+          </Panel>
+          <Panel icon={ChefHat} title={t("shopSettings.kitchenCard")}>
+            <SwitchRow
+              title={t("shopSettings.kdsDeleteSlips")}
+              hint={t("shopSettings.kdsDeleteSlipsHint")}
+              checked={draft.kdsDeleteSlips}
+              onChange={(v) => set({ kdsDeleteSlips: v })}
+            />
           </Panel>
         </div>
       </Section>

@@ -24,6 +24,8 @@ export interface VenueSetting {
   currency: PriceCurrency;
   /** Sales check and deduct menu stock; off for a business without inventory. */
   trackStock: boolean;
+  /** Removing an item or cancelling an order the kitchen has prints a DELETE slip. */
+  kdsDeleteSlips: boolean;
   /** Taxes on taxable products that have none of their own; empty for none. */
   defaultTaxRateIds: string[];
   defaultTaxRates?: DefaultTaxRate[];
