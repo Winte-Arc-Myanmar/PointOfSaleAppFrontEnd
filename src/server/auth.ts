@@ -4,7 +4,7 @@
  * systemAdmin has full access; regular users are gated by per-branch permissions.
  */
 
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import container from "@/core/infrastructure/di/container";
 import type { IAuthService } from "@/core/domain/services/IAuthService";
@@ -61,7 +61,7 @@ async function renewIfExpiring(token: JWT): Promise<JWT> {
   }
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const config = (renew: boolean): NextAuthConfig => ({
   providers: [
     Credentials({
       credentials: {
@@ -105,7 +105,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.access = user.access;
         return token;
       }
-      return renewIfExpiring(token);
+      return renew ? renewIfExpiring(token) : token;
     },
     async session({ session, token }) {
       if (session.user) {
@@ -127,3 +127,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   session: { strategy: "jwt" },
 });
+
+/** Renews here only: the browser's session checks, which share one lookup. */
+export const { handlers, signIn, signOut } = NextAuth(config(true));
+
+/**
+ * Reads the session without renewing it, for the proxy and server pages. The
+ * proxy runs for every prefetch of the sidebar's links; each renewing the token
+ * used up the API's 20 renewals a minute, the browser's own renewal was refused
+ * and the expired token signed the user out.
+ */
+export const { auth } = NextAuth(config(false));
