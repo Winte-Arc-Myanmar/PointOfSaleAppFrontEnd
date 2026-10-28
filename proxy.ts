@@ -97,6 +97,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/reports", permissions: ["reports:read"] },
   { prefix: "/dashboard", permissions: ["reports:read"] },
   { prefix: "/promotion-rules", permissions: ["promotion-rules:read"] },
+  { prefix: "/extra-fees", permissions: ["products:read"] },
   { prefix: "/discount-reasons", permissions: ["discount-reasons:read"] },
   { prefix: "/void-reasons", permissions: ["void-reasons:read"] },
   { prefix: "/pos-registers", permissions: ["pos-registers:read"] },

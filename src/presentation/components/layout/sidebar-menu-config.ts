@@ -33,6 +33,7 @@ import {
   UserRound,
   UtensilsCrossed,
   Warehouse,
+  PackagePlus,
 } from "lucide-react";
 import type { TranslationKey } from "@/presentation/i18n/translations";
 
@@ -410,6 +411,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
     labelKey: "nav.groupFinanceAccounting",
     icon: BookText,
     items: [
+      {
+        href: "/extra-fees",
+        labelKey: "nav.extraFees",
+        icon: PackagePlus,
+        permissions: ["products:read"],
+      },
       {
         href: "/discount-reasons",
         labelKey: "nav.discountReasons",
