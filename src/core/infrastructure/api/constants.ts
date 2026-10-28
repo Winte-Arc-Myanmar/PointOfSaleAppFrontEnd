@@ -334,6 +334,10 @@ export const API_ENDPOINTS = {
     LIST: "/v1/hostesses",
     BY_ID: (id: string) => `/v1/hostesses/${id}`,
   },
+  EXTRA_FEES: {
+    LIST: "/v1/extra-fees",
+    BY_ID: (id: string) => `/v1/extra-fees/${id}`,
+  },
   KTV_ROOMS: {
     LIST: "/v1/ktv-rooms",
     BY_ID: (id: string) => `/v1/ktv-rooms/${id}`,
