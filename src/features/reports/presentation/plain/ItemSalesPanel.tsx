@@ -16,6 +16,7 @@ import {
 import { useCategories } from "@/presentation/hooks/useCategories";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { useItemSales } from "@/presentation/hooks/useReports";
+import { useShiftReport } from "@/presentation/hooks/usePosReports";
 import {
   ITEM_SALES_SORT_FIELDS,
   type ItemSalesSortBy,
@@ -31,6 +32,13 @@ import { ReportPanel, Subsection, SummaryCard } from "./dashboard-ui";
 import type { DashboardRange } from "./types";
 
 const ALL = "__all__";
+
+/** How a shift is named in a picker: its date, who ran it and when it opened. */
+export const shiftLabel = (shift: { businessDate: string; cashierName: string; openedAt: string }) =>
+  `${shift.businessDate} · ${shift.cashierName} · ${new Date(shift.openedAt).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
 const PAGE_SIZE = 50;
 
 const SORT_LABELS: Record<ItemSalesSortBy, string> = {
@@ -49,6 +57,9 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
   const [categoryId, setCategoryId] = useState(ALL);
   const [sortBy, setSortBy] = useState<ItemSalesSortBy>("netSales");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [shiftId, setShiftId] = useState(ALL);
+  const shifts = useShiftReport(range).data?.shifts ?? [];
+  const posSessionId = shiftId === ALL ? undefined : shiftId;
 
   useEffect(() => {
     const timer = window.setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -57,7 +68,7 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
 
   useEffect(() => {
     setPage(1);
-  }, [range.from, range.to, range.locationId, search, categoryId, sortBy, sortOrder]);
+  }, [range.from, range.to, range.locationId, search, categoryId, sortBy, sortOrder, posSessionId]);
 
   const { data: categoriesData } = useCategories({ page: 1, limit: 200 });
   const categories = getPaginatedItems(categoriesData);
@@ -70,6 +81,7 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
     categoryId: categoryId === ALL ? undefined : categoryId,
     sortBy,
     sortOrder,
+    posSessionId,
   });
   const data = query.data;
   const categoryColumns = useMemo(() => getItemCategoryColumns(), []);
@@ -84,6 +96,7 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
         categoryId: categoryId === ALL ? undefined : categoryId,
         sortBy,
         sortOrder,
+        posSessionId,
       });
       return {
         rows: withRowIds(result.items, (row, index) => row.variantId || `item-${index}`),
@@ -125,7 +138,7 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
             />
           </Subsection>
           <Subsection title="Items">
-            <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div className="space-y-2">
                 <Label htmlFor="item-search">Search</Label>
                 <Input
@@ -146,6 +159,22 @@ export function ItemSalesPanel({ range }: { range: DashboardRange }) {
                     {categories.map((category) => (
                       <SelectItem key={String(category.id)} value={String(category.id)}>
                         {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Shift</Label>
+                <Select value={shiftId} onValueChange={setShiftId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All shifts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>All shifts</SelectItem>
+                    {shifts.map((shift) => (
+                      <SelectItem key={shift.sessionId} value={shift.sessionId}>
+                        {shiftLabel(shift)}
                       </SelectItem>
                     ))}
                   </SelectContent>
