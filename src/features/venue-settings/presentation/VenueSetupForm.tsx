@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent, Banknote, ChefHat, ConciergeBell, DoorOpen, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
+import { BadgePercent, Banknote, ChefHat, ConciergeBell, DoorOpen, HandCoins, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -234,6 +234,7 @@ export function VenueSetupForm() {
     serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
     serviceChargeOnSpa: saved.serviceChargeOnSpa ?? true,
     serviceChargeOnKtv: saved.serviceChargeOnKtv ?? true,
+    hostessMenuCommissionBps: saved.hostessMenuCommissionBps ?? 0,
     ...edits,
   };
   const set = (patch: Partial<Draft>) => setEdits({ ...edits, ...patch });
@@ -379,6 +380,27 @@ export function VenueSetupForm() {
                 />
               ))}
             </div>
+          </Panel>
+          <Panel icon={HandCoins} title={t("shopSettings.hostessCommission")} className="space-y-3">
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                id="hostess-commission"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                step={0.5}
+                value={draft.hostessMenuCommissionBps / 100}
+                onChange={(e) => {
+                  const percent = Math.min(100, Math.max(0, Number(e.target.value) || 0));
+                  set({ hostessMenuCommissionBps: Math.round(percent * 100) });
+                }}
+                aria-label={t("shopSettings.hostessCommission")}
+                className="h-10 w-24 rounded-lg border border-border bg-background px-3 text-right text-lg font-semibold tabular-nums"
+              />
+              <span className="text-lg font-semibold">%</span>
+            </div>
+            <p className="text-xs text-muted">{t("shopSettings.hostessCommissionHint")}</p>
           </Panel>
           <Panel icon={BadgePercent} title={t("shopSettings.promotions")} className="space-y-4">
             <div className="space-y-2">

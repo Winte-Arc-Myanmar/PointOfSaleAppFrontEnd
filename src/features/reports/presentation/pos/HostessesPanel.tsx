@@ -26,6 +26,12 @@ const SUMMARY_COLUMNS: ReportColumn<HostessSummary>[] = [
   { key: "netSales", header: "Sales", value: (r) => r.netSales, format: "money" },
   { key: "menuOrders", header: "Menu ordered", value: (r) => r.menuOrders ?? 0 },
   { key: "menuSales", header: "Menu sales", value: (r) => r.menuSales ?? "0", format: "money" },
+  {
+    key: "commissionRate",
+    header: "Rate",
+    value: (r) => (r.commissionBps == null ? "" : `${r.commissionBps / 100}%`),
+  },
+  { key: "commission", header: "Commission", value: (r) => r.commission ?? "0", format: "money" },
 ];
 
 const MENU_ORDER_COLUMNS: ReportColumn<HostessMenuOrderRow>[] = [
@@ -37,6 +43,7 @@ const MENU_ORDER_COLUMNS: ReportColumn<HostessMenuOrderRow>[] = [
   { key: "quantity", header: "Qty", value: (r) => r.quantity, format: "quantity" },
   { key: "free", header: "Free", value: (r) => (r.free ? "Yes" : "") },
   { key: "netSales", header: "Amount", value: (r) => r.netSales, format: "money" },
+  { key: "commission", header: "Commission", value: (r) => r.commission ?? "0", format: "money" },
   { key: "orderNumber", header: "Bill", value: (r) => r.orderNumber },
 ];
 
@@ -75,13 +82,14 @@ export function HostessesPanel({ range }: { range: DashboardRange }) {
     >
       {data ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <SummaryCard label="Calls" value={formatCount(data.totals.calls)} />
             <SummaryCard label="Hostesses" value={formatCount(data.totals.hostesses)} />
             <SummaryCard label="Hours" value={formatQuantity(data.totals.hours)} />
             <SummaryCard label="Sales" value={formatMoney(data.totals.netSales)} />
             <SummaryCard label="Menu ordered" value={formatCount(data.totals.menuOrders ?? 0)} />
             <SummaryCard label="Menu sales" value={formatMoney(data.totals.menuSales ?? "0")} />
+            <SummaryCard label="Commission" value={formatMoney(data.totals.commission ?? "0")} />
           </div>
           <Subsection title="By hostess">
             <ReportTable

@@ -34,6 +34,8 @@ export interface VenueSetting {
   serviceChargeOnBar: boolean;
   serviceChargeOnSpa: boolean;
   serviceChargeOnKtv: boolean;
+  /** A hostess's commission on what she orders, in basis points (500 = 5%), unless she has her own. */
+  hostessMenuCommissionBps: number;
   updatedAt: string | null;
 }
 
