@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ReportTable } from "@/features/reports/presentation/report-export";
 import { useShiftReport } from "@/presentation/hooks/usePosReports";
+import { useItemSales } from "@/presentation/hooks/useReports";
+import { getItemSalesColumns } from "../plain/dashboard-columns";
+import { shiftLabel } from "../plain/ItemSalesPanel";
 import type { ShiftRow, ShiftStaffRow } from "@/core/domain/entities/ShiftCardReport";
 import { formatCount, formatLabel, formatMoney, withRowIds } from "@/features/reports/presentation/report-utils";
 import { ReportPanel, Subsection, SummaryCard } from "../plain/dashboard-ui";
@@ -55,6 +58,24 @@ export function ShiftsPanel({ range }: { range: DashboardRange }) {
   const shiftColumns = useMemo(() => tableColumns(SHIFT_COLUMNS), []);
   const staffColumns = useMemo(() => tableColumns(STAFF_COLUMNS), []);
   const methodColumns = useMemo(() => tableColumns(METHOD_COLUMNS), []);
+  const itemColumns = useMemo(() => getItemSalesColumns(), []);
+  const [shiftId, setShiftId] = useState("");
+  const shift = data?.shifts.find((row) => row.sessionId === shiftId);
+  // What the chosen shift sold: bills it took payment for, from the day it opened.
+  const shiftItems = useItemSales(
+    shift
+      ? {
+          from: shift.businessDate,
+          to: range.to && range.to > shift.businessDate ? range.to : shift.businessDate,
+          locationId: range.locationId,
+          posSessionId: shift.sessionId,
+          page: 1,
+          limit: 500,
+          sortBy: "quantitySold",
+          sortOrder: "desc",
+        }
+      : null,
+  );
 
   return (
     <ReportPanel
@@ -96,6 +117,35 @@ export function ShiftsPanel({ range }: { range: DashboardRange }) {
               emptyText="No shifts in this range."
               pageSize={20}
             />
+          </Subsection>
+          <Subsection title="Menu sales by shift">
+            <label className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Shift</span>
+              <select
+                className="h-9 max-w-full rounded-md border border-input bg-background px-2"
+                value={shiftId}
+                onChange={(event) => setShiftId(event.target.value)}
+              >
+                <option value="">Choose a shift</option>
+                {data.shifts.map((row) => (
+                  <option key={row.sessionId} value={row.sessionId}>
+                    {shiftLabel(row)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {shift ? (
+              <ReportTable
+                data={withRowIds(shiftItems.data?.items ?? [], (r, i) => r.variantId || `item-${i}`)}
+                columns={itemColumns}
+                emptyText={shiftItems.isLoading ? "Loading..." : "This shift sold no items."}
+                pageSize={50}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Choose a shift to see how many of each item it sold.
+              </p>
+            )}
           </Subsection>
         </>
       ) : null}

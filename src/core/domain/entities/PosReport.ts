@@ -179,12 +179,38 @@ export interface HostessSummary {
   freeCalls: number;
   hours: string;
   netSales: string;
+  /** Dishes and drinks she ordered; missing from an older server. */
+  menuOrders?: number;
+  menuSales?: string;
+}
+
+/** A dish or drink a hostess ordered in a room: what her commission may come from. */
+export interface HostessMenuOrderRow {
+  businessDate: string;
+  soldAt: string;
+  orderNumber: string;
+  roomNumber: string | null;
+  hostessId: string;
+  hostessName: string;
+  nickname: string | null;
+  item: string;
+  quantity: string;
+  free: boolean;
+  netSales: string;
 }
 
 export interface HostessReport {
   from: string;
   to: string;
-  totals: { calls: number; hostesses: number; hours: string; netSales: string };
+  totals: {
+    calls: number;
+    hostesses: number;
+    hours: string;
+    netSales: string;
+    menuOrders?: number;
+    menuSales?: string;
+  };
   byHostess: HostessSummary[];
   calls: HostessCallRow[];
+  menuOrders?: HostessMenuOrderRow[];
 }
