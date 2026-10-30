@@ -18,6 +18,9 @@ export function HostessForm({
   const [nickname, setNickname] = useState(hostess?.nickname ?? "");
   const [phoneNumber, setPhoneNumber] = useState(hostess?.phoneNumber ?? "");
   const [isActive, setIsActive] = useState(hostess?.isActive ?? true);
+  const [commission, setCommission] = useState(
+    hostess?.menuCommissionBps == null ? "" : String(hostess.menuCommissionBps / 100),
+  );
   const [error, setError] = useState<string | null>(null);
 
   const submit = (event: React.FormEvent) => {
@@ -26,12 +29,18 @@ export function HostessForm({
       setError("Enter her name.");
       return;
     }
+    const percent = Number(commission);
+    if (commission.trim() && (!Number.isFinite(percent) || percent < 0 || percent > 100)) {
+      setError("Commission is a percent from 0 to 100, or blank for the shop default.");
+      return;
+    }
     setError(null);
     onSubmit({
       name: name.trim(),
       nickname: nickname.trim() || undefined,
       phoneNumber: phoneNumber.trim() || undefined,
       isActive,
+      menuCommissionBps: commission.trim() ? Math.round(percent * 100) : null,
     });
   };
 
@@ -53,9 +62,25 @@ export function HostessForm({
           />
         </div>
       </div>
-      <div className="grid gap-1 sm:w-1/2">
-        <Label htmlFor="hostess-phone">Phone</Label>
-        <Input id="hostess-phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="09-..." />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid gap-1">
+          <Label htmlFor="hostess-phone">Phone</Label>
+          <Input id="hostess-phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="09-..." />
+        </div>
+        <div className="grid gap-1">
+          <Label htmlFor="hostess-commission">Menu commission %</Label>
+          <Input
+            id="hostess-commission"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            max={100}
+            step={0.5}
+            value={commission}
+            onChange={(e) => setCommission(e.target.value)}
+            placeholder="Blank = shop default (Venue setup)"
+          />
+        </div>
       </div>
       <label className="flex cursor-pointer items-center gap-2 text-sm">
         <input

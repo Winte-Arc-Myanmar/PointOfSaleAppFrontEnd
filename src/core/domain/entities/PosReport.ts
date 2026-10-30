@@ -182,6 +182,9 @@ export interface HostessSummary {
   /** Dishes and drinks she ordered; missing from an older server. */
   menuOrders?: number;
   menuSales?: string;
+  /** Her menu commission rate in basis points, and what it comes to. */
+  commissionBps?: number;
+  commission?: string;
 }
 
 /** A dish or drink a hostess ordered in a room: what her commission may come from. */
@@ -197,6 +200,7 @@ export interface HostessMenuOrderRow {
   quantity: string;
   free: boolean;
   netSales: string;
+  commission?: string;
 }
 
 export interface HostessReport {
@@ -209,6 +213,7 @@ export interface HostessReport {
     netSales: string;
     menuOrders?: number;
     menuSales?: string;
+    commission?: string;
   };
   byHostess: HostessSummary[];
   calls: HostessCallRow[];
