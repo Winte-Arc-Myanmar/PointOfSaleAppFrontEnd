@@ -144,6 +144,7 @@ export class ApiReportRepository implements IReportRepository {
         categoryId: params.categoryId,
         sortBy: params.sortBy,
         sortOrder: params.sortOrder,
+        posSessionId: params.posSessionId,
       }),
     });
     return toItemSales(dto);

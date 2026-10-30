@@ -17,6 +17,8 @@ export interface Hostess {
   phoneNumber: string | null;
   imageUrl: string | null;
   isActive: boolean;
+  /** Her own menu commission in basis points; null for the shop default. */
+  menuCommissionBps: number | null;
   inRoom: HostessWhereabouts | null;
 }
 
@@ -25,4 +27,5 @@ export interface HostessInput {
   nickname?: string;
   phoneNumber?: string;
   isActive?: boolean;
+  menuCommissionBps?: number | null;
 }
