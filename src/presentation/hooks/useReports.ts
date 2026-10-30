@@ -139,6 +139,7 @@ export function useItemSales(params: GetItemSalesParams | null) {
       params?.categoryId,
       params?.sortBy,
       params?.sortOrder,
+      params?.posSessionId,
     ],
     queryFn: () => {
       const service = container.resolve<IReportService>("reportService");

@@ -56,6 +56,8 @@ export interface GetItemSalesParams extends GetBusinessDateReportParams {
   categoryId?: string;
   sortBy?: ItemSalesSortBy;
   sortOrder?: "asc" | "desc";
+  /** One shift: what was paid for in it. */
+  posSessionId?: string;
 }
 
 export interface GetLoyaltyPointsParams extends GetBusinessDateReportParams {

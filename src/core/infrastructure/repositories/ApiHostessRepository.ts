@@ -13,6 +13,7 @@ function toHostess(dto: Hostess): Hostess {
     phoneNumber: dto.phoneNumber ?? null,
     imageUrl: dto.imageUrl ?? null,
     isActive: dto.isActive !== false,
+    menuCommissionBps: dto.menuCommissionBps ?? null,
     inRoom: dto.inRoom ?? null,
   };
 }
