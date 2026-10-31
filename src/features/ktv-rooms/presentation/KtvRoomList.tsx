@@ -144,11 +144,11 @@ export function KtvRoomList() {
       columns={columns}
       actions={actions}
       isLoading={isLoading}
-      loadingText="Loading VIP Lounges..."
-      emptyText={search ? "No rooms match your search." : "No VIP Lounges yet. Add your first room."}
+      loadingText="Loading KTV rooms..."
+      emptyText={search ? "No rooms match your search." : "No KTV rooms yet. Add your first room."}
       error={
         error
-          ? { message: apiErrorMessage(error, "Failed to load VIP Lounges."), onRetry: () => refetch() }
+          ? { message: apiErrorMessage(error, "Failed to load KTV rooms."), onRetry: () => refetch() }
           : undefined
       }
       topContent={
@@ -167,7 +167,7 @@ export function KtvRoomList() {
       totalItems={result?.total ?? 0}
       onPageChange={pagination.setPage}
       addLabel="Add room"
-      createTitle="Add a VIP Lounge"
+      createTitle="Add a KTV room"
       createSubmitText="Add room"
       createLoadingText="Adding..."
       createFormId="create-ktv-room-form"

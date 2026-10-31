@@ -15,7 +15,7 @@ function toOptionalNumber(value: unknown): number | null {
 const PLACE_PREFIX: Record<string, string> = {
   TABLE: "Table",
   SPA_ROOM: "SPA room",
-  KTV_ROOM: "VIP Lounge",
+  KTV_ROOM: "KTV",
 };
 
 function placeLabel(place: KdsTicketDto["place"]): string | null {
