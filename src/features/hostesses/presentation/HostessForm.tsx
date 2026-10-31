@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import type { Hostess, HostessInput } from "@/core/domain/entities/Hostess";
+import type { Hostess, HostessInput, HostessShift } from "@/core/domain/entities/Hostess";
+import { HostessAvailability } from "./HostessAvailability";
 
 export function HostessForm({
   formId,
@@ -21,6 +22,8 @@ export function HostessForm({
   const [commission, setCommission] = useState(
     hostess?.menuCommissionBps == null ? "" : String(hostess.menuCommissionBps / 100),
   );
+  const [schedule, setSchedule] = useState<HostessShift[] | null>(hostess?.schedule ?? null);
+  const [daysOff, setDaysOff] = useState<string[]>(hostess?.daysOff ?? []);
   const [error, setError] = useState<string | null>(null);
 
   const submit = (event: React.FormEvent) => {
@@ -41,6 +44,8 @@ export function HostessForm({
       phoneNumber: phoneNumber.trim() || undefined,
       isActive,
       menuCommissionBps: commission.trim() ? Math.round(percent * 100) : null,
+      schedule,
+      daysOff,
     });
   };
 
@@ -91,6 +96,12 @@ export function HostessForm({
         />
         Working now (can be picked at the till)
       </label>
+      <HostessAvailability
+        schedule={schedule}
+        daysOff={daysOff}
+        onScheduleChange={setSchedule}
+        onDaysOffChange={setDaysOff}
+      />
     </form>
   );
 }
