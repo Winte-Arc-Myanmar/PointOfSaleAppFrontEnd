@@ -25,7 +25,7 @@ export const REPORT_TAB_GROUPS = [
   },
   {
     id: "ktv",
-    label: "VIP Lounge",
+    label: "KTV",
     tabs: [
       { id: "ktv-summary", label: "Summary" },
       { id: "ktv-bills", label: "Bills" },

@@ -9,7 +9,7 @@ import type { PosType } from "@/core/domain/entities/PosReport";
 
 const POS_TITLE: Record<PosType, string> = {
   SPA: "SPA sales summary",
-  KTV: "VIP Lounge sales summary",
+  KTV: "KTV sales summary",
   BAR: "Bar sales summary",
 };
 
