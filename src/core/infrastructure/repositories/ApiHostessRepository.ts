@@ -14,6 +14,8 @@ function toHostess(dto: Hostess): Hostess {
     imageUrl: dto.imageUrl ?? null,
     isActive: dto.isActive !== false,
     menuCommissionBps: dto.menuCommissionBps ?? null,
+    schedule: Array.isArray(dto.schedule) ? dto.schedule : null,
+    daysOff: Array.isArray(dto.daysOff) ? dto.daysOff : [],
     inRoom: dto.inRoom ?? null,
   };
 }
