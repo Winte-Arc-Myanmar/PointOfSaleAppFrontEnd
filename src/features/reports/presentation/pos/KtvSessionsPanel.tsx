@@ -53,7 +53,7 @@ export function KtvSessionsPanel({ range }: { range: DashboardRange }) {
 
   return (
     <ReportPanel
-      title="Private VIP Lounge sales by session"
+      title="VIP Lounge sales by session"
       description="Each room session sold in the range, with hours, room and food & drink sales, and how it was paid. Totals cover all sessions."
       isLoading={query.isLoading}
       isFetching={query.isFetching}
@@ -81,7 +81,7 @@ export function KtvSessionsPanel({ range }: { range: DashboardRange }) {
             <ReportTable
               data={withRowIds(data.byRoom, (r) => r.roomId)}
               columns={roomColumns}
-              emptyText="No Private VIP Lounge sessions in this range."
+              emptyText="No VIP Lounge sessions in this range."
               pageSize={500}
             />
           </Subsection>
@@ -89,7 +89,7 @@ export function KtvSessionsPanel({ range }: { range: DashboardRange }) {
             <ReportTable
               data={withRowIds(data.sessions, (r) => r.orderId)}
               columns={sessionColumns}
-              emptyText="No Private VIP Lounge sessions in this range."
+              emptyText="No VIP Lounge sessions in this range."
             />
           </Subsection>
         </>

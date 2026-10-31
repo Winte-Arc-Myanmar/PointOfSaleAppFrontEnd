@@ -22,9 +22,9 @@ export function EditKtvRoomForm({ roomId }: { roomId: string }) {
   if (error || !room) {
     return (
       <div className="space-y-4">
-        <p className="text-red-500">{apiErrorMessage(error, "KTV room not found.")}</p>
+        <p className="text-red-500">{apiErrorMessage(error, "VIP Lounge not found.")}</p>
         <Link href="/ktv-rooms">
-          <Button variant="outline">Back to KTV rooms</Button>
+          <Button variant="outline">Back to VIP Lounges</Button>
         </Link>
       </div>
     );

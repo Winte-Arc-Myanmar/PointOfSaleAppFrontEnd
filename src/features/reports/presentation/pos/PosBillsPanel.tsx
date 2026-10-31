@@ -13,7 +13,7 @@ import type { DashboardRange } from "../plain/types";
 import { tableColumns, type ReportColumn } from "./report-columns";
 
 const PAGE_SIZE = 50;
-const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "Private VIP Lounge", BAR: "Bar" };
+const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "VIP Lounge", BAR: "Bar" };
 
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });

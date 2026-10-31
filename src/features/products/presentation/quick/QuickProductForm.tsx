@@ -524,7 +524,7 @@ export function QuickProductForm({ type, product }: { type: QuickType; product?:
                 </Choice>
                 {(["BAR", "KTV", "SPA"] as PosType[]).map((area) => (
                   <Choice key={area} selected={soldAt.includes(area)} onClick={() => toggleArea(area)}>
-                    {area === "BAR" ? t("addProduct.restaurant") : area === "KTV" ? "Private VIP Lounge" : area}
+                    {area === "BAR" ? t("addProduct.restaurant") : area === "KTV" ? "VIP Lounge" : area}
                   </Choice>
                 ))}
               </div>
