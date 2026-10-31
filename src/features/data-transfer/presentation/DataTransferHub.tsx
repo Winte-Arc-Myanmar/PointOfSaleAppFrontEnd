@@ -30,9 +30,9 @@ const SHEETS: { kind: SheetKind; title: string; label: string; description: stri
   },
   {
     kind: "ktv-rooms",
-    title: "Private VIP Lounges",
-    label: "Private VIP Lounges",
-    description: "Private VIP Lounges by location and number: guests, price per hour, billing blocks.",
+    title: "VIP Lounges",
+    label: "VIP Lounges",
+    description: "VIP Lounges by location and number: guests, price per hour, billing blocks.",
   },
 ];
 
