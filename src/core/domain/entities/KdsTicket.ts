@@ -9,7 +9,7 @@ export interface KdsTicket {
   salesOrderId?: string | null;
   stationId: string;
   stationName?: string | null;
-  /** Where the order goes: "Table T12", "VIP Lounge K3", "Counter". */
+  /** Where the order goes: "Table T12", "KTV K3", "Counter". */
   placeLabel?: string | null;
   ticketNumber: string;
   courseType?: string | null;

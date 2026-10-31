@@ -16,7 +16,7 @@ import { ChartCard, EmptyChart, MoneyBarChart, SharePieChart, chartAmount } from
 import { CARD_ENTRY_LABEL } from "@/features/reports/presentation/pos/CardActivityPanel";
 import type { DashboardRange } from "./types";
 
-const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "VIP Lounge", BAR: "Bar" };
+const POS_NAME: Record<PosType, string> = { SPA: "SPA", KTV: "KTV", BAR: "Bar" };
 const BILLS_SHOWN = 500;
 
 function top<T>(rows: T[], amount: (row: T) => number, count = 10): T[] {
@@ -232,7 +232,7 @@ export function KtvSessionsChart({ range }: { range: DashboardRange }) {
 
   return (
     <ReportPanel
-      title="VIP Lounge sessions"
+      title="KTV sessions"
       description="Room time and food and drink sold per room."
       isLoading={query.isLoading}
       isFetching={query.isFetching}
