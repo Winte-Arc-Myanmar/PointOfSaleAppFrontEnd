@@ -1,7 +1,14 @@
 import type { SalesOrder } from "../entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
-import type { GetSalesOrdersParams } from "../repositories/ISalesOrderRepository";
+import type {
+  GetSalesOrderEditsParams,
+  GetSalesOrdersParams,
+} from "../repositories/ISalesOrderRepository";
 import type { PaginatedResult } from "../types/pagination";
+import type {
+  SalesOrderEdit,
+  SalesOrderEditListItem,
+} from "../entities/SalesOrderEdit";
 
 
 export interface ISalesOrderService {
@@ -15,5 +22,9 @@ export interface ISalesOrderService {
     data: Omit<SalesOrderDto, "id" | "createdAt" | "updatedAt">
   ): Promise<SalesOrder>;
   delete(id: string): Promise<void>;
+  getEdits(id: string): Promise<SalesOrderEdit[]>;
+  getAllEdits(
+    params?: GetSalesOrderEditsParams
+  ): Promise<PaginatedResult<SalesOrderEditListItem>>;
 }
 

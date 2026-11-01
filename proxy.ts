@@ -51,6 +51,7 @@ const permissionRoutes: RoutePermission[] = [
   { prefix: "/pricing-schedules", permissions: ["pricing-schedules:read"] },
   { prefix: "/uploads", permissions: ["uploads:read"] },
   { prefix: "/sales-orders", permissions: ["sales-orders:read"] },
+  { prefix: "/order-edits", permissions: ["sales-orders:read"] },
   { prefix: "/reports", permissions: ["reports:read"] },
   { prefix: "/dashboard", permissions: ["reports:read"] },
   { prefix: "/promotion-rules", permissions: ["promotion-rules:read"] },

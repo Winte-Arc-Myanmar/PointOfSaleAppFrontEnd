@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { formatMoney as money } from "@/lib/money";
+import { OrderEditHistory } from "./OrderEditHistory";
 
 const CREATE_LINE_FORM_ID = "create-sales-order-line";
 const CREATE_PAYMENT_FORM_ID = "create-sales-order-payment";
@@ -273,6 +274,8 @@ export function SalesOrderDetail({ salesOrderId }: { salesOrderId: string }) {
           onPageChange={paymentPagination.setPage}
         />
       </div>
+
+      <OrderEditHistory orderId={String(order.id)} />
 
       <FormModal
         isOpen={lineOpen}

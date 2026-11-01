@@ -4,7 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import container from "@/core/infrastructure/di/container";
 import type { ISalesOrderService } from "@/core/domain/services/ISalesOrderService";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
-import type { GetSalesOrdersParams } from "@/core/domain/repositories/ISalesOrderRepository";
+import type {
+  GetSalesOrderEditsParams,
+  GetSalesOrdersParams,
+} from "@/core/domain/repositories/ISalesOrderRepository";
 
 const SALES_ORDERS_QUERY_KEY = ["sales-orders"];
 
@@ -88,3 +91,32 @@ export function useDeleteSalesOrder() {
   });
 }
 
+
+export function useSalesOrderEdits(id: string | null) {
+  return useQuery({
+    queryKey: [...SALES_ORDERS_QUERY_KEY, id, "edits"],
+    queryFn: () => {
+      const service = container.resolve<ISalesOrderService>("salesOrderService");
+      return service.getEdits(id!);
+    },
+    enabled: !!id,
+  });
+}
+
+export function useAllSalesOrderEdits(params: GetSalesOrderEditsParams) {
+  return useQuery({
+    queryKey: [
+      ...SALES_ORDERS_QUERY_KEY,
+      "edits",
+      params.page,
+      params.limit,
+      params.search,
+      params.dateFrom,
+      params.dateTo,
+    ],
+    queryFn: () => {
+      const service = container.resolve<ISalesOrderService>("salesOrderService");
+      return service.getAllEdits(params);
+    },
+  });
+}
