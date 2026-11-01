@@ -1,7 +1,14 @@
 import type { ISalesOrderService } from "@/core/domain/services/ISalesOrderService";
 import type { ISalesOrderRepository } from "@/core/domain/repositories/ISalesOrderRepository";
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
-import type { GetSalesOrdersParams } from "@/core/domain/repositories/ISalesOrderRepository";
+import type {
+  GetSalesOrderEditsParams,
+  GetSalesOrdersParams,
+} from "@/core/domain/repositories/ISalesOrderRepository";
+import type {
+  SalesOrderEdit,
+  SalesOrderEditListItem,
+} from "@/core/domain/entities/SalesOrderEdit";
 import type { SalesOrderDto } from "../dtos/SalesOrderDto";
 import type { PaginatedResult } from "@/core/domain/types/pagination";
 
@@ -32,6 +39,16 @@ export class SalesOrderService implements ISalesOrderService {
 
   delete(id: string): Promise<void> {
     return this.salesOrderRepository.delete(id);
+  }
+
+  getEdits(id: string): Promise<SalesOrderEdit[]> {
+    return this.salesOrderRepository.getEdits(id);
+  }
+
+  getAllEdits(
+    params?: GetSalesOrderEditsParams
+  ): Promise<PaginatedResult<SalesOrderEditListItem>> {
+    return this.salesOrderRepository.getAllEdits(params);
   }
 }
 

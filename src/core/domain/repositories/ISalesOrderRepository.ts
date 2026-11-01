@@ -1,6 +1,10 @@
 import type { SalesOrder } from "../entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
 import type { PaginatedResult } from "../types/pagination";
+import type {
+  SalesOrderEdit,
+  SalesOrderEditListItem,
+} from "../entities/SalesOrderEdit";
 
 
 export interface GetSalesOrdersParams {
@@ -15,6 +19,14 @@ export interface GetSalesOrdersParams {
   dateTo?: string;
 }
 
+export interface GetSalesOrderEditsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export interface ISalesOrderRepository {
   getAll(params?: GetSalesOrdersParams): Promise<PaginatedResult<SalesOrder>>;
   getById(id: string): Promise<SalesOrder | null>;
@@ -24,5 +36,9 @@ export interface ISalesOrderRepository {
     data: Omit<SalesOrderDto, "id" | "createdAt" | "updatedAt">
   ): Promise<SalesOrder>;
   delete(id: string): Promise<void>;
+  getEdits(id: string): Promise<SalesOrderEdit[]>;
+  getAllEdits(
+    params?: GetSalesOrderEditsParams
+  ): Promise<PaginatedResult<SalesOrderEditListItem>>;
 }
 
