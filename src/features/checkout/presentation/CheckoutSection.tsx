@@ -51,6 +51,7 @@ import {
   calcServiceCharge,
   calcTax,
   combinedTax,
+  taxedAs,
 } from "@/core/application/business-rules/checkout/checkoutCalculations";
 import type { CheckoutRequestDto } from "@/core/application/dtos/CheckoutDto";
 import type { Category } from "@/core/domain/entities/Category";
@@ -509,8 +510,9 @@ export function CheckoutSection() {
       const newIdx = watchedItems.length;
       const unitPrice =
         (Number(product.basePrice) || 0) + (Number(variant.priceModifier) || 0);
-      const isTaxable = Boolean(product.isTaxable);
-      const { taxRate, isPriceInclusive } = combinedTax(product, defaultTaxRates);
+      const taxed = taxedAs(product, venue?.taxAllItems);
+      const isTaxable = Boolean(taxed.isTaxable);
+      const { taxRate, isPriceInclusive } = combinedTax(taxed, defaultTaxRates);
       setLineMeta((prev) => ({
         ...prev,
         [variantId + ":" + newIdx]: {
@@ -1006,9 +1008,10 @@ export function CheckoutSection() {
                         {formatPrice(
                           (() => {
                             const unit = Number(p.basePrice) || 0;
-                            const taxable = Boolean(p.isTaxable);
+                            const taxed = taxedAs(p, venue?.taxAllItems);
+                            const taxable = Boolean(taxed.isTaxable);
                             const { taxRate: rate, isPriceInclusive: inclusive } =
-                              combinedTax(p, defaultTaxRates);
+                              combinedTax(taxed, defaultTaxRates);
                             if (!taxable) return unit;
                             if (inclusive) return unit;
                             return unit + calcTax(unit, rate, false);
@@ -1441,9 +1444,10 @@ function VariantPickerModal({
               (Number(product.basePrice) || 0) +
               (Number(v.priceModifier) || 0);
             const price = (() => {
-              const taxable = Boolean(product.isTaxable);
+              const taxed = taxedAs(product, venue?.taxAllItems);
+              const taxable = Boolean(taxed.isTaxable);
               const { taxRate: rate, isPriceInclusive: inclusive } = combinedTax(
-                product,
+                taxed,
                 defaultTaxRates,
               );
               if (!taxable) return baseUnit;

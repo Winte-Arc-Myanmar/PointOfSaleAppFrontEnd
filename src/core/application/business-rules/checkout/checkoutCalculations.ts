@@ -67,6 +67,14 @@ export interface TaxRateLike {
   appliesToServiceCharge?: boolean;
 }
 
+/** A product as a shop that taxes every item sees it: on its default taxes, extra fees aside. */
+export function taxedAs<P extends { isTaxable?: boolean; isExtraFee?: boolean; taxRates?: TaxRateLike[] }>(
+  product: P,
+  taxAllItems?: boolean
+): P {
+  return taxAllItems ? { ...product, isTaxable: !product.isExtraFee, taxRates: [] } : product;
+}
+
 /**
  * A product's taxes as one rate, the way the server charges them: its own taxes,
  * else the shop's defaults. They are all inside the price or all on top, so the

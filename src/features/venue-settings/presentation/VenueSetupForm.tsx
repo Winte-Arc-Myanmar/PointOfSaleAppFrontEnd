@@ -186,6 +186,11 @@ const CURRENCIES = [
   { value: "USD", title: "shopSettings.usd", sample: "$ 100,000" },
 ] as const satisfies readonly { value: PriceCurrency; title: string; sample: string }[];
 
+const TAXED_ITEMS = [
+  { value: true, title: "shopSettings.taxEveryItem", hint: "shopSettings.taxEveryItemHint" },
+  { value: false, title: "shopSettings.taxPerItem", hint: "shopSettings.taxPerItemHint" },
+] as const;
+
 const SERVICE_CHARGE_ON = [
   { key: "serviceChargeOnBar", title: "shopSettings.serviceChargeOnBar" },
   { key: "serviceChargeOnSpa", title: "shopSettings.serviceChargeOnSpa" },
@@ -230,6 +235,7 @@ export function VenueSetupForm() {
     trackStock: saved.trackStock ?? true,
     kdsDeleteSlips: saved.kdsDeleteSlips ?? true,
     defaultTaxRateIds: saved.defaultTaxRateIds ?? [],
+    taxAllItems: saved.taxAllItems ?? false,
     serviceChargeBps: saved.serviceChargeBps ?? 0,
     serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
     serviceChargeOnSpa: saved.serviceChargeOnSpa ?? true,
@@ -347,6 +353,18 @@ export function VenueSetupForm() {
               emptyLabel={t("shopSettings.noDefaultTax")}
             />
             <p className="text-xs text-muted">{t("shopSettings.defaultTaxHint")}</p>
+            <p className="pt-2 text-sm font-medium">{t("shopSettings.taxedItems")}</p>
+            <div role="radiogroup" aria-label={t("shopSettings.taxedItems")} className="grid gap-2">
+              {TAXED_ITEMS.map((option) => (
+                <Choice
+                  key={String(option.value)}
+                  selected={draft.taxAllItems === option.value}
+                  onSelect={() => set({ taxAllItems: option.value })}
+                  title={t(option.title)}
+                  hint={t(option.hint)}
+                />
+              ))}
+            </div>
           </Panel>
           <Panel icon={ConciergeBell} title={t("shopSettings.serviceCharge")} className="space-y-3">
             <div className="flex items-center gap-2 pt-1">
