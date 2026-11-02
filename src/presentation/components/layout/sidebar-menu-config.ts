@@ -9,6 +9,7 @@ import {
   FileSpreadsheet,
   FolderTree,
   Gift,
+  History,
   Hourglass,
   LayoutDashboard,
   LayoutGrid,
@@ -75,6 +76,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         href: "/sales-orders",
         labelKey: "nav.salesOrders",
         icon: Receipt,
+        permissions: ["sales-orders:read"],
+      },
+      {
+        href: "/order-edits",
+        labelKey: "nav.orderEdits",
+        icon: History,
         permissions: ["sales-orders:read"],
       },
       // {
