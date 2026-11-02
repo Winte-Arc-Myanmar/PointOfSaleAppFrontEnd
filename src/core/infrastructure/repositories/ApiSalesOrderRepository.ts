@@ -1,7 +1,12 @@
 import type {
   ISalesOrderRepository,
+  GetSalesOrderEditsParams,
   GetSalesOrdersParams,
 } from "@/core/domain/repositories/ISalesOrderRepository";
+import type {
+  SalesOrderEdit,
+  SalesOrderEditListItem,
+} from "@/core/domain/entities/SalesOrderEdit";
 import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
 import { toSalesOrder } from "@/core/application/mappers/SalesOrderMapper";
@@ -97,6 +102,41 @@ export class ApiSalesOrderRepository implements ISalesOrderRepository {
 
   async delete(id: string): Promise<void> {
     await this.httpClient.delete(API_ENDPOINTS.SALES_ORDERS.DELETE(id));
+  }
+
+  async getEdits(id: string): Promise<SalesOrderEdit[]> {
+    const rows = await this.httpClient.get<SalesOrderEdit[]>(
+      API_ENDPOINTS.SALES_ORDERS.EDITS(id)
+    );
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async getAllEdits(
+    params?: GetSalesOrderEditsParams
+  ): Promise<PaginatedResult<SalesOrderEditListItem>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 20;
+    const { data, meta } = await this.httpClient.getPaginated<unknown>(
+      API_ENDPOINTS.SALES_ORDERS.ALL_EDITS,
+      {
+        params: {
+          page,
+          limit,
+          ...(params?.search ? { search: params.search } : {}),
+          ...(params?.dateFrom ? { dateFrom: params.dateFrom } : {}),
+          ...(params?.dateTo ? { dateTo: params.dateTo } : {}),
+        },
+      }
+    );
+    const parsed = parsePaginatedResponse<SalesOrderEditListItem>(
+      { data, meta },
+      { page, limit }
+    );
+    return mapPaginatedResult(
+      parsed,
+      (dto) => dto,
+      (dto) => !!dto?.id
+    );
   }
 }
 

@@ -20,6 +20,7 @@ import {
   Gift,
   GitCompareArrows,
   HandCoins,
+  History,
   Hourglass,
   Landmark,
   Layers,
@@ -130,6 +131,12 @@ export const SIDEBAR_MENU_GROUPS: SidebarMenuGroup[] = [
         href: "/sales-orders",
         labelKey: "nav.salesOrders",
         icon: Receipt,
+        permissions: ["sales-orders:read"],
+      },
+      {
+        href: "/order-edits",
+        labelKey: "nav.orderEdits",
+        icon: History,
         permissions: ["sales-orders:read"],
       },
       {

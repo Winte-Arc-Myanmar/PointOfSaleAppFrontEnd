@@ -357,6 +357,8 @@ export const API_ENDPOINTS = {
   SALES_ORDERS: {
     LIST: "/v1/sales-orders",
     BY_ID: (id: string) => `/v1/sales-orders/${id}`,
+    EDITS: (id: string) => `/v1/sales-orders/${id}/edits`,
+    ALL_EDITS: "/v1/sales-order-edits",
     CREATE: "/v1/sales-orders",
     UPDATE: (id: string) => `/v1/sales-orders/${id}`,
     DELETE: (id: string) => `/v1/sales-orders/${id}`,
