@@ -29,6 +29,8 @@ export interface VenueSetting {
   /** Taxes on taxable products that have none of their own; empty for none. */
   defaultTaxRateIds: string[];
   defaultTaxRates?: DefaultTaxRate[];
+  /** Every item is taxed at the default taxes, whatever it says itself; extra fees are not. */
+  taxAllItems: boolean;
   /** Service charge in basis points: 1000 is 10%. */
   serviceChargeBps: number;
   serviceChargeOnBar: boolean;
