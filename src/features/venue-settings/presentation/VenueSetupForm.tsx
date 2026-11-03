@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgePercent, Banknote, ChefHat, ConciergeBell, DoorOpen, HandCoins, Mic, Minus, Package, Plus, Receipt, Sparkles } from "lucide-react";
+import { BadgePercent, Banknote, ChefHat, ConciergeBell, DoorOpen, HandCoins, Mic, Minus, Package, Plus, Receipt, Sparkles, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -69,6 +69,72 @@ function SwitchRow({
         {hint ? <p className="mt-0.5 text-xs text-muted">{hint}</p> : null}
       </div>
       <Switch label={title} checked={checked} disabled={disabled} onChange={onChange} />
+    </div>
+  );
+}
+
+const QUICK_NOTES_MAX = 30;
+const QUICK_NOTE_MAX = 40;
+
+function QuickNotesEditor({ notes, onChange }: { notes: string[]; onChange: (notes: string[]) => void }) {
+  const { t } = useLanguage();
+  const [text, setText] = useState("");
+  const note = text.trim();
+  const full = notes.length >= QUICK_NOTES_MAX;
+  const add = () => {
+    if (!note || full) return;
+    if (!notes.some((item) => item.toLowerCase() === note.toLowerCase())) onChange([...notes, note]);
+    setText("");
+  };
+  return (
+    <div className="space-y-3 py-3">
+      <div>
+        <p className="text-sm font-medium">{t("shopSettings.quickNotes")}</p>
+        <p className="mt-0.5 text-xs text-muted">{t("shopSettings.quickNotesHint")}</p>
+      </div>
+      {notes.length ? (
+        <ul className="flex flex-wrap gap-2">
+          {notes.map((item) => (
+            <li
+              key={item}
+              className="flex items-center gap-1 rounded-full border border-border bg-background py-1 pl-3 pr-1 text-sm"
+            >
+              {item}
+              <button
+                type="button"
+                onClick={() => onChange(notes.filter((other) => other !== item))}
+                aria-label={t("shopSettings.removeQuickNote").replace("{note}", item)}
+                className="rounded-full p-1 text-muted hover:bg-muted/20 hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted">{t("shopSettings.noQuickNotes")}</p>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={text}
+          maxLength={QUICK_NOTE_MAX}
+          disabled={full}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder={t("shopSettings.quickNotePlaceholder")}
+          aria-label={t("shopSettings.newQuickNote")}
+          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-sm"
+        />
+        <Button type="button" variant="outline" onClick={add} disabled={!note || full}>
+          <Plus className="h-4 w-4" />
+          {t("shopSettings.addQuickNote")}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -236,6 +302,7 @@ export function VenueSetupForm() {
     kdsDeleteSlips: saved.kdsDeleteSlips ?? true,
     defaultTaxRateIds: saved.defaultTaxRateIds ?? [],
     taxAllItems: saved.taxAllItems ?? false,
+    quickNotes: saved.quickNotes ?? [],
     serviceChargeBps: saved.serviceChargeBps ?? 0,
     serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
     serviceChargeOnSpa: saved.serviceChargeOnSpa ?? true,
@@ -478,6 +545,9 @@ export function VenueSetupForm() {
               checked={draft.kdsDeleteSlips}
               onChange={(v) => set({ kdsDeleteSlips: v })}
             />
+            <div className="border-t border-border">
+              <QuickNotesEditor notes={draft.quickNotes} onChange={(quickNotes) => set({ quickNotes })} />
+            </div>
           </Panel>
         </div>
       </Section>
