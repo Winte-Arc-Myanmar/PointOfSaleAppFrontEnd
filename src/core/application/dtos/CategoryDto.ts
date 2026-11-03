@@ -10,6 +10,7 @@ export interface CategoryDto {
   parentId?: string | null;
   description?: string;
   sortOrder?: number;
+  isStaffMeal?: boolean;
   deletedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;

@@ -27,6 +27,7 @@ const schema = z.object({
   parentId: z.string(),
   description: z.string(),
   sortOrder: z.number().min(0),
+  isStaffMeal: z.boolean(),
 });
 
 export type CategoryFormData = z.infer<typeof schema>;
@@ -37,6 +38,7 @@ const defaultValues: CategoryFormData = {
   parentId: PARENT_NONE,
   description: "",
   sortOrder: 0,
+  isStaffMeal: false,
 };
 
 export interface CreateCategoryFormProps {
@@ -113,6 +115,7 @@ export function CreateCategoryForm({
             : data.parentId,
         description: data.description || undefined,
         sortOrder: data.sortOrder,
+        isStaffMeal: data.isStaffMeal,
       },
       {
         onSuccess: () => {
@@ -228,6 +231,15 @@ export function CreateCategoryForm({
           <p className="text-sm text-red-600">{errors.sortOrder.message}</p>
         )}
       </div>
+      <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+        <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" {...register("isStaffMeal")} />
+        <span>
+          <span className="block text-sm font-medium">Staff meal</span>
+          <span className="block text-sm text-muted-foreground">
+            The POS shift report lists these items under Staff meal, not under Kitchen or Bar.
+          </span>
+        </span>
+      </label>
       {createCategory.isError && (
         <p className="text-sm text-red-600">
           Failed to create category. Please try again.
