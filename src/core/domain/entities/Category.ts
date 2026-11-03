@@ -12,6 +12,8 @@ export interface Category {
   parentId: string | null;
   description: string;
   sortOrder: number;
+  /** Staff meals: the shift report lists these items on their own. */
+  isStaffMeal: boolean;
   /** Present when API returns full payload (e.g. getById, tree). */
   deletedAt?: string | null;
   createdAt?: string | null;

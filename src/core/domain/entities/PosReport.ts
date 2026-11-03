@@ -219,3 +219,21 @@ export interface HostessReport {
   calls: HostessCallRow[];
   menuOrders?: HostessMenuOrderRow[];
 }
+
+/**
+ * Sales by where they were made: each KDS station, staff meals, other items, room
+ * time, take-away and credit. Net sales; FOC counts at 0; voids are left out.
+ */
+export interface SalesGroupsReport {
+  sections: {
+    key: string;
+    kind: "STATION" | "STAFF_MEAL" | "OTHER";
+    name: string | null;
+    items: { variantId: string; name: string; quantity: string; amount: string }[];
+    quantity: string;
+    amount: string;
+  }[];
+  rooms: { rows: { room: string; hours: string; amount: string }[]; hours: string; amount: string };
+  takeaway: { orders: number; amount: string };
+  credit: { rows: { account: string; orderNumber: string; amount: string }[]; amount: string };
+}
