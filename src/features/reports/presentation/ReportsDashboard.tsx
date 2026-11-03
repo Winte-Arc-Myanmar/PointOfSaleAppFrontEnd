@@ -9,6 +9,7 @@ import { useDailySales, useZReport } from "@/presentation/hooks/useReports";
 import { useThermalPrint } from "@/presentation/hooks/useThermalPrint";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { ALL_OUTLETS, ReportFilterBar } from "./ReportFilterBar";
+import { SalesGroupsPanel } from "./pos/SalesGroupsPanel";
 import { isDayReportTab, ReportTabBar, type ReportTabId } from "./ReportTabBar";
 import { startOfMonth, toDateInputValue } from "./report-utils";
 import { ItemSalesPanel } from "./plain/ItemSalesPanel";
@@ -142,6 +143,7 @@ export function ReportsDashboard() {
         <div data-print-reports className="space-y-8">
           {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryPanel range={range} /> : null}
           {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesPanel range={range} /> : null}
+          {!rangeInvalid && tab === "sales-groups" && range ? <SalesGroupsPanel range={range} /> : null}
           {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryPanel range={range} posType="SPA" /> : null}
           {!rangeInvalid && tab === "spa-bills" && range ? <PosBillsPanel range={range} posType="SPA" /> : null}
           {!rangeInvalid && tab === "spa-menu" && range ? <SpaMenuPanel range={range} /> : null}
