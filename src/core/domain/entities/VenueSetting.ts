@@ -31,6 +31,8 @@ export interface VenueSetting {
   defaultTaxRates?: DefaultTaxRate[];
   /** Every item is taxed at the default taxes, whatever it says itself; extra fees are not. */
   taxAllItems: boolean;
+  /** Notes staff tap to add to an item ("No ice"), in this order. */
+  quickNotes: string[];
   /** Service charge in basis points: 1000 is 10%. */
   serviceChargeBps: number;
   serviceChargeOnBar: boolean;
