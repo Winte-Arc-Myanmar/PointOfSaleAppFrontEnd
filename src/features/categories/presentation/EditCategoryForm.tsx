@@ -31,6 +31,7 @@ const schema = z.object({
   parentId: z.string(),
   description: z.string(),
   sortOrder: z.number().min(0),
+  isStaffMeal: z.boolean(),
 });
 
 type CategoryFormData = z.infer<typeof schema>;
@@ -55,6 +56,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
       parentId: PARENT_NONE,
       description: "",
       sortOrder: 0,
+      isStaffMeal: false,
     },
   });
 
@@ -81,6 +83,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
         parentId: category.parentId ?? PARENT_NONE,
         description: category.description ?? "",
         sortOrder: category.sortOrder,
+        isStaffMeal: category.isStaffMeal,
       });
     }
   }, [category, form]);
@@ -115,6 +118,7 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
               : data.parentId,
           description: data.description || undefined,
           sortOrder: data.sortOrder,
+          isStaffMeal: data.isStaffMeal,
         },
       },
       {
@@ -243,6 +247,15 @@ export function EditCategoryForm({ categoryId }: { categoryId: string }) {
             <p className="text-sm text-red-600">{form.formState.errors.sortOrder.message}</p>
           )}
         </div>
+        <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+          <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" {...form.register("isStaffMeal")} />
+          <span>
+            <span className="block text-sm font-medium">Staff meal</span>
+            <span className="block text-sm text-muted-foreground">
+              The POS shift report lists these items under Staff meal, not under Kitchen or Bar.
+            </span>
+          </span>
+        </label>
         {showSuccess && (
           <p className="text-sm text-green-600 font-medium">
             Category updated. Redirecting...

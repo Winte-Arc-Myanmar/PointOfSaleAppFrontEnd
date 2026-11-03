@@ -14,6 +14,7 @@ function mapOne(dto: CategoryDto & { id: string }): Category {
     parentId: dto.parentId ?? null,
     description: dto.description ?? "",
     sortOrder: typeof dto.sortOrder === "number" ? dto.sortOrder : 0,
+    isStaffMeal: dto.isStaffMeal === true,
     deletedAt: dto.deletedAt ?? null,
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,
@@ -37,5 +38,6 @@ export function toCategoryDto(category: Partial<Category>): CategoryDto {
     parentId: category.parentId ?? undefined,
     description: category.description ?? "",
     sortOrder: category.sortOrder ?? 0,
+    ...(category.isStaffMeal !== undefined && { isStaffMeal: category.isStaffMeal }),
   };
 }

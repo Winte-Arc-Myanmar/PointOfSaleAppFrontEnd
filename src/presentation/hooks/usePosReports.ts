@@ -27,6 +27,13 @@ export const useBarCategories = (params: PosRangeParams) =>
     placeholderData: keepPreviousData,
   });
 
+export const useSalesGroups = (params: PosRangeParams) =>
+  useQuery({
+    queryKey: [...KEY, "sales-groups", ...rangeKey(params)],
+    queryFn: () => repository().salesGroups(params),
+    placeholderData: keepPreviousData,
+  });
+
 export const useSpaMenuReport = (params: PosRangeParams) =>
   useQuery({
     queryKey: [...KEY, "spa-menu", ...rangeKey(params)],

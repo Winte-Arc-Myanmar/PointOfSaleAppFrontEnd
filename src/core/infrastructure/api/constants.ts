@@ -616,6 +616,7 @@ export const API_ENDPOINTS = {
     POS_SUMMARY: "/v1/reports/pos-summary",
     POS_BILLS: "/v1/reports/pos-bills",
     BAR_CATEGORIES: "/v1/reports/bar-categories",
+    SALES_GROUPS: "/v1/reports/sales-groups",
     SPA_MENU: "/v1/reports/spa-menu",
     KTV_SESSIONS: "/v1/reports/ktv-sessions",
     HOSTESSES: "/v1/reports/hostesses",
