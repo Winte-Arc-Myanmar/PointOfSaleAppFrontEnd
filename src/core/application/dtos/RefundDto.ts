@@ -22,6 +22,10 @@ export interface RefundLineDto {
   id?: string;
   salesOrderLineId?: string;
   variantId?: string;
+  /** The item's name, when the API includes it on the refund line itself. */
+  productName?: string | null;
+  /** The variant's name, when the API includes it on the refund line itself. */
+  variantName?: string | null;
   returnedQuantity?: unknown;
   unitPrice?: unknown;
   lineDiscount?: unknown;

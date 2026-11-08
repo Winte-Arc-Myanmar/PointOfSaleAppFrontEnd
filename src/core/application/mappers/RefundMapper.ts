@@ -30,6 +30,8 @@ function mapLine(dto: RefundLineDto | undefined) {
     id: dto?.id,
     salesOrderLineId: String(dto?.salesOrderLineId ?? ""),
     variantId: dto?.variantId,
+    productName: dto?.productName ?? null,
+    variantName: dto?.variantName ?? null,
     returnedQuantity: parseDecimal(dto?.returnedQuantity),
     unitPrice: parseDecimal(dto?.unitPrice),
     lineDiscount: parseDecimal(dto?.lineDiscount),

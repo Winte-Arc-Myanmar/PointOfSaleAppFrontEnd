@@ -24,7 +24,13 @@ import { useSalesOrderLines } from "@/presentation/hooks/useSalesOrderLines";
 import { useCreateRefund, useRefundsByOrder } from "@/presentation/hooks/useRefunds";
 import type { RefundRequestDto, RefundMethod } from "@/core/application/dtos/RefundDto";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-import { isUuid, shortId } from "./refund-order-utils";
+import {
+  isUuid,
+  refundLineItemName,
+  salesOrderLineName,
+  salesOrderLineNamesById,
+  shortId,
+} from "./refund-order-utils";
 import { formatMoney as money } from "@/lib/money";
 
 function errorMessage(err: unknown): string {
@@ -111,6 +117,10 @@ export function RefundSection() {
     limit: 200,
   });
   const orderLines = getPaginatedItems(linesResult);
+  const lineNames = useMemo(
+    () => salesOrderLineNamesById(getPaginatedItems(linesResult)),
+    [linesResult],
+  );
 
   const { data: existingRefundsData } = useRefundsByOrder(resolvedOrderId);
   const existingRefunds = existingRefundsData ?? [];
@@ -348,18 +358,21 @@ export function RefundSection() {
                 {items.fields.map((field, index) => {
                   const lineId = form.watch(`items.${index}.salesOrderLineId`);
                   const matchedLine = orderLines.find((line) => String(line.id) === lineId);
+                  const matchedLineName = matchedLine ? salesOrderLineName(matchedLine) : "";
                   return (
                     <div
                       key={field.id}
                       className="grid grid-cols-1 gap-3 rounded-md border border-border/60 p-3 lg:grid-cols-12"
                     >
                       <div className="lg:col-span-7 space-y-1">
-                        <Label className="text-xs text-muted">Line</Label>
+                        <Label className="text-xs text-muted">Item</Label>
                         {matchedLine ? (
-                          <p className="text-sm font-medium">
-                            Variant {shortId(String(matchedLine.variantId), 12)} · qty sold{" "}
-                            {matchedLine.quantity}
-                          </p>
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-medium">
+                              {matchedLineName || `Variant ${shortId(String(matchedLine.variantId), 12)}`}
+                            </p>
+                            <p className="text-xs text-muted">qty sold {matchedLine.quantity}</p>
+                          </div>
                         ) : (
                           <Input
                             className="font-mono text-sm"
@@ -422,22 +435,34 @@ export function RefundSection() {
           ) : existingRefunds.length === 0 ? (
             <p className="text-sm text-muted">No refunds found for this order.</p>
           ) : (
-            existingRefunds.map((refund) => (
-              <button
-                key={String(refund.returnId)}
-                type="button"
-                onClick={() => router.push(`/refunds/${refund.returnId}`)}
-                className="w-full rounded-lg border border-border p-3 text-left transition-colors hover:bg-mint/5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-medium">{refund.returnNumber || String(refund.returnId)}</div>
-                  <div className="text-sm text-muted">{money(refund.totalRefund)}</div>
-                </div>
-                <div className="mt-1 text-xs text-muted">
-                  {refund.refundMethod} · {refund.orderStatus}
-                </div>
-              </button>
-            ))
+            existingRefunds.map((refund) => {
+              const refundedItems = refund.lines
+                .map((line) => {
+                  const name = refundLineItemName(line, lineNames);
+                  return name ? `${name} × ${line.returnedQuantity}` : "";
+                })
+                .filter(Boolean)
+                .join(", ");
+              return (
+                <button
+                  key={String(refund.returnId)}
+                  type="button"
+                  onClick={() => router.push(`/refunds/${refund.returnId}`)}
+                  className="w-full rounded-lg border border-border p-3 text-left transition-colors hover:bg-mint/5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium">{refund.returnNumber || String(refund.returnId)}</div>
+                    <div className="text-sm text-muted">{money(refund.totalRefund)}</div>
+                  </div>
+                  <div className="mt-1 text-xs text-muted">
+                    {refund.refundMethod} · {refund.orderStatus}
+                  </div>
+                  {refundedItems ? (
+                    <div className="mt-1 text-xs">{refundedItems}</div>
+                  ) : null}
+                </button>
+              );
+            })
           )}
         </div>
       </DetailSection>

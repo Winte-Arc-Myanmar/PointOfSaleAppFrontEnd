@@ -1,6 +1,20 @@
 import type { SalesOrderLine } from "@/core/domain/entities/SalesOrderLine";
 import type { SalesOrderLineDto } from "../dtos/SalesOrderLineDto";
 
+const UUID_LIKE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A readable catalogue label. Older lines stored the id in the name columns, so
+ * an id-shaped value counts as missing.
+ */
+function readableName(val: unknown): string | null {
+  if (val == null) return null;
+  const text = String(val).trim();
+  if (!text || UUID_LIKE.test(text)) return null;
+  return text;
+}
+
 function parseDecimal(val: unknown): number {
   if (typeof val === "number" && Number.isFinite(val)) return val;
   if (
@@ -45,6 +59,9 @@ export function toSalesOrderLine(
     taxRateId: dto.taxRateId ?? null,
     taxAmount: parseDecimal(dto.taxAmount),
     appliedPromotionId: dto.appliedPromotionId ?? null,
+    productName: readableName(dto.productName),
+    variantName: readableName(dto.variantName),
+    categoryName: readableName(dto.categoryName),
     createdAt: dto.createdAt ?? null,
     updatedAt: dto.updatedAt ?? null,
   };
