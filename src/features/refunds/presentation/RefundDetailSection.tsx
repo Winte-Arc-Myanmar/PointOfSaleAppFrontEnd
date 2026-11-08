@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/presentation/components/ui/button";
 import { AppLoader } from "@/presentation/components/loader";
@@ -12,10 +13,26 @@ import {
   formatDate,
 } from "@/presentation/components/detail";
 import { useRefund } from "@/presentation/hooks/useRefunds";
+import { useSalesOrderLines } from "@/presentation/hooks/useSalesOrderLines";
+import { getPaginatedItems } from "@/presentation/hooks/pagination";
+import {
+  refundLineItemName,
+  refundLineLabel,
+  salesOrderLineNamesById,
+} from "./refund-order-utils";
 import { formatMoney as money } from "@/lib/money";
 
 export function RefundDetailSection({ refundId }: { refundId: string }) {
   const { data: refund, isLoading, error } = useRefund(refundId);
+  // The refund only carries line ids, so read the order's lines for item names.
+  const { data: orderLinesResult } = useSalesOrderLines(
+    refund?.salesOrderId ?? null,
+    { page: 1, limit: 200 },
+  );
+  const lineNames = useMemo(
+    () => salesOrderLineNamesById(getPaginatedItems(orderLinesResult)),
+    [orderLinesResult],
+  );
 
   if (isLoading) return <AppLoader fullScreen={false} size="md" message="Loading refund..." />;
   if (error || !refund) {
@@ -76,7 +93,7 @@ export function RefundDetailSection({ refundId }: { refundId: string }) {
             <table className="w-full text-sm">
               <thead className="bg-muted/40">
                 <tr className="text-left">
-                  <th className="p-3">Sales order line</th>
+                  <th className="p-3">Item</th>
                   <th className="p-3">Returned qty</th>
                   <th className="p-3">Unit</th>
                   <th className="p-3">Discount</th>
@@ -85,16 +102,34 @@ export function RefundDetailSection({ refundId }: { refundId: string }) {
                 </tr>
               </thead>
               <tbody>
-                {refund.lines.map((l, i) => (
-                  <tr key={i} className="border-t border-border">
-                    <td className="p-3 font-mono text-xs text-muted">{String(l.salesOrderLineId)}</td>
-                    <td className="p-3 text-muted">{l.returnedQuantity}</td>
-                    <td className="p-3 text-muted">{money(l.unitPrice)}</td>
-                    <td className="p-3 text-muted">{money(l.lineDiscount)}</td>
-                    <td className="p-3 text-muted">{money(l.taxAmount)}</td>
-                    <td className="p-3 font-medium">{money(l.lineRefund)}</td>
-                  </tr>
-                ))}
+                {refund.lines.map((l, i) => {
+                  const itemName = refundLineItemName(l, lineNames);
+                  return (
+                    <tr key={i} className="border-t border-border">
+                      <td className="p-3">
+                        <span
+                          className={
+                            itemName
+                              ? "font-medium text-foreground"
+                              : "font-mono text-xs text-muted"
+                          }
+                        >
+                          {refundLineLabel(l, lineNames)}
+                        </span>
+                        {itemName ? (
+                          <span className="mt-0.5 block font-mono text-xs text-muted">
+                            {String(l.salesOrderLineId)}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="p-3 text-muted">{l.returnedQuantity}</td>
+                      <td className="p-3 text-muted">{money(l.unitPrice)}</td>
+                      <td className="p-3 text-muted">{money(l.lineDiscount)}</td>
+                      <td className="p-3 text-muted">{money(l.taxAmount)}</td>
+                      <td className="p-3 font-medium">{money(l.lineRefund)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
