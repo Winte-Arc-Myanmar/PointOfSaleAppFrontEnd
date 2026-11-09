@@ -1,6 +1,7 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { KitchenPrinter } from "@/core/domain/entities/KitchenPrinter";
 import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
+import { PRINT_AREA_LABELS, printsBills } from "./PrinterAreaPicker";
 import { formatPrinterAddress } from "./printer-address";
 
 type KitchenPrinterTableColumnOptions = {
@@ -46,6 +47,17 @@ export function getKitchenPrinterTableColumns(
           ))}
         </div>
       ),
+    },
+    {
+      key: "printsFor",
+      header: "Bills for",
+      className: "min-w-[140px]",
+      render: (p) =>
+        printsBills(p.sectors) ? (
+          <span className="text-sm">{p.printsFor.map((a) => PRINT_AREA_LABELS[a]).join(", ")}</span>
+        ) : (
+          <span className="text-xs text-muted">—</span>
+        ),
     },
     {
       key: "ipAddress",
