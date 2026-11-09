@@ -4,16 +4,18 @@ import { resolveMediaUrl } from "@/lib/media-url";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTenant, useUpdateTenant } from "@/presentation/hooks/useTenants";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { ImageUploadField } from "@/presentation/components/upload/ImageUploadField";
 import { ArrowLeft } from "lucide-react";
 import { AppLoader } from "@/presentation/components/loader";
 import {
+  domainPayload,
   emptyToBlank,
   updateTenantSchema,
   type UpdateTenantFormData,
@@ -76,7 +78,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         data: {
           name: data.name,
           legalName: data.legalName,
-          domain: data.domain,
+          ...domainPayload(data.domain),
           website: emptyToBlank(data.website),
           logoUrl: emptyToBlank(data.logoUrl),
           primaryContactName: data.primaryContactName,
@@ -140,7 +142,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="legalName">Legal name *</Label>
+            <Label htmlFor="legalName">Legal name</Label>
             <Input id="legalName" {...form.register("legalName")} />
             {errors.legalName && (
               <p className="text-sm text-red-600">{errors.legalName.message}</p>
@@ -149,30 +151,39 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="domain">Domain *</Label>
+            <Label htmlFor="domain">Domain</Label>
             <Input id="domain" {...form.register("domain")} />
             {errors.domain && (
               <p className="text-sm text-red-600">{errors.domain.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="website">Website *</Label>
+            <Label htmlFor="website">Website</Label>
             <Input id="website" type="url" {...form.register("website")} />
             {errors.website && (
               <p className="text-sm text-red-600">{errors.website.message}</p>
             )}
           </div>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="logoUrl">Logo URL</Label>
-          <Input id="logoUrl" type="url" {...form.register("logoUrl")} />
-          {errors.logoUrl && (
-            <p className="text-sm text-red-600">{errors.logoUrl.message}</p>
+        <Controller
+          control={form.control}
+          name="logoUrl"
+          render={({ field }) => (
+            <ImageUploadField
+              id="logoUrl"
+              label="Logo"
+              folder="logos"
+              square
+              value={field.value}
+              onChange={field.onChange}
+              hint="PNG or JPG. Prints at the top of receipts."
+              error={errors.logoUrl?.message}
+            />
           )}
-        </div>
+        />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactName">Primary contact name *</Label>
+            <Label htmlFor="primaryContactName">Primary contact name</Label>
             <Input id="primaryContactName" {...form.register("primaryContactName")} />
             {errors.primaryContactName && (
               <p className="text-sm text-red-600">
@@ -181,7 +192,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactEmail">Primary contact email *</Label>
+            <Label htmlFor="primaryContactEmail">Primary contact email</Label>
             <Input id="primaryContactEmail" type="email" {...form.register("primaryContactEmail")} />
             {errors.primaryContactEmail && (
               <p className="text-sm text-red-600">
@@ -190,7 +201,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="primaryContactPhone">Primary contact phone *</Label>
+            <Label htmlFor="primaryContactPhone">Primary contact phone</Label>
             <Input id="primaryContactPhone" {...form.register("primaryContactPhone")} />
             {errors.primaryContactPhone && (
               <p className="text-sm text-red-600">
@@ -200,7 +211,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="address">Address *</Label>
+          <Label htmlFor="address">Address</Label>
           <Input id="address" {...form.register("address")} />
           {errors.address && (
             <p className="text-sm text-red-600">{errors.address.message}</p>
@@ -208,21 +219,21 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="city">City *</Label>
+            <Label htmlFor="city">City</Label>
             <Input id="city" {...form.register("city")} />
             {errors.city && (
               <p className="text-sm text-red-600">{errors.city.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="state">State *</Label>
+            <Label htmlFor="state">State</Label>
             <Input id="state" {...form.register("state")} />
             {errors.state && (
               <p className="text-sm text-red-600">{errors.state.message}</p>
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="zipCode">Zip code *</Label>
+            <Label htmlFor="zipCode">Zip code</Label>
             <Input id="zipCode" {...form.register("zipCode")} />
             {errors.zipCode && (
               <p className="text-sm text-red-600">{errors.zipCode.message}</p>
@@ -230,7 +241,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
           </div>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="country">Country *</Label>
+          <Label htmlFor="country">Country</Label>
           <Input id="country" {...form.register("country")} />
           {errors.country && (
             <p className="text-sm text-red-600">{errors.country.message}</p>
