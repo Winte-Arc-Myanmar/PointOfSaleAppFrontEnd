@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateTenant } from "@/presentation/hooks/useTenants";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
+import { ImageUploadField } from "@/presentation/components/upload/ImageUploadField";
 import {
   createTenantDefaultValues,
   createTenantSchema,
+  domainPayload,
   emptyToBlank,
   type CreateTenantFormData,
 } from "./tenant-form-schema";
@@ -36,6 +38,7 @@ export function CreateTenantForm({
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<CreateTenantFormData>({
     resolver: zodResolver(createTenantSchema),
     defaultValues: createTenantDefaultValues,
@@ -46,7 +49,7 @@ export function CreateTenantForm({
       {
         name: data.name,
         legalName: data.legalName,
-        domain: data.domain,
+        ...domainPayload(data.domain),
         website: emptyToBlank(data.website),
         logoUrl: emptyToBlank(data.logoUrl),
         primaryContactName: data.primaryContactName,
@@ -80,7 +83,7 @@ export function CreateTenantForm({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="legalName">Legal name *</Label>
+          <Label htmlFor="legalName">Legal name</Label>
           <Input
             id="legalName"
             {...register("legalName")}
@@ -93,14 +96,14 @@ export function CreateTenantForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="domain">Domain *</Label>
+          <Label htmlFor="domain">Domain</Label>
           <Input id="domain" {...register("domain")} placeholder="kfc.com" />
           {errors.domain && (
             <p className="text-sm text-red-600">{errors.domain.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="website">Website *</Label>
+          <Label htmlFor="website">Website</Label>
           <Input
             id="website"
             type="url"
@@ -112,22 +115,26 @@ export function CreateTenantForm({
           )}
         </div>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="logoUrl">Logo URL</Label>
-        <Input
-          id="logoUrl"
-          type="url"
-          {...register("logoUrl")}
-          placeholder="https://logo.url"
-        />
-        {errors.logoUrl && (
-          <p className="text-sm text-red-600">{errors.logoUrl.message}</p>
+      <Controller
+        control={control}
+        name="logoUrl"
+        render={({ field }) => (
+          <ImageUploadField
+            id="logoUrl"
+            label="Logo"
+            folder="logos"
+            square
+            value={field.value}
+            onChange={field.onChange}
+            hint="PNG or JPG. Prints at the top of receipts."
+            error={errors.logoUrl?.message}
+          />
         )}
-      </div>
+      />
       <p className="text-sm font-medium text-foreground/80">Primary contact</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactName">Name *</Label>
+          <Label htmlFor="primaryContactName">Name</Label>
           <Input id="primaryContactName" {...register("primaryContactName")} />
           {errors.primaryContactName && (
             <p className="text-sm text-red-600">
@@ -136,7 +143,7 @@ export function CreateTenantForm({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactEmail">Email *</Label>
+          <Label htmlFor="primaryContactEmail">Email</Label>
           <Input
             id="primaryContactEmail"
             type="email"
@@ -149,7 +156,7 @@ export function CreateTenantForm({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="primaryContactPhone">Phone *</Label>
+          <Label htmlFor="primaryContactPhone">Phone</Label>
           <Input
             id="primaryContactPhone"
             {...register("primaryContactPhone")}
@@ -163,7 +170,7 @@ export function CreateTenantForm({
         </div>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="address">Address *</Label>
+        <Label htmlFor="address">Address</Label>
         <Input
           id="address"
           {...register("address")}
@@ -175,21 +182,21 @@ export function CreateTenantForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="city">City *</Label>
+          <Label htmlFor="city">City</Label>
           <Input id="city" {...register("city")} />
           {errors.city && (
             <p className="text-sm text-red-600">{errors.city.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="state">State *</Label>
+          <Label htmlFor="state">State</Label>
           <Input id="state" {...register("state")} />
           {errors.state && (
             <p className="text-sm text-red-600">{errors.state.message}</p>
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="zipCode">Zip code *</Label>
+          <Label htmlFor="zipCode">Zip code</Label>
           <Input id="zipCode" {...register("zipCode")} />
           {errors.zipCode && (
             <p className="text-sm text-red-600">{errors.zipCode.message}</p>
@@ -197,7 +204,7 @@ export function CreateTenantForm({
         </div>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="country">Country *</Label>
+        <Label htmlFor="country">Country</Label>
         <Input id="country" {...register("country")} placeholder="e.g. USA" />
         {errors.country && (
           <p className="text-sm text-red-600">{errors.country.message}</p>
