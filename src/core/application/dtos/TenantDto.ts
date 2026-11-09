@@ -9,7 +9,7 @@ export interface TenantDto {
   id?: string;
   name: string;
   legalName: string;
-  domain: string;
+  domain?: string;
   website: string;
   logoUrl: string;
   primaryContactName: string;
