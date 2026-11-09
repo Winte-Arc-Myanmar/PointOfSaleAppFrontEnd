@@ -29,6 +29,7 @@ import {
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
 import { KitchenPrinterConnection } from "@/presentation/components/printer/KitchenPrinterConnection";
 import { PRINTER_SECTOR_LABELS } from "./PrinterSectorPicker";
+import { PRINT_AREA_LABELS, printsBills } from "./PrinterAreaPicker";
 import { formatPrinterAddress } from "./printer-address";
 
 export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
@@ -54,6 +55,14 @@ export function KitchenPrinterDetail({ printerId }: { printerId: string }) {
               label: "Sectors",
               value: printer.sectors.map((s) => PRINTER_SECTOR_LABELS[s]).join(", "),
             },
+            ...(printsBills(printer.sectors)
+              ? [
+                  {
+                    label: "Prints bills for",
+                    value: printer.printsFor.map((a) => PRINT_AREA_LABELS[a]).join(", "),
+                  },
+                ]
+              : []),
             {
               label: "Status",
               value: printer.isActive ? "Active" : "Inactive",

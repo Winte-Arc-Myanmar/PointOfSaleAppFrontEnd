@@ -1,6 +1,8 @@
 import {
+  PRINT_AREAS,
   PRINTER_SECTORS,
   type KitchenPrinter,
+  type PrintArea,
   type PrinterSector,
 } from "@/core/domain/entities/KitchenPrinter";
 import type { KitchenPrinterDto } from "../dtos/KitchenPrinterDto";
@@ -16,6 +18,9 @@ export function toKitchenPrinter(dto: KitchenPrinterDto & { id: string }): Kitch
     sectors: Array.isArray(dto.sectors)
       ? dto.sectors.filter((s): s is PrinterSector => PRINTER_SECTORS.includes(s))
       : ["KDS"],
+    printsFor: Array.isArray(dto.printsFor)
+      ? dto.printsFor.filter((a): a is PrintArea => PRINT_AREAS.includes(a))
+      : [...PRINT_AREAS],
     isActive: Boolean(dto.isActive),
     deletedAt: dto.deletedAt ?? null,
     createdAt: dto.createdAt ?? null,
