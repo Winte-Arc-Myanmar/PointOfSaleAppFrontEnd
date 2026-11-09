@@ -20,8 +20,9 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-import { PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
+import { PRINT_AREAS, PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
 import { PrinterSectorPicker } from "./PrinterSectorPicker";
+import { PrinterAreaPicker, printsBills, useBillAreas } from "./PrinterAreaPicker";
 import { ipAddressField, portField, toAddressPayload } from "./printer-address";
 
 const LIST_LIMIT = 200;
@@ -33,6 +34,7 @@ const schema = z.object({
   ipAddress: ipAddressField,
   port: portField,
   sectors: z.array(z.enum(PRINTER_SECTORS)).min(1, "Pick at least one sector"),
+  printsFor: z.array(z.enum(PRINT_AREAS)).min(1, "Pick at least one area"),
   isActive: z.boolean(),
 });
 
@@ -45,6 +47,7 @@ const defaultValues: FormData = {
   ipAddress: "",
   port: "",
   sectors: ["KDS"],
+  printsFor: [...PRINT_AREAS],
   isActive: true,
 };
 
@@ -60,6 +63,7 @@ export function CreateKitchenPrinterForm({
   onLoadingChange,
 }: CreateKitchenPrinterFormProps) {
   const { tenantId: lockedTenantId } = usePermissions();
+  const billAreas = useBillAreas();
   const create = useCreateKitchenPrinter();
   const toast = useToast();
   const { data: tenantsData } = useTenants();
@@ -72,10 +76,16 @@ export function CreateKitchenPrinterForm({
     defaultValues: {
       ...defaultValues,
       tenantId: lockedTenantId ?? "",
+      printsFor: billAreas,
     },
   });
 
   const selectedTenantId = useWatch({ control: form.control, name: "tenantId" });
+  const sectors = useWatch({ control: form.control, name: "sectors" });
+
+  useEffect(() => {
+    if (!form.getFieldState("printsFor").isDirty) form.setValue("printsFor", billAreas);
+  }, [billAreas, form]);
   const filteredLocations = useMemo(
     () =>
       locations.filter((location) =>
@@ -107,6 +117,7 @@ export function CreateKitchenPrinterForm({
         name: data.name.trim(),
         ...toAddressPayload(data.ipAddress, data.port),
         sectors: data.sectors,
+        printsFor: data.printsFor,
         isActive: data.isActive,
       },
       {
@@ -115,6 +126,7 @@ export function CreateKitchenPrinterForm({
           form.reset({
             ...defaultValues,
             tenantId: lockedTenantId ?? form.getValues("tenantId"),
+            printsFor: billAreas,
           });
           onSuccess?.();
         },
@@ -238,6 +250,20 @@ export function CreateKitchenPrinterForm({
           />
         )}
       />
+
+      {printsBills(sectors) && (
+        <Controller
+          control={form.control}
+          name="printsFor"
+          render={({ field }) => (
+            <PrinterAreaPicker
+              value={field.value}
+              onChange={field.onChange}
+              error={form.formState.errors.printsFor?.message}
+            />
+          )}
+        />
+      )}
     </form>
   );
 }
