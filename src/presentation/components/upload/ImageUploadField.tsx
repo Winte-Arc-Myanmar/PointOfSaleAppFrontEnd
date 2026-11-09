@@ -27,6 +27,8 @@ export interface ImageUploadFieldProps {
   folder?: string;
   disabled?: boolean;
   error?: string;
+  hint?: string;
+  square?: boolean;
 }
 
 export function ImageUploadField({
@@ -37,6 +39,8 @@ export function ImageUploadField({
   folder = "users",
   disabled = false,
   error,
+  hint,
+  square = false,
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const upload = useUploadFile();
@@ -74,13 +78,17 @@ export function ImageUploadField({
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <div className="flex flex-wrap items-start gap-4">
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-border bg-muted/30">
+        <div
+          className={`relative h-24 w-24 shrink-0 overflow-hidden border border-border ${
+            square ? "rounded-lg bg-white" : "rounded-full bg-muted/30"
+          }`}
+        >
           {src ? (
             <Image
               src={src}
               alt=""
               fill
-              className="object-cover"
+              className={square ? "object-contain p-1" : "object-cover"}
               sizes="96px"
               unoptimized
             />
@@ -130,8 +138,12 @@ export function ImageUploadField({
         </div>
       </div>
       <p className="text-xs text-muted">
-        Upload a photo. It is stored in the <code className="text-xs">{folder}</code> folder
-        and sent as the avatar URL.
+        {hint ?? (
+          <>
+            Upload a photo. It is stored in the <code className="text-xs">{folder}</code> folder
+            and sent as the avatar URL.
+          </>
+        )}
       </p>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </div>
