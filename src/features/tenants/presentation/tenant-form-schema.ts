@@ -4,32 +4,40 @@ import type { TenantCurrency } from "@/core/domain/entities/Tenant";
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const optionalUrl = z.string().trim().url("Invalid URL").or(z.literal(""));
+const optionalText = z.string().trim();
 
-const phoneNumberField = requiredText("Phone number").regex(
-  /^\+?[0-9]{7,15}$/,
-  "Enter a valid phone number, e.g. +1234567890",
+const optionalMatching = (check: (value: string) => boolean, message: string) =>
+  optionalText.refine((value) => !value || check(value), message);
+
+const optionalUrl = optionalMatching(
+  (value) => z.string().url().safeParse(value).success,
+  "Invalid URL",
 );
 
 const tenantWriteFields = {
   name: requiredText("Name"),
-  legalName: requiredText("Legal name"),
-  domain: requiredText("Domain").regex(
-    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
+  legalName: optionalText,
+  domain: optionalMatching(
+    (value) =>
+      /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(value),
     "Enter a valid domain, e.g. kfc.com",
   ),
-  website: requiredText("Website").url("Invalid URL"),
-  logoUrl: optionalUrl,
-  primaryContactName: requiredText("Primary contact name"),
-  primaryContactEmail: requiredText("Primary contact email").email(
+  website: optionalUrl,
+  logoUrl: optionalText,
+  primaryContactName: optionalText,
+  primaryContactEmail: optionalMatching(
+    (value) => z.string().email().safeParse(value).success,
     "Invalid email",
   ),
-  primaryContactPhone: phoneNumberField,
-  address: requiredText("Address"),
-  city: requiredText("City"),
-  state: requiredText("State"),
-  country: requiredText("Country"),
-  zipCode: requiredText("Zip code"),
+  primaryContactPhone: optionalMatching(
+    (value) => /^\+?[0-9]{7,15}$/.test(value),
+    "Enter a valid phone number, e.g. +1234567890",
+  ),
+  address: optionalText,
+  city: optionalText,
+  state: optionalText,
+  country: optionalText,
+  zipCode: optionalText,
 };
 
 /**
@@ -61,6 +69,12 @@ export const createTenantDefaultValues: CreateTenantFormData = {
 
 export function emptyToBlank(value: string): string {
   return value.trim();
+}
+
+/** A blank domain is left out: the domain is unique, so two shops cannot both send "". */
+export function domainPayload(value: string): { domain?: string } {
+  const domain = value.trim();
+  return domain ? { domain } : {};
 }
 
 export const TENANT_CURRENCIES: TenantCurrency[] = ["MMK", "USD"];
