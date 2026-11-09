@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocations } from "@/presentation/hooks/useLocations";
@@ -25,8 +25,9 @@ import {
   SelectValue,
 } from "@/presentation/components/ui/select";
 import { getPaginatedItems } from "@/presentation/hooks/pagination";
-import { PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
+import { PRINT_AREAS, PRINTER_SECTORS } from "@/core/domain/entities/KitchenPrinter";
 import { PrinterSectorPicker } from "./PrinterSectorPicker";
+import { PrinterAreaPicker, printsBills } from "./PrinterAreaPicker";
 import { ipAddressField, portField, toAddressPayload } from "./printer-address";
 
 const REDIRECT_DELAY_MS = 1500;
@@ -38,6 +39,7 @@ const schema = z.object({
   ipAddress: ipAddressField,
   port: portField,
   sectors: z.array(z.enum(PRINTER_SECTORS)).min(1, "Pick at least one sector"),
+  printsFor: z.array(z.enum(PRINT_AREAS)).min(1, "Pick at least one area"),
   isActive: z.boolean(),
 });
 
@@ -60,9 +62,11 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
       ipAddress: "",
       port: "",
       sectors: ["KDS"],
+      printsFor: [...PRINT_AREAS],
       isActive: true,
     },
   });
+  const sectors = useWatch({ control: form.control, name: "sectors" });
 
   const filteredLocations = useMemo(
     () =>
@@ -78,6 +82,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
         ipAddress: printer.ipAddress ?? "",
         port: printer.port ? String(printer.port) : "",
         sectors: printer.sectors,
+        printsFor: printer.printsFor,
         isActive: printer.isActive,
       });
     }
@@ -93,6 +98,7 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
           name: data.name.trim(),
           ...toAddressPayload(data.ipAddress, data.port),
           sectors: data.sectors,
+          printsFor: data.printsFor,
           isActive: data.isActive,
         },
       },
@@ -229,6 +235,20 @@ export function EditKitchenPrinterForm({ printerId }: { printerId: string }) {
             />
           )}
         />
+
+        {printsBills(sectors) && (
+          <Controller
+            control={form.control}
+            name="printsFor"
+            render={({ field }) => (
+              <PrinterAreaPicker
+                value={field.value}
+                onChange={field.onChange}
+                error={form.formState.errors.printsFor?.message}
+              />
+            )}
+          />
+        )}
 
         <div className="flex gap-2">
           <Button type="submit" disabled={update.isPending}>
