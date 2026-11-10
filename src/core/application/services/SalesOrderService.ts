@@ -1,6 +1,6 @@
 import type { ISalesOrderService } from "@/core/domain/services/ISalesOrderService";
 import type { ISalesOrderRepository } from "@/core/domain/repositories/ISalesOrderRepository";
-import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
+import type { BulkDeleteResult, SalesOrder } from "@/core/domain/entities/SalesOrder";
 import type {
   GetSalesOrderEditsParams,
   GetSalesOrdersParams,
@@ -39,6 +39,10 @@ export class SalesOrderService implements ISalesOrderService {
 
   delete(id: string): Promise<void> {
     return this.salesOrderRepository.delete(id);
+  }
+
+  bulkDelete(ids: string[], preview: boolean): Promise<BulkDeleteResult> {
+    return this.salesOrderRepository.bulkDelete(ids, preview);
   }
 
   getEdits(id: string): Promise<SalesOrderEdit[]> {

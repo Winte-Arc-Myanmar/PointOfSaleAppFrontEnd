@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   ChefHat,
   Clock3,
+  LayoutGrid,
+  List,
   Search,
+  Trash2,
   UtensilsCrossed,
   XCircle,
 } from "lucide-react";
@@ -23,6 +32,9 @@ import { AppLoader } from "@/presentation/components/loader";
 import { useSalesOrders } from "@/presentation/hooks/useSalesOrders";
 import { useReceipt } from "@/presentation/hooks/useReceipts";
 import { usePagination } from "@/presentation/hooks/usePagination";
+import { usePermissions } from "@/presentation/hooks/usePermissions";
+import { BulkDeleteDialog } from "./BulkDeleteDialog";
+import { SalesOrderListTable } from "./SalesOrderListTable";
 import type {
   SalesOrder,
   SalesOrderStatus,
@@ -44,6 +56,38 @@ type BoardStatus =
 type OrderBoardStatus = Exclude<BoardStatus, "all">;
 
 type DatePreset = "today" | "yesterday" | "this-week";
+
+type ViewMode = "grid" | "list";
+
+const VIEW_STORAGE_KEY = "sales-orders:view";
+
+const viewListeners = new Set<() => void>();
+
+function readView(): ViewMode {
+  try {
+    return window.localStorage.getItem(VIEW_STORAGE_KEY) === "list"
+      ? "list"
+      : "grid";
+  } catch {
+    return "grid";
+  }
+}
+
+function subscribeView(listener: () => void) {
+  viewListeners.add(listener);
+  return () => {
+    viewListeners.delete(listener);
+  };
+}
+
+function saveView(view: ViewMode) {
+  try {
+    window.localStorage.setItem(VIEW_STORAGE_KEY, view);
+  } catch {
+    // The choice just isn't remembered.
+  }
+  viewListeners.forEach((listener) => listener());
+}
 
 const STATUS_FILTERS: Array<{
   key: BoardStatus;
@@ -139,6 +183,52 @@ export function SalesOrderList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<BoardStatus>("all");
   const [datePreset, setDatePreset] = useState<DatePreset>("today");
+  const view = useSyncExternalStore(subscribeView, readView, () => "grid");
+  const [selectMode, setSelectMode] = useState(false);
+  const selectionScope = `${search}|${datePreset}|${statusFilter}|${pagination.page}`;
+  const [selection, setSelection] = useState<{
+    scope: string;
+    ids: Set<string>;
+  }>(() => ({ scope: "", ids: new Set() }));
+  const selected = useMemo(
+    () =>
+      selection.scope === selectionScope ? selection.ids : new Set<string>(),
+    [selection, selectionScope],
+  );
+  const setSelected = useCallback(
+    (update: Set<string> | ((current: Set<string>) => Set<string>)) =>
+      setSelection((current) => {
+        const ids =
+          current.scope === selectionScope ? current.ids : new Set<string>();
+        return {
+          scope: selectionScope,
+          ids: typeof update === "function" ? update(ids) : update,
+        };
+      }),
+    [selectionScope],
+  );
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const { can } = usePermissions();
+  const canDelete = can("sales:sales-order:delete");
+  const selectable = canDelete && (view === "list" || selectMode);
+
+  const changeView = (next: ViewMode) => {
+    saveView(next);
+    setSelectMode(false);
+    setSelected(new Set());
+  };
+
+  const clearSelection = useCallback(
+    () => setSelected(new Set()),
+    [setSelected],
+  );
+  const toggleOne = (id: string) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   useEffect(() => {
     const id = setTimeout(
@@ -194,6 +284,15 @@ export function SalesOrderList() {
   const totalPages =
     ordersResult?.totalPages ?? pagination.getTotalPages(ordersResult?.total);
 
+  const toggleAll = (checked: boolean) =>
+    setSelected(
+      checked ? new Set(filteredOrders.map((o) => String(o.id))) : new Set(),
+    );
+  const selectedIds = useMemo(() => [...selected], [selected]);
+  const selectedTotal = filteredOrders
+    .filter((o) => selected.has(String(o.id)))
+    .reduce((sum, o) => sum + (Number(o.grandTotal) || 0), 0);
+
   return (
     <div className="space-y-6">
       <section className="rounded-[28px] border border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,247,0.96))] p-5 shadow-[var(--shadow-panel)] dark:bg-[linear-gradient(180deg,rgba(37,35,36,0.98),rgba(31,29,30,0.96))]">
@@ -229,7 +328,48 @@ export function SalesOrderList() {
             })}
           </div>
 
-          <div className="flex items-center gap-2 self-start xl:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto">
+            <div
+              role="group"
+              aria-label="View"
+              className="inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white p-1 dark:border-border dark:bg-background"
+            >
+              {(
+                [
+                  ["grid", LayoutGrid, "Grid"],
+                  ["list", List, "List"],
+                ] as const
+              ).map(([mode, Icon, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={view === mode}
+                  onClick={() => changeView(mode)}
+                  className={cn(
+                    "inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition-colors",
+                    view === mode
+                      ? "bg-green-50 text-green-800 dark:bg-mint/10 dark:text-mint"
+                      : "text-slate-500 hover:text-slate-900 dark:text-muted dark:hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            {canDelete && view === "grid" ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 rounded-2xl border-slate-200 bg-white dark:border-border dark:bg-background"
+                onClick={() => {
+                  setSelectMode((current) => !current);
+                  clearSelection();
+                }}
+              >
+                {selectMode ? "Cancel" : "Select"}
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -291,17 +431,79 @@ export function SalesOrderList() {
               : "New orders will appear here as they come in."}
           </p>
         </div>
+      ) : view === "list" ? (
+        <SalesOrderListTable
+          orders={filteredOrders}
+          selectable={selectable}
+          selected={selected}
+          onToggle={toggleOne}
+          onToggleAll={toggleAll}
+          onOpen={(order) => router.push(`/sales-orders/${order.id}`)}
+        />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredOrders.map((order) => (
-            <OrderTrackingCard
-              key={String(order.id)}
-              order={order}
-              onOpen={() => router.push(`/sales-orders/${order.id}`)}
-            />
-          ))}
+        <div className="space-y-3">
+          {selectable ? (
+            <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-muted">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-emerald-500"
+                checked={
+                  filteredOrders.length > 0 &&
+                  filteredOrders.every((o) => selected.has(String(o.id)))
+                }
+                onChange={(e) => toggleAll(e.target.checked)}
+              />
+              Select all on this page
+            </label>
+          ) : null}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredOrders.map((order) => (
+              <OrderTrackingCard
+                key={String(order.id)}
+                order={order}
+                selectable={selectable}
+                selected={selected.has(String(order.id))}
+                onOpen={() =>
+                  selectable
+                    ? toggleOne(String(order.id))
+                    : router.push(`/sales-orders/${order.id}`)
+                }
+              />
+            ))}
+          </div>
         </div>
       )}
+
+      {selectable && selected.size > 0 ? (
+        <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-border bg-background/95 px-4 py-3 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.45)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-sm font-semibold text-foreground">
+            {selected.size} selected · {formatMoney(selectedTotal)}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" onClick={clearSelection}>
+              Clear
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" />
+              Delete {selected.size}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <BulkDeleteDialog
+        ids={selectedIds}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleted={() => {
+          clearSelection();
+          setSelectMode(false);
+        }}
+      />
 
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background/80 px-4 py-3 shadow-[var(--shadow-panel)] sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted">
@@ -334,9 +536,13 @@ export function SalesOrderList() {
 function OrderTrackingCard({
   order,
   onOpen,
+  selectable = false,
+  selected = false,
 }: {
   order: SalesOrder;
   onOpen: () => void;
+  selectable?: boolean;
+  selected?: boolean;
 }) {
   const {
     data: receipt,
@@ -372,10 +578,25 @@ function OrderTrackingCard({
           onOpen();
         }
       }}
-      className="rounded-[26px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#fbfdfb)] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-30px_rgba(15,23,42,0.4)] dark:border-border dark:bg-[linear-gradient(180deg,rgba(37,35,36,0.98),rgba(30,28,29,0.96))]"
+      aria-pressed={selectable ? selected : undefined}
+      className={cn(
+        "rounded-[26px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#fbfdfb)] p-4 shadow-[0_18px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-30px_rgba(15,23,42,0.4)] dark:border-border dark:bg-[linear-gradient(180deg,rgba(37,35,36,0.98),rgba(30,28,29,0.96))]",
+        selected && "border-emerald-400 ring-2 ring-emerald-400/60 dark:border-mint dark:ring-mint/50",
+      )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          {selectable ? (
+            <input
+              type="checkbox"
+              tabIndex={-1}
+              aria-label={`Select order ${order.orderNumber}`}
+              className="h-4 w-4 shrink-0 accent-emerald-500"
+              checked={selected}
+              onChange={onOpen}
+              onClick={(event) => event.stopPropagation()}
+            />
+          ) : null}
           <button
             type="button"
             onClick={(event) => {
