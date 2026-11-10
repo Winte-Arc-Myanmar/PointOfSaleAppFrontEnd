@@ -14,6 +14,7 @@ import {
   Clock3,
   LayoutGrid,
   List,
+  ListChecks,
   Search,
   Trash2,
   UtensilsCrossed,
@@ -295,9 +296,9 @@ export function SalesOrderList() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,247,0.96))] p-5 shadow-[var(--shadow-panel)] dark:bg-[linear-gradient(180deg,rgba(37,35,36,0.98),rgba(31,29,30,0.96))]">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2">
+      <section className="rounded-[28px] border border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,247,0.96))] px-3 py-2.5 shadow-[var(--shadow-panel)] dark:bg-[linear-gradient(180deg,rgba(37,35,36,0.98),rgba(31,29,30,0.96))]">
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {STATUS_FILTERS.map((filter) => {
               const isActive = statusFilter === filter.key;
               return (
@@ -306,7 +307,7 @@ export function SalesOrderList() {
                   type="button"
                   onClick={() => setStatusFilter(filter.key)}
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all",
+                    "inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition-all",
                     isActive
                       ? "border-green-200 bg-green-50 text-green-800 shadow-sm dark:border-mint/20 dark:bg-mint/10 dark:text-mint"
                       : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-border dark:bg-background dark:text-muted dark:hover:text-foreground",
@@ -315,7 +316,7 @@ export function SalesOrderList() {
                   <span>{filter.label}</span>
                   <span
                     className={cn(
-                      "inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-xs font-bold",
+                      "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold",
                       isActive
                         ? "bg-green-600 text-white dark:bg-mint dark:text-gloss-black"
                         : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-foreground",
@@ -328,11 +329,11 @@ export function SalesOrderList() {
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto">
+          <div className="flex shrink-0 items-center gap-1.5 border-l border-border pl-2">
             <div
               role="group"
               aria-label="View"
-              className="inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white p-1 dark:border-border dark:bg-background"
+              className="inline-flex h-9 items-center rounded-xl border border-slate-200 bg-white p-0.5 dark:border-border dark:bg-background"
             >
               {(
                 [
@@ -344,16 +345,17 @@ export function SalesOrderList() {
                   key={mode}
                   type="button"
                   aria-pressed={view === mode}
+                  aria-label={`${label} view`}
+                  title={`${label} view`}
                   onClick={() => changeView(mode)}
                   className={cn(
-                    "inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition-colors",
+                    "inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
                     view === mode
                       ? "bg-green-50 text-green-800 dark:bg-mint/10 dark:text-mint"
                       : "text-slate-500 hover:text-slate-900 dark:text-muted dark:hover:text-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {label}
                 </button>
               ))}
             </div>
@@ -361,20 +363,29 @@ export function SalesOrderList() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 rounded-2xl border-slate-200 bg-white dark:border-border dark:bg-background"
+                className="h-9 rounded-xl border-slate-200 bg-white px-2.5 dark:border-border dark:bg-background sm:px-3"
+                aria-label={selectMode ? "Cancel selecting" : "Select orders"}
+                title={selectMode ? "Cancel selecting" : "Select orders"}
                 onClick={() => {
                   setSelectMode((current) => !current);
                   clearSelection();
                 }}
               >
-                {selectMode ? "Cancel" : "Select"}
+                {selectMode ? (
+                  <XCircle className="h-4 w-4 sm:hidden" />
+                ) : (
+                  <ListChecks className="h-4 w-4 sm:hidden" />
+                )}
+                <span className="hidden sm:inline">
+                  {selectMode ? "Cancel" : "Select"}
+                </span>
               </Button>
             ) : null}
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-11 w-11 rounded-2xl border-slate-200 bg-white dark:border-border dark:bg-background"
+              className="h-9 w-9 rounded-xl border-slate-200 bg-white dark:border-border dark:bg-background"
               onClick={() => setSearchVisible((current) => !current)}
               aria-label="Toggle order search"
             >
@@ -384,7 +395,7 @@ export function SalesOrderList() {
               value={datePreset}
               onValueChange={(value: DatePreset) => setDatePreset(value)}
             >
-              <SelectTrigger className="h-11 min-w-[132px] rounded-2xl border-slate-200 bg-white shadow-sm dark:border-border dark:bg-background">
+              <SelectTrigger className="h-9 w-auto min-w-[96px] rounded-xl sm:min-w-[112px] border-slate-200 bg-white shadow-sm dark:border-border dark:bg-background">
                 <SelectValue placeholder="Today" />
               </SelectTrigger>
               <SelectContent>
@@ -397,12 +408,12 @@ export function SalesOrderList() {
         </div>
 
         {searchVisible ? (
-          <div className="mt-4">
+          <div className="mt-2.5">
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by order number or customer..."
-              className="h-12 rounded-2xl border-slate-200 bg-white pl-4 shadow-sm dark:border-border dark:bg-background"
+              className="h-10 rounded-xl border-slate-200 bg-white pl-4 shadow-sm dark:border-border dark:bg-background"
             />
           </div>
         ) : null}
