@@ -7,7 +7,7 @@ import type {
   SalesOrderEdit,
   SalesOrderEditListItem,
 } from "@/core/domain/entities/SalesOrderEdit";
-import type { SalesOrder } from "@/core/domain/entities/SalesOrder";
+import type { BulkDeleteResult, SalesOrder } from "@/core/domain/entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
 import { toSalesOrder } from "@/core/application/mappers/SalesOrderMapper";
 import type { PaginatedResult } from "@/core/domain/types/pagination";
@@ -102,6 +102,21 @@ export class ApiSalesOrderRepository implements ISalesOrderRepository {
 
   async delete(id: string): Promise<void> {
     await this.httpClient.delete(API_ENDPOINTS.SALES_ORDERS.DELETE(id));
+  }
+
+  async bulkDelete(ids: string[], preview: boolean): Promise<BulkDeleteResult> {
+    const result = await this.httpClient.post<BulkDeleteResult>(
+      API_ENDPOINTS.SALES_ORDERS.BULK_DELETE,
+      { ids, preview },
+    );
+    return {
+      deleted: (result?.deleted ?? []).map((order) => ({
+        ...order,
+        grandTotal: Number(order.grandTotal) || 0,
+        warnings: order.warnings ?? [],
+      })),
+      skipped: result?.skipped ?? [],
+    };
   }
 
   async getEdits(id: string): Promise<SalesOrderEdit[]> {
