@@ -6,7 +6,7 @@ import { Modal } from "@/presentation/components/modal/Modal";
 import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
-import { useUpdateUser } from "@/presentation/hooks/useUsers";
+import { useResetUserPassword } from "@/presentation/hooks/usePasswords";
 import { useToast } from "@/presentation/providers/ToastProvider";
 import { getHttpErrorMessage } from "@/lib/http-error";
 import type { AppUser } from "@/core/domain/entities/AppUser";
@@ -22,7 +22,7 @@ export function ResetPasswordDialog({
   user: AppUser | null;
   onClose: () => void;
 }) {
-  const update = useUpdateUser();
+  const update = useResetUserPassword();
   const toast = useToast();
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
@@ -49,7 +49,7 @@ export function ResetPasswordDialog({
     setTouched(true);
     if (!user || problem) return;
     update.mutate(
-      { id: String(user.id), data: { password } },
+      { id: String(user.id), newPassword: password },
       {
         onSuccess: () => {
           toast.success(`New password set for ${user.fullName || user.username}. Give it to them in person.`);
@@ -69,7 +69,7 @@ export function ResetPasswordDialog({
         user ? (
           <>
             Set a new password for <strong>{user.fullName || user.username}</strong>
-            {user.username ? ` (${user.username})` : ""}. Their old password stops working.
+            {user.username ? ` (${user.username})` : ""}. Their old password stops working, and a locked account is unlocked.
           </>
         ) : undefined
       }
