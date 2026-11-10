@@ -1,0 +1,93 @@
+name: Production CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate deployment scripts
+        run: |
+          for script in deployment/deploy.sh deployment/smoke-test.sh; do bash -n "$script"; done
+          shellcheck deployment/deploy.sh deployment/smoke-test.sh
+      - name: Build production image (includes TypeScript validation)
+        run: |
+          docker build --build-arg NEXT_PUBLIC_API_URL=https://visionproduction.mmlnkits.com/api \
+            --build-arg APP_REVISION="$GITHUB_SHA" \
+            -t "visionproduction-web:$GITHUB_SHA" .
+      - name: Smoke test image without production credentials
+        run: |
+          docker run -d --name visionproduction-ci -p 127.0.0.1:18083:3000 \
+            -e AUTH_SECRET="$(openssl rand -hex 32)" \
+            -e AUTH_URL=http://127.0.0.1:18083 -e AUTH_TRUST_HOST=true \
+            "visionproduction-web:$GITHUB_SHA"
+          bash deployment/smoke-test.sh visionproduction-ci http://127.0.0.1:18083
+      - name: Container diagnostics and cleanup
+        if: always()
+        run: |
+          docker logs --tail 80 visionproduction-ci 2>&1 || true
+          docker rm -f visionproduction-ci 2>/dev/null || true
+      - name: Package tested image
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: docker save "visionproduction-web:$GITHUB_SHA" | gzip > image.tar.gz
+      - name: Store image for deployment
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: production-image-${{ github.sha }}
+          path: image.tar.gz
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy production
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: visionproduction-production
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: https://visionproduction.mmlnkits.com
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: production-image-${{ github.sha }}
+      - name: Deploy tested image over restricted SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          trap 'rm -f "$HOME/.ssh/production_key"' EXIT
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/production_key"
+          chmod 600 "$HOME/.ssh/production_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          ssh -T -i "$HOME/.ssh/production_key" \
+            -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=20 \
+            root@118.27.147.101 "deploy $GITHUB_SHA" < image.tar.gz
+      - name: Public HTTPS verification
+        run: |
+          for path in /login /api/auth/session /api/auth/providers; do
+            code=$(curl --silent --show-error --max-time 20 --output /dev/null \
+              --write-out '%{http_code}' "https://visionproduction.mmlnkits.com$path")
+            test "$code" = 200 || { echo "Unexpected response: $path $code"; exit 1; }
+          done

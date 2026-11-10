@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Production deployment
+
+GitHub Actions validates pull requests and automatically deploys tested `main`
+images to production. See [deployment/README.md](deployment/README.md) for setup,
+secrets, health checks, rollback, and operational limitations.
+
 ## Getting Started
 
 First, run the development server:
