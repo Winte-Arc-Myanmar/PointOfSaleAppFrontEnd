@@ -12,7 +12,8 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { TAB_STORAGE_KEY } from "./tab-storage";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, LogOut, X } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, X } from "lucide-react";
+import { ChangePasswordDialog } from "@/features/auth/presentation/ChangePasswordDialog";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/presentation/hooks/useMediaQuery";
 import { AppLogo } from "@/presentation/components/brand/AppLogo";
@@ -82,6 +83,7 @@ export function SidebarMenu({
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const { canAny, isSystemAdmin } = usePermissions();
   const { t } = useLanguage();
+  const [changingPassword, setChangingPassword] = useState(false);
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [collapsedFlyoutGroupId, setCollapsedFlyoutGroupId] = useState<string | null>(
@@ -269,6 +271,21 @@ export function SidebarMenu({
           ) : null}
           <button
             type="button"
+            onClick={() => setChangingPassword(true)}
+            title={isCollapsed ? t("common.changePassword") : undefined}
+            className={cn(
+              "group flex w-full items-center rounded-lg text-sm font-medium text-gray-700 transition-colors hover:bg-[#54e3a1]/10 hover:text-[#177a55] dark:text-muted dark:hover:bg-mint/10 dark:hover:text-foreground",
+              isCollapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
+            )}
+          >
+            <KeyRound
+              className="size-5 shrink-0 text-gray-700 transition-colors group-hover:text-[#2bc787] dark:text-muted"
+              strokeWidth={2}
+            />
+            {!isCollapsed && <span>{t("common.changePassword")}</span>}
+          </button>
+          <button
+            type="button"
             onClick={() => {
               try {
                 localStorage.removeItem(TAB_STORAGE_KEY);
@@ -291,6 +308,10 @@ export function SidebarMenu({
           </button>
         </div>
       </motion.aside>
+      <ChangePasswordDialog
+        open={changingPassword}
+        onClose={() => setChangingPassword(false)}
+      />
     </>
   );
 }
