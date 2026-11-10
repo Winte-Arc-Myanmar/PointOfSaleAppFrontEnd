@@ -30,3 +30,27 @@ export interface SalesOrder {
   updatedAt?: string | null;
 }
 
+
+/** Something to know before deleting an order; it does not stop the delete. */
+export type BulkDeleteWarning = "OPEN" | "CLOSED_SHIFT";
+
+export interface BulkDeleteOrder {
+  id: string;
+  orderNumber: string;
+  status: string | null;
+  grandTotal: number;
+  createdAt: string;
+  warnings: BulkDeleteWarning[];
+}
+
+export interface BulkDeleteSkipped {
+  id: string;
+  orderNumber: string | null;
+  reason: string;
+}
+
+export interface BulkDeleteResult {
+  /** Deleted, or on a preview, what would be. */
+  deleted: BulkDeleteOrder[];
+  skipped: BulkDeleteSkipped[];
+}

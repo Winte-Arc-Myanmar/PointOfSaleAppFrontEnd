@@ -1,4 +1,4 @@
-import type { SalesOrder } from "../entities/SalesOrder";
+import type { BulkDeleteResult, SalesOrder } from "../entities/SalesOrder";
 import type { SalesOrderDto } from "@/core/application/dtos/SalesOrderDto";
 import type { PaginatedResult } from "../types/pagination";
 import type {
@@ -36,6 +36,7 @@ export interface ISalesOrderRepository {
     data: Omit<SalesOrderDto, "id" | "createdAt" | "updatedAt">
   ): Promise<SalesOrder>;
   delete(id: string): Promise<void>;
+  bulkDelete(ids: string[], preview: boolean): Promise<BulkDeleteResult>;
   getEdits(id: string): Promise<SalesOrderEdit[]>;
   getAllEdits(
     params?: GetSalesOrderEditsParams
