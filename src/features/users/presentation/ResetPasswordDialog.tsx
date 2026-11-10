@@ -74,6 +74,9 @@ export function ResetPasswordDialog({
         ) : undefined
       }
       maxWidth="md"
+      flush
+      headerVariant="mint"
+      bodyClassName="px-6 py-5"
       footer={
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={close}>
