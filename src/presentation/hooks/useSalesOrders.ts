@@ -91,6 +91,21 @@ export function useDeleteSalesOrder() {
   });
 }
 
+/** Deletes several orders; with `preview`, only says what would happen. */
+export function useBulkDeleteSalesOrders() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, preview }: { ids: string[]; preview: boolean }) => {
+      const service = container.resolve<ISalesOrderService>("salesOrderService");
+      return service.bulkDelete(ids, preview);
+    },
+    onSuccess: (result, { preview }) => {
+      if (!preview && result.deleted.length) {
+        queryClient.invalidateQueries({ queryKey: SALES_ORDERS_QUERY_KEY });
+      }
+    },
+  });
+}
 
 export function useSalesOrderEdits(id: string | null) {
   return useQuery({
