@@ -108,6 +108,9 @@ export function ChangePasswordDialog({
       title="Change password"
       description="Enter your current password, then the new one twice."
       maxWidth="md"
+      flush
+      headerVariant="mint"
+      bodyClassName="px-6 py-5"
       footer={
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={close}>
