@@ -7,6 +7,7 @@ export const translations = {
     common: {
       menu: "Menu",
       signOut: "Sign out",
+      changePassword: "Change password",
       more: "more",
       openMenu: "Open menu",
       collapseSidebar: "Collapse sidebar",
@@ -504,6 +505,7 @@ export const translations = {
     common: {
       menu: "မီနူး",
       signOut: "ထွက်မည်",
+      changePassword: "စကားဝှက် ပြောင်းမည်",
       more: "ထပ်ရှိ",
       openMenu: "မီနူးဖွင့်ရန်",
       collapseSidebar: "ဘေးဘား ချုံ့ရန်",
