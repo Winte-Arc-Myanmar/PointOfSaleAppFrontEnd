@@ -43,7 +43,7 @@ import { KIND_LABEL, PLACE_LABEL, soldAtLabel, soldByLabel } from "./product-kin
 const DETAIL_TABS = [
   { key: "overview", label: "Overview", icon: Package },
   { key: "category", label: "Category", icon: FolderTree },
-  { key: "tax", label: "Price & Tax", icon: Receipt },
+  { key: "tax", label: "Price, Tax & Variants", icon: Receipt },
   { key: "stock", label: "Stock", icon: Warehouse },
   { key: "recordInfo", label: "Record Info", icon: Info },
 ] as const;
@@ -381,10 +381,20 @@ export function ProductDetail({ productId }: { productId: string }) {
         </div>
       )}
 
+      {activeTab === "tax" && (
+        <ProductVariantSection
+          product={{
+            id: String(product.id),
+            name: product.name,
+            basePrice: Number(product.basePrice) || 0,
+            baseSku: product.baseSku,
+          }}
+        />
+      )}
+
       {activeTab === "stock" && (
         <div className="space-y-5">
           <InventoryBalancePanel />
-          <ProductVariantSection productId={productId} />
         </div>
       )}
     </div>
