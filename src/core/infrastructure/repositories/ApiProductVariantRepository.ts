@@ -20,6 +20,14 @@ import {
   parsePaginatedResponse,
 } from "../api/parsePaginatedResponse";
 
+/** The API takes a price as decimal text ("1000.0000"), not a JSON number. */
+function asRequest(data: Partial<Omit<ProductVariantDto, "id">>) {
+  const { priceModifier, ...rest } = data;
+  return priceModifier === undefined || priceModifier === null
+    ? rest
+    : { ...rest, priceModifier: Number(priceModifier).toFixed(4) };
+}
+
 export class ApiProductVariantRepository implements IProductVariantRepository {
   constructor(private readonly httpClient: HttpClient) {}
 
@@ -62,7 +70,7 @@ export class ApiProductVariantRepository implements IProductVariantRepository {
   ): Promise<ProductVariant> {
     const dto = await this.httpClient.post<ProductVariantDto>(
       API_ENDPOINTS.PRODUCTS.VARIANTS(productId).CREATE,
-      data
+      asRequest(data)
     );
     if (!dto?.id) throw new Error("Create variant response missing id");
     return toProductVariant(productId, dto as ProductVariantDto & { id: string });
@@ -76,7 +84,7 @@ export class ApiProductVariantRepository implements IProductVariantRepository {
     const endpoints = API_ENDPOINTS.PRODUCTS.VARIANTS(productId);
     const dto = await this.httpClient.patch<ProductVariantDto>(
       endpoints.UPDATE(id),
-      data
+      asRequest(data)
     );
     return toProductVariant(productId, {
       ...dto,

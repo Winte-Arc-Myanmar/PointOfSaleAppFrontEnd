@@ -1,72 +1,58 @@
 import type { DataTableColumn } from "@/presentation/components/data-table";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
+import { formatMoney } from "@/lib/money";
+import { variantName } from "./variant-name";
 
-export function getVariantTableColumns(): DataTableColumn<ProductVariant>[] {
+const signed = (value: number) =>
+  `${value < 0 ? "−" : "+"}${formatMoney(Math.abs(value))}`;
+
+export function getVariantTableColumns(
+  basePrice: number,
+): DataTableColumn<ProductVariant>[] {
   return [
     {
-      key: "variantSku",
-      header: "Variant SKU",
-      sortable: true,
-      className: "min-w-[140px] max-w-[220px]",
+      key: "matrixOptions",
+      header: "Name",
+      className: "min-w-[140px] max-w-[240px]",
       render: (v) => (
-        <span className="font-medium text-foreground truncate" title={v.variantSku}>
-          {v.variantSku}
+        <span className="truncate font-medium text-foreground" title={variantName(v)}>
+          {variantName(v)}
         </span>
       ),
     },
     {
-      key: "matrixOptions",
-      header: "Options",
+      key: "priceModifier",
+      header: "Extra price",
+      className: "min-w-[100px] whitespace-nowrap",
+      render: (v) => (
+        <span className="tabular-nums text-muted">{signed(Number(v.priceModifier) || 0)}</span>
+      ),
+    },
+    {
+      key: "sellsAt",
+      header: "Sells at",
+      className: "min-w-[100px] whitespace-nowrap",
+      render: (v) => (
+        <span className="font-semibold tabular-nums text-foreground">
+          {formatMoney(Number(basePrice || 0) + (Number(v.priceModifier) || 0))}
+        </span>
+      ),
+    },
+    {
+      key: "variantSku",
+      header: "SKU",
       className: "min-w-[120px] max-w-[200px]",
       render: (v) => (
-        <span className="text-muted truncate" title={JSON.stringify(v.matrixOptions)}>
-          {Object.entries(v.matrixOptions ?? {})
-            .map(([k, val]) => `${k}: ${val}`)
-            .join(", ") || "—"}
+        <span className="truncate font-mono text-xs text-muted" title={v.variantSku}>
+          {v.variantSku}
         </span>
       ),
     },
     {
       key: "barcode",
       header: "Barcode",
-      className: "min-w-[100px] max-w-[160px]",
-      render: (v) => (
-        <span className="text-muted">{v.barcode ?? "—"}</span>
-      ),
-    },
-    {
-      key: "priceModifier",
-      header: "Price modifier",
-      className: "min-w-[80px] max-w-[120px]",
-      render: (v) => (
-        <span className="text-muted">
-          {typeof v.priceModifier === "number" ? v.priceModifier : "—"}
-        </span>
-      ),
-    },
-    {
-      key: "createdAt",
-      header: "Created at",
-      className: "min-w-[140px] max-w-[180px]",
-      render: (v) => (
-        <span className="text-muted text-xs">{v.createdAt ?? "—"}</span>
-      ),
-    },
-    {
-      key: "updatedAt",
-      header: "Updated at",
-      className: "min-w-[140px] max-w-[180px]",
-      render: (v) => (
-        <span className="text-muted text-xs">{v.updatedAt ?? "—"}</span>
-      ),
-    },
-    {
-      key: "deletedAt",
-      header: "Deleted at",
-      className: "min-w-[140px] max-w-[180px]",
-      render: (v) => (
-        <span className="text-muted text-xs">{v.deletedAt ?? "—"}</span>
-      ),
+      className: "hidden min-w-[100px] max-w-[160px] md:table-cell",
+      render: (v) => <span className="text-muted">{v.barcode || "—"}</span>,
     },
   ];
 }

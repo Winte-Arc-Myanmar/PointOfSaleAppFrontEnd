@@ -79,6 +79,8 @@ export const API_ENDPOINTS = {
     REGISTER: "/v1/auth/register",
     /** POST - a manager's one-action approval; 401 means their password was wrong */
     APPROVE: "/v1/auth/approve",
+    /** POST - change your own password; 400 means the current one was wrong */
+    CHANGE_PASSWORD: "/v1/auth/change-password",
   },
   USERS: {
     LIST: "/v1/users",
@@ -86,6 +88,7 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/users",
     UPDATE: (id: string) => `/v1/users/${id}`,
     DELETE: (id: string) => `/v1/users/${id}`,
+    RESET_PASSWORD: (id: string) => `/v1/users/${id}/reset-password`,
   },
   UOM_CLASSES: {
     LIST: "/v1/uom-classes",

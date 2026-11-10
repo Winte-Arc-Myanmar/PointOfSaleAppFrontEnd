@@ -9,17 +9,18 @@ import { FormModal } from "@/presentation/components/modal/FormModal";
 import { EntityListWithCreateModal } from "@/presentation/components/list/EntityListWithCreateModal";
 import { getVariantRowActions } from "./variant-row-actions";
 import { getVariantTableColumns } from "./variant-table-columns";
-import { CreateVariantForm } from "./CreateVariantForm";
-import { EditVariantForm } from "./EditVariantForm";
+import { VariantForm, type VariantProduct } from "./VariantForm";
+import { variantName } from "./variant-name";
 import type { ProductVariant } from "@/core/domain/entities/ProductVariant";
 
 const CREATE_VARIANT_FORM_ID = "create-variant-form";
 const EDIT_VARIANT_FORM_ID = "edit-variant-form";
 const PAGE_SIZE = 10;
 
-export function ProductVariantSection({ productId }: { productId: string }) {
+export function ProductVariantSection({ product }: { product: VariantProduct }) {
+  const productId = product.id;
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
   const [editFormLoading, setEditFormLoading] = useState(false);
 
   const pagination = usePagination({ pageSize: PAGE_SIZE });
@@ -36,13 +37,13 @@ export function ProductVariantSection({ productId }: { productId: string }) {
     () =>
       getVariantRowActions({
         onEdit: (v) => {
-          setEditingVariantId(v.id);
+          setEditingVariant(v);
           setEditModalOpen(true);
         },
         onDelete: async (v) => {
           const ok = await confirm({
             title: "Delete variant",
-            description: `Delete "${v.variantSku}"? This cannot be undone.`,
+            description: `Delete "${variantName(v)}" from ${product.name}? This cannot be undone.`,
             confirmLabel: "Delete",
             variant: "destructive",
           });
@@ -54,10 +55,13 @@ export function ProductVariantSection({ productId }: { productId: string }) {
           }
         },
       }),
-    [deleteVariant, toast, confirm]
+    [deleteVariant, toast, confirm, product.name]
   );
 
-  const columns = useMemo(() => getVariantTableColumns(), []);
+  const columns = useMemo(
+    () => getVariantTableColumns(product.basePrice),
+    [product.basePrice],
+  );
 
   return (
     <>
@@ -68,7 +72,7 @@ export function ProductVariantSection({ productId }: { productId: string }) {
         actions={actions}
         isLoading={isLoading}
         loadingText="Loading variants..."
-        emptyText="No variants yet."
+        emptyText="No variants yet. A product with one variant shows on the POS as just its name."
         error={
           error
             ? {
@@ -82,15 +86,15 @@ export function ProductVariantSection({ productId }: { productId: string }) {
         totalPages={variantsResult?.totalPages ?? pagination.getTotalPages(variantsResult?.total)}
         totalItems={variantsResult?.total ?? 0}
         onPageChange={pagination.setPage}
-        addLabel="Add Variant"
-        createTitle="Create Variant"
-        createSubmitText="Create Variant"
-        createLoadingText="Creating..."
+        addLabel="Add variant"
+        createTitle={`Add variant · ${product.name}`}
+        createSubmitText="Save"
+        createLoadingText="Saving..."
         createFormId={CREATE_VARIANT_FORM_ID}
         createMaxWidth="lg"
         renderCreateForm={({ formId, onSuccess, onLoadingChange }) => (
-          <CreateVariantForm
-            productId={productId}
+          <VariantForm
+            product={product}
             formId={formId}
             onSuccess={onSuccess}
             onLoadingChange={onLoadingChange}
@@ -101,25 +105,26 @@ export function ProductVariantSection({ productId }: { productId: string }) {
         isOpen={editModalOpen}
         onClose={() => {
           setEditModalOpen(false);
-          setEditingVariantId(null);
+          setEditingVariant(null);
         }}
-        title="Edit Variant"
+        title={editingVariant ? `Edit ${variantName(editingVariant)} · ${product.name}` : "Edit variant"}
         formId={EDIT_VARIANT_FORM_ID}
         formContent={
-          editingVariantId ? (
-            <EditVariantForm
-              productId={productId}
-              variantId={editingVariantId}
+          editingVariant ? (
+            <VariantForm
+              key={String(editingVariant.id)}
+              product={product}
+              variant={editingVariant}
               formId={EDIT_VARIANT_FORM_ID}
               onSuccess={() => {
                 setEditModalOpen(false);
-                setEditingVariantId(null);
+                setEditingVariant(null);
               }}
               onLoadingChange={setEditFormLoading}
             />
           ) : null
         }
-        submitText="Save changes"
+        submitText="Save"
         loadingText="Saving..."
         isLoading={editFormLoading}
         maxWidth="lg"
