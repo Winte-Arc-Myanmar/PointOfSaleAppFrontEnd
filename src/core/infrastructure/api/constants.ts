@@ -362,6 +362,7 @@ export const API_ENDPOINTS = {
     CREATE: "/v1/sales-orders",
     UPDATE: (id: string) => `/v1/sales-orders/${id}`,
     DELETE: (id: string) => `/v1/sales-orders/${id}`,
+    BULK_DELETE: "/v1/sales-orders/bulk-delete",
     LINES: (salesOrderId: string) => ({
       LIST: `/v1/sales-orders/${salesOrderId}/lines`,
       BY_ID: (id: string) => `/v1/sales-orders/${salesOrderId}/lines/${id}`,
