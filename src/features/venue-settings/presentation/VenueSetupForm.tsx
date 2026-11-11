@@ -36,7 +36,7 @@ function Switch({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed",
-        checked ? "bg-emerald-500" : "bg-muted-foreground/30",
+        checked ? "bg-emerald-500" : "bg-muted",
       )}
     >
       <span
@@ -263,6 +263,12 @@ const SERVICE_CHARGE_ON = [
   { key: "serviceChargeOnKtv", title: "shopSettings.serviceChargeOnKtv" },
 ] as const;
 
+const TAX_AREAS = [
+  { on: "taxOnBar", shown: "taxShownBar", title: "shopSettings.serviceChargeOnBar" },
+  { on: "taxOnSpa", shown: "taxShownSpa", title: "shopSettings.serviceChargeOnSpa" },
+  { on: "taxOnKtv", shown: "taxShownKtv", title: "shopSettings.serviceChargeOnKtv" },
+] as const;
+
 const LIMIT_FOR = [
   { value: "ITEM", title: "shopSettings.perItem" },
   { value: "BILL", title: "shopSettings.perBill" },
@@ -307,6 +313,12 @@ export function VenueSetupForm() {
     serviceChargeOnBar: saved.serviceChargeOnBar ?? true,
     serviceChargeOnSpa: saved.serviceChargeOnSpa ?? true,
     serviceChargeOnKtv: saved.serviceChargeOnKtv ?? true,
+    taxOnBar: saved.taxOnBar ?? true,
+    taxOnSpa: saved.taxOnSpa ?? true,
+    taxOnKtv: saved.taxOnKtv ?? true,
+    taxShownBar: saved.taxShownBar ?? true,
+    taxShownSpa: saved.taxShownSpa ?? true,
+    taxShownKtv: saved.taxShownKtv ?? true,
     hostessMenuCommissionBps: saved.hostessMenuCommissionBps ?? 0,
     ...edits,
   };
@@ -432,6 +444,38 @@ export function VenueSetupForm() {
                 />
               ))}
             </div>
+            <p className="pt-2 text-sm font-medium">{t("shopSettings.taxByArea")}</p>
+            <div className="overflow-hidden rounded-xl border border-border">
+              <div className="grid grid-cols-[1fr_5.5rem_5.5rem] items-center px-3 py-2 text-xs text-muted">
+                <span />
+                <span className="text-center">{t("shopSettings.chargeTax")}</span>
+                <span className="text-center">{t("shopSettings.showTax")}</span>
+              </div>
+              {TAX_AREAS.map((area) => (
+                <div
+                  key={area.on}
+                  className="grid grid-cols-[1fr_5.5rem_5.5rem] items-center border-t border-border px-3 py-2"
+                >
+                  <span className="text-sm font-medium">{t(area.title)}</span>
+                  <span className="flex justify-center">
+                    <Switch
+                      label={`${t(area.title)}: ${t("shopSettings.chargeTax")}`}
+                      checked={draft[area.on]}
+                      onChange={(v) => set({ [area.on]: v })}
+                    />
+                  </span>
+                  <span className={cn("flex justify-center", !draft[area.on] && "opacity-50")}>
+                    <Switch
+                      label={`${t(area.title)}: ${t("shopSettings.showTax")}`}
+                      checked={draft[area.on] && draft[area.shown]}
+                      disabled={!draft[area.on]}
+                      onChange={(v) => set({ [area.shown]: v })}
+                    />
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted">{t("shopSettings.taxByAreaHint")}</p>
           </Panel>
           <Panel icon={ConciergeBell} title={t("shopSettings.serviceCharge")} className="space-y-3">
             <div className="flex items-center gap-2 pt-1">
