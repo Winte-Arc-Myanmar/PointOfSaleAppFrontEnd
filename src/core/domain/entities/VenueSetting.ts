@@ -38,6 +38,14 @@ export interface VenueSetting {
   serviceChargeOnBar: boolean;
   serviceChargeOnSpa: boolean;
   serviceChargeOnKtv: boolean;
+  /** Which areas charge tax; off adds none, not even on the service charge. */
+  taxOnBar: boolean;
+  taxOnSpa: boolean;
+  taxOnKtv: boolean;
+  /** Which areas show the tax line on the POS and slips; hidden tax is still charged. */
+  taxShownBar: boolean;
+  taxShownSpa: boolean;
+  taxShownKtv: boolean;
   /** A hostess's commission on what she orders, in basis points (500 = 5%), unless she has her own. */
   hostessMenuCommissionBps: number;
   updatedAt: string | null;
