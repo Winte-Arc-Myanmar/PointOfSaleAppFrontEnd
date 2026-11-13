@@ -1,6 +1,7 @@
 "use client";
 
 import { OutletSelect } from "@/features/locations/presentation/OutletSelect";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { InfoTip } from "@/presentation/components/ui/info-tip";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -123,7 +124,7 @@ export function EditPosRegisterForm({ registerId }: { registerId: string }) {
           setShowSuccess(true);
           setTimeout(() => router.push(`/pos-registers/${registerId}`), REDIRECT_DELAY_MS);
         },
-        onError: () => toast.error("Failed to update POS register."),
+        onError: (error) => toast.error(getHttpErrorMessage(error, "Failed to update POS register.")),
       }
     );
   };

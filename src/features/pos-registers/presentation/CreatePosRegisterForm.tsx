@@ -13,6 +13,7 @@ import { Button } from "@/presentation/components/ui/button";
 import { Input } from "@/presentation/components/ui/input";
 import { Label } from "@/presentation/components/ui/label";
 import { generateBrowserDeviceId } from "@/lib/device-fingerprint";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import {
   Select,
   SelectContent,
@@ -111,7 +112,7 @@ export function CreatePosRegisterForm({
           form.reset(defaultValues);
           onSuccess?.();
         },
-        onError: () => toast.error("Failed to create POS register."),
+        onError: (error) => toast.error(getHttpErrorMessage(error, "Failed to create POS register.")),
       }
     );
   };
@@ -163,6 +164,9 @@ export function CreatePosRegisterForm({
         <div className="grid gap-2">
           <Label>Name</Label>
           <Input {...form.register("name")} placeholder="Register 1" />
+          {form.formState.errors.name && (
+            <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+          )}
         </div>
         <div className="grid gap-2">
           <Label>
@@ -183,6 +187,9 @@ export function CreatePosRegisterForm({
               Generate device ID
             </Button>
           </div>
+          {form.formState.errors.macAddress && (
+            <p className="text-sm text-red-600">{form.formState.errors.macAddress.message}</p>
+          )}
         </div>
       </div>
 
