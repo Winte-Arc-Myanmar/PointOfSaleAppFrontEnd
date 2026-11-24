@@ -8,6 +8,7 @@ export const REPORT_TAB_GROUPS = [
     label: "Sales",
     tabs: [
       { id: "sales-summary", label: "Summary" },
+      { id: "sale-summary", label: "Sale summary" },
       { id: "item-sales", label: "Items" },
       { id: "sales-groups", label: "By group" },
       { id: "category", label: "Categories" },
