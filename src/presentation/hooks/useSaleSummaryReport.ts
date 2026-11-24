@@ -18,7 +18,14 @@ export interface SaleSummaryCategoryRow {
   amount: string;
 }
 
+export interface SaleSummaryGroup {
+  rows: SaleSummaryRow[];
+  count: number;
+  amount: string;
+}
+
 export interface SaleSummaryReport {
+  shopName: string | null;
   from: string;
   to: string;
   locationIds: string[] | null;
@@ -30,10 +37,14 @@ export interface SaleSummaryReport {
     promotion: SaleSummaryRow;
     tips: SaleSummaryRow;
     refund: SaleSummaryRow;
+    total: string;
+    receivable: string;
     totalSales: string;
     totalOrders: number;
+    returnQuantity: string;
   };
-  payments: { rows: SaleSummaryRow[]; count: number; amount: string };
+  payments: SaleSummaryGroup & { receipts: SaleSummaryGroup; excluded: SaleSummaryGroup };
+  cashDrawer: { pettyCash: string; orderRevenue: string; cashRefunds: string; estimated: string };
   categories: { rows: SaleSummaryCategoryRow[]; quantity: string; amount: string };
   orderTypes: { rows: SaleSummaryRow[]; count: number; amount: string };
 }
