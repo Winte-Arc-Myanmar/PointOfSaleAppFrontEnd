@@ -13,70 +13,109 @@ type SlipLine =
 
 const kyat = (value: string | number) => {
   const n = Number(value);
-  return Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "0";
+  return `Ks ${Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "0"}`;
 };
 
-const quantity = (value: string) => {
+const quantity = (value: string | number) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return "0";
   return Number.isInteger(n) ? n.toLocaleString("en-US") : n.toFixed(2).replace(/\.?0+$/, "");
 };
 
+const dayMonthYear = (date: string) => date.split("-").reverse().join("-");
+
+const twoDigits = (n: number) => String(n).padStart(2, "0");
+const printedAt = (now: Date) =>
+  `${twoDigits(now.getDate())}-${twoDigits(now.getMonth() + 1)}-${now.getFullYear()} ` +
+  `${twoDigits(now.getHours())}:${twoDigits(now.getMinutes())}:${twoDigits(now.getSeconds())}`;
+
+const slipLabel = (label: string) =>
+  label.replace(/^Service charge \(/, "Service Charges(").replace(/^Tax \(/, "Tax(");
+
 export function saleSummarySlipLines(
   report: SaleSummaryReport,
-  scope: { outlet: string; period: string },
+  scope: { outlet: string; printedBy: string | null; now?: Date },
 ): SlipLine[] {
   const s = report.sales;
   const row = (r: { label: string; count: number; amount: string }): SlipLine => ({
     kind: "row",
-    label: r.label,
+    label: slipLabel(r.label),
     count: r.count.toLocaleString("en-US"),
     amount: kyat(r.amount),
   });
-  const salesRows = [s.subtotal, s.serviceCharge, s.tax, s.discount, s.promotion]
-    .concat(Number(s.tips.amount) > 0 ? [s.tips] : [])
-    .concat([s.refund]);
+  const plain = (label: string, amount: string): SlipLine => ({ kind: "row", label, count: "", amount });
+  const total = (g: { count: number; amount: string }, label = "Total"): SlipLine => ({
+    kind: "row",
+    label,
+    count: g.count.toLocaleString("en-US"),
+    amount: kyat(g.amount),
+  });
+  const section = (text: string): SlipLine[] => [{ kind: "heading", text }, { kind: "rule" }];
+  const drawer = report.cashDrawer;
+  const period =
+    report.from === report.to
+      ? dayMonthYear(report.from)
+      : `${dayMonthYear(report.from)} to ${dayMonthYear(report.to)}`;
 
   return [
-    { kind: "title", text: "SALE SUMMARY REPORT" },
-    { kind: "center", text: scope.outlet },
-    { kind: "center", text: scope.period },
+    { kind: "title", text: report.shopName || scope.outlet },
+    { kind: "center", text: "Sales Summary" },
+    { kind: "center", text: period },
+    ...(report.shopName && scope.outlet !== "All outlets" ? [{ kind: "center" as const, text: scope.outlet }] : []),
+    { kind: "center", text: `Print: ${scope.printedBy ?? ""}|${printedAt(scope.now ?? new Date())}` },
     { kind: "rule" },
-    { kind: "heading", text: "Sale Summary" },
-    ...salesRows.map(row),
-    { kind: "row", label: "Total Sales", count: "", amount: kyat(s.totalSales) },
-    { kind: "row", label: "Total Sale Orders", count: "", amount: s.totalOrders.toLocaleString("en-US") },
+    ...section("Sales Summary"),
+    plain("Settled Order", s.totalOrders.toLocaleString("en-US")),
+    plain("Return quantity", quantity(s.returnQuantity)),
     { kind: "rule" },
-    { kind: "heading", text: "Payment Summary" },
-    ...report.payments.rows.map(row),
-    {
-      kind: "row",
-      label: "Total Sales",
-      count: report.payments.count.toLocaleString("en-US"),
-      amount: kyat(report.payments.amount),
-    },
+    plain("Subtotal", kyat(s.subtotal.amount)),
+    row(s.discount),
+    row(s.promotion),
+    plain(slipLabel(s.serviceCharge.label), kyat(s.serviceCharge.amount)),
+    plain(slipLabel(s.tax.label), kyat(s.tax.amount)),
+    ...(Number(s.tips.amount) > 0 ? [plain("Tips", kyat(s.tips.amount))] : []),
+    row(s.refund),
     { kind: "rule" },
-    { kind: "heading", text: "Category Summary" },
+    plain("Total", kyat(s.total)),
+    plain("Receivable", kyat(s.receivable)),
+    { kind: "rule" },
+    ...section("Payment Summary"),
+    ...section("Receipts"),
+    total(report.payments.receipts),
+    { kind: "rule" },
+    ...report.payments.receipts.rows.map(row),
+    { kind: "rule" },
+    ...section("Exclude Receipts"),
+    total(report.payments.excluded),
+    { kind: "rule" },
+    ...report.payments.excluded.rows.map(row),
+    { kind: "rule" },
+    ...section("Cash Drawer Verification"),
+    plain("Petty Cash", kyat(drawer.pettyCash)),
+    plain("Order Revenue", kyat(drawer.orderRevenue)),
+    ...(Number(drawer.cashRefunds) > 0 ? [plain("Cash Refunds", `-${kyat(drawer.cashRefunds)}`)] : []),
+    { kind: "rule" },
+    plain("Estimated Amount", kyat(drawer.estimated)),
+    { kind: "rule" },
+    ...section("Category Summary"),
+    { kind: "row", label: "Total", count: quantity(report.categories.quantity), amount: kyat(report.categories.amount) },
+    { kind: "rule" },
     ...report.categories.rows.map(
       (r): SlipLine => ({ kind: "row", label: r.label, count: quantity(r.quantity), amount: kyat(r.amount) }),
     ),
     { kind: "rule" },
-    { kind: "heading", text: "Sale Orders Summary" },
+    ...section("Order Type"),
+    total(report.orderTypes),
+    { kind: "rule" },
     ...report.orderTypes.rows.map(row),
-    {
-      kind: "row",
-      label: "Total Orders",
-      count: report.orderTypes.count.toLocaleString("en-US"),
-      amount: kyat(report.orderTypes.amount),
-    },
     { kind: "rule" },
   ];
 }
 
 /** One slip line in fixed columns: label, count, amount. A long label wraps. */
 function rowText(line: Extract<SlipLine, { kind: "row" }>, width: number): string[] {
-  const amountWidth = 11;
-  const countWidth = 5;
+  const amountWidth = 14;
+  const countWidth = 6;
   const labelWidth = width - amountWidth - countWidth;
   const tail = line.count.padStart(countWidth) + line.amount.padStart(amountWidth);
   const words = line.label.split(/\s+/);
@@ -120,8 +159,8 @@ export function buildSaleSummarySlip(
       encoder.align("center").line(line.text.slice(0, width)).align("left");
       html.push(`<div class="center">${escapeHtml(line.text)}</div>`);
     } else if (line.kind === "heading") {
-      encoder.align("left").line(line.text);
-      html.push(`<div class="heading">${escapeHtml(line.text.padEnd(width))}</div>`);
+      encoder.align("center").line(line.text).align("left");
+      html.push(`<div class="heading">${escapeHtml(line.text)}</div>`);
     } else {
       const texts = rowText(line, width);
       for (const text of texts) {
@@ -184,7 +223,7 @@ export function buildSaleSummarySlip(
 
 export async function printSaleSummarySlip(
   report: SaleSummaryReport,
-  scope: { outlet: string; period: string },
+  scope: { outlet: string; printedBy: string | null },
   options: { paperWidthMm: 58 | 80; mode: Required<ThermalPrintOptions>["mode"] },
 ): Promise<ThermalPrintResult> {
   const slip = buildSaleSummarySlip(saleSummarySlipLines(report, scope), options.paperWidthMm, true);
