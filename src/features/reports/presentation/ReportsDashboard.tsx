@@ -25,6 +25,7 @@ import {
 } from "./plain/OperationsPanels";
 import { OtherIncomePanel } from "./plain/OtherIncomePanel";
 import { SalesSummaryPanel } from "./plain/SalesSummaryPanel";
+import { SaleSummaryReportPanel } from "./plain/SaleSummaryReportPanel";
 import { BarCategoriesPanel } from "./pos/BarCategoriesPanel";
 import { KtvSessionsPanel } from "./pos/KtvSessionsPanel";
 import { HostessesPanel } from "./pos/HostessesPanel";
@@ -142,6 +143,7 @@ export function ReportsDashboard() {
       <ReportScopeProvider value={scope}>
         <div data-print-reports className="space-y-8">
           {!rangeInvalid && tab === "sales-summary" && range ? <SalesSummaryPanel range={range} /> : null}
+          {!rangeInvalid && tab === "sale-summary" && range ? <SaleSummaryReportPanel range={range} scope={scope} /> : null}
           {!rangeInvalid && tab === "item-sales" && range ? <ItemSalesPanel range={range} /> : null}
           {!rangeInvalid && tab === "sales-groups" && range ? <SalesGroupsPanel range={range} /> : null}
           {!rangeInvalid && tab === "spa-summary" && range ? <SalesSummaryPanel range={range} posType="SPA" /> : null}
